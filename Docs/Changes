@@ -26,3 +26,5 @@ Alpha Series
 .40  o Third public test release
 	o copy bash_profile to /root in addition to /home/ish
 	o Moved project to github
+	o Fixed issue with executable bit not being set on stuff in /usr/local/bin
+	  after pull from github
