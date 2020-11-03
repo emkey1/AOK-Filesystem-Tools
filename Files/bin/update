@@ -1,0 +1,6 @@
+#!/bin/ash
+echo "Making sure we have the latest Alpine repository updates"
+apk update
+echo
+echo "Installing all pending updates"
+apk upgrade

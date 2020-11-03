@@ -1,0 +1,114 @@
+#!/bin/ash
+#
+# Build the custom emkey iSH image.  Assumes we are starting with the mini root from Alpine
+
+# Set some variables
+VERSION="Alpha .40"
+
+# First update apk DB
+
+echo
+echo "Initialize APK Database:"
+
+# apk update
+apk -U upgrade
+
+# Now add some essential packages
+
+echo
+echo "Add a minimal number of packages to make iSH useful"
+echo
+apk add openssh openssh-doc openrc openrc-doc bash tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano
+
+# Update/install a few key files
+
+# Set TZ to east coast US, because that is where I am
+cp /usr/share/zoneinfo/America/New_York /etc/localtime
+echo "America/New_York" >  /etc/timezone
+date
+
+echo
+echo "Updating a few key files"
+
+# Set a hostname (Can't currently sent hostname)
+# cp Files/hostname /etc
+
+# Move sshd to port 1022 to avoid issues
+cp Files/sshd_config /etc/ssh
+
+# /etc/init.d/networking keeps getting screwed up for unknown reasons.  Mitigate
+mkdir /root/init.d
+cp Files/init.d/* /root/init.d
+
+# Remove extra unused vty's
+cp Files/inittab /etc
+
+# Custom MOTD/issue
+rm /etc/motd
+cp Files/motd /etc
+rm /etc/issue
+cp Files/issue /etc
+
+# Sudoers stuff
+rm /etc/sudoers # Don't know why this is needed, but it is
+cp Files/sudoers /etc
+
+# Root .profile
+cp Files/profile /root/.profile
+
+
+# Add some simple scripts
+
+cp Files/bin/* /usr/local/bin
+# Make a link so that showip can also be 'myip'
+
+ln /usr/local/bin/showip /usr/local/bin/myip
+
+echo
+echo "Creating the ish user"
+
+useradd -s /bin/bash ish
+
+# For some reason useradd doesn't create the home dir?
+mkdir -p /home/ish
+chown ish.ish /home/ish
+
+
+# Add dot files for ish
+cp Files/bash_profile /home/ish/.bash_profile; chown ish.ish /home/ish/.bash_profile
+# Copy to root as well
+cp Files/bash_profile /root/
+
+# shadow fle with blank ish password
+cp Files/shadow /etc
+
+echo
+
+echo "Enabling openrc"
+
+mkdir /run/openrc
+touch /run/openrc/softlevel
+openrc-init
+
+echo
+echo "Enabling openrc run services"
+
+# Start syslog-ng
+#rc-update add syslog-ng
+rc-update add dcron
+
+
+# Copy some documentation to the ish user home directory
+
+echo 
+echo "Copying Docs"
+mkdir /home/ish/Docs
+cp Docs/* /home/ish/Docs
+chown -R ish.ish /home/ish/Docs
+
+# Networking, hostname and possibly others can't start because of current limitations in iSH
+# So we fake it out
+rm /etc/init.d/networking
+cp Files/init.d/* /etc/init.d
+
+echo "Done"

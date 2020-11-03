@@ -1,0 +1,24 @@
+#!/bin/ash
+
+# Check for race condition as two or even three iSH windows can launch on iPad
+# at startup
+
+scriptname=$(basename $0)
+lock="/var/run/${scriptname}"
+
+if [ ! -f $lock ]; then
+   touch $lock
+else
+   exit
+fi
+
+
+# See if locations services are running already
+CHECK=`ps -o args | grep "tail -f /dev/location" | wc -l`
+
+# Only run once.  The grep causes CHECK to equal 1
+if [[ $CHECK -eq 1 ]]; then
+   tail -f /dev/location > /dev/null &
+fi
+
+rm $lock

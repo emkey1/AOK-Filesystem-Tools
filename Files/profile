@@ -1,0 +1,22 @@
+# Start various things to make iSH more useful
+echo
+
+# Start the process that marginally reduces the chances of iSH
+# Getting killed while running in the background
+/usr/local/bin/rbg
+
+# /etc/init.d/networking keeps getting an extra } written at the end
+# For some unknown reason.  Overwrite it when we login to hopefully
+# mitigate that
+cp /root/init.d/networking /etc/init.d
+
+echo
+echo "-----------------------------------------------"
+echo
+echo  "Switching to non root ish account"
+echo
+echo "Use [31msudo[0m to run commands as root"
+echo
+echo "Enable sshd on port 1022: [31menable_sshd[0m"
+echo
+su - ish

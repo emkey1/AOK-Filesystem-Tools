@@ -1,0 +1,28 @@
+Alpha Series
+.1   o Proof of concept
+.20  o First public release
+        o Added openrc
+.30  o Second public test release
+        o Added modified networking script to /etc/init.d to allow networking
+          to "start" which in turn allows apache2 to start.  Apache2 appears to
+          work but I did very minimal testing
+        o Added mosh
+        o Moved sshd host key generation to enable_sshd where it belongs
+        o Added Emmanuel Rouat's bash_profile for ish user, modified it a bit to work 
+          with iSH
+        o Added fortune program because I can.  Included it in default bash_profile
+        o Modified /etc/init.d/hostname to always return success so that we can 
+          services with dependencies on it
+        o Attempted to add both syslog-ng and then rsyslog.  Both cause programs
+          that log to wedge.  They run fine under openrc otherwise
+	o Added dcron.  Minimal testing at this point.  It starts, runs and appears to 
+          work.  Attempted to use fcron first but it depends on a working logging 
+          system which we don't currently have
+	o Added elinks text based web browser to base install
+	o Start dcron in enable_sshd.  Which is hacky and sucky but I'm 
+	  doing it anyway for now
+	o Added the nano editor base install because apparently some people like it.
+          <shudder> :-)
+.40  o Third public test release
+	o copy bash_profile to /root in addition to /home/ish
+	o Moved project to github

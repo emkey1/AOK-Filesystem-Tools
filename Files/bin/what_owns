@@ -1,0 +1,3 @@
+#!/bin/ash
+
+apk info --who-owns $1

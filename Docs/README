@@ -1,0 +1,4 @@
+Things of note with this release...
+	o dcron is present but I can't get it to start automatically unless sshd is already
+          enabled.  I suspect any other service running would solve the issue. 
+          'sudo rc-update add dcron' will enable it.
