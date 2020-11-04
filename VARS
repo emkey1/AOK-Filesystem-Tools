@@ -1,0 +1,5 @@
+# A list of variables used during build
+
+ALPINE_VERSION=3.12.1
+AOK_VERSION="ALPHA .40"
+AOK_VERSION_SHORT=

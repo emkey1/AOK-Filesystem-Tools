@@ -1,0 +1,44 @@
+#!/bin/ash
+# Simple wrapper script to build iSH root image in a chroot
+ALPINE_VERSION=3.12.1
+
+# Build in /tmp
+mkdir /tmp/AOK
+tar cf - . | (cd /tmp/AOK;tar xf -)
+cd /tmp/AOK
+
+# Get apk if not installed
+if [ ! -f /sbin/apk ]; then
+    echo "Installing APK"
+    Files/bin/get_apk
+fi
+
+# Download the Alpine miniroot
+wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+
+# Start building chroot
+mkdir build
+cd build
+
+# Unzip Alpine
+gunzip -c ../alpine-minirootfs-3.12.1-x86.tar.gz | tar xf -
+
+# Move stuff into our future chroot
+mv ../build_image .
+mv ../Files .
+mv ../Docs .
+
+# We need a valid resolv.conf
+cp /etc/resolv.conf /tmp/AOK/build/etc
+
+# And now for the main bit
+chroot . ./build_image
+
+# Clean up
+rm -rf build_image
+rm -rf Files
+rm -rf Docs
+
+# Tar up and zip the result
+
+tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_ALPHA40.tgz
