@@ -18,7 +18,7 @@ apk -U upgrade
 echo
 echo "Add a minimal number of packages to make iSH useful"
 echo
-apk add openssh openssh-doc openrc openrc-doc bash tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client
+apk add openssh openssh-doc openrc openrc-doc bash tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client ncftp ncftp-doc
 
 # Update/install a few key files
 
