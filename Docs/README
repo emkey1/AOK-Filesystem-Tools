@@ -1,3 +1,6 @@
+Two possible approaches...
+o Run 'chroot_build_image'.  It will do everything for you and dump a ready for use image in /tmp/AOK
+OR...
 o Download, import and boot from the latest Alpine i386 miniroot, or use the included iSH miniroot
 o The unzip binary is included with either of the above mentioned filesystems so it is probably easiest
   to download a zip'd version of this repository to your iCloud drive somehow
