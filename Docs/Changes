@@ -28,4 +28,7 @@ Alpha Series
 	o Moved project to github
 	o Fixed issue with executable bit not being set on stuff in /usr/local/bin
 	  after pull from github
-        o Wrote script to build image in chroot enviornment.  It's fairly lame but works
+        o Wrote script to build image in chroot enviornment.  It's fairly lame but works.  'chroot_build_image'
+	o Added fake /etc/network/interfaces file to hopefully make /etc/init.d/networking a bit happier
+	o Found apparent bug in BusyBox chroot in regards to soft links made by apk's during install.  Worked around
+	  vi build script

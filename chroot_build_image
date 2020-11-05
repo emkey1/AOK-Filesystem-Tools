@@ -2,6 +2,9 @@
 # Simple wrapper script to build iSH root image in a chroot
 ALPINE_VERSION=3.12.1
 
+# Clean up previous run
+rm -rf /tmp/AOK
+
 # Build in /tmp
 mkdir /tmp/AOK
 tar cf - . | (cd /tmp/AOK;tar xf -)
@@ -41,4 +44,4 @@ rm -rf Docs
 
 # Tar up and zip the result
 
-tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_ALPHA40.tgz
+tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_ALPHA41.tgz

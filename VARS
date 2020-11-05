@@ -1,5 +1,14 @@
 # A list of variables used during build
 
-ALPINE_VERSION=3.12.1
-AOK_VERSION="ALPHA .40"
-AOK_VERSION_SHORT=
+# Usefull variables
+ALPINE_VERSION:3.12.1
+AOK_VERSION:"ALPHA .40"
+AOK_VERSION_SHORT:"A40"
+
+# APK's that get installed on image build and impact image size
+CORE_APKS:openssh openssh-doc openrc openrc-doc bash tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client ncftp ncftp-doc
+
+# APK's that get installed via the 'bloat' script after image install.  Each level is inclusive of the lower ones
+BLOAT1_APKS:python3 py3-pip python3-dev build-base zsh
+BLOAT2_APKS:nodejs nodejs-dev
+BLOAT3_APKS:emacs go apache2 apache2-doc apache2-ssl

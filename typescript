@@ -1,0 +1,591 @@
+Script started on Wed Nov  4 12:28:34 2020
+[oh-my-zsh] Would you like to update? [Y/n] n
+]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % [K[?1h=[?2004h../chroot_build_image[1m [0m[0m [?1l>[?2004l
+]2;./chroot_build_image]1;./chroot_build_imagezsh: ./chroot_build_image: bad interpreter: /bin/ash: no such file or directory
+[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % [K[?1h=[?2004hssudo ln /bin/bash /bin/ash[?1l>[?2004l
+]2;sudo ln /bin/bash /bin/ash]1;lnPassword:
+ln: /bin/ash: Operation not permitted
+[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % [K[?1h=[?2004hccp chroot_build_image[1m [0m[0m chroot_build_image[1m [0m[0m .i Maco OS[?1l>[?2004l
+]2;cp chroot_build_image chroot_build_image.MacOS]1;cp[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % [K[?1h=[?2004hvvi !$[?1l>[?2004l
+[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % vi chroot_build_image.MacOS[K[?1h=[?2004h[?1l>[?2004l
+]2;vi chroot_build_image.MacOS]1;vi[?1049h[>4;2m[?1h=[?2004h[1;34r[?12h[?12l[22;2t[22;1t[27m[29m[m[H[2J[?25l[34;1H"chroot_build_image.MacOS" 44L, 901C[2;1H▽[6n[2;1H  [1;1H[>c]10;?]11;?[1;1H#!/bin/ash
+# Simple wrapper script to build iSH root image in a chroot
+ALPINE_VERSION=3.12.1
+
+# Build in /tmp
+mkdir /tmp/AOK
+tar cf - . | (cd /tmp/AOK;tar xf -)
+cd /tmp/AOK
+
+# Get apk if not installed
+if [ ! -f /sbin/apk ]; then
+    echo "Installing APK"
+    Files/bin/get_apk
+fi
+
+# Download the Alpine miniroot
+wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+
+# Start building chroot
+mkdir build
+cd build
+
+# Unzip Alpine
+gunzip -c ../alpine-minirootfs-3.12.1-x86.tar.gz | tar xf -
+
+# Move stuff into our future chroot
+mv ../build_image .
+mv ../Files .
+mv ../Docs .
+
+# We need a valid resolv.conf
+cp /etc/resolv.conf /tmp/AOK/build/etc[1;1H[?25h[27m[29m[m[H[2J[?25l[1;1H#!/bin/ash
+# Simple wrapper script to build iSH root image in a chroot
+ALPINE_VERSION=3.12.1
+
+# Build in /tmp
+mkdir /tmp/AOK
+tar cf - . | (cd /tmp/AOK;tar xf -)
+cd /tmp/AOK
+
+# Get apk if not installed
+if [ ! -f /sbin/apk ]; then
+    echo "Installing APK"
+    Files/bin/get_apk
+fi
+
+# Download the Alpine miniroot
+wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+
+# Start building chroot
+mkdir build
+cd build
+
+# Unzip Alpine
+gunzip -c ../alpine-minirootfs-3.12.1-x86.tar.gz | tar xf -
+
+# Move stuff into our future chroot
+mv ../build_image .
+mv ../Files .
+mv ../Docs .
+
+# We need a valid resolv.conf
+cp /etc/resolv.conf /tmp/AOK/build/etc
+
+"chroot_build_image.MacOS" 44L, 901C[1;1H[?25h#!/bin/[?25l[34;1H[1m-- INSERT --[m[34;13H[K[1;8H[?25h[?25lbash[?25h[34;1H[K[1;8H[?25l[?25h[?2004l[?25l[34;1H"chroot_build_image.MacOS" 44L, 902C written[23;2t[23;1t
+[?2004l[?1l>[?25h[>4;m[?1049l[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % [K[?1h=[?2004h!!$.!$./!$[?1l>[?2004l
+[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % ./chroot_build_image.MacOS[K[?1h=[?2004h[?1l>[?2004l
+]2;./chroot_build_image.MacOS]1;./chroot_build_image.MacOSInstalling APK
+./chroot_build_image.MacOS: Files/bin/get_apk: /bin/ash: bad interpreter: No such file or directory
+--2020-11-04 12:29:44--  http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-3.12.1-x86.tar.gz
+Resolving dl-cdn.alpinelinux.org (dl-cdn.alpinelinux.org)... 151.101.186.133
+Connecting to dl-cdn.alpinelinux.org (dl-cdn.alpinelinux.org)|151.101.186.133|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 2714191 (2.6M) [application/octet-stream]
+Saving to: ‘alpine-minirootfs-3.12.1-x86.tar.gz’
+
+alpine-minirootfs-3.12.1-x86.tar.gz    0%[                                                                       ]       0  --.-KB/s               alpine-minirootfs-3.12.1-x86.tar.gz   18%[============>                                                          ] 486.44K  2.35MB/s               alpine-minirootfs-3.12.1-x86.tar.gz   87%[=============================================================>         ]   2.27M  5.64MB/s               alpine-minirootfs-3.12.1-x86.tar.gz  100%[======================================================================>]   2.59M  6.09MB/s    in 0.4s    
+
+2020-11-04 12:29:44 (6.09 MB/s) - ‘alpine-minirootfs-3.12.1-x86.tar.gz’ saved [2714191/2714191]
+
+chroot: .: Operation not permitted
+a .
+a ./proc
+a ./home
+a ./usr
+a ./bin
+a ./sbin
+a ./etc
+a ./var
+a ./sys
+a ./mnt
+a ./root
+a ./lib
+a ./opt
+a ./dev
+a ./run
+a ./tmp
+a ./srv
+a ./media
+a ./media/cdrom
+a ./media/usb
+a ./media/floppy
+a ./lib/modules-load.d
+a ./lib/firmware
+a ./lib/mdev
+a ./lib/apk
+a ./lib/sysctl.d
+a ./lib/libz.so.1
+a ./lib/libcrypto.so.1.1
+a ./lib/libssl.so.1.1
+a ./lib/libz.so.1.2.11
+a ./lib/libc.musl-x86.so.1
+a ./lib/ld-musl-i386.so.1
+a ./lib/sysctl.d/00-alpine.conf
+a ./lib/apk/db
+a ./lib/apk/db/triggers
+a ./lib/apk/db/installed
+a ./lib/apk/db/lock
+a ./lib/apk/db/scripts.tar
+a ./var/cache
+a ./var/empty
+a ./var/mail
+a ./var/spool
+a ./var/lock
+a ./var/local
+a ./var/lib
+a ./var/opt
+a ./var/log
+a ./var/run
+a ./var/tmp
+a ./var/lib/misc
+a ./var/lib/apk
+a ./var/lib/udhcpd
+a ./var/lock/subsys
+a ./var/spool/mail
+a ./var/spool/cron
+a ./var/spool/cron/crontabs
+a ./var/cache/misc
+a ./var/cache/apk
+a ./etc/modules-load.d
+a ./etc/periodic
+a ./etc/securetty
+a ./etc/ssl
+a ./etc/apk
+a ./etc/sysctl.d
+a ./etc/group
+a ./etc/modprobe.d
+a ./etc/init.d
+a ./etc/shells
+a ./etc/shadow
+a ./etc/network
+a ./etc/udhcpd.conf
+a ./etc/profile
+a ./etc/alpine-release
+a ./etc/issue
+a ./etc/resolv.conf
+a ./etc/profile.d
+a ./etc/fstab
+a ./etc/opt
+a ./etc/hostname
+a ./etc/sysctl.conf
+a ./etc/hosts
+a ./etc/inittab
+a ./etc/crontabs
+a ./etc/conf.d
+a ./etc/mtab
+a ./etc/modules
+a ./etc/os-release
+a ./etc/logrotate.d
+a ./etc/protocols
+a ./etc/services
+a ./etc/passwd
+a ./etc/motd
+a ./etc/logrotate.d/acpid
+a ./etc/crontabs/root
+a ./etc/profile.d/locale.sh
+a ./etc/profile.d/color_prompt
+a ./etc/network/if-pre-down.d
+a ./etc/network/if-pre-up.d
+a ./etc/network/if-post-up.d
+a ./etc/network/if-post-down.d
+a ./etc/network/if-down.d
+a ./etc/network/if-up.d
+a ./etc/network/if-up.d/dad
+a ./etc/modprobe.d/aliases.conf
+a ./etc/modprobe.d/blacklist.conf
+a ./etc/modprobe.d/kms.conf
+a ./etc/modprobe.d/i386.conf
+a ./etc/apk/protected_paths.d
+a ./etc/apk/world
+a ./etc/apk/repositories
+a ./etc/apk/arch
+a ./etc/apk/keys
+a ./etc/apk/keys/alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub
+a ./etc/apk/keys/alpine-devel@lists.alpinelinux.org-5243ef4b.rsa.pub
+a ./etc/apk/keys/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub
+a ./etc/ssl/misc
+a ./etc/ssl/ct_log_list.cnf
+a ./etc/ssl/openssl.cnf.dist
+a ./etc/ssl/cert.pem
+a ./etc/ssl/openssl.cnf
+a ./etc/ssl/certs
+a ./etc/ssl/private
+a ./etc/ssl/ct_log_list.cnf.dist
+a ./etc/ssl/certs/ca-certificates.crt
+a ./etc/ssl/misc/tsget
+a ./etc/ssl/misc/tsget.pl
+a ./etc/ssl/misc/CA.pl
+a ./etc/periodic/hourly
+a ./etc/periodic/daily
+a ./etc/periodic/15min
+a ./etc/periodic/monthly
+a ./etc/periodic/weekly
+a ./sbin/init
+a ./sbin/ifdown
+a ./sbin/fsck
+a ./sbin/mdev
+a ./sbin/fdisk
+a ./sbin/blockdev
+a ./sbin/slattach
+a ./sbin/apk
+a ./sbin/route
+a ./sbin/modprobe
+a ./sbin/reboot
+a ./sbin/iproute
+a ./sbin/mkfs.vfat
+a ./sbin/ipaddr
+a ./sbin/nameif
+a ./sbin/sysctl
+a ./sbin/iplink
+a ./sbin/ifup
+a ./sbin/udhcpc
+a ./sbin/adjtimex
+a ./sbin/iptunnel
+a ./sbin/setconsole
+a ./sbin/syslogd
+a ./sbin/modinfo
+a ./sbin/ifconfig
+a ./sbin/switch_root
+a ./sbin/iprule
+a ./sbin/klogd
+a ./sbin/halt
+a ./sbin/losetup
+a ./sbin/poweroff
+a ./sbin/vconfig
+a ./sbin/insmod
+a ./sbin/depmod
+a ./sbin/watchdog
+a ./sbin/mkmntdirs
+a ./sbin/findfs
+a ./sbin/fstrim
+a ./sbin/hdparm
+a ./sbin/swapon
+a ./sbin/getty
+a ./sbin/ldconfig
+a ./sbin/loadkmap
+a ./sbin/logread
+a ./sbin/nologin
+a ./sbin/ifenslave
+a ./sbin/arp
+a ./sbin/pivot_root
+a ./sbin/swapoff
+a ./sbin/inotifyd
+a ./sbin/ipneigh
+a ./sbin/hwclock
+a ./sbin/ip
+a ./sbin/rmmod
+a ./sbin/fbsplash
+a ./sbin/raidautorun
+a ./sbin/acpid
+a ./sbin/mkswap
+a ./sbin/lsmod
+a ./sbin/tunctl
+a ./sbin/mkdosfs
+a ./sbin/blkid
+a ./bin/cat
+a ./bin/reformime
+a ./bin/run-parts
+a ./bin/conspy
+a ./bin/kbd_mode
+a ./bin/ping
+a ./bin/nice
+a ./bin/echo
+a ./bin/df
+a ./bin/pwd
+a ./bin/ionice
+a ./bin/touch
+a ./bin/getopt
+a ./bin/pidof
+a ./bin/fatattr
+a ./bin/sed
+a ./bin/setpriv
+a ./bin/sleep
+a ./bin/stty
+a ./bin/chgrp
+a ./bin/printenv
+a ./bin/uname
+a ./bin/dnsdomainname
+a ./bin/date
+a ./bin/base64
+a ./bin/ipcalc
+a ./bin/ed
+a ./bin/netstat
+a ./bin/gzip
+a ./bin/fsync
+a ./bin/linux32
+a ./bin/setserial
+a ./bin/grep
+a ./bin/more
+a ./bin/umount
+a ./bin/dumpkmap
+a ./bin/kill
+a ./bin/sh
+a ./bin/rev
+a ./bin/busybox
+a ./bin/iostat
+a ./bin/lzop
+a ./bin/usleep
+a ./bin/ps
+a ./bin/su
+a ./bin/stat
+a ./bin/link
+a ./bin/fdflush
+a ./bin/mknod
+a ./bin/arch
+a ./bin/bbconfig
+a ./bin/dd
+a ./bin/mktemp
+a ./bin/dmesg
+a ./bin/mkdir
+a ./bin/mount
+a ./bin/pipe_progress
+a ./bin/watch
+a ./bin/hostname
+a ./bin/ash
+a ./bin/rmdir
+a ./bin/mv
+a ./bin/makemime
+a ./bin/egrep
+a ./bin/zcat
+a ./bin/ln
+a ./bin/ls
+a ./bin/true
+a ./bin/cp
+a ./bin/sync
+a ./bin/chown
+a ./bin/fgrep
+a ./bin/mpstat
+a ./bin/ping6
+a ./bin/chmod
+a ./bin/tar
+a ./bin/linux64
+a ./bin/rm
+a ./bin/false
+a ./bin/login
+a ./bin/mountpoint
+a ./bin/gunzip
+a ./usr/bin
+a ./usr/sbin
+a ./usr/local
+a ./usr/lib
+a ./usr/share
+a ./usr/share/man
+a ./usr/share/misc
+a ./usr/share/apk
+a ./usr/share/udhcpc
+a ./usr/share/udhcpc/default.script
+a ./usr/share/apk/keys
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-58cbb476.rsa.pub
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-5e69ca50.rsa.pub
+a ./usr/share/apk/keys/ppc64le
+a ./usr/share/apk/keys/s390x
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub
+a ./usr/share/apk/keys/mips64
+a ./usr/share/apk/keys/x86
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-5243ef4b.rsa.pub
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-58e4f17d.rsa.pub
+a ./usr/share/apk/keys/armhf
+a ./usr/share/apk/keys/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub
+a ./usr/share/apk/keys/aarch64
+a ./usr/share/apk/keys/x86_64
+a ./usr/share/apk/keys/x86_64/alpine-devel@lists.alpinelinux.org-5261cecb.rsa.pub
+a ./usr/share/apk/keys/x86_64/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub
+a ./usr/share/apk/keys/aarch64/alpine-devel@lists.alpinelinux.org-58199dcc.rsa.pub
+a ./usr/share/apk/keys/armhf/alpine-devel@lists.alpinelinux.org-524d27bb.rsa.pub
+a ./usr/share/apk/keys/x86/alpine-devel@lists.alpinelinux.org-5243ef4b.rsa.pub
+a ./usr/share/apk/keys/x86/alpine-devel@lists.alpinelinux.org-4a6a0840.rsa.pub
+a ./usr/share/apk/keys/mips64/alpine-devel@lists.alpinelinux.org-5e69ca50.rsa.pub
+a ./usr/share/apk/keys/s390x/alpine-devel@lists.alpinelinux.org-58e4f17d.rsa.pub
+a ./usr/share/apk/keys/ppc64le/alpine-devel@lists.alpinelinux.org-58cbb476.rsa.pub
+a ./usr/lib/modules-load.d
+a ./usr/lib/libtls-standalone.so.1.0.0
+a ./usr/lib/libcrypto.so.1.1
+a ./usr/lib/libssl.so.1.1
+a ./usr/lib/libtls-standalone.so.1
+a ./usr/lib/engines-1.1
+a ./usr/lib/engines-1.1/padlock.so
+a ./usr/lib/engines-1.1/afalg.so
+a ./usr/lib/engines-1.1/capi.so
+a ./usr/local/bin
+a ./usr/local/lib
+a ./usr/local/share
+a ./usr/sbin/readahead
+a ./usr/sbin/addgroup
+a ./usr/sbin/lspci
+a ./usr/sbin/ntpd
+a ./usr/sbin/setfont
+a ./usr/sbin/brctl
+a ./usr/sbin/chpasswd
+a ./usr/sbin/remove-shell
+a ./usr/sbin/delgroup
+a ./usr/sbin/adduser
+a ./usr/sbin/crond
+a ./usr/sbin/nbd-client
+a ./usr/sbin/arping
+a ./usr/sbin/killall5
+a ./usr/sbin/nanddump
+a ./usr/sbin/fdformat
+a ./usr/sbin/add-shell
+a ./usr/sbin/powertop
+a ./usr/sbin/loadfont
+a ./usr/sbin/rfkill
+a ./usr/sbin/partprobe
+a ./usr/sbin/ether-wake
+a ./usr/sbin/deluser
+a ./usr/sbin/fbset
+a ./usr/sbin/readprofile
+a ./usr/sbin/setlogcons
+a ./usr/sbin/nandwrite
+a ./usr/sbin/chroot
+a ./usr/sbin/rdate
+a ./usr/sbin/rdev
+a ./usr/sbin/sendmail
+a ./usr/bin/top
+a ./usr/bin/tee
+a ./usr/bin/md5sum
+a ./usr/bin/split
+a ./usr/bin/ttysize
+a ./usr/bin/shuf
+a ./usr/bin/showkey
+a ./usr/bin/mkfifo
+a ./usr/bin/hexdump
+a ./usr/bin/wget
+a ./usr/bin/cmp
+a ./usr/bin/mesg
+a ./usr/bin/vi
+a ./usr/bin/pmap
+a ./usr/bin/expand
+a ./usr/bin/strings
+a ./usr/bin/tty
+a ./usr/bin/pkill
+a ./usr/bin/basename
+a ./usr/bin/install
+a ./usr/bin/scanelf
+a ./usr/bin/nslookup
+a ./usr/bin/truncate
+a ./usr/bin/du
+a ./usr/bin/unlzop
+a ./usr/bin/logger
+a ./usr/bin/setkeycodes
+a ./usr/bin/pwdx
+a ./usr/bin/renice
+a ./usr/bin/xxd
+a ./usr/bin/test
+a ./usr/bin/iconv
+a ./usr/bin/sort
+a ./usr/bin/whoami
+a ./usr/bin/hd
+a ./usr/bin/bc
+a ./usr/bin/unxz
+a ./usr/bin/less
+a ./usr/bin/bunzip2
+a ./usr/bin/unlink
+a ./usr/bin/traceroute6
+a ./usr/bin/awk
+a ./usr/bin/free
+a ./usr/bin/uudecode
+a ./usr/bin/lsof
+a ./usr/bin/seq
+a ./usr/bin/unlzma
+a ./usr/bin/unzip
+a ./usr/bin/od
+a ./usr/bin/crontab
+a ./usr/bin/reset
+a ./usr/bin/bzcat
+a ./usr/bin/openvt
+a ./usr/bin/mkpasswd
+a ./usr/bin/smemcap
+a ./usr/bin/realpath
+a ./usr/bin/readlink
+a ./usr/bin/timeout
+a ./usr/bin/tac
+a ./usr/bin/wc
+a ./usr/bin/setsid
+a ./usr/bin/comm
+a ./usr/bin/nproc
+a ./usr/bin/expr
+a ./usr/bin/deallocvt
+a ./usr/bin/diff
+a ./usr/bin/cksum
+a ./usr/bin/printf
+a ./usr/bin/groups
+a ./usr/bin/factor
+a ./usr/bin/xz
+a ./usr/bin/tail
+a ./usr/bin/whois
+a ./usr/bin/sha3sum
+a ./usr/bin/cal
+a ./usr/bin/time
+a ./usr/bin/env
+a ./usr/bin/head
+a ./usr/bin/clear
+a ./usr/bin/uniq
+a ./usr/bin/chvt
+a ./usr/bin/getconf
+a ./usr/bin/ipcrm
+a ./usr/bin/eject
+a ./usr/bin/killall
+a ./usr/bin/lsusb
+a ./usr/bin/getent
+a ./usr/bin/sum
+a ./usr/bin/nc
+a ./usr/bin/uuencode
+a ./usr/bin/xzcat
+a ./usr/bin/beep
+a ./usr/bin/microcom
+a ./usr/bin/sha1sum
+a ./usr/bin/cut
+a ./usr/bin/dc
+a ./usr/bin/sha256sum
+a ./usr/bin/blkdiscard
+a ./usr/bin/fallocate
+a ./usr/bin/xargs
+a ./usr/bin/cryptpw
+a ./usr/bin/dumpleases
+a ./usr/bin/nl
+a ./usr/bin/shred
+a ./usr/bin/lzcat
+a ./usr/bin/ipcs
+a ./usr/bin/fold
+a ./usr/bin/volname
+a ./usr/bin/dirname
+a ./usr/bin/nmeter
+a ./usr/bin/flock
+a ./usr/bin/id
+a ./usr/bin/traceroute
+a ./usr/bin/fuser
+a ./usr/bin/ldd
+a ./usr/bin/dos2unix
+a ./usr/bin/find
+a ./usr/bin/hostid
+a ./usr/bin/ssl_client
+a ./usr/bin/unix2dos
+a ./usr/bin/pgrep
+a ./usr/bin/yes
+a ./usr/bin/unexpand
+a ./usr/bin/lzopcat
+a ./usr/bin/resize
+a ./usr/bin/pstree
+a ./usr/bin/pscan
+a ./usr/bin/uptime
+a ./usr/bin/udhcpc6
+a ./usr/bin/[[
+a ./usr/bin/unshare
+a ./usr/bin/vlock
+a ./usr/bin/lzma
+a ./usr/bin/sha512sum
+a ./usr/bin/which
+a ./usr/bin/[
+a ./usr/bin/tr
+a ./usr/bin/paste
+a ./usr/bin/bzip2
+a ./usr/bin/passwd
+a ./usr/bin/nsenter
+a ./usr/bin/cpio
+a ./usr/bin/nohup
+[1m[7m%[27m[1m[0m                                                                                                                                                    ]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK]2;mke@MichaelMacBook3]1;~/Documents/AOK]7;file://MichaelMacBook3.lan/Users/mke/Documents/AOK[0m[27m[24m[Jmke@MichaelMacBook3 AOK % [K[?1h=[?2004heexit[?1l>[?2004l
+]2;exit]1;exit
+Script done on Wed Nov  4 12:29:49 2020

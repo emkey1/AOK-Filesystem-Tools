@@ -1,10 +1,10 @@
    # =============================================================== #          
    #                                                                            
    # PERSONAL $HOME/.bashrc FILE for bash-3.0 (or later)                        
-   # By Emmanuel Rouat [no-email]                                               
+   # By Emmanuel Rouat [no-email] with modifications by emkey1
    #                                                                            
-   # Last modified: Tue Nov 20 22:04:47 CET 2012                                
-                                                                                
+   # Last modified: Wed Nov  4 14:37:20 EST 2020
+
    #  This file is normally read by interactive shells only.                    
    #+ Here is the place to define your aliases, functions and                   
    #+ other interactive features like your prompt.                              
@@ -341,6 +341,7 @@
    alias rm='rm -i'                                                             
    alias cp='cp -i'                                                             
    alias mv='mv -i'                                                             
+   alias vi='vim'
    # -> Prevents accidentally clobbering files.                                 
    alias mkdir='mkdir -p'                                                       
                                                                                 
