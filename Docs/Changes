@@ -32,3 +32,8 @@ Alpha Series
 	o Added fake /etc/network/interfaces file to hopefully make /etc/init.d/networking a bit happier
 	o Found apparent bug in BusyBox chroot in regards to soft links made by apk's during install.  Worked around
 	  vi build script
+	o I now leave a copy of the AOK build environment in /AOK on the root image.  You can 
+		+ sudo bash
+		+ cd /AOD
+		+ ./chroot_build_image
+		+ You will now have an identical root image in /tmp/AOK (Assuming you made no changes)

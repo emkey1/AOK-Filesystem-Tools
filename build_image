@@ -22,7 +22,6 @@ apk add openssh openssh-doc openrc openrc-doc bash tmux git curl openssl-dev man
 
 # Chroot seems to be a bit broken.  When busybox-extras creates soft links it does it via the real path rather than the chroot.  :-(  
 # Work around here.
-
 rm /usr/bin/telnet /usr/bin/ftpget /usr/bin/ftpput /usr/bin/tftp
 ln -s /bin/busybox-extras /usr/bin/telnet
 ln -s /bin/busybox-extras /usr/bin/ftpget
@@ -32,6 +31,7 @@ ln -s /bin/busybox-extras /usr/bin/tftp
 # Update/install a few key files
 
 # Set TZ to east coast US, because that is where I am
+# Note that there is a bug in iSH that prevents TZ stuff from working as of Nov 2020
 cp /usr/share/zoneinfo/America/New_York /etc/localtime
 echo "America/New_York" >  /etc/timezone
 date
@@ -52,7 +52,7 @@ cp Files/sshd_config /etc/ssh
 mkdir /root/init.d
 cp Files/init.d/* /root/init.d
 
-# Remove extra unused vty's
+# Remove extra unused vty's, make OpenRC work
 cp Files/inittab /etc
 
 # Custom MOTD/issue
@@ -65,7 +65,7 @@ cp Files/issue /etc
 rm /etc/sudoers # Don't know why this is needed, but it is
 cp Files/sudoers /etc
 
-# Root .profile
+# Root .profile.  su to unpriv'd user and some other stuff
 cp Files/profile /root/.profile
 
 
@@ -90,7 +90,7 @@ chown ish.ish /home/ish
 # Add dot files for ish
 cp Files/bash_profile /home/ish/.bash_profile; chown ish.ish /home/ish/.bash_profile
 # Copy to root as well
-cp Files/bash_profile /root/
+cp Files/bash_profile /root/.bash_profile
 
 # shadow fle with blank ish password
 cp Files/shadow /etc

@@ -7,7 +7,7 @@ rm -rf /tmp/AOK
 
 # Build in /tmp
 mkdir /tmp/AOK
-tar cf - . | (cd /tmp/AOK;tar xf -)
+tar --exclude .git cf - . | (cd /tmp/AOK;tar xf -)
 cd /tmp/AOK
 
 # Get apk if not installed
@@ -35,12 +35,16 @@ mv ../Docs .
 cp /etc/resolv.conf /tmp/AOK/build/etc
 
 # And now for the main bit
-chroot . ./build_image
+chroot /tmp/AOK ./build_image
 
 # Clean up
-rm -rf build_image
-rm -rf Files
-rm -rf Docs
+mkdir AOK
+mv build_image AOK
+mv chroot_build_image AOK
+mv build_image AOK
+mv VARS AOK
+mv Files AOK
+mv Docs AOK
 
 # Tar up and zip the result
 
