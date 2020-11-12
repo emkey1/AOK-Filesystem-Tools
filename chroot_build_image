@@ -48,4 +48,4 @@ mv Docs AOK
 
 # Tar up and zip the result
 
-tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_ALPHA41.tgz
+tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_ALPHA40.tgz
