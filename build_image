@@ -3,7 +3,7 @@
 # Build the custom emkey iSH image.  Assumes we are starting with the mini root from Alpine
 
 # Set some variables
-VERSION="Alpha .40"
+. VARS
 
 # First update apk DB
 
@@ -13,12 +13,12 @@ echo "Initialize APK Database:"
 # apk update
 apk -U upgrade
 
-# Now add some essential packages
-
 echo
 echo "Add a minimal number of packages to make iSH useful"
 echo
-apk add openssh openssh-doc openrc openrc-doc bash tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client ncftp ncftp-doc
+#apk add openssh openssh-doc openrc openrc-doc bash zsh tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client ncftp ncftp-doc
+
+apk add $CORE_APKS
 
 # Chroot seems to be a bit broken.  When busybox-extras creates soft links it does it via the real path rather than the chroot.  :-(  
 # Work around here.
@@ -89,8 +89,10 @@ chown ish.ish /home/ish
 
 # Add dot files for ish
 cp Files/bash_profile /home/ish/.bash_profile; chown ish.ish /home/ish/.bash_profile
+cp Files/zshrc /home/ish/.zshrc; chown ish.ish /home/ish/.zshrc
 # Copy to root as well
 cp Files/bash_profile /root/.bash_profile
+cp Files/zshrc /root/.zshrc
 
 # shadow fle with blank ish password
 cp Files/shadow /etc
@@ -122,5 +124,8 @@ chown -R ish.ish /home/ish/Docs
 # So we fake it out
 rm /etc/init.d/networking
 cp Files/init.d/* /etc/init.d
+
+# /dev/null ends up with weird perms for some reason.  Fix
+chmod 777 /dev/null
 
 echo "Done"

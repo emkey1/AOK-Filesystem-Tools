@@ -12,7 +12,6 @@ fi
 sudo rc-update add sshd
 sudo rc-service sshd start
 
-# Start dcron as well since it won't start on install for some reason
 sudo rc-update add dcron
 
 echo

@@ -37,3 +37,7 @@ Alpha Series
 		+ cd /AOD
 		+ ./chroot_build_image
 		+ You will now have an identical root image in /tmp/AOK (Assuming you made no changes)
+.50 o Fourth public release.  I need to spell check this
+	o Added zsh to core RPM's
+	o Started to implement VARS file in image builds
+	o Create wrapper for /bin/login to assure that the ish user always logs in initially. 

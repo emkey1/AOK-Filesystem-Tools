@@ -1,13 +1,19 @@
 #!/bin/ash
 # Simple wrapper script to build iSH root image in a chroot
-ALPINE_VERSION=3.12.1
+
+# Check to be sure we are not running this in /tmp/AOK
+
+# Read in vars
+. VARS
 
 # Clean up previous run
 rm -rf /tmp/AOK
 
+
 # Build in /tmp
-mkdir /tmp/AOK
-tar --exclude .git cf - . | (cd /tmp/AOK;tar xf -)
+echo "Create /tmp/AOK/build, copy stuff"
+mkdir -p /tmp/AOK/build
+tar cf - . --exclude .git --exclude main| (cd /tmp/AOK/build;tar xf -)
 cd /tmp/AOK
 
 # Get apk if not installed
@@ -19,33 +25,29 @@ fi
 # Download the Alpine miniroot
 wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
 
-# Start building chroot
-mkdir build
 cd build
-
 # Unzip Alpine
 gunzip -c ../alpine-minirootfs-3.12.1-x86.tar.gz | tar xf -
-
-# Move stuff into our future chroot
-mv ../build_image .
-mv ../Files .
-mv ../Docs .
 
 # We need a valid resolv.conf
 cp /etc/resolv.conf /tmp/AOK/build/etc
 
 # And now for the main bit
-chroot /tmp/AOK ./build_image
+chroot /tmp/AOK/build ./build_image
+
+cd /tmp/AOK
 
 # Clean up
-mkdir AOK
-mv build_image AOK
-mv chroot_build_image AOK
-mv build_image AOK
-mv VARS AOK
-mv Files AOK
-mv Docs AOK
+mkdir build/AOK
+mv build/build_image build/AOK
+mv build/chroot_build_image build/AOK
+mv build/LICENSE build/AOK
+mv build/VARS build/AOK
+mv build/Files build/AOK
+mv build/Docs build/AOK
 
 # Tar up and zip the result
 
-tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_ALPHA40.tgz
+cd build
+
+tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_$AOK_VERSION.tgz
