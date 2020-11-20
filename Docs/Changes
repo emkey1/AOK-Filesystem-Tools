@@ -28,16 +28,31 @@ Alpha Series
 	o Moved project to github
 	o Fixed issue with executable bit not being set on stuff in /usr/local/bin
 	  after pull from github
-        o Wrote script to build image in chroot enviornment.  It's fairly lame but works.  'chroot_build_image'
-	o Added fake /etc/network/interfaces file to hopefully make /etc/init.d/networking a bit happier
-	o Found apparent bug in BusyBox chroot in regards to soft links made by apk's during install.  Worked around
-	  vi build script
+        o Wrote script to build image in chroot enviornment.  It's fairly lame but works.  
+	  'chroot_build_image'
+	o Added fake /etc/network/interfaces file to hopefully make /etc/init.d/networking a 
+	  bit happier
+	o Found apparent bug in BusyBox chroot in regards to soft links made by apk's during 
+	  install.  Worked around vi build script
 	o I now leave a copy of the AOK build environment in /AOK on the root image.  You can 
 		+ sudo bash
-		+ cd /AOD
+		+ cd /AOK
 		+ ./chroot_build_image
-		+ You will now have an identical root image in /tmp/AOK (Assuming you made no changes)
-.50 o Fourth public release.  I need to spell check this
+		+ You will now have an identical root image in /tmp/AOK (Assuming you made no 
+		  changes)
+.50  o Fourth public release.  I need to spell check this
 	o Added zsh to core RPM's
 	o Started to implement VARS file in image builds
-	o Create wrapper for /bin/login to assure that the ish user always logs in initially. 
+	o Create wrapper for /bin/login to assure that the ish user always logs in initially.
+	  Alas /bin/login doesn't work as expected.  
+	o Switched ish user to zsh
+	o Switched ish user back to bash, zsh is too slow but still available
+	o Login is now required.  With password set it is possible to login directly as root.  
+	  With no password set for ish it logs in fine though
+	o busybox vi renamed to vi.real, vim hard linked to vi.  IE, vim is invoked when vi is 
+	  typed
+.55   o Fifth public test release
+         o Added coreutils to APK's installed on image
+         o Found fix for timezone issue.  Currently it requires eitehr a custome tzdata apk or
+	   copying a fixed version of the database stuff during the build.  This is fixed in the 
+	   Edge version of Alpine.

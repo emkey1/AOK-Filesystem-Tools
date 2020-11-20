@@ -3,7 +3,7 @@
    # PERSONAL $HOME/.bashrc FILE for bash-3.0 (or later)                        
    # By Emmanuel Rouat [no-email] with modifications by emkey1
    #                                                                            
-   # Last modified: Wed Nov  4 14:37:20 EST 2020
+   # Last modified: Wed Nov 17 05:37:20 EST 2020
 
    #  This file is normally read by interactive shells only.                    
    #+ Here is the place to define your aliases, functions and                   
@@ -34,7 +34,14 @@
                                                                                 
    # If not running interactively, don't do anything                            
    [ -z "$PS1" ] && return                                                      
-                                                                                
+
+   #-------------------------------------------------------------               
+   # iSH specific stuff
+   #-------------------------------------------------------------               
+
+#   if [ -f /etc/profile ]; then                                                  
+#         . /etc/profile   # --> Read /etc/profile, if present.                    
+#   fi                                                                           
                                                                                 
    #-------------------------------------------------------------               
    # Source global definitions (if any)                                         

@@ -32,6 +32,7 @@ alias h=history
 alias grep=egrep
 alias ll='ls -l'
 alias la='ls -a'
+alias vi='vim'
 
 # List only directories and symbolic
 # links that point to directories
@@ -69,9 +70,10 @@ export MANPATH
 #hosts=(`hostname` ftp.math.gatech.edu prep.ai.mit.edu wuarchive.wustl.edu)
 
 # Set prompts
-PROMPT='%m%# '    # default prompt
-RPROMPT=' %~'     # prompt for right side of screen
-
+#PROMPT='%m%# '    # default prompt
+#RPROMPT=' %~'     # prompt for right side of screen
+PROMPT='%(?.%F{green}√.%F{red}?%?)%f %B%F{240}%1~%f%b %# '
+RPROMPT='%*'
 # Some environment variables
 # export MAIL=/var/spool/mail/$USERNAME
 export LESS=-cex3M
@@ -159,3 +161,8 @@ zstyle ':completion:*:*:(^rm):*:*files' ignored-patterns '*?.o' '*?.c~' \
 
 # ignore completion functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
+if [ -x /usr/bin/fortune ]; then                                           
+   /usr/bin/fortune -s     # Makes our day a bit more fun.... :-)   
+   echo
+fi
+

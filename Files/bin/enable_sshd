@@ -6,7 +6,7 @@ echo
 
 if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
     echo "Generating SSH host keys"
-    ssh-keygen -A
+    sudo ssh-keygen -A
 fi
 
 sudo rc-update add sshd

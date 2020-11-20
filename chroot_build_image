@@ -9,11 +9,10 @@
 # Clean up previous run
 rm -rf /tmp/AOK
 
-
 # Build in /tmp
 echo "Create /tmp/AOK/build, copy stuff"
 mkdir -p /tmp/AOK/build
-tar cf - . --exclude .git --exclude main| (cd /tmp/AOK/build;tar xf -)
+tar cf - --exclude='.git' --exclude='./main' . | (cd /tmp/AOK/build;tar xf -)
 cd /tmp/AOK
 
 # Get apk if not installed

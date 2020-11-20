@@ -5,6 +5,12 @@
 # Set some variables
 . VARS
 
+# Get apk if not installed
+if [ ! -f /sbin/apk ]; then
+    echo "Installing APK"
+    Files/bin/get_apk
+fi
+
 # First update apk DB
 
 echo
@@ -16,7 +22,6 @@ apk -U upgrade
 echo
 echo "Add a minimal number of packages to make iSH useful"
 echo
-#apk add openssh openssh-doc openrc openrc-doc bash zsh tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client ncftp ncftp-doc
 
 apk add $CORE_APKS
 
@@ -29,12 +34,6 @@ ln -s /bin/busybox-extras /usr/bin/ftpput
 ln -s /bin/busybox-extras /usr/bin/tftp
 
 # Update/install a few key files
-
-# Set TZ to east coast US, because that is where I am
-# Note that there is a bug in iSH that prevents TZ stuff from working as of Nov 2020
-cp /usr/share/zoneinfo/America/New_York /etc/localtime
-echo "America/New_York" >  /etc/timezone
-date
 
 echo
 echo "Updating a few key files"
@@ -65,8 +64,8 @@ cp Files/issue /etc
 rm /etc/sudoers # Don't know why this is needed, but it is
 cp Files/sudoers /etc
 
-# Root .profile.  su to unpriv'd user and some other stuff
-cp Files/profile /root/.profile
+# Root .profile.  
+cp Files/profile /etc/profile
 
 
 # Add some simple scripts
@@ -85,7 +84,6 @@ useradd -s /bin/bash ish
 # For some reason useradd doesn't create the home dir?
 mkdir -p /home/ish
 chown ish.ish /home/ish
-
 
 # Add dot files for ish
 cp Files/bash_profile /home/ish/.bash_profile; chown ish.ish /home/ish/.bash_profile
@@ -127,5 +125,27 @@ cp Files/init.d/* /etc/init.d
 
 # /dev/null ends up with weird perms for some reason.  Fix
 chmod 777 /dev/null
+
+# Let's bypass login to force ish as the default user.  Currently not working as I'd like.  -mke
+mv /bin/login /bin/login.real
+cp Files/login /bin
+chmod +x /bin/login.real
+chmod +x /bin/login
+
+# I want vim to be vi, aliasing isn't working for some reason
+mv /usr/bin/vi /usr/bin/vi.real
+ln /usr/bin/vim /usr/bin/vi
+
+# Enable the utmp stuff (When it works, which is not now)
+# rc-update add s6 default; rc-update add utmps default
+
+# echo "Fixing Timezone stuff the ugly but simple way"
+ mkdir -p /usr/share/zoneinfo
+ zcat Files/fix_tz.tgz | (cd /usr/share/zoneinfo;tar xf -)
+
+# Set TZ to east coast US, because that is where I am
+ln /usr/share/zoneinfo/America/New_York /etc/localtime
+echo "America/New_York" >  /etc/timezone
+date
 
 echo "Done"
