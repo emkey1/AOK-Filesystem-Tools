@@ -1,6 +1,12 @@
 #!/bin/ash
 
 echo "Fixing Timezone Files"
+
+if [ -f /etc/localtime ]; then
+    echo "Removing old /etc/localtime"
+    rm /etc/localtime
+fi
+
 mkdir -p /usr/share/zoneinfo
 zcat /AOK/Files/fix_tz.tgz | (cd /usr/share/zoneinfo;tar xf -)
 

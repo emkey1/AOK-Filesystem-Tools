@@ -2,8 +2,8 @@
 
 # Usefull variables
 ALPINE_VERSION=3.12.1
-AOK_VERSION="ALPHA52"
-AOK_VERSION_SHORT="A52"
+AOK_VERSION="ALPHA53"
+AOK_VERSION_SHORT="A53"
 
 # APK's that get installed on image build and impact image size
 CORE_APKS='openssh openssh-doc openrc openrc-doc zsh bash tmux git curl openssl-dev mandoc man-pages shadow shadow-doc sudo busybox-extras mosh mosh-doc fortune fortune-doc tzdata-doc elinks elinks-doc dcron dcron-doc dcron-openrc vim vim-doc nano ssl_client ncftp ncftp-doc coreutils coreutils-doc'

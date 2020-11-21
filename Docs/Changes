@@ -52,7 +52,8 @@ Alpha Series
 	o busybox vi renamed to vi.real, vim hard linked to vi.  IE, vim is invoked when vi is 
 	  typed
 .55   o Fifth public test release
-         o Added coreutils to APK's installed on image
+	 o Added coreutils apk, which replaces many of the busybox versions of binaries including df and tar
          o Found fix for timezone issue.  Currently it requires eitehr a custome tzdata apk or
 	   copying a fixed version of the database stuff during the build.  This is fixed in the 
 	   Edge version of Alpine.
+	 o General cleanup in prep for put to github
