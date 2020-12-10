@@ -1,9 +1,0 @@
-#!/bin/ash
-# Copy files from the Files.master/ sub folder into the Files
-# sub folder with variable substitution
-
-# Read in our variables
-. VARS
-
-
-
