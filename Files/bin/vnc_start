@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# Stupidly simple script to start vnc.  
+
+# Remove stale locks from /tmp
+
+CHECK=`ps -o args | grep "{startx} /bin/sh /usr/bin/startx" | wc -l`
+
+
+# Do minimal sanity check to see if vnc/X11 are installed
+if [ ! -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
+    echo "You must run 'enable_vnc' first"
+    exit 1
+fi
+
+# Only run once.  The grep causes CHECK to equal 1
+if [ $CHECK -eq 1 ]; then # Nothing running, clear stale locks
+   rm -rf /tmp/.X* 
+else
+   echo "$0 is already running.  We're done here."
+   exit 1
+fi
+
+startx &
+#x11vnc -display :0 -noshm -forever -geometry 1600x1668 & 
+x11vnc -display :0 -noshm -forever & 

@@ -5,9 +5,24 @@
 # Break this down into three different levels to give options
 
 # Initialize some lists of packages
-little="python3 py3-pip python3-dev build-base zsh"
-medium="nodejs nodejs-dev"
-lotsa="emacs go"
+
+WHO=`whoami`
+
+# execute again as root
+if [ "$WHO" != "root" ]; then
+   echo "Executing as root"
+   sudo /usr/local/bin/bloat $1
+   exit 0
+fi
+
+# Read vars
+. /usr/local/etc/AOK_VARS
+
+# This whole thing needs to be redone.
+
+little=$BLOAT1_APKS
+medium=$BLOAT2_APKS
+lotsa=$BLOAT3_APKS
 
 if [ -z $1 ]; then echo "1 = little bloat, 2 = medium bloat, 3 = lotsa bloat"; exit; fi
 

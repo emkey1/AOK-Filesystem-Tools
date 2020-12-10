@@ -1,16 +1,11 @@
 #!/bin/bash
-echo
-echo "Note: This is the externally visible IP of your device.  In most cases it will be the IP of your firewall or router"
 
-curl https://ipapi.co/csv/ > /tmp/foo 2> /dev/null
+echo "This only works properly with wireless connections for now"
 
-output=`wc /tmp/foo | awk '{print $1}'`  # Check to be sure we got back valid output
+INT_IP=`curl ifconfig.me 2>/dev/null`
 
-if [[ $output -eq 2 ]]
-then 
-  echo
-  tail -n 1 /tmp/foo | awk -F',' '{print $16}' 
-  exit 
-fi
+echo "Internet IP: $INT_IP"
 
-echo "Error: Invalid output received.  Try again later"
+LOCAL_IP=`/usr/local/bin/idev_ip | cut -d: -f 2`
+
+echo "Local IP:$LOCAL_IP"

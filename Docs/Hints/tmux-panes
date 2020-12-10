@@ -1,0 +1,34 @@
+This is not intended to be a tutorial on tmux, but rather a quick 
+overview of a few of the custom features in the standard config that
+comes with AOK.
+
+Probably my favorite feature of tmux is the ability to divide the screen
+into 'panes'.  Before I talk about that I need to mention that tmux
+'commands' and generally invoked by first typing "Control-B" followed 
+by another keystroke.  To use panes you need to know the following three
+key combinations.  Note you will have to start tmux first by typing...
+
+tmux
+
+The first two commands allow you to divide the screen either vertically
+or horizontally.
+
+Control-B |     # Split window vertically
+Control-B -     # Split window horizontally
+
+Finally you need to know how to switch between the panes.
+
+Control-B o     # Cycle through the panes
+
+Bonus command:
+
+Control-B q     # Show pane numbers, press number to go to that pane
+
+There are many other useful tmux commands.  Do a web search for 
+'tmux cheat sheet' if you want a more complete version of this short
+tutorial or 'tmux tutorial' to find more extensive documentation.  You
+can also simply type...
+
+man tmux
+
+For the tmux manual

@@ -1,0 +1,3 @@
+x11vnc -display :0 -noshm -forever &
+[9:00 AM]
+startx &

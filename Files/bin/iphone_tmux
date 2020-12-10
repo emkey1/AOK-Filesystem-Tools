@@ -1,0 +1,4 @@
+#!/bin/bash 
+tmux new-session -s "My iPhone" -d
+tmux split-window -v
+tmux -2 attach-session -d 

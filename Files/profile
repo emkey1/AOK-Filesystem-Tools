@@ -1,5 +1,15 @@
 #!/bin/ash
-# Start various things to make iSH more useful
+# Do various things to make iSH more useful.  Or work around
+# oddness
+
+# /dev/null gets screwed uf at times.  Recreate.  This may only
+# need to be done once.  Need to test
+sudo rm /dev/null > /tmp/profile.debug 2>&1
+sudo mknod /dev/null c 1 3 >> /tmp/profile.debug 2>&1
+sudo chmod 666 /dev/null >> /tmp/profile.debug 2>&1
+
+# Let's set the path here since that covers both zsh and bash
+export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin
 
 # Start the process that marginally reduces the chances of iSH
 # Getting killed while running in the background
@@ -10,16 +20,36 @@
 # mitigate that
 sudo cp /root/init.d/networking /etc/init.d
 
-echo
-echo "-----------------------------------------------"
-echo
-echo "Enable sshd on port 1022: [31menable_sshd[0m"
-echo
-echo "Use [31msudo[0m to run commands as root"
-echo
-echo "-----------------------------------------------"
-echo
+CHECK=`/bin/rc-status 2> /dev/null | grep sshd | wc -l`
 
-# Let's set the path here since that covers both zsh and bash
+ID=`id -u`
 
-export PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin:/sbin
+VERBOSE=0
+
+if [ $CHECK -eq 0 ] || [ $ID -ne 0 ]; then 
+   VERBOSE=1
+fi
+
+# echo $CHECK $ID $VERBOSE
+
+if [[ $VERBOSE -eq 1 ]]; then
+   echo
+   echo "------------------------------------------"
+   echo
+fi
+
+if [[ $CHECK -eq 0 ]]; then
+   echo "Enable sshd on port 1022: [31menable_sshd[0m"
+   echo
+fi
+
+
+if [[ $ID -ne 0 ]]; then
+   echo "Use [31msudo[0m to run commands as root"
+   echo
+fi
+
+if [[ $VERBOSE -eq 1 ]]; then
+   echo "------------------------------------------"
+   echo
+fi

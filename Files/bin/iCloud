@@ -1,0 +1,16 @@
+#!/bin/bash
+# Make it easier for people to mount their iCloud drive in iSh, 
+# Also create a /iCloud/AOK directory
+
+echo "When the file picker pops up please choose a directory to mount."
+echo 
+echo "You can optionally create a new one, or use an existing directory.
+echo
+echo "This directory will be used for various things includig backups of"
+echo "your AOK files"
+
+sleep 10
+
+mount -t ios foo /iCloud
+
+

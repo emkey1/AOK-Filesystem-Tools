@@ -1,0 +1,18 @@
+Building
+
+Everything used to create this root fs originally can be found in
+/AOK.  
+
+To generate a fresh root filesystem identical to what you started with...
+
+   sudo su -
+   cd /AOK
+   ./chroot_build_image
+
+The root fs will then be available in /tmp/AOK
+
+VNC
+
+enable_vnc: Create needed config files and download APK's
+disable_vnc: Reverse above
+vnc_start: Start X11 and the VNC server

@@ -47,11 +47,9 @@
    # Source global definitions (if any)                                         
    #-------------------------------------------------------------               
                                                                                 
-                                                                                
    if [ -f /etc/bashrc ]; then                                                  
          . /etc/bashrc   # --> Read /etc/bashrc, if present.                    
    fi                                                                           
-                                                                                
                                                                                 
    #--------------------------------------------------------------              
    #  Automatic setting of $DISPLAY (if not set already).                       
@@ -170,7 +168,11 @@
                                                                                 
    echo -e "${BCyan}This is BASH ${BRed}${BASH_VERSION%.*}${BCyan} - with DISPLAY on ${BRed}$DISPLAY${NC}\n"
 
+   # We need to following to keep line wrapping working correctly
+   resize > /dev/null 2>&1
+
    date                                                                         
+
    if [ -x /usr/bin/fortune ]; then                                           
        echo
        /usr/bin/fortune -s     # Makes our day a bit more fun.... :-)         
@@ -301,23 +303,8 @@
                                                                                 
    # Now we construct the prompt.                                               
    PROMPT_COMMAND="history -a"                                                  
-   #case ${TERM} in                                                              
-   #  *term | rxvt | linux)                                                      
-   #        PS1="\[\$(load_color)\][\A\[${NC}\] "                                
-   #        # Time of day (with load info):                                      
-   #        PS1="\[\$(load_color)\][\A\[${NC}\] "                                
-   #        # User@Host (with connection type info):                             
-   #        PS1=${PS1}"\[${SU}\]\u\[${NC}\]@\[${CNX}\]\h\[${NC}\] "              
-   #        # PWD (with 'disk space' info):                                      
-   #        PS1=${PS1}"\[\$(disk_color)\]\W]\[${NC}\] "                          
-   #        # Prompt (with 'job' info):                                          
-   #        PS1=${PS1}"\[\$(job_color)\]>\[${NC}\] "                             
-   #        # Set title of current xterm:                                        
-   #        PS1=${PS1}"\[\e]0;[\u@\h] \w\a\]"                                    
-   #        ;;                                                                   
-   #    *)                                                                       
 #           PS1="(\A \u@\h \W) > " # --> PS1="(\A \u@\h \w) > "                  
-           PS1="(${Green}\A $SU\u$NC /\W)-> " # --> PS1="(\A \u@\h \w) > "                  
+           PS1="(\[$Green\]\A \[$SU\]\u\[$NC\] /\W)-> " # --> PS1="(\A \u@\h \w) > "                  
                                   # --> Shows full pathname of current dir.     
    #        ;;                                                                   
    #esac                                                                         
@@ -393,7 +380,7 @@
    export LESSCHARSET='latin1'                                                  
    export LESSOPEN='|/usr/bin/lesspipe.sh %s 2>&-'                              
                    # Use this if lesspipe.sh exists.                            
-   export LESS='-i -N -w  -z-4 -g -e -M -X -F -R -P%t?f%f \                     
+   export LESS='-i -n -w  -z-4 -g -e -M -X -F -R -P%t?f%f \                     
    :stdin .?pb%pb\%:?lbLine %lb:?bbByte %bb:-...'                               
                                                                                 
    # LESS man page colors (makes Man pages more readable).                      
@@ -852,4 +839,3 @@
    # End:                                                                       
 
                 
-

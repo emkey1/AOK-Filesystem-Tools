@@ -4,16 +4,7 @@
 # Check to be sure we are not running this in /tmp/AOK
 
 # Read in vars
-. VARS
-
-# Clean up previous run
-rm -rf /tmp/AOK
-
-# Build in /tmp
-echo "Create /tmp/AOK/build, copy stuff"
-mkdir -p /tmp/AOK/build
-tar cf - --exclude='.git' --exclude='./main' . | (cd /tmp/AOK/build;tar xf -)
-cd /tmp/AOK
+. AOK_VARS
 
 # Get apk if not installed
 if [ ! -f /sbin/apk ]; then
@@ -21,32 +12,57 @@ if [ ! -f /sbin/apk ]; then
     Files/bin/get_apk
 fi
 
-# Download the Alpine miniroot
-wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+# Clean up previous run
+if [ ! -f /tmp/AOK/build/BUILD_DONE ]; then  # Skip if we crashed during tar/compress
+   rm -rf /tmp/AOK
 
-cd build
-# Unzip Alpine
-gunzip -c ../alpine-minirootfs-3.12.1-x86.tar.gz | tar xf -
+   # Download the Alpine miniroot if we need to
+   cd /mnt/Documents/AOK
+   if [ ! -f alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz ]; then
+      echo "Caching miniroot"
+      wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+   fi
 
-# We need a valid resolv.conf
-cp /etc/resolv.conf /tmp/AOK/build/etc
+   # Build in /tmp
+   echo "Create /tmp/AOK/build, copy stuff"
+   mkdir -p /tmp/AOK/build
+   tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd /tmp/AOK/build;tar xf -)
 
-# And now for the main bit
-chroot /tmp/AOK/build ./build_image
+   cd /tmp/AOK/build
 
-cd /tmp/AOK
+   # Unzip Alpine
+   gunzip -c alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz | tar xf -
 
-# Clean up
-mkdir build/AOK
-mv build/build_image build/AOK
-mv build/chroot_build_image build/AOK
-mv build/LICENSE build/AOK
-mv build/VARS build/AOK
-mv build/Files build/AOK
-mv build/Docs build/AOK
+   # We need a valid resolv.conf
+   cp /etc/resolv.conf /tmp/AOK/build/etc
+
+   # And now for the main bit
+   chroot /tmp/AOK/build ./build_image
+
+   cd /tmp/AOK
+
+   echo "Doing some cleanup"
+   # Clean up
+   mkdir build/AOK
+   mv build/build_image build/AOK
+   mv build/chroot_build_image build/AOK
+   mv build/LICENSE build/AOK
+   mv build/AOK_VARS build/AOK
+   mv build/Files build/AOK
+   mv build/Docs build/AOK
+   mv build/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz build/AOK
 
 # Tar up and zip the result
+fi
 
-cd build
+cd /tmp/AOK/build
 
-tar cvf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_$AOK_VERSION.tgz
+touch BUILD_DONE
+
+echo "Archiving root fs image"
+
+tar cf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_$AOK_VERSION.tgz
+
+echo "Archiving root fs image complete"
+
+rm BUILD_DONE # We're done, leaving around would be counter productive

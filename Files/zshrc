@@ -1,6 +1,8 @@
 #
 # Example .zshrc file for zsh 4.0
 #
+# "stolen" from http://zsh.sourceforge.net/Contrib/startup/std/zshrc
+#
 # .zshrc is sourced in interactive shells.  It
 # should contain commands to set up aliases, functions,
 # options, key bindings, etc.

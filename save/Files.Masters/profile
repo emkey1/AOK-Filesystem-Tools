@@ -1,0 +1,44 @@
+#!/bin/ash
+# Start various things to make iSH more useful
+
+# Start the process that marginally reduces the chances of iSH
+# Getting killed while running in the background
+/usr/local/bin/rbg
+
+# /etc/init.d/networking keeps getting an extra } written at the end
+# For some unknown reason.  Overwrite it when we login to hopefully
+# mitigate that
+sudo cp /root/init.d/networking /etc/init.d
+
+CHECK=`ps -o args | grep "sshd: /usr/s" | wc -l`
+ID=`id -u`
+
+if [ $CHECK -eq 1 ] || [ $ID -ne 0 ]; then 
+   PRINT=1
+fi
+
+if [ $PRINT ]; then
+   echo
+   echo "-----------------------------------------------"
+   echo
+fi
+
+if [[ $CHECK -eq 1 ]]; then
+   echo "Enable sshd on port 1022: [31menable_sshd[0m"
+   echo
+fi
+
+
+if [[ $ID -ne 0 ]]; then
+   echo "Use [31msudo[0m to run commands as root"
+fi
+
+if [ $PRINT ]; then
+   echo
+   echo "-----------------------------------------------"
+   echo
+fi
+
+# Let's set the path here since that covers both zsh and bash
+
+export PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin:/sbin

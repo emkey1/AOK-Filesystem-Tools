@@ -1,2 +1,1 @@
-o /etc/profile has bits that shouldn't be executed if run as root.  Specifically the bit about sudo
 o Implement variable substitution for the VARS stuff 

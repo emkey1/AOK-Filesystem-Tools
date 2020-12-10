@@ -1,0 +1,20 @@
+#!/bin/ash
+#
+# Enable sshd to run automatically
+
+echo
+
+if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
+    echo "Generating SSH host keys"
+    sudo ssh-keygen -A
+fi
+
+sudo rc-update add sshd
+sudo rc-service sshd start
+
+sudo rc-update add dcron
+
+echo
+echo "Remember to set a password for the ish user if you haven't already"
+echo "Do this by typing 'passwd' and following the prompts"
+echo

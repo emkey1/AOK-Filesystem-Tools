@@ -8,52 +8,95 @@ Alpha Series
           work but I did very minimal testing
         o Added mosh
         o Moved sshd host key generation to enable_sshd where it belongs
-        o Added Emmanuel Rouat's bash_profile for ish user, modified it a bit to work 
-          with iSH
-        o Added fortune program because I can.  Included it in default bash_profile
+        o Added Emmanuel Rouat's bash_profile for ish user, modified it a bit to 
+	  work with iSH
+        o Added fortune program because I can.  Included it in default 
+	  bash_profile
         o Modified /etc/init.d/hostname to always return success so that we can 
           services with dependencies on it
         o Attempted to add both syslog-ng and then rsyslog.  Both cause programs
           that log to wedge.  They run fine under openrc otherwise
-	o Added dcron.  Minimal testing at this point.  It starts, runs and appears to 
-          work.  Attempted to use fcron first but it depends on a working logging 
-          system which we don't currently have
+	o Added dcron.  Minimal testing at this point.  It starts, runs and 
+	  appears to work.  Attempted to use fcron first but it depends on a 
+	  working logging system which we don't currently have
 	o Added elinks text based web browser to base install
 	o Start dcron in enable_sshd.  Which is hacky and sucky but I'm 
 	  doing it anyway for now
-	o Added the nano editor base install because apparently some people like it.
-          <shudder> :-)
+	o Added the nano editor base install because apparently some people 
+	  like it.  <shudder> :-)
 .40  o Third public test release
 	o copy bash_profile to /root in addition to /home/ish
 	o Moved project to github
 	o Fixed issue with executable bit not being set on stuff in /usr/local/bin
 	  after pull from github
-        o Wrote script to build image in chroot enviornment.  It's fairly lame but works.  
+        o Wrote script to build image in chroot enviornment.  It's fairly lame 
+	  but works.  
 	  'chroot_build_image'
-	o Added fake /etc/network/interfaces file to hopefully make /etc/init.d/networking a 
-	  bit happier
-	o Found apparent bug in BusyBox chroot in regards to soft links made by apk's during 
-	  install.  Worked around vi build script
-	o I now leave a copy of the AOK build environment in /AOK on the root image.  You can 
+	o Added fake /etc/network/interfaces file to hopefully make 
+	  /etc/init.d/networking a bit happier
+	o Found apparent bug in BusyBox chroot in regards to soft links made by 
+	  apk's during install.  Worked around vi build script
+	o I now leave a copy of the AOK build environment in /AOK on the root 
+	  image.  You can 
 		+ sudo bash
 		+ cd /AOK
 		+ ./chroot_build_image
-		+ You will now have an identical root image in /tmp/AOK (Assuming you made no 
-		  changes)
+		+ You will now have an identical root image in /tmp/AOK 
+		  (Assuming you made no changes)
 .50  o Fourth public release.  I need to spell check this
 	o Added zsh to core RPM's
 	o Started to implement VARS file in image builds
-	o Create wrapper for /bin/login to assure that the ish user always logs in initially.
-	  Alas /bin/login doesn't work as expected.  
+	o Create wrapper for /bin/login to assure that the ish user always logs 
+	  in initially.  Alas /bin/login doesn't work as expected.  
 	o Switched ish user to zsh
 	o Switched ish user back to bash, zsh is too slow but still available
-	o Login is now required.  With password set it is possible to login directly as root.  
-	  With no password set for ish it logs in fine though
-	o busybox vi renamed to vi.real, vim hard linked to vi.  IE, vim is invoked when vi is 
-	  typed
+	o Login is now required.  With password set it is possible to login 
+	  directly as root.  With no password set for ish it logs in fine though
+	o busybox vi renamed to vi.real, vim hard linked to vi.  IE, vim is 
+	  invoked when vi is typed
 .55   o Fifth public test release
-	 o Added coreutils apk, which replaces many of the busybox versions of binaries including df and tar
-         o Found fix for timezone issue.  Currently it requires eitehr a custome tzdata apk or
-	   copying a fixed version of the database stuff during the build.  This is fixed in the 
-	   Edge version of Alpine.
+	 o Added coreutils apk, which replaces many of the busybox versions of 
+	   binaries including df and tar
+         o Found fix for timezone issue.  Currently it requires eitehr a custom 
+	   tzdata apk or copying a fixed version of the database stuff during the 
+	   build.  This is fixed in the Edge version of Alpine.
 	 o General cleanup in prep for put to github
+	 o Added /usr/local/bin/fix_tz in case the tz files get broken again
+	 o The /etc/profile is now much smarter about what it outputs
+	 o Changed roots shell to bash
+.60   o Fifith public release
+         o Added tmux-doc apk
+	 o Converted login wrapper to prompt foe login on exit, just like a 
+	   "real" linux system
+	 o Added fancy tmux configuration file
+	 o Modified /etc/profile PATH to put /usr/local/bin first
+	 o Changed VARS file to be AOK_VARS and now copy it to /usr/local/etc
+	   for use by scripts in /usrlocal/bin
+         o Added findutils & findutils-doc to APK's available at first boot
+	 o Changed my mind on how to do vim.  It is now linked to 
+	   /usr/local/bin/vi and /usr/bin/vi is still busybox vi.  Since 
+	   /usr/local/bin appears first in the default path I get what I
+	   want and don't screw up the /usr/bin/vi link
+         o Addeed the tar, ncurses, ncurses-doc APK to core list
+	 o Fixed issue with wrapping in bash with default .bash_profile
+         o Alpine up to date as of 27 November 2020
+.66   o Another brick in the wall
+         o Added binary to show IP of iDevice (idev_ip) and redid the
+	   myip script to show both the "Internet IP" and the Local IP
+         o Rewrote the showip/myip script to show both the external and 
+	   and local IP address.  Uses idev_ip for local
+         o Created script to enable vnc (enable_vnc), disable vnc (disable_vnc) and 
+           run vnc (vnc_start)
+         o Added the 'file' APK.  Not sure why I waited this long
+         o Added the 'less' APK.  
+         o .bash_profile for both ish and root is now also linked to .bashrc
+.70   o Time to provide upgrade path
+         o Fixed stale lock 'bug' with vnc_start
+         o Image will now include a /iCloud directory and encourage people
+           to mount it via a 'iCloud' script
+	 o Added apt wrapper in previous release, documenting here.  It just
+	   gives some info on basic apk commands
+         o Added two scripts to start tmux and open panes.  'ipad_tmux' and 
+	   'iphone_tmux'
+         o Started work on a backup and restore setup to make upgrades easier
+

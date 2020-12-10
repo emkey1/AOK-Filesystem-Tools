@@ -1,0 +1,6 @@
+tmux
+```set -g status-right '#[fg=white,bold,bg=red,bold] #(echo "scale=4 ; ((100 - $(top - bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/")))" | bc)% #[fg=black,bold,bg=blue,bold] #(cat /sys/class/power_supply/BAT0/charge_now)/#(cat /sys/class/power_supply/BAT0/charge_full) | #(echo "scale=2 ; ((100 * $(cat /sys/class/power_supply/BAT0/charge_now)) / $(cat /sys/class/power_supply/BAT0/charge_full))" | bc)% #[fg=white,bg=black] #(echo $USER)@#H #[fg=white,bold]#[bg=yellow,bold] %d/%m/%y #[fg=black,bg=white] %H:%M:%S '```
+
+Oh My Fish
+curl -L github.com/oh-my-fish/oh-my-fish/raw/master/bin/install | fish
+omf help

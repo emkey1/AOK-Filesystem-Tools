@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Important stuff needs to be read...
+. /usr/local/etc/AOK_VARS
+
+WHO=`whoami`
+
+# execute again as root
+if [ "$WHO" != "root" ]; then
+   echo "Executing as root"
+   sudo /usr/local/bin/disable_vnc
+   exit 0
+fi
+
+echo "Removing VNC/X11 packages"
+apk del $VNC
+
+
+if [ -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
+   echo "Removing X11 headless config file"
+   rm /etc/X11/xorg.conf.d/10-headless.conf
+fi
