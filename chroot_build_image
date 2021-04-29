@@ -20,7 +20,7 @@ if [ ! -f /tmp/AOK/build/BUILD_DONE ]; then  # Skip if we crashed during tar/com
    cd /mnt/Documents/AOK
    if [ ! -f alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz ]; then
       echo "Caching miniroot"
-      wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+      wget https://dl-cdn.alpinelinux.org/alpine/v3.13/releases/x86/alpine-minirootfs-3.13.5-x86.tar.gz
    fi
 
    # Build in /tmp
