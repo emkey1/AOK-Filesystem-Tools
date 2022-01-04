@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+# Quick hack to deal with services not starting properly with Alpine 3.14
+
+@services = `rc-status | grep '^ '`;
+
+while($check = shift(@services)) {
+   chop $check;
+   ($name, $trash, $state) = split(/\s{2,}/, $check);
+   if($state =~ /crashed/) {
+      `rc-service$name restart >/dev/null 2>/dev/null`; # If it is crashed, restart
+   } elsif($state =~ /stopped/) {
+      `rc-service$name start >/dev/null 2>/dev/null`; # If it is stopped, start
+   }
+}

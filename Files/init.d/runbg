@@ -1,0 +1,56 @@
+#!/sbin/openrc-run
+
+#
+# Copyright (c) 2021: Jacob.Lundqvist@gmail.com 2021-05-20
+# License: MIT
+#
+# This service reads the GPS and discards the output to /dev/null. 
+# So this is not tracking you in any way. The sole purpose of this
+# is that this is the only way to ensure an iOS program continues to run
+# in the background.
+# This process has no noticeable impact on battery life.
+#
+
+name="run in background"
+description="Reads GPS to ensure iSH continues to run when in background"
+
+command="cat"
+command_args="/dev/location > /dev/null"
+command_background="YES"
+
+pidfile="/run/$RC_SVCNAME.pid"
+
+
+#
+# The above is all that is needed to have cat /dev/location > /dev/null
+# run as a simple daemon with pid being monitored.
+#
+# The below parts are just adding some additional sanity, not needed
+# in order for the daemon to work by itself.
+#
+# Pointless to have more than one thing doing this. 
+# The below aborts with error if:  cat /dev/location
+# is already running.
+# And displays warning if other processes are detected
+# after stoping.
+#
+
+check_for_other_polling() {
+    other_pids=$(ps |grep "cat /dev/location" | grep -v grep | awk '{ print $1 }' |  tr '\n' ' ')
+}
+
+
+start_pre() {
+    check_for_other_polling
+    if [ "$other_pids" != "" ]; then
+	eerror "ERROR: Other processes polling GPS [ $other_pids]"
+   fi
+}
+
+
+stop_post() {
+    check_for_other_polling
+    if [ "$other_pids" != "" ]; then
+	ewarn "WARNING: Other processes polling GPS [ $other_pids]"
+   fi
+}
