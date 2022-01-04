@@ -92,11 +92,75 @@ Alpha Series
          o .bash_profile for both ish and root is now also linked to .bashrc
 .70   o Time to provide upgrade path
          o Fixed stale lock 'bug' with vnc_start
-         o Image will now include a /iCloud directory and encourage people
-           to mount it via a 'iCloud' script
 	 o Added apt wrapper in previous release, documenting here.  It just
 	   gives some info on basic apk commands
          o Added two scripts to start tmux and open panes.  'ipad_tmux' and 
 	   'iphone_tmux'
          o Started work on a backup and restore setup to make upgrades easier
-
+           Deferred until next release
+         o Removed apache from bloat level 3
+	 o Added sed, sed-doc, gawk and gawk-doc, tar-doc to base install
+	 o fixed login_loop.c and login_single.c to suck much less
+.85   Still no upgrade path.  Next time hopefully.  Some hooks added to 
+      make this more doable
+	o Modify sshd_config to disable auto logout (I hate that this isn't 
+          the default)
+        o Enhance bloat to have more verbose usage instructions and a special
+          option for packages that don't currently work with ish
+        o Rename rbg to runbg, add openrc init script for it and start there 
+	  rather than from /etc/profile
+        o It looks like the timezone hack is no longer needed.  Removed it and 
+          added tzdata and tzdata-doc to standard list of apk's
+        o Added a modified /etc/init.d/hwdrivers to fix issues with various 
+          OpenRC service startups complaining about service dev not existing.  
+          This is likely the wrong approach.  
+        o Create /etc/FIRSTBOOT on image generation.  
+           o Added section to /etc/profile that checks to see if it exists.  
+             If so then there is a section of the script that does stuff that 
+             only needs to happen once.  I've moved the removal and creation 
+             of /dev/null there since it is certainly broken initially and thus 
+             needs to be recreated.
+	   o /etc/FIRSTBOOT is removed at the end of the section so that 
+             section of only runs the first time
+        o The "real" login binary is now being renamed to login.alpine rather 
+	  than login.real.  Also renamed login_single to login.once and 
+	  login_loop to login.loop
+        o Removed all doc (dcron-doc for instance) APK's from initial image to 
+	  reduce size.  They can be install with 'bloat docs'
+	o Created 'aok' script to manipulate various things about the AOK boot 
+	  image.  For now it can be used to change startup behaviour.  
+	  'aok -p login' for more info
+        o Create /etc/aok_release with the version of AOK used by the boot 
+	  image
+        o login.loop and login.once now read /etc/aok_release and include 
+	  version in login prompt
+.85.1   Bug Fix Release
+        o Added linux-headers apk to the bloat 1 install
+	o Fixed the iCloud script
+	o Changed chroot_build_image to write stuff to /iCloud
+	o Updated AOK_VARS to reflect new version
+        o Moved strace stuff in bloat from bloat level 1 to the aok group
+	o Fixed typo in aok usage() and updated boilerplate text to be mildly descriptive
+	o Change the ish user to be uid 501
+	o Fix 'aok' script usage info to reflect 'once' rather that single for 
+	  the exit on exit option
+	o Fix bloat package options to be a bit cleaner
+.85.2   More Bug fixes
+        o Shorten welcome message in login* binaries to fit on iPhone screen
+          by removing the word 'root'
+.85.3   Tweaks
+        o Added cmake to 'bloat 1', added -doc files for 'bloat aok'
+        o Now using @jaclu's bgrun script rather than runbg (https://github.com/jaclu/spd/blob/main/files/bgrun)
+.85.4	Tweaks
+	o For iSH-AOK I added procps and htop to the root fs.  This "fixes" and issue
+          in the busybox uptime command that causes bogus uptime to be reported.  To 
+          be clear, it dosn't fix busybox itself but rather replaces the uptime command
+          from busybox with the one from procps.  Adding htop because it is nice and I 
+          wanted to.  Note that neither works on mainline iSH as of the time this note
+          was written
+.89     Back to Alpine 3.12.1
+        o Alpine 3.12.1 is old, but it's reasonably stable in general and specifically so with iSH
+.90     Cleanup/Alpine Update
+	o Removed a bunch of stuff from /AOK that shouldn't have been there
+        o Switched to Alpine 3.12.9
+        o /usr/local/bin/installed script now sorts output first

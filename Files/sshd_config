@@ -91,11 +91,11 @@ X11Forwarding no
 #PermitTTY yes
 #PrintMotd yes
 #PrintLastLog yes
-#TCPKeepAlive yes
+TCPKeepAlive yes
 #PermitUserEnvironment no
 #Compression delayed
-#ClientAliveInterval 0
-#ClientAliveCountMax 3
+ClientAliveInterval 0
+ClientAliveCountMax 3
 #UseDNS no
 #PidFile /run/sshd.pid
 #MaxStartups 10:30:100

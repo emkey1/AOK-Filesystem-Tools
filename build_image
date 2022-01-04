@@ -42,6 +42,8 @@ ln -s /bin/busybox-extras /usr/sbin/telnetd
 ln -s /bin/busybox-extras /usr/sbin/tftpd
 ln -s /bin/busybox-extras /usr/sbin/udhcpd
 
+ln /etc/init.d/devfs /etc/init.d/dev
+
 # Update/install a few key files
 
 echo
@@ -80,6 +82,9 @@ cp Files/profile /etc/profile
 # Add some simple scripts
 cp Files/bin/* /usr/local/bin
 
+mkdir -p /usr/local/sbin
+cp Files/sbin/* /usr/local/sbin
+
 # Make a link so that showip can also be 'myip'
 ln /usr/local/bin/showip /usr/local/bin/myip
 
@@ -91,9 +96,10 @@ cp AOK_VARS /usr/local/etc
 chmod +x /usr/local/bin/*
 
 echo
-echo "Creating the ish user"
+echo "Creating the ish user and group"
 
-useradd -s /bin/bash ish
+groupadd -g 501 ish
+useradd -s /bin/bash -u 501 -g 501 ish
 
 # For some reason useradd doesn't create the home dir?
 mkdir -p /home/ish
@@ -116,19 +122,6 @@ cp Files/shadow /etc
 
 echo
 
-echo "Enabling openrc"
-
-mkdir /run/openrc
-touch /run/openrc/softlevel
-openrc-init
-
-echo
-echo "Enabling openrc run services"
-
-# Enable dcron (Doesn't actually stick for some reason)
-#rc-update add syslog-ng
-rc-update add dcron
-
 # Copy some documentation to the ish user home directory
 
 echo 
@@ -142,24 +135,32 @@ chown -R ish.ish /home/ish/Docs
 rm /etc/init.d/networking
 cp Files/init.d/* /etc/init.d
 
+# More hackery.  Initial case is the need to make pam_motd.so optional 
+# So that the ish user will work in Alpine 3.14
+cp Files/pam.d/* /etc/pam.d
+
 # /dev/null ends up with weird perms for some reason.  Fix
 chmod 777 /dev/null
 
 # Let's bypass login to implement a more traditional login 
 # experience.  By default the login wrapper will loop, meaning
 # Another login prompt will be issued on exit.
-# login_single can be copied to /bin/login to cause iSH
+# login.once can be copied to /bin/login to cause iSH
 # to exit on shell termination instead
 #pushd .
 #cd Files/login
-cp Files/login/login_* Files
+#cp Files/login/login_* Files
 #popd
 
-mv /bin/login /bin/login.real
-cp Files/login_loop /bin/login
-cp Files/login_loop /bin
-cp Files/login_single /bin
-chmod +x /bin/login.real
+mv /bin/login /bin/login.alpine
+cp Files/login.loop /bin/login
+
+cp Files/login.loop /bin
+cp Files/login.once /bin
+
+chmod +x /bin/login.alpine
+chmod +x /bin/login.loop
+chmod +x /bin/login.once
 chmod +x /bin/login
 cp Files/tmux.conf /home/ish/.tmux.conf
 chown ish.ish /home/ish/.tmux.conf
@@ -173,9 +174,9 @@ ln /usr/bin/vim /usr/local/bin/vi
 # rc-update add s6 default; rc-update add utmps default
 
 # echo "Fixing Timezone stuff the ugly but simple way"
- mkdir -p /usr/share/zoneinfo
- zcat Files/fix_tz.tgz | (cd /usr/share/zoneinfo;tar xf -)
- chmod -R 755 /usr/share/zoneinfo
+# mkdir -p /usr/share/zoneinfo
+# zcat Files/fix_tz.tgz | (cd /usr/share/zoneinfo;tar xf -)
+# chmod -R 755 /usr/share/zoneinfo
 
 # Set TZ to east coast US, because that is where I am
 ln /usr/share/zoneinfo/America/New_York /etc/localtime
@@ -190,8 +191,39 @@ chmod 666 /dev/null
 # Change roots shell
 sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
 
-# Make a directory to later mount the iCloud drive on
+echo "Enabling openrc"
+cp Files/rc.conf /etc
+mkdir /run/openrc
+touch /run/openrc/softlevel
+openrc-init
+# Set openrc boot level to be default
+echo "Setting OpenRC runlevel to 'default'"
+echo "default" > /run/openrc/softlevel
 
+echo
+
+# Moved the service stuff to /etc/profile via /etc/FIRSTBOOT
+#echo "Enabling openrc run services"
+# Enable dcron (Doesn't actually stick for some reason)
+#rc-update add syslog-ng
+#rc-update add dcron
+# Daemon to reduce odds of ish getting killed when running in the background
+#rc-update add runbg
+
+
+echo "Creating First Boot File in /etc"
+
+touch /etc/FIRSTBOOT
+
+# Make a directory to later mount the iCloud drive on
 mkdir /iCloud
 
+echo 
+
+echo "Making AOK Version file in /etc"
+
+echo $AOK_VERSION > /etc/aok_release
+
 echo "Done"
+
+echo

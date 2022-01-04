@@ -17,10 +17,15 @@ if [ ! -f /tmp/AOK/build/BUILD_DONE ]; then  # Skip if we crashed during tar/com
    rm -rf /tmp/AOK
 
    # Download the Alpine miniroot if we need to
-   cd /mnt/Documents/AOK
+   if [ ! -e /iCloud/AOK/build ]; then
+      mkdir -p /iCloud/AOK/build
+   fi
+
+   cd /iCloud/AOK/build
    if [ ! -f alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz ]; then
       echo "Caching miniroot"
-      wget http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+      wget https://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz
+#          https://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86/alpine-minirootfs-3.12.9-x86.tar.gz
    fi
 
    # Build in /tmp
@@ -30,8 +35,9 @@ if [ ! -f /tmp/AOK/build/BUILD_DONE ]; then  # Skip if we crashed during tar/com
 
    cd /tmp/AOK/build
 
-   # Unzip Alpine
+   # Unzip Alpine, remove tar.gz
    gunzip -c alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz | tar xf -
+   rm alpine-minirootfs-$ALPINE_VERSION-x86.tar.gz 
 
    # We need a valid resolv.conf
    cp /etc/resolv.conf /tmp/AOK/build/etc
@@ -63,6 +69,14 @@ echo "Archiving root fs image"
 
 tar cf - . | gzip -9 > ../ALPINE_$ALPINE_VERSION-iSH-AOK_$AOK_VERSION.tgz
 
+echo
+
 echo "Archiving root fs image complete"
+
+if [ ! -e /iCloud/AOK_Archive ]; then
+    mkdir -p /iCloud/AOK_Archive
+fi
+
+cp /tmp/AOK/ALPINE_$ALPINE_VERSION-iSH-AOK_$AOK_VERSION.tgz /iCloud/AOK_Archive
 
 rm BUILD_DONE # We're done, leaving around would be counter productive

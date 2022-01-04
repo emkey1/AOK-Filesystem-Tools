@@ -11,8 +11,3 @@ o Navigate to where the zip file is and do the following...
   cd AOK-main
   ./build_image
 o Restart and you should be good to go.
- 
-Things of note with this release...
-	o dcron is present but I can't get it to start automatically unless sshd is already
-          enabled.  I suspect any other service running would solve the issue. 
-          'sudo rc-update add dcron' will enable it, or it will be enabled when you run enable_sshd

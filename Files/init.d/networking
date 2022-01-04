@@ -38,6 +38,7 @@ find_running_ifaces() {
 }
 
 start() {
+        return 0
 	local iface= ret=1
 	ebegin "Starting networking"
 	eindent
@@ -57,6 +58,7 @@ start() {
 }
 
 stop() {
+        return 0
 	local iface=
 	# Don't stop the network at shutdown.
 	yesno ${keep_network:-YES} && yesno $RC_GOINGDOWN && return 0

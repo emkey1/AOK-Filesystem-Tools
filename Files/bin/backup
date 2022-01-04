@@ -1,8 +1,0 @@
-#!/usr/bin/perl
-#
-# Backup important files as well as the current list of installed APK's
-#
-# I'm writing this in perl since perl is standard in AOK and sadly it is
-# The only langauge I'm reasonably literate in.
-
-# First check to see if the iCloud drive is mounted on /iCloud

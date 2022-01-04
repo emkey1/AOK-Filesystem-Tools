@@ -23,4 +23,4 @@ fi
 
 startx &
 #x11vnc -display :0 -noshm -forever -geometry 1600x1668 & 
-x11vnc -display :0 -noshm -forever & 
+x11vnc -display :0 -noshm -ncache 10 -forever & 
