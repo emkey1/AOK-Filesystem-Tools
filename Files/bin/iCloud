@@ -11,6 +11,8 @@ echo
 echo "This directory will be used for various things "
 echo "including backups of echo your AOK files"
 
+[ ! -d "/iCloud" ] && mkdir /iCloud
+
 sleep 6
 
 sudo mount -t ios NULL /iCloud
