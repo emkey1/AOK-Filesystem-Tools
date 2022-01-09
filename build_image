@@ -1,9 +1,11 @@
 #!/bin/ash
 #
-# Build the custom emkey iSH image.  Assumes we are starting with the mini root from Alpine
+# Build the custom AOK iSH image.  Assumes we are starting with the mini root from Alpine
 
 # Set some variables
 . AOK_VARS
+
+SHORT_ALPINE=`echo $ALPINE_VERSION | cut -d"." -f 1,2`
 
 # Get apk if not installed
 if [ ! -f /sbin/apk ]; then
@@ -152,8 +154,8 @@ chmod 777 /dev/null
 #cp Files/login/login_* Files
 #popd
 
-mv /bin/login /bin/login.alpine
-cp Files/login.loop /bin/login
+#mv /bin/login /bin/login.alpine
+#cp Files/login.loop /bin/login
 
 cp Files/login.loop /bin
 cp Files/login.once /bin
