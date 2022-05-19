@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Simple script to put text into the cut and paste buffer.
+# Example:  dmesg | pbcopy
+# Based on a script posted by Ian Edington on the ish Discord server
+cat - > /dev/clipboard

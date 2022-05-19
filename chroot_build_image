@@ -1,4 +1,4 @@
-!/bin/ash
+#!/bin/ash
 # Simple wrapper script to build iSH root image in a chroot
 
 # Check to be sure we are not running this in /tmp/AOK
@@ -33,7 +33,7 @@ if [ ! -f /tmp/AOK/build/BUILD_DONE ]; then  # Skip if we crashed during tar/com
    # Build in /tmp
    echo "Create /tmp/AOK/build, copy stuff"
    mkdir -p /tmp/AOK/build
-   tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd /tmp/AOK/build;tar xf -)
+   busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd /tmp/AOK/build;tar xf -)
 
    cd /tmp/AOK/build
 

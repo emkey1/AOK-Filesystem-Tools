@@ -7,6 +7,11 @@
 
 ID=`id -u`
 
+# The following is needed for upstream PR #1716
+if [ ! -e /dev/fd ]; then
+   ln -s /proc/self/fd /dev/fd
+fi
+
 
 if [[ -e /etc/FIRSTBOOT ]]; then
    # /dev/null gets screwed up at times.  Recreate just in case
@@ -51,7 +56,7 @@ fi
 # /etc/init.d/networking keeps getting an extra } written at the end
 # For some unknown reason.  Overwrite it when we login to hopefully
 # mitigate that
-sudo cp /root/init.d/networking /etc/init.d
+#sudo cp /root/init.d/networking /etc/init.d
 
 # echo $CHECK $ID $VERBOSE
 
@@ -76,3 +81,11 @@ if [[ $VERBOSE -eq 1 ]]; then
    echo "------------------------------------------"
    echo
 fi
+
+CPU_STATE=`/usr/local/bin/mc status`
+echo "Multicore State=$CPU_STATE"
+
+LOCK_STATE=`/usr/local/bin/elock status`
+echo "Extra Locking State=$LOCK_STATE"
+
+echo ""

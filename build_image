@@ -154,8 +154,8 @@ chmod 777 /dev/null
 #cp Files/login/login_* Files
 #popd
 
-#mv /bin/login /bin/login.alpine
-#cp Files/login.loop /bin/login
+mv /bin/login /bin/login.alpine
+cp Files/login.loop /bin/login
 
 cp Files/login.loop /bin
 cp Files/login.once /bin
@@ -170,7 +170,7 @@ cp Files/tmux.conf /root/.tmux.conf
 
 # I want vim to be vi, aliasing isn't working for some reason
 # /usr/local/bin is first in the path by default, so...
-ln /usr/bin/vim /usr/local/bin/vi
+ln -s /usr/bin/vim /usr/local/bin/vi
 
 # Enable the utmp stuff (When it works, which is not now)
 # rc-update add s6 default; rc-update add utmps default
@@ -181,8 +181,9 @@ ln /usr/bin/vim /usr/local/bin/vi
 # chmod -R 755 /usr/share/zoneinfo
 
 # Set TZ to east coast US, because that is where I am
-ln /usr/share/zoneinfo/America/New_York /etc/localtime
-echo "America/New_York" >  /etc/timezone
+#ln /usr/share/zoneinfo/America/New_York /etc/localtime
+ln /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
+echo "America/Los_Angeles" >  /etc/timezone
 date
 
 # /dev/null seems to be missing or broken sometimes

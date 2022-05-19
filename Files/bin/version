@@ -1,0 +1,2 @@
+#!/bin/ash
+cat /proc/ish/version

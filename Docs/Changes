@@ -164,3 +164,14 @@ Alpha Series
 	o Removed a bunch of stuff from /AOK that shouldn't have been there
         o Switched to Alpine 3.12.9
         o /usr/local/bin/installed script now sorts output first
+.95	Assorted changes
+	o Moved to Alpine 3.12.10
+	o /etc/profile now does the right thing if running on iSH verses iSH-AOK
+	o Added mc and elock scripts to /usr/local to change and check status of Multicore and extralocking settings 
+          in /proc/ish/defaults
+        o Added /usr/local/bin/dmesg wrapper to wrap iSH-AOK dmesg output and make it look sane
+.96	Assorted changes
+        o mc now shows status at the bottom of output when no options are provided
+        o Added neofetch to bloat level 3
+	o Added jaclu's post_boot.sh to inittab
+        o Added simple pbcopy (copy stuff to clipboard) script
