@@ -3,7 +3,7 @@
 #  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
-#   Version: 1.0.0  2022-05-06
+#   Version: 1.1.0  2022-05-20
 #
 #  Intended usage is for cronless systems, needing to do some sanity checks
 #  after booting. Trigger this in /etc/inittab by adding a line:
@@ -33,6 +33,5 @@ sleep 10
 #  Do all sanity checks needed...
 #
 
-/etc/init.d/sshd restart
 /etc/init.d/runbg restart
 /etc/init.d/dcron restart
