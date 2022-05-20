@@ -5,7 +5,7 @@
 #
 #  Who said you couldn't do nested arrays in POSIX ??
 #
-version="0.3.0  2022-05-19"
+version="0.3.1  2022-05-19"
 
 
 #
@@ -223,7 +223,7 @@ main() {
         if [ "$(echo "$item" | cut -b1)" = "-" ]; then
             item="${item#?}"
             task="uninstall"
-            echo "-----   Uninstalling:  $item"
+            echo "-----   Removing:    $item"
             process_items
         else
             task="install"
