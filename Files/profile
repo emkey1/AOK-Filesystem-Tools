@@ -1,5 +1,5 @@
 #!/bin/sh
-# this is sourced, shebang just to hint editors
+# this is sourced, shebang just to hint editors since no extention
 
 ID=`id -u`
 
