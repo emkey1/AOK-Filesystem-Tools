@@ -1,31 +1,7 @@
-#!/bin/bash
-# Do various things to make iSH more useful.  Or work around
-# oddness
-
-# First we do stuff that only needs to happen when the root image
-# is booted for the first time
+#!/bin/sh
+# this is sourced, shebang just to hint editors
 
 ID=`id -u`
-
-# The following is needed for upstream PR #1716
-if [ ! -e /dev/fd ]; then
-   ln -s /proc/self/fd /dev/fd
-fi
-
-
-if [[ -e /etc/FIRSTBOOT ]]; then
-   # /dev/null gets screwed up at times.  Recreate just in case
-   # the first time we boot
-   sudo rm /dev/null > /tmp/profile.debug 2>&1
-   sudo mknod /dev/null c 1 3 >> /tmp/profile.debug 2>&1
-   sudo chmod 666 /dev/null >> /tmp/profile.debug 2>&1
-
-   # Start a couple of services
-   sudo rc-update add dcron >/dev/null 2>/dev/null
-   sudo rc-update add runbg >/dev/null 2>/dev/null
-
-   sudo rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
-fi
 
 # Hack for Alpine 3.14.0
 OS=`/bin/cat /etc/alpine-release`
@@ -34,12 +10,6 @@ OS=`/bin/cat /etc/alpine-release`
 if [ $OS = '3.14.0' ] && [ $ID -ne 0 ]; then
     echo
     cat /etc/motd
-fi
-
-if [ $OS = '3.14.0' ]; then
-    # In Alpine 3.14 services do not start up correctly.  Run script to fix 
-    # that if needed
-    sudo /usr/local/bin/fix_services
 fi
 
 # Let's set the path here since that covers both zsh and bash
@@ -52,11 +22,6 @@ VERBOSE=0
 if [ $CHECK -eq 0 ] || [ $ID -ne 0 ]; then 
    VERBOSE=1
 fi
-
-# /etc/init.d/networking keeps getting an extra } written at the end
-# For some unknown reason.  Overwrite it when we login to hopefully
-# mitigate that
-#sudo cp /root/init.d/networking /etc/init.d
 
 # echo $CHECK $ID $VERBOSE
 
