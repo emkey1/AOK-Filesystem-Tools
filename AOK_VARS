@@ -1,15 +1,14 @@
 # A list of variables used during build and for /usr/local/bin stuff
 
 # Usefull variables
-ALPINE_VERSION=3.12.10
-#AOK_VERSION="ALPHA_85.4"
-#AOK_VERSION_SHORT="AOK_85.4"
-AOK_VERSION="ALPHA_96"
-AOK_VERSION_SHORT="A_96"
+#ALPINE_VERSION=3.12.10
+ALPINE_VERSION=3.15.4
+AOK_VERSION="ALPHA-96_3.15"
+AOK_VERSION_SHORT="A-96_3.15"
 
 # APK's that get installed on image build and impact image size
 #CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata'
-CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata htop procps strace strace-doc procps-doc strace-doc htop-doc rsync rsync-doc'
+CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata htop procps strace rsync rsync-doc'
 
 VNC_APKS='x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
 
@@ -22,4 +21,5 @@ BLOAT3_APKS='emacs neofetch'
 # Additionaal special packages.  These don't work with stock iSH but work with iSH-AOK and will probably work with the Linux Kernel iSH
 BLOATAOK_APKS='htop procps strace strace-doc procps-doc strace-doc htop-doc'
 
-BLOATDOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc' 
+BLOATDOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc' 
+
