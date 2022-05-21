@@ -142,7 +142,7 @@ cp Files/init.d/* /etc/init.d
 cp Files/pam.d/* /etc/pam.d
 
 # /dev/null ends up with weird perms for some reason.  Fix
-chmod 777 /dev/null
+chmod 666 /dev/null
 
 # Let's bypass login to implement a more traditional login 
 # experience.  By default the login wrapper will loop, meaning
@@ -222,11 +222,8 @@ touch /etc/FIRSTBOOT
 mkdir /iCloud
 
 echo 
-
 echo "Making AOK Version file in /etc"
-
 echo $AOK_VERSION > /etc/aok_release
-
 echo "Done"
 
 echo
