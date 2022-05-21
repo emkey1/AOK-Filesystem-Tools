@@ -1,8 +1,8 @@
 # A list of variables used during build and for /usr/local/bin stuff
 
 # Usefull variables
-#ALPINE_VERSION=3.12.10
-ALPINE_VERSION=3.15.4
+ALPINE_VERSION=3.12.10
+#ALPINE_VERSION=3.15.4
 AOK_VERSION="ALPHA-96_3.15"
 AOK_VERSION_SHORT="A-96_3.15"
 
