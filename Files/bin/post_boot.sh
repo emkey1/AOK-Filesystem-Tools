@@ -65,7 +65,7 @@ if [[ -e /etc/FIRSTBOOT ]]; then
     rc-update add dcron
     rc-service dcron restart
     rc-update add runbg
-    #rc-service runbg restart
+    rc-service runbg restart
 
     echo "FIRSTBOOT tasks done"
     rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
