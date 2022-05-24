@@ -8,7 +8,7 @@
 #  Who said you couldn't do nested arrays in POSIX ??
 #
 #
-#  emkey1 liked it and since Im helping him with emkey1/iSH-AOK anyway
+#  emkey1 liked it and since Im helping him with emkey1/AOK anyway
 #  I decided to check the progname, and if run as bloat, his previous
 #  tool doing this, it defaults to use the AOK definitions for
 #  software packages.
@@ -19,7 +19,7 @@
 #  In the end its MIT so feel free to change it anyway you want,
 #  this is only to ease maintenance.
 #
-version="0.4.0a  2022-05-24"
+version="0.4.0a2  2022-05-24"
 
 
 #
