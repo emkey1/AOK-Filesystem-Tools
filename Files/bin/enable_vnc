@@ -1,24 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 
 # Read important stuff
+# shellcheck disable=SC1091
 . /usr/local/etc/AOK_VARS
 
-WHO=`whoami`
-
 # execute again as root
-if [ "$WHO" != "root" ]; then
-   echo "Executing as root"
-   sudo /usr/local/bin/enable_vnc
-   exit 0
+if [ "$(whoami)" != "root" ]; then
+    echo "Executing as root"
+    # using $0 instead of full path makes location not hardcoded
+    sudo "$0"
+    exit 0
 fi
 
 echo "Adding critical packages (If missing)"
+# In this case we want the variable to split up into separate params...
+# shellcheck disable=SC2086
 apk add $VNC_APKS
 
 echo "Creating directories and writing config files"
 
 if [ ! -e /etc/X11/xorg.conf.d ]; then
-   mkdir -p /etc/X11/xorg.conf.d
+    mkdir -p /etc/X11/xorg.conf.d
 fi
 
 cat <<HERE > /etc/X11/xorg.conf.d/10-headless.conf
@@ -48,8 +50,8 @@ EndSection
 HERE
 
 if [ ! -e /home/ish/i3logs ]; then
-   mkdir /home/ish/i3logs
-   chown ish.ish /home/ish/i3logs
+    mkdir /home/ish/i3logs
+    chown ish.ish /home/ish/i3logs
 fi
 
 cat <<THERE > /home/ish/.xinitrc
