@@ -4,7 +4,7 @@
 # Check to be sure we are not running this in /tmp/AOK
 
 # Read in vars
-. AOK_VARS
+. ./AOK_VARS
 
 SHORT_ALPINE=`echo $ALPINE_VERSION | cut -d"." -f 1,2`   # Neded for the wget below
 
@@ -33,7 +33,22 @@ if [ ! -f /tmp/AOK/build/BUILD_DONE ]; then  # Skip if we crashed during tar/com
    # Build in /tmp
    echo "Create /tmp/AOK/build, copy stuff"
    mkdir -p /tmp/AOK/build
-   busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd /tmp/AOK/build;tar xf -)
+
+
+   #
+   #  Despite having installed busybox, the original command just wouldnt run.
+   #  Skipping the busybox prefix solved that on the Debian family, like Ubuntu
+   #
+   #  TODO: Normally I would have put the common part of the command in
+   #  a variable to make sure they are in sync, but I just couldnt get that
+   #  to work, some escapes needed?  Should be fixed
+   #
+   if [ -f "/etc/debian_version" ]; then
+       tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd /tmp/AOK/build;tar xf -)
+   else
+       busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd /tmp/AOK/build;tar xf -)
+   fi
+
 
    cd /tmp/AOK/build
 
