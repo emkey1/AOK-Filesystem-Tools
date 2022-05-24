@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Script to give people a few hints on apk when they type apt for some
 # godforsaken reason
