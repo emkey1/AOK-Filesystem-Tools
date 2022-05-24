@@ -3,9 +3,23 @@
 #  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
+#  Part of https://github.com/jaclu/spd
+#
 #  Who said you couldn't do nested arrays in POSIX ??
 #
-version="0.3.1  2022-05-19"
+#
+#  emkey1 liked it and since Im helping him with emkey1/iSH-AOK anyway
+#  I decided to check the progname, and if run as bloat, his previous
+#  tool doing this, it defaults to use the AOK definitions for
+#  software packages.
+#
+#  This way I dont need to keep track of two versions, and in
+#  everyday usage as an AOK tool, it does not refer to my own packages.
+#
+#  In the end its MIT so feel free to change it anyway you want,
+#  this is only to ease maintenance.
+#
+version="0.4.0a  2022-05-24"
 
 
 #
@@ -59,7 +73,12 @@ fi
 check_for_option() {
     case "$1" in
         "" | "-h" | "--help" )
-            echo "usage: $prog_name [-a] & [-h] | [-g] | [-l] | group1 group2 -group3 ..."
+	    if [ "$prog_name" = "bloat" ]; then
+		a_param=""
+	    else
+		a_param="[-a] & "
+	    fi
+            echo "usage: $prog_name $a_param[-h] | [-g] | [-l] | group1 group2 -group3 ..."
             echo
             echo "This is a tool to install/uninstall groups of packages"
             echo "prefixing a group name with - means uninstall that group"
@@ -69,9 +88,11 @@ check_for_option() {
             echo
             echo "options:"
             echo "  -h, --help     show this help message and exit"
-            echo "  -a             Use the AOK BLOAT_APKS content, ignoring"
-            echo "                 what groups are defined in here"
-	    echo "                 can be combined with -g -l and groups"
+	    if [ "$prog_name" != "bloat" ]; then
+		echo "  -a             Use the AOK BLOAT_APKS content, ignoring"
+		echo "                 what groups are defined in here"
+		echo "                 can be combined with -g -l and groups"
+	    fi
             echo "  -g             list available groups and exit"
             echo "  -l             list groups and items and exit"
             exit 0
@@ -223,11 +244,11 @@ main() {
         if [ "$(echo "$item" | cut -b1)" = "-" ]; then
             item="${item#?}"
             task="uninstall"
-            echo "-----   Removing:    $item"
+            echo "-----   Removing group:    $item"
             process_items
         else
             task="install"
-            echo "-----   Installing:  $item"
+            echo "-----   Installing group:  $item"
             process_items
         fi
         if [ "$task_done" -eq 0 ]; then
@@ -238,5 +259,7 @@ main() {
     done
 }
 
+
+[ "$prog_name" = "bloat" ] && use_aok_groups
 
 main "$@"
