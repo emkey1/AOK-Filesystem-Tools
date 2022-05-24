@@ -19,7 +19,7 @@
 #  In the end its MIT so feel free to change it anyway you want,
 #  this is only to ease maintenance.
 #
-version="0.4.0a2  2022-05-24"
+version="0.4.0a3  2022-05-24"
 
 
 #
@@ -231,7 +231,7 @@ main() {
 
     check_for_option "$1"
 
-    if [ "$1" = "-a"  ]; then
+    if [ "$prog_name" != "bloat" ] && [ "$1" = "-a"  ]; then
 	#  If no other params, show help and exit
 	[ -z "$2" ] && check_for_option -h
 
