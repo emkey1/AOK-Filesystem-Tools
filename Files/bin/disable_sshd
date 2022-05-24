@@ -1,7 +1,7 @@
-#!/bin/ash
-
-sudo rc-update del sshd
+#!/bin/sh
 
 sudo rc-service sshd stop
+
+sudo rc-update del sshd
 
 echo "sshd has been stopped and will not run automatically"
