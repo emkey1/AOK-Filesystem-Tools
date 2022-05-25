@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 echo "Making sure we have the latest Alpine repository updates"
 apk update
 echo
