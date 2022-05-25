@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Version: 1.2.0  2022-05-23
+#  Version: 1.2.1  2022-05-25
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.
@@ -40,14 +40,23 @@ fi
 #  /dev/null gets screwed up at times.
 #  Recreate if it needs fixing.
 #
-if [ -z "$(ls -l /dev/null | grep 'root root 1, 3')" ]; then
+# shellcheck disable=SC2010
+if ! ls -l /dev/null | grep -q "root root 1, 3"; then
+    #
+    #  Depending on the nature of the /deb/null issue
+    #  and since this scripts output is captured in a log file
+    #  The /dev/null issue might cause the logging of the fix
+    #  not to happen... Weird but I havent found away arround this
+    #
     rm /dev/null > /tmp/profile.debug 2>&1
     mknod /dev/null c 1 3 >> /tmp/profile.debug 2>&1
     chmod 666 /dev/null >> /tmp/profile.debug 2>&1
 
+    echo "Fixed /dev/null"
     #
     #  Since /dev/null was recreated respawn this (again),
     #  in order for the redirects used on this script to work
+    #  all logging up this point likely didn't happen.
     #
     respawn_it
 fi
@@ -59,7 +68,7 @@ if [ ! -e /dev/fd ]; then
 fi
 
 
-if [[ -e /etc/FIRSTBOOT ]]; then
+if [ -e /etc/FIRSTBOOT ]; then
 
     # Start a couple of services
     rc-update add dcron
@@ -73,9 +82,9 @@ fi
 
 
 # Hack for Alpine 3.14.0
-OS=`/bin/cat /etc/alpine-release`
+OS="$(/bin/cat /etc/alpine-release)"
 
-if [ $OS = '3.14.0' ]; then
+if [ "$OS" = '3.14.0' ]; then
     # In Alpine 3.14 services do not start up correctly.  Run script to fix 
     # that if needed
     /usr/local/bin/fix_services
@@ -92,4 +101,5 @@ fi
 #  Restart all services not in started state, should not be needed normally
 #  but here we are, and if they are already running, nothing will happen.
 #
-rc-status  |grep -v -e started -e Runlevel:  | awk '{cmd="rc-service " $1 " restart" ; system(cmd)}'
+current_dir=$( cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P )
+"$current_dir"/do_fix_services
