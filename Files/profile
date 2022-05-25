@@ -47,7 +47,7 @@ if [[ $VERBOSE -eq 1 ]]; then
    echo
 fi
 
-CPU_STATE=`/usr/local/bin/mc status`
+CPU_STATE=`/usr/local/bin/toggle_multicore status`
 echo "Multicore State=$CPU_STATE"
 
 LOCK_STATE=`/usr/local/bin/elock status`
