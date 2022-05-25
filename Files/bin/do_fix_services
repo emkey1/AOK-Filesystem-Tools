@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+#  do_XX scripts does the actual thing for XX
+#
+#  This way XX can be human friendly andd give help
+#  whilst do_XX just does it, so more suitable to be called
+#  from oher scripts
+# 
+
+rc-status  |grep -v -e started -e Runlevel:  | awk '{cmd="rc-service " $1 " restart" ; system(cmd)}'
