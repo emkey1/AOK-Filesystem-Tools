@@ -1,27 +1,27 @@
 #!/bin/sh
 #
-#  Switch extra locking on or off
+#  Switch multicore on or off
 #
 version="2.0.0  2022-05-25"
 
 prog_name=$(basename "$0")
 
 
-if ! [ -f /proc/ish/defaults/enable_extralocking ]; then
-    echo "Not running on iSH-AOK, exiting."
-    exit 1;
+if [ ! -e /proc/ish/defaults/enable_multicore ]; then
+   echo "Not running on iSH-AOK, exiting."
+   exit 1
 fi
 
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
-    sudo "$0" "$1"
-    exit 0
+     sudo "$0" "$1"
+     exit 0
 fi
 
 
 show_status() {
-    STATE="$(cat /proc/ish/defaults/enable_extralocking)"
+    STATE="$(cat /proc/ish/defaults/enable_multicore)"
     if [ "$STATE" = "true" ]; then
         echo "on"
     elif [ "$STATE" = "false" ]; then
@@ -35,8 +35,8 @@ usage() {
     echo
     echo "usage: $prog_name on | off | status"
     echo
-    echo "Switch extra locking on or off."
-    echo "Switching it on may improve stability but impacts performance"
+    echo "Switch multicore processing on or off."
+    echo "Switching it off improves stability but impacts performance"
     echo
     printf "Current status: "
     show_status
@@ -51,12 +51,12 @@ case "$1" in
 	;;
 
     "on" )
-	echo "true" > /proc/ish/defaults/enable_extralocking
+	echo "true" > /proc/ish/defaults/enable_multicore
 	exit 0
 	;;
 
     "off" )
-	echo "false" > /proc/ish/defaults/enable_extralocking
+	echo "false" > /proc/ish/defaults/enable_multicore
 	exit 0
 	;;
 
@@ -71,5 +71,4 @@ case "$1" in
 	usage
 	exit 1
 	;;
-
 esac

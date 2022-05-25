@@ -1,6 +1,7 @@
-#!/bin/ash
+#!/bin/sh
 #
 # Enable sshd to run automatically
+#
 
 echo
 
@@ -10,10 +11,8 @@ if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
 fi
 
 sudo rc-update add sshd
-sudo rc-service sshd start
 
-sudo rc-update add dcron
-sudo rc-service dcron start
+sudo rc-service sshd start
 
 echo
 echo "Remember to set a password for the ish user if you haven't already"

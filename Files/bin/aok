@@ -1,136 +1,110 @@
-#!/usr/bin/env bash
-# Script to do various things related to the configuration of
-# ish
-# Basic script was cribbed from:
-#    https://betterdev.blog/minimal-safe-bash-script-template/
-# 
-# The Rest is the fault of mke
+#!/bin/sh
 #
-# Version .86
+#  Script to do various things related to the configuration of ish
+#
+version="0.1.0  2022-05-24"
 
-set -Eeuo pipefail
-trap cleanup SIGINT SIGTERM ERR EXIT
+verbose=0
+prog_name=$(basename "$0")
 
-script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
-usage() {
-  cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-f] -p param_value arg1 [arg2...]
+show_help() {
+    cat <<EOF
+Usage: $prog_name [-h] [-v] [-l login procedure]
 
 An AOK-only script that manages iSH/AOK specific things.
+
+Currently only login procedure can be altered.
 
 Available options:
 
 -h, --help      Print this help and exit
--v, --verbose   Print script debug info
--p, --param     login [once|disable|enable]
+-l, --login     Decides login procedure [once|disable|enable]
 EOF
-#-f, --flag      Some flag description
-  exit
+    exit 0
 }
 
-cleanup() {
-  trap - SIGINT SIGTERM ERR EXIT
-  # script cleanup here
+
+change_login_procedure() {
+    case "$1" in
+
+	"once")
+	    echo "Enabling login prompt, but only for initial login.  " \
+		 "AOK app will exit when you logout"
+	    cp /bin/login.once /bin/login
+	    exit 0
+	    ;;
+
+	"enable")
+	    echo "Enabling login prompt.  You will be prompted for your " \
+		 "login name and password if one has been set " \
+		 "when launching AOK"
+	    cp /bin/login.loop /bin/login
+	    exit 0
+	    ;;
+
+	"disable")
+	    echo "Disabling login prompt on startup.  You will start at " \
+		 "root prompt where launching AOK"
+	    cp /bin/login.alpine /bin/login
+	    exit 0
+	    ;;
+
+	"")
+	    echo
+	    echo "ERROR: Missing param indicating new login procedure"
+	    exit 1
+	    ;;
+
+	*)
+	    echo
+	    echo "ERROR: Bad param to change login procedure: $1"
+	    exit 1
+	    ;;
+    esac
 }
 
-setup_colors() {
-  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
-    NOFORMAT='\033[0m' RED='\033[0;31m' GREEN='\033[0;32m' ORANGE='\033[0;33m' BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m'
-  else
-    NOFORMAT='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW=''
-  fi
-}
 
-msg() {
-  echo >&2 -e "${1-}"
-}
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    echo "Executing as root"
+    # using $0 instead of full path makes location not hardcoded
+    sudo "$0" "$@"
+    exit 0
+fi
 
-die() {
-  local msg=$1
-  local code=${2-1} # default exit status 1
-  msg "$msg"
-  exit "$code"
-}
 
-parse_params() {
-  # default values of variables set from params
-  flag=0
-  param=''
+echo "$prog_name  $version"
 
-  while :; do
-    case "${1-}" in
-    -h | --help) usage ;;
-    -v | --verbose) set -x ;;
-    --no-color) NO_COLOR=1 ;;
-    -f | --flag) flag=1 ;; # example flag
-    -p | --param) # example named parameter
-      param="${2-}"
-      shift
-      ;;
-    -?*) die "Unknown option: $1" ;;
-    *) break ;;
+while true; do
+    case "$1" in
+
+	"" | "-h" | "--help" )
+            show_help
+            ;;
+
+	"-v" | "--verbose" )
+	    if [ "$verbose" -eq 0 ]; then
+		echo "===  Enabling verbose mode  ==="
+		verbose=1
+		set -x
+	    else
+		echo
+		echo "WARNING: Multiple verbose options are ignored"
+	    fi
+            ;;
+
+	"-l" | "--login" )
+	    change_login_procedure "$2"
+            ;;
+
+	*)
+	    echo
+	    echo "ERROR: Bad option: $1"
+	    echo
+	    show_help
+	    ;;
     esac
     shift
-  done
-
-  args=("$@")
-
-  # check required params and arguments
-  [[ -z "${param-}" ]] && die "Missing required parameter: param"
-  # [[ ${#args[@]} -eq 0 ]] && die "Missing script arguments"
-
-  return 0
-}
-
-parse_params "$@"
-
-WHO=`whoami`
-
-# Exit if not root
-if [ "$WHO" != "root" ]; then
-   echo "Please run as root:"
-   echo -n "                     sudo aok -p "
-   echo "${param} ${args[*]}"
-   exit 1
-fi
-
-setup_colors
-
-# script logic here
-
-# Change AOK behaviour on launch 
-if [ "$param" = "login" ]; then
-   if ! (( ${#args[@]} > 0 )); 
-   then 
-     args[0]="EMPTY"  # bash barfs if it is really empty
-   fi
-
-   if [ "${args[0]}" = "disable" ]; then
-      echo "Disabling login prompt on startup.  You will start at root prompt where launching iSH"
-      cp /bin/login.alpine /bin/login
-      exit 0
-   elif [ "${args[0]}" = "enable" ]; then
-      echo "Enabling login prompt.  You will be prompted for your login name and password if one has been set when launching iSH"
-      cp /bin/login.loop /bin/login
-      exit 0
-   elif [ "${args[0]}" = "once" ]; then
-      echo "Enabling login prompt, but only for initial login.  iSH app will exit when you logout"
-      cp /bin/login.once /bin/login
-      exit 0
-   else 
-      echo "Valid Options for 'login' are:"
-      echo "   once    = Issue login prompt at start, exit app when exiting shell"
-      echo "   enable  = Issue login prompt at app start and after exiting shell"
-      echo "   disable = No login prompt at start, launch root shell"
-   fi
-else
-   echo
-   echo "Invalid Parameter.  The following options are available"
-   echo 
-   echo "login:       Change the way iSH starts up. Valid arguments are 'once' 'enable' & 'disable'"
-#   msg "${RED}Read parameters:${NOFORMAT}"
-#   msg "- flag: ${flag}"
-#   msg "- param: ${param}"
-#   msg "- arguments: ${args[*]-}"
-fi
+    [ -z "$1" ] && break  # no more options
+done
