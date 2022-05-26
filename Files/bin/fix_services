@@ -21,5 +21,6 @@ echo
 echo "This restarts all services not in a running state"
 echo
 
-CURRENT_DIR=$( cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P )
-"$CURRENT_DIR"/do_fix_services
+# shellcheck disable=SC1007
+current_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+"$current_dir"/do_fix_services

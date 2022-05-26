@@ -19,7 +19,7 @@
 #  In the end its MIT so feel free to change it anyway you want,
 #  this is only to ease maintenance.
 #
-version="0.4.0a3  2022-05-24"
+version="0.4.1  2022-05-25"
 
 
 #
@@ -78,7 +78,7 @@ check_for_option() {
 	    else
 		a_param="[-a] & "
 	    fi
-            echo "usage: $prog_name $a_param[-h] | [-g] | [-l] | group1 group2 -group3 ..."
+            echo "usage: $prog_name ${a_param}[-h] | [-g] | [-l] | group1 group2 -group3 ..."
             echo
             echo "This is a tool to install/uninstall groups of packages"
             echo "prefixing a group name with - means uninstall that group"
