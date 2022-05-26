@@ -8,8 +8,7 @@ if [ -z "$SHORT_ALPINE" ]; then
 fi
 
 # Just a sanity reference can be deleted to reduce clutter
-echo " SHORT_ALPINE is: [$SHORT_ALPINE]"
-
+echo "=====   using release: [$SHORT_ALPINE]   ====="
 
 apk_name="$(wget -O - http://dl-cdn.alpinelinux.org/alpine/v${SHORT_ALPINE}/main/x86 | grep apk-tools-static | cut -d\" -f 2)"
 
@@ -19,8 +18,7 @@ if [ -z "$apk_name" ]; then
 fi
 
 # Just a sanity reference can be deleted to reduce clutter
-echo "apk-tools-static used: $apk_name"
-
+echo "=====   apk-tools-static used: $apk_name   ====="
 
 wget -c -qO- http://dl-cdn.alpinelinux.org/alpine/v${SHORT_ALPINE}/main/x86/$apk_name | tar -xz sbin/apk.static
 ./sbin/apk.static add apk-tools && rm -rf sbin/
