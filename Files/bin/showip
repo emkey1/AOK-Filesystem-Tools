@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "This only works properly with wireless connections for now"
 
-INT_IP=`curl ifconfig.me 2>/dev/null`
+INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
 echo "Internet IP: $INT_IP"
 
-LOCAL_IP=`/usr/local/bin/idev_ip | cut -d: -f 2`
+LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
 
 echo "Local IP:$LOCAL_IP"

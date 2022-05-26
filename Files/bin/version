@@ -1,2 +1,2 @@
-#!/bin/ash
+#!/bin/sh
 cat /proc/ish/version

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Make it easier for people to mount their iCloud drive in iSh, 
 # Also create a /iCloud/AOK directory
 
