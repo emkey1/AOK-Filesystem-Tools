@@ -10,8 +10,8 @@ SHORT_ALPINE=`echo $ALPINE_VERSION | cut -d"." -f 1,2`   # Neded for the wget be
 
 # Get apk if not installed
 if [ ! -f /sbin/apk ]; then
-    echo "Installing APK"
-    Files/bin/get_apk
+    echo "Installing APK $SHORT_ALPINE"
+    Files/bin/get_apk $SHORT_ALPINE || exit 1
 fi
 
 # Clean up previous run
