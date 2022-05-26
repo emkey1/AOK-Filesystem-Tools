@@ -101,5 +101,6 @@ fi
 #  Restart all services not in started state, should not be needed normally
 #  but here we are, and if they are already running, nothing will happen.
 #
-current_dir=$( cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P )
+# shellcheck disable=SC1007
+current_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 "$current_dir"/do_fix_services
