@@ -1,3 +1,24 @@
 #!/bin/sh
-wget -c -qO- http://dl-cdn.alpinelinux.org/alpine/v3.12/main/x86/apk-tools-static-2.10.5-r1.apk | tar -xz sbin/apk.static 
+
+SHORT_ALPINE="$1"
+
+if [ -z "$SHORT_ALPINE" ]; then
+    echo "ERROR: no SHORT_ALPINE defined"
+    exit 1
+fi
+
+# Just a sanity reference can be deleted to reduce clutter
+echo "=====   using release: [$SHORT_ALPINE]   ====="
+
+apk_name="$(wget -O - http://dl-cdn.alpinelinux.org/alpine/v${SHORT_ALPINE}/main/x86 | grep apk-tools-static | cut -d\" -f 2)"
+
+if [ -z "$apk_name" ]; then
+    echo "ERROR: no apk-tools-static found"
+    exit 1
+fi
+
+# Just a sanity reference can be deleted to reduce clutter
+echo "=====   apk-tools-static used: $apk_name   ====="
+
+wget -c -qO- http://dl-cdn.alpinelinux.org/alpine/v${SHORT_ALPINE}/main/x86/$apk_name | tar -xz sbin/apk.static
 ./sbin/apk.static add apk-tools && rm -rf sbin/
