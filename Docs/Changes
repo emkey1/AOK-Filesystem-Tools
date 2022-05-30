@@ -175,3 +175,6 @@ Alpha Series
         o Added neofetch to bloat level 3
 	o Added jaclu's post_boot.sh to inittab
         o Added simple pbcopy (copy stuff to clipboard) script
+.97	Assorted changes
+	o mc name changed to toggle_multicore
+	o Various refinements and fixes
