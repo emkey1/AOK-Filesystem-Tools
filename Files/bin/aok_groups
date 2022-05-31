@@ -1,0 +1,192 @@
+#!/bin/sh
+#
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  License: MIT
+#
+#  Who said you couldn't do nested arrays in POSIX ??
+#
+version="0.5.0  2022-05-31"
+
+
+prog_name=$(basename "$0")
+
+#
+#  By only displaying actions on other OS
+#  I can edit this on my workstation
+#
+if [ -d "/proc/ish" ]; then
+    is_iSH=1
+else
+    is_iSH=0
+fi
+
+
+check_for_option() {
+    case "$1" in
+
+        "" | "-h" | "--help" )
+            echo "usage: $prog_name [-h] | [-g] | [-l] | group1 group2 -group3 ..."
+            echo
+            echo "This is a tool to install/uninstall groups of packages"
+            echo "prefixing a group name with - means uninstall that group"
+            echo
+            echo "options:"
+            echo "  -h, --help     show this help message and exit"
+            echo "  -g             list available groups and exit"
+            echo "  -l             list groups and items and exit"
+            exit 0
+            ;;
+
+        "-g" )
+            task="groups"
+            process_items
+            echo
+            exit 0
+            ;;
+
+        "-l" )
+            task="list"
+            process_items
+            exit 0
+            ;;
+
+    esac
+}
+
+
+use_aok_groups() {
+    var_file="/usr/local/etc/AOK_VARS"
+    if [ ! -f "$var_file" ]; then
+        echo "ERROR: $var_file not found!"
+        exit 1
+    fi
+    #
+    #  Convert $var_file to my notation, so that it can be used without
+    #  changing the rest of the code.
+    #
+    package_groups="$(grep _APKS "$var_file"  | grep -v '#' | sed -e s/_APKS// -e s/BLOAT// -e s/\'//g -e s/=/\|/ | awk '{ print ":" $0 }')"
+}
+
+
+pkg_handling() {
+    action="$1"
+    case "$action" in
+
+        "add" | "del" ) ;;
+
+        *)
+            echo "ERROR: pkg_handling() - incorrect param: $action"
+            exit 1
+    esac
+
+    cmd="sudo apk $action $packages"
+
+    if [ "$is_iSH" -eq 1 ]; then
+        $cmd
+    else
+        #
+        #  Allows me to edit this on my Workstation :)
+        #
+        echo "** Would run **  $cmd"
+    fi
+    task_done=1
+}
+
+
+#
+#  Loops through all groups, and takes action according to $task
+#  for install / uninstall $item is assumed to be the group to be
+#  processed
+#
+process_items() {
+    task_done=0
+    lst=$package_groups  # since we might come back, don't change the original :)
+    while true; do
+        # POSIX way to handle array types of data
+        section="${lst%%:*}"  # up to first colon excluding it
+        lst="${lst#*:}"       # after fist colon
+
+        name="$(echo     "$section" | cut -d'|' -f 1| awk '{$1=$1};1' | tr '[:upper:]' '[:lower:]')"
+        packages="$(echo "$section" | cut -d'|' -f 2| awk '{$1=$1};1')"
+
+        [ -z "$name" ] && continue  # skip blank lines
+
+        case "$task" in
+
+            "groups") printf "%s" "$name " ;;
+
+            "list")
+                #
+                #  For pretty printing, first get all the group names
+                #  and figure out the longest. To keep the code simple
+                #  this is done on the first run of list,
+                #
+                if [ -z "$max_len" ]; then
+                    # first get a list of names, in order to find longest
+                    task="groups"
+                    group_lst="$(process_items)"
+                    task="list" # back to expected processing
+
+                    max_len=0
+                    while true; do
+                        g="${group_lst%% *}"
+                        group_lst="${group_lst#* }"
+
+                        g_len="${#g}"
+                        [ "$g_len" -gt $max_len ] && max_len="$g_len"
+
+                        [ "$group_lst" = "$g" ] && break  # list done
+                    done
+                fi
+                printf "[%${max_len}s]  %s\n" "$name" "$packages"
+                ;;
+
+            "install")
+                if [ "$name" = "$item" ]; then
+                    pkg_handling add
+                    return
+                fi
+                ;;
+
+            "uninstall")
+                if [ "$name" = "$item" ]; then
+                    pkg_handling del
+                    return
+                fi
+                ;;
+
+        esac
+        [ "$lst" = "$section" ] && break  # we have processed last group
+    done
+}
+
+
+main() {
+    echo "$prog_name  $version"
+
+    check_for_option "$1"
+
+    while [ -n "$1" ]; do
+        item="$1"
+        if [ "$(echo "$item" | cut -b1)" = "-" ]; then
+            item="${item#?}"
+            task="uninstall"
+            echo "-----   Removing group:    $item"
+            process_items
+        else
+            task="install"
+            echo "-----   Installing group:  $item"
+            process_items
+        fi
+        if [ "$task_done" -eq 0 ]; then
+            echo "ERROR: $item is not a valid group!"
+            exit 1
+        fi
+        shift
+    done
+}
+
+
+use_aok_groups
+
+main "$@"
