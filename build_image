@@ -7,6 +7,14 @@
 . AOK_VARS
 
 
+ALPINE_RELEASE="$1"
+
+if [ -z "$ALPINE_RELEASE" ]; then
+	echo "ERROR: ALPINE_RELEASE param not supplied"
+	exit 1
+fi
+
+
 # First update apk DB
 
 echo
@@ -159,8 +167,14 @@ chmod 776 /dev/null
 #cp Files/login/login_* Files
 #popd
 
+
 mv /bin/login /bin/login.alpine
-cp Files/login.loop /bin/login
+
+if [ "$ALPINE_RELEASE" = "3.16" ]; then
+	ln -sf /bin/busybox /bin/login
+else
+	cp Files/login.loop /bin/login
+fi
 
 cp Files/login.loop /bin
 cp Files/login.once /bin
