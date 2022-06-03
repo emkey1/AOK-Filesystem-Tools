@@ -66,7 +66,7 @@ rm "$MINIROOT_FS"
 cp /etc/resolv.conf $BUILD_D/etc
 
 # And now for the main bit
-if ! chroot $BUILD_D ./build_image ; then
+if ! chroot $BUILD_D ./build_image "$ALPINE_RELEASE"; then
   echo "ERROR in chroot"
   exit 1
 fi

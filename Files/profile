@@ -12,6 +12,12 @@ if [ "$OS" = '3.14.0' ] && [ "$ID" -ne 0 ]; then
     cat /etc/motd
 fi
 
+# Wait until initial setup is completed
+while [ -f /etc/FIRSTBOOT ]; do
+   echo "Initial setup still in progress..."
+   sleep 1
+done
+
 # Let's set the path here since that covers both zsh and bash
 export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
 
@@ -22,12 +28,6 @@ VERBOSE=0
 if [ "$CHECK" -eq 0 ] || [ "$ID" -ne 0 ]; then
    VERBOSE=1
 fi
-
-# Wait until initial setup is completed
-while [ -f /etc/FIRSTBOOT ]; do
-   echo "Initial setup still in progress..."
-   sleep 1
-done
 
 # echo $CHECK $ID $VERBOSE
 
