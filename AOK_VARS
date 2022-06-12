@@ -3,8 +3,7 @@
 
 # A list of variables used during build and for /usr/local/bin stuff
 
-#AOK_VERSION="ALPHA-97_3.12:rc1"
-AOK_VERSION="ALPHA-97_3.12rc1"
+AOK_VERSION="ALPHA-97_3.12-rc1"
 
 
 #  This is the alpine-minirootfs that will be used as a baseline
