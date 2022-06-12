@@ -1,10 +1,11 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
 
-. ./AOK_VARS
-
-# extract the branch or major version
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+#
+#  First case used when inside the Filesystem
+#  second case used during build
+#
+[ -f /AOK/AOK_VARS ] && . /AOK/AOK_VARS || . ./AOK_VARS
 
 # Shorthands for some directories
 BUILD_BASE_D="/tmp/AOK"
