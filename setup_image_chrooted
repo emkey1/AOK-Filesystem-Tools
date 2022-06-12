@@ -244,6 +244,14 @@ else
 	esac
 fi
 
+#
+#  Extra sanity check, only continue if there is a runable /bin/login
+#
+if [ ! -x /bin/login ]; then
+	echo "ERROR: no /bin/login present!"
+	exit 1
+fi
+
 
 echo "---  Enabling openrc  ---"
 
