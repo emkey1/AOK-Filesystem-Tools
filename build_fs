@@ -18,36 +18,36 @@ skip_finalize="dont_finish"
 
 case "$main_param" in
 
-  "-h" | "--help")
-    echo "usage: $prog_name [-h] | [--help] | [$skip_finalize]"
-    echo "This builds the iSH-AOK filesystem. If given the parameter:"
-    echo "  $skip_finalize"
-    echo "The process will halt once the FS is ready, giving you the"
-    echo "opportunity to chroot into it and do your personal adaptations."
-    echo
-    echo "Instructions about this procedure and howto then complete the build"
-    echo "once done will be displayed at the end of the build."
-    echo
-    echo "Be aware that this build can only complete on iSH or Linux (x86)!"
-    echo
-    exit 0
-    ;;
+    "-h" | "--help")
+        echo "usage: $prog_name [-h] | [--help] | [$skip_finalize]"
+        echo "This builds the iSH-AOK filesystem. If given the parameter:"
+        echo "  $skip_finalize"
+        echo "The process will halt once the FS is ready, giving you the"
+        echo "opportunity to chroot into it and do your personal adaptations."
+        echo
+        echo "Instructions about this procedure and howto then complete the build"
+        echo "once done will be displayed at the end of the build."
+        echo
+        echo "Be aware that this build can only complete on iSH or Linux (x86)!"
+        echo
+        exit 0
+        ;;
 
-  "" | "$skip_finalize")
-    ;; # valid options
+    "" | "$skip_finalize")
+        ;; # valid options, continue
 
-  *)
-    echo "ERROR: bad param, try -h"
-    exit 1
-    ;;
+    *)
+        echo "ERROR: bad param, try -h"
+        exit 1
+        ;;
 
 esac
 
 if [ "$(whoami)" != "root" ]; then
-  echo "This must be run as root or using sudo!"
-  echo
-  $0 -h
-  exit 1
+    echo "This must be run as root or using sudo!"
+    echo
+    $0 -h
+    exit 1
 fi
 
 
@@ -56,7 +56,7 @@ echo "=====  Building a $ALPINE_RELEASE iSH-AOK filesystem  ====="
 echo
 
 if [ "$main_param" = "$skip_finalize" ]; then
-  echo "*** Will not create the compressed image! ***"
+    echo "*** Will not create the compressed image! ***"
 fi
 
 if [ "$(uname -s)" = "Darwin" ]; then
@@ -110,8 +110,8 @@ cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 # And now for the main bit
 #
 if ! chroot "$BUILD_ROOT_D" ./setup_image_chrooted; then
-  echo "ERROR in chroot, aborting build!"
-  exit 1
+    echo "ERROR in chroot, aborting build!"
+    exit 1
 fi
 
 
