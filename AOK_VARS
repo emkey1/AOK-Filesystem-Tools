@@ -1,27 +1,28 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
 
+#
 # A list of variables used during build and for /usr/local/bin stuff
+#
 
 AOK_VERSION="ALPHA-97_3.12-rc1"
 
-
-#  This is the alpine-minirootfs that will be used as a baseline
+#
+#  ALPINE_VERSION defines what alpine-minirootfs will be used as a baseline
+#
 ALPINE_VERSION=3.12.12
 
+#
 #  At this time only 3.12.12 is considered fully tested and recommended
 #
 #  If you try another one please report any issues at
-#   https://github.com/emkey1/AOK-Filesystem-Tools/issues
+#     https://github.com/emkey1/AOK-Filesystem-Tools/issues
 #
 # ALPINE_VERSION=3.13.10
 # ALPINE_VERSION=3.14.6
 # ALPINE_VERSION=3.15.4
 # ALPINE_VERSION=3.16.0
 
-
-# extract the branch or major version
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 
 #
 #  The system will be initially set to this timezone
@@ -31,8 +32,13 @@ INITIAL_TIMEZONE="America/Los_Angeles"
 # Alternatives are: enable disable once
 INITIAL_LOGIN_MODE="enable"
 
+# extract the branch or major version
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 
 
+#
+#  Always installed packages
+#
 CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync'
 
 #
@@ -52,6 +58,12 @@ AOK_APKS='htop procps strace'
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
+#
+#  Any variable ending with _APKS in this file, will be seen as a package group
+#  by aok_groups and with that tool you can add/delete groups more conveniently
+#  than having to open this file and then do cut/paste repeatedly.
+#
+#  You can add/modify all the groups to your liking.
 #
 
 VNC_APKS='x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
