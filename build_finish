@@ -5,10 +5,8 @@
 . ./BUILD_ENV
 
 #
-#  In case builder chrooted in and had to run post_boot.sh in order to run bash
-#  this ensures the pointer is present at first iSH-AOK boot
-#
 #  Tell iSH to run first boot tasks
+#
 touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
 
 
@@ -16,19 +14,27 @@ echo
 echo "=====  Creating image  ====="
 echo
 
-
+#
 # Tar up and zip the result
-
+#
 cd "$BUILD_ROOT_D" || exit 1
 
 tar cf - . | gzip -9 > "../$AOK_FS"
 
 echo "Image is ready: $BUILD_BASE_D/$AOK_FS"
 
+#
 # copy it to /iCloud if this runs on iSH
+#
 if [ -f "/proc/ish" ]; then
     echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
     mkdir -p "$ICLOUD_ARCHIVE_D"
     cp "$BUILD_BASE_D/$AOK_FS" "$ICLOUD_ARCHIVE_D"
 fi
 echo
+
+
+#
+#  Remove first boot hint, in order to make chroot bash -l possible
+#
+rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT"

@@ -154,9 +154,14 @@ if [ "$main_param" = "$skip_finalize" ]; then
 
     echo
     echo "You can work on the filesystem by doing:"
-    echo "  sudo chroot $BUILD_ROOT_D"
+    echo "  sudo chroot $BUILD_ROOT_D bash -l"
+    echo
+    echo "Since the default login for root is bash, and .bashrc will not be run when you"
+    echo "chroot in, you are recommended to use bash -l to get the env right."
+    echo
     echo "Once you are done, complete the process by running:"
     echo "  sudo ./build_finish"
+    echo
     echo "This creates the compressed image that can be imported into AOK/iSH."
     echo "You can revisit the filesystem by doing the above chroot and then build_finish"
     echo "again, in case you need to do further tweaks."
