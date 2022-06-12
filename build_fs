@@ -119,23 +119,26 @@ echo
 echo "=====  Doing some cleanup  ====="
 echo
 
-cd "$BUILD_ROOT_D" || exit 1
+rm "$BUILD_ROOT_D"/.gitignore
+rm "$BUILD_ROOT_D"/README.md
 
-rm .gitignore
 
 echo "Populating /AOK on new filesystem"
 
-dest="AOK"
+dest="$BUILD_ROOT_D/AOK"
+
 mkdir "$dest"
-mv BUILD_ENV              "$dest"
-mv AOK_VARS               "$dest"
-mv build_fs               "$dest"
-mv setup_image_chrooted   "$dest"
-mv build_finish           "$dest"
-mv LICENSE                "$dest"
-mv Files                  "$dest"
-mv Docs                   "$dest"
-chown -R root:root        "$dest"
+
+mv "$BUILD_ROOT_D"/BUILD_ENV              "$dest"
+mv "$BUILD_ROOT_D"/AOK_VARS               "$dest"
+mv "$BUILD_ROOT_D"/build_fs               "$dest"
+mv "$BUILD_ROOT_D"/setup_image_chrooted   "$dest"
+mv "$BUILD_ROOT_D"/build_finish           "$dest"
+mv "$BUILD_ROOT_D"/LICENSE                "$dest"
+mv "$BUILD_ROOT_D"/Files                  "$dest"
+mv "$BUILD_ROOT_D"/Docs                   "$dest"
+
+chown -R root:root "$dest"
 
 
 echo
