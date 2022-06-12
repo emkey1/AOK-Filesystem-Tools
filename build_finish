@@ -4,6 +4,14 @@
 # shellcheck disable=SC1091
 . ./BUILD_ENV
 
+#
+#  In case builder chrooted in and had to run post_boot.sh in order to run bash
+#  this ensures the pointer is present at first iSH-AOK boot
+#
+#  Tell iSH to run first boot tasks
+touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+
+
 echo
 echo "=====  Creating image  ====="
 echo

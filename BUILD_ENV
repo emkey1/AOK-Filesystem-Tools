@@ -17,4 +17,4 @@ MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 # the deploy-able iSH filesystem
 AOK_FS="ALPINE_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
 
-
+FIRST_BOOT_HINT="/etc/FIRSTBOOT"
