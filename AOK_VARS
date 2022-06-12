@@ -7,9 +7,9 @@ AOK_VERSION="ALPHA-97_3.12-rc1"
 
 
 #  This is the alpine-minirootfs that will be used as a baseline
-ALPINE_VERSION=3.12.10
+ALPINE_VERSION=3.12.12
 
-#  At this time only 3.12.10 is considered fully tested and recommended
+#  At this time only 3.12.12 is considered fully tested and recommended
 #
 #  If you try another one please report any issues at
 #   https://github.com/emkey1/AOK-Filesystem-Tools/issues

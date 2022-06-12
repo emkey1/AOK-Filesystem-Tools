@@ -207,47 +207,34 @@ echo "---  Initial login method  ---"
 cp /AOK/Files/login.loop /bin
 cp /AOK/Files/login.once /bin
 
+# chmod +x /bin/login.alpine
 chmod +x /bin/login.loop
 chmod +x /bin/login.once
 
-#  /bin/login is softlinked, first remove it
-rm /bin/login
-
-if [ "$ALPINE_RELEASE" = "3.16" ]; then
-	#
-	#  login in 3.16 keeps just displaying the prompt in an end-less loop...
-	#  so revert to busybox login
-	#
-	ln -sf /bin/busybox /bin/login
+#
+#  3.16 no longer has a separate login binary, it just soft links to busybox
+#  and fails when running the alternate login bins. Just keeps printing
+#  the login promppt in an endless loop
+#
+if [ -h /bin/login ]; then
+    echo
+    echo "WARNING: Alpine $ALPINE_RELEASE does not support changing login method"
+    echo
 else
-	case "$INITIAL_LOGIN_MODE" in
+    mv /bin/login /bin/login.alpine
 
-		"enable")
-			ln -sf /bin/login.loop /bin/login
-			;;
-
-		"disable")
-			ln -sf /bin/busybox /bin/login
-			;;
-
-		"once")
-			ln -sf /bin/login.once /bin/login
-			;;
-
-		*)
-			echo "ERROR: invalid INITIAL_LOGIN_MODE [$INITIAL_LOGIN_MODE]!"
-			echo "       options are: enable disable once"
-			exit 1
-			;;
-	esac
+    if ! /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"; then
+        echo "ERROR: Failed to set up INITIAL_LOGIN_MODE [$INITIAL_LOGIN_MODE]"
+        exit 1
+    fi
 fi
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
 #
 if [ ! -x /bin/login ]; then
-	echo "ERROR: no /bin/login present!"
-	exit 1
+    echo "ERROR: no run-able /bin/login present!"
+    exit 1
 fi
 
 
