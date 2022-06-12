@@ -249,9 +249,9 @@ touch /run/openrc/softlevel
 #
 case "$ALPINE_RELEASE" in
 
-	"3.12" | "3.13" | "3.14" | "3.15")
-		openrc-init
-		;;
+    "3.12" | "3.13" | "3.14" | "3.15")
+        openrc-init
+        ;;
 esac
 
 
@@ -265,11 +265,3 @@ echo "---  Adding ish user to various groups  ---"
 addgroup -S ish root
 addgroup -S ish wheel
 addgroup -S ish adm
-
-# Moved the service stuff to /etc/profile via /etc/FIRSTBOOT
-#echo "Enabling openrc run services"
-# Enable dcron (Doesn't actually stick for some reason)
-#rc-update add syslog-ng
-#rc-update add dcron
-# Daemon to reduce odds of ish getting killed when running in the background
-#rc-update add runbg
