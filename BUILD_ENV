@@ -8,7 +8,7 @@ ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 
 # Shorthands for some directories
 BUILD_BASE_D="/tmp/AOK"
-BUILD_D="$BUILD_BASE_D/iSH-AOK-FS"
+BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
 ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 
 # mini-root fs to be downloaded and used

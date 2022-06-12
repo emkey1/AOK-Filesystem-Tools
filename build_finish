@@ -11,7 +11,7 @@ echo
 
 # Tar up and zip the result
 
-cd "$BUILD_D" || exit 1
+cd "$BUILD_ROOT_D" || exit 1
 
 tar cf - . | gzip -9 > "../$AOK_FS"
 

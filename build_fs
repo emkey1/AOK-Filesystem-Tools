@@ -79,8 +79,8 @@ if [ ! -f "$MINIROOT_FS" ]; then
 fi
 
 # Build in /tmp
-echo "Create $BUILD_D, copy minirootfs"
-mkdir -p "$BUILD_D"
+echo "Create $BUILD_ROOT_D, copy minirootfs"
+mkdir -p "$BUILD_ROOT_D"
 
 
 #
@@ -89,27 +89,27 @@ mkdir -p "$BUILD_D"
 #  to work, some escapes needed?  Should be fixed
 #
 if [ -f "/proc/ish" ]; then
-    busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_D" || exit 1;tar xf -)
+    busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_ROOT_D" || exit 1;tar xf -)
 else
-    tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_D" || exit 1;tar xf -)
+    tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_ROOT_D" || exit 1;tar xf -)
 fi
 
-cd "$BUILD_D" || exit 1
+cd "$BUILD_ROOT_D" || exit 1
 
 # Unzip Alpine, remove tar.gz
 gunzip -c "$MINIROOT_FS" | tar xf -
 
 # remove instance inside build dir
-rm "$BUILD_D"/alpine-minirootfs-*
+rm "$BUILD_ROOT_D"/alpine-minirootfs-*
 
 # We need a valid resolv.conf
-cp /etc/resolv.conf "$BUILD_D/etc"
+cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 
 
 #
 # And now for the main bit
 #
-if ! chroot "$BUILD_D" ./setup_image_chrooted; then
+if ! chroot "$BUILD_ROOT_D" ./setup_image_chrooted; then
   echo "ERROR in chroot, aborting build!"
   exit 1
 fi
@@ -119,7 +119,7 @@ echo
 echo "=====  Doing some cleanup  ====="
 echo
 
-cd "$BUILD_D" || exit 1
+cd "$BUILD_ROOT_D" || exit 1
 
 rm .gitignore
 
@@ -145,7 +145,7 @@ echo "The filesystem is ready!"
 if [ "$main_param" = "$skip_finalize" ]; then
   echo
   echo "You can work on the filesystem by doing:"
-  echo "  sudo chroot $BUILD_D"
+  echo "  sudo chroot $BUILD_ROOT_D"
   echo "Once you are done, complete the process by running:"
   echo "  sudo ./build_finish"
   echo "This creates the compressed image that can be imported into AOK/iSH."
