@@ -82,8 +82,8 @@ fi
 
 
 # The following is needed for upstream PR #1716
-if [ ! -e /dev/fd ]; then
-    ln -s /proc/self/fd /dev/fd
+if [ ! -h /dev/fd ]; then
+    ln -sf /proc/self/fd /dev/fd
 fi
 
 
