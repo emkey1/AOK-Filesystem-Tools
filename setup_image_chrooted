@@ -1,13 +1,18 @@
 #!/bin/sh
 #
-# Build the custom AOK iSH image.  Assumes we are starting with the mini root from Alpine
+# Build the custom iSH-AOK image.  Assumes we are starting with the mini root from Alpine
+
+#
+#  This is run chrooted inside the iSH filesystem
+#
 
 # Set some variables
 # shellcheck disable=SC1091
-. AOK_VARS
+. BUILD_ENV
 
-
-ALPINE_RELEASE="$1"
+echo
+echo "=====  Setting up FS (chrooted)  ====="
+echo
 
 if [ -z "$ALPINE_RELEASE" ]; then
 	echo "ERROR: ALPINE_RELEASE param not supplied"
@@ -15,21 +20,30 @@ if [ -z "$ALPINE_RELEASE" ]; then
 fi
 
 
-# First update apk DB
-
-echo
-echo "Initialize APK Database:"
+echo "---  Initialize APK Database  ---"
 
 # apk update
 apk -U upgrade
 
+
 echo
-echo "Add a minimal number of packages to make iSH useful"
-echo
+echo "---  Add initial packages  ---"
 
 # In this case we want the variable to expand into its components
 # shellcheck disable=SC2086
 apk add $CORE_APKS
+
+
+echo
+echo "---  Add AOK only packages  ---"
+
+# In this case we want the variable to expand into its components
+# shellcheck disable=SC2086
+apk add $AOK_APKS
+
+
+echo
+echo "---- Linking to busybox-extras  ---"
 
 # Chroot seems to be a bit broken.  When busybox-extras creates soft links it does it via the real path rather than the chroot.  :-(
 # Work around here.
@@ -52,8 +66,8 @@ ln /etc/init.d/devfs /etc/init.d/dev
 
 # Update/install a few key files
 
-echo
-echo "Updating a few key files"
+
+echo "---  Replacing a few key files  ---"
 
 # Set a hostname (Can't currently set hostname)
 # cp Files/hostname /etc
@@ -101,29 +115,27 @@ cp Files/sbin/* /usr/local/sbin
 # Make a link so that showip can also be 'myip'
 ln /usr/local/bin/showip /usr/local/bin/myip
 
-# Copy our AOK_VARS to /usr/local/etc for use by /usr/local/bin scripts
-mkdir /usr/local/etc
-#chmod 666 /usr/local/etc
-cp AOK_VARS /usr/local/etc
-
 chmod +x /usr/local/bin/*
 
-echo
-echo "Creating the ish user and group"
+
+echo "---  Creating the ish user and group  ---"
 
 groupadd -g 501 ish
-useradd -s /bin/bash -u 501 -g 501 ish
+
+# temp changing UID_MIN is to silence the warning:
+# ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
+useradd -s /bin/bash -u 501 -g 501 ish --key UID_MIN=501
 
 # For some reason useradd doesn't create the home dir?
 mkdir -p /home/ish
-chown ish.ish /home/ish
+chown ish:ish /home/ish
 
 # Add dot files for ish
-cp Files/bash_profile /home/ish/.bash_profile; chown ish.ish /home/ish/.bash_profile
+cp Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
 ln -s /home/ish/.bash_profile /home/ish/.bashrc
-chown ish.ish /home/ish/.bashrc
-cp Files/zshrc /home/ish/.zshrc; chown ish.ish /home/ish/.zshrc
-cp Files/vimrc /home/ish/.vimrc; chown ish.ish /home/ish/.vimrc
+chown ish:ish /home/ish/.bashrc
+cp Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
+cp Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
 # Copy to root as well
 cp Files/bash_profile /root/.bash_profile
 ln -s /root/.bash_profile /root/.bashrc
@@ -133,15 +145,18 @@ cp Files/vimrc /root/.vimrc
 # shadow fle with blank ish password
 cp Files/shadow /etc
 
-echo
 
 # Copy some documentation to the ish user home directory
 
-echo
-echo "Copying Docs"
+
+echo "---  Copying Docs  ---"
+
 mkdir /home/ish/Docs
 cp -r Docs/* /home/ish/Docs
-chown -R ish.ish /home/ish/Docs
+chown -R ish:ish /home/ish/Docs
+
+
+echo "---  Setting up environment  ---"
 
 # Networking, hostname and possibly others can't start because of
 # current limitations in iSH So we fake it out
@@ -152,10 +167,10 @@ cp Files/init.d/* /etc/init.d
 # So that the ish user will work in Alpine 3.14
 cp Files/pam.d/* /etc/pam.d
 
-# /dev/null ends up with weird perms or broken for some reason.  Fix
+#
+#  /dev/null will be created in post_boot.sh if need-be
+#
 rm /dev/null
-mknod /dev/null c 1 3
-chmod 776 /dev/null
 
 # Let's bypass login to implement a more traditional login
 # experience.  By default the login wrapper will loop, meaning
@@ -167,13 +182,35 @@ chmod 776 /dev/null
 #cp Files/login/login_* Files
 #popd
 
-
 mv /bin/login /bin/login.alpine
 
 if [ "$ALPINE_RELEASE" = "3.16" ]; then
+	#
+	#  login in 3.16 keeps just displaying the prompt in an end-less loop...
+	#  so revert to busybox login
+	#
 	ln -sf /bin/busybox /bin/login
 else
-	cp Files/login.loop /bin/login
+	case "$INITIAL_LOGIN_MODE" in
+
+		"enable")
+			cp Files/login.loop /bin/login
+			;;
+
+		"disable")
+			cp /bin/login.alpine /bin/login
+			;;
+
+		"once")
+			cp /bin/login.once /bin/login
+			;;
+
+		*)
+			echo "ERROR: invalid INITIAL_LOGIN_MODE [$INITIAL_LOGIN_MODE]!"
+			echo "       options are: enable disable once"
+			exit 1
+			;;
+	esac
 fi
 
 cp Files/login.loop /bin
@@ -184,42 +221,50 @@ chmod +x /bin/login.loop
 chmod +x /bin/login.once
 chmod +x /bin/login
 cp Files/tmux.conf /home/ish/.tmux.conf
-chown ish.ish /home/ish/.tmux.conf
+chown ish:ish /home/ish/.tmux.conf
 cp Files/tmux.conf /root/.tmux.conf
 
 # I want vim to be vi, aliasing isn't working for some reason
 # /usr/local/bin is first in the path by default, so...
 ln -s /usr/bin/vim /usr/local/bin/vi
 
-# Enable the utmp stuff (When it works, which is not now)
-# rc-update add s6 default; rc-update add utmps default
-
-# echo "Fixing Timezone stuff the ugly but simple way"
-# mkdir -p /usr/share/zoneinfo
-# zcat Files/fix_tz.tgz | (cd /usr/share/zoneinfo;tar xf -)
-# chmod -R 755 /usr/share/zoneinfo
-
-# Set TZ to east coast US, because that is where I am
-#ln /usr/share/zoneinfo/America/New_York /etc/localtime
 ln /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
-echo "America/Los_Angeles" >  /etc/timezone
-date
+echo "$INITIAL_TIMEZONE" >  /etc/timezone
 
 # Change roots shell
 sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
 
-echo "Enabling openrc"
+# Make a directory to later mount the iCloud drive on
+mkdir /iCloud
+
+echo "$AOK_VERSION" > /etc/aok_release
+touch /etc/FIRSTBOOT
+
+
+echo "---  Enabling openrc  ---"
+
 cp Files/rc.conf /etc
 mkdir /run/openrc
 touch /run/openrc/softlevel
-openrc-init
+
+#
+# Older Alpines needs to run openrc-init
+#
+case "$ALPINE_RELEASE" in
+
+	"3.12" | "3.13" | "3.14" | "3.15")
+		openrc-init
+		;;
+esac
+
+
 # Set openrc boot level to be default
 echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
 
-echo
 
-echo "Adding ish user to various groups"
+echo "---  Adding ish user to various groups  ---"
+
 addgroup -S ish root
 addgroup -S ish wheel
 addgroup -S ish adm
@@ -231,18 +276,3 @@ addgroup -S ish adm
 #rc-update add dcron
 # Daemon to reduce odds of ish getting killed when running in the background
 #rc-update add runbg
-
-
-echo "Creating First Boot File in /etc"
-
-touch /etc/FIRSTBOOT
-
-# Make a directory to later mount the iCloud drive on
-mkdir /iCloud
-
-echo
-echo "Making AOK Version file in /etc"
-echo "$AOK_VERSION" > /etc/aok_release
-echo "Done"
-
-echo

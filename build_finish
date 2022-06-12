@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Read in vars
+# shellcheck disable=SC1091
+. ./BUILD_ENV
+
+echo
+echo "=====  Creating image  ====="
+echo
+
+
+# Tar up and zip the result
+
+cd "$BUILD_D" || exit 1
+
+tar cf - . | gzip -9 > "../$AOK_FS"
+
+echo "Image is ready: $BUILD_BASE_D/$AOK_FS"
+
+# copy it to /iCloud if this runs on iSH
+if [ -f "/proc/ish" ]; then
+    echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
+    mkdir -p "$ICLOUD_ARCHIVE_D"
+    cp "$BUILD_BASE_D/$AOK_FS" "$ICLOUD_ARCHIVE_D"
+fi
+echo

@@ -1,0 +1,20 @@
+#!/bin/sh
+# This is sourced. Fake bang-path to help editors and linters
+
+. ./AOK_VARS
+
+# extract the branch or major version
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+
+# Shorthands for some directories
+BUILD_BASE_D="/tmp/AOK"
+BUILD_D="$BUILD_BASE_D/iSH-AOK-FS"
+ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
+
+# mini-root fs to be downloaded and used
+MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+
+# the deploy-able iSH filesystem
+AOK_FS="ALPINE_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
+
+

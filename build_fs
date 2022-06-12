@@ -1,0 +1,161 @@
+#!/bin/sh
+
+#
+#  This builds an iSH-AOK Filesystem
+#
+
+#  shellcheck disable=SC1007
+CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+# Read in vars
+# shellcheck disable=SC1091
+. ./BUILD_ENV
+
+prog_name=$(basename "$0")
+main_param="$1"
+skip_finalize="dont_finish"
+
+
+case "$main_param" in
+
+  "-h" | "--help")
+    echo "usage: $prog_name [-h] | [--help] | [$skip_finalize]"
+    echo "This builds the iSH-AOK filesystem. If given the parameter:"
+    echo "  $skip_finalize"
+    echo "The process will halt once the FS is ready, giving you the"
+    echo "opportunity to chroot into it and do your personal adaptations."
+    echo
+    echo "Instructions about this procedure and howto then complete the build"
+    echo "once done will be displayed at the end of the build."
+    echo
+    echo "Be aware that this build can only complete on iSH or Linux (x86)!"
+    echo
+    exit 0
+    ;;
+
+  "" | "$skip_finalize")
+    ;; # valid options
+
+  *)
+    echo "ERROR: bad param, try -h"
+    exit 1
+    ;;
+
+esac
+
+if [ "$(whoami)" != "root" ]; then
+  echo "This must be run as root or using sudo!"
+  echo
+  $0 -h
+  exit 1
+fi
+
+
+echo
+echo "=====  Building a $ALPINE_RELEASE iSH-AOK filesystem  ====="
+echo
+
+if [ "$main_param" = "$skip_finalize" ]; then
+  echo "*** Will not create the compressed image! ***"
+fi
+
+if [ "$(uname -s)" = "Darwin" ]; then
+    echo "Unfortunately this does not run on MacOS at this time"
+    exit 1
+fi
+
+
+echo
+echo "---  Preparing build environment  ---"
+
+#
+# Clear build env
+rm -rf "$BUILD_BASE_D"
+
+# Download the Alpine miniroot if we need to
+if [ ! -f "$MINIROOT_FS" ]; then
+    echo "Caching miniroot"
+    wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_FS"
+fi
+
+# Build in /tmp
+echo "Create $BUILD_D, copy minirootfs"
+mkdir -p "$BUILD_D"
+
+
+#
+#  TODO: Normally I would have put the common part of the command in
+#  a variable to make sure they are in sync, but I just couldn't get that
+#  to work, some escapes needed?  Should be fixed
+#
+if [ -f "/proc/ish" ]; then
+    busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_D" || exit 1;tar xf -)
+else
+    tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_D" || exit 1;tar xf -)
+fi
+
+cd "$BUILD_D" || exit 1
+
+# Unzip Alpine, remove tar.gz
+gunzip -c "$MINIROOT_FS" | tar xf -
+
+# remove instance inside build dir
+rm "$MINIROOT_FS"
+
+# We need a valid resolv.conf
+cp /etc/resolv.conf "$BUILD_D/etc"
+
+
+#
+# And now for the main bit
+#
+if ! chroot "$BUILD_D" ./setup_image_chrooted; then
+  echo "ERROR in chroot, aborting build!"
+  exit 1
+fi
+
+
+echo
+echo "=====  Doing some cleanup  ====="
+echo
+
+cd "$BUILD_D" || exit 1
+
+rm .gitignore
+
+echo "Populating /AOK on new filesystem"
+
+dest="AOK"
+mkdir "$dest"
+mv BUILD_SETTINGS         "$dest"
+mv AOK_VARS               "$dest"
+mv build_fs               "$dest"
+mv setup_image_chrooted   "$dest"
+mv build_finish           "$dest"
+mv LICENSE                "$dest"
+mv Files                  "$dest"
+mv Docs                   "$dest"
+chown -R root:root        "$dest"
+
+
+echo
+echo "The filesystem is ready!"
+
+
+if [ "$main_param" = "$skip_finalize" ]; then
+  echo
+  echo "You can work on the filesystem by doing:"
+  echo "  sudo chroot $BUILD_D"
+  echo "Once you are done, complete the process by running:"
+  echo "  sudo ./build_finish"
+  echo "This creates the compressed image that can be imported into AOK/iSH."
+  echo "You can revisit the filesystem by doing the above chroot and then build_finish"
+  echo "again, in case you need to do further tweaks."
+  echo "Running build again will erase the current iSH filesystem and create"
+  echo "a fresh instance."
+  echo
+  exit 0
+fi
+
+cd "$CURRENT_DIR" || exit 1
+./build_finish
