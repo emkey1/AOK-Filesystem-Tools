@@ -29,6 +29,7 @@ INITIAL_TIMEZONE="America/Los_Angeles"
 INITIAL_LOGIN_MODE="enable"
 
 
+
 CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync'
 
 #
@@ -46,13 +47,11 @@ AOK_APKS='htop procps strace'
 
 
 #
-#  Additional APK groups
+#  Additional APK groups managed with /usr/local/bin/aok_groups
 #
 
 VNC_APKS='x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
 
-# APK's that get installed via the 'bloat' script after image install.  Each level is inclusive of the lower ones
-# I plan on changing these over to packages of like things at some point
 DEVEL_APKS='python3 py3-pip python3-dev build-base linux-headers cmake'
 NODEJS_APKS='nodejs nodejs-dev'
 BLOAT3_APKS='emacs neofetch'
