@@ -106,10 +106,28 @@ rm "$BUILD_ROOT_D"/alpine-minirootfs-*
 cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 
 
+echo "Populating /AOK on new filesystem"
+
+AOK_FILES="$BUILD_ROOT_D/AOK"
+
+mkdir "$AOK_FILES"
+
+mv "$BUILD_ROOT_D"/BUILD_ENV             "$AOK_FILES"
+mv "$BUILD_ROOT_D"/AOK_VARS              "$AOK_FILES"
+mv "$BUILD_ROOT_D"/build_fs              "$AOK_FILES"
+mv "$BUILD_ROOT_D"/setup_image_chrooted  "$AOK_FILES"
+mv "$BUILD_ROOT_D"/build_finish          "$AOK_FILES"
+mv "$BUILD_ROOT_D"/LICENSE               "$AOK_FILES"
+mv "$BUILD_ROOT_D"/Files                 "$AOK_FILES"
+mv "$BUILD_ROOT_D"/Docs                  "$AOK_FILES"
+
+chown -R root:root "$AOK_FILES"
+
+
 #
 # And now for the main bit
 #
-if ! chroot "$BUILD_ROOT_D" ./setup_image_chrooted; then
+if ! chroot "$BUILD_ROOT_D" /AOK/setup_image_chrooted; then
     echo "ERROR in chroot, aborting build!"
     exit 1
 fi
@@ -121,24 +139,6 @@ echo
 
 rm "$BUILD_ROOT_D"/.gitignore
 rm "$BUILD_ROOT_D"/README.md
-
-
-echo "Populating /AOK on new filesystem"
-
-dest="$BUILD_ROOT_D/AOK"
-
-mkdir "$dest"
-
-mv "$BUILD_ROOT_D"/BUILD_ENV              "$dest"
-mv "$BUILD_ROOT_D"/AOK_VARS               "$dest"
-mv "$BUILD_ROOT_D"/build_fs               "$dest"
-mv "$BUILD_ROOT_D"/setup_image_chrooted   "$dest"
-mv "$BUILD_ROOT_D"/build_finish           "$dest"
-mv "$BUILD_ROOT_D"/LICENSE                "$dest"
-mv "$BUILD_ROOT_D"/Files                  "$dest"
-mv "$BUILD_ROOT_D"/Docs                   "$dest"
-
-chown -R root:root "$dest"
 
 
 echo

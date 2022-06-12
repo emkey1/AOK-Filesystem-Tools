@@ -8,15 +8,15 @@
 
 # Set some variables
 # shellcheck disable=SC1091
-. BUILD_ENV
+. /AOK/BUILD_ENV
 
 echo
 echo "=====  Setting up FS (chrooted)  ====="
 echo
 
 if [ -z "$ALPINE_RELEASE" ]; then
-	echo "ERROR: ALPINE_RELEASE param not supplied"
-	exit 1
+    echo "ERROR: ALPINE_RELEASE param not supplied"
+    exit 1
 fi
 
 
@@ -73,44 +73,44 @@ echo "---  Replacing a few key files  ---"
 # cp Files/hostname /etc
 
 # Fake interfaces file
-cp Files/interfaces /etc/network
+cp /AOK/Files/interfaces /etc/network
 
 # Move sshd to port 1022 to avoid issues
-cp Files/sshd_config /etc/ssh
+cp /AOK/Files/sshd_config /etc/ssh
 
 # /etc/init.d/networking keeps getting screwed up for unknown reasons.
 # Mitigate
 mkdir /root/init.d
-cp Files/init.d/* /root/init.d
+cp /AOK/Files/init.d/* /root/init.d
 
 # Remove extra unused vty's, make OpenRC work
-cp Files/inittab /etc
+cp /AOK/Files/inittab /etc
 
 # Custom MOTD/issue
 rm /etc/motd
-cp Files/motd /etc
+cp /AOK/Files/motd /etc
 rm /etc/issue
-cp Files/issue /etc
+cp /AOK/Files/issue /etc
 
 # Sudoers stuff
 rm /etc/sudoers # Don't know why this is needed, but it is
-cp Files/sudoers /etc
+cp /AOK/Files/sudoers /etc
 
 # Root .profile.
-cp Files/profile /etc/profile
+cp /AOK/Files/profile /etc/profile
 
 # Add some simple scripts
-cp Files/bin/* /usr/local/bin
+cp /AOK/Files/bin/* /usr/local/bin
 
 # cron stuff
-cp Files/cron/15min/* /etc/periodic/15min
+cp /AOK/Files/cron/15min/* /etc/periodic/15min
 #cp Files/cron/daily/* /etc/periodic/daily
 #cp Files/cron/hourly/* /etc/periodic/hourly
 #cp Files/cron/monthly/* /etc/periodic/monthly
 #cp Files/cron/weekly/* /etc/periodic/weekly
 
 mkdir -p /usr/local/sbin
-cp Files/sbin/* /usr/local/sbin
+cp /AOK/Files/sbin/* /usr/local/sbin
 
 # Make a link so that showip can also be 'myip'
 ln /usr/local/bin/showip /usr/local/bin/myip
@@ -131,19 +131,19 @@ mkdir -p /home/ish
 chown ish:ish /home/ish
 
 # Add dot files for ish
-cp Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
+cp /AOK/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
 ln -s /home/ish/.bash_profile /home/ish/.bashrc
 chown ish:ish /home/ish/.bashrc
-cp Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
-cp Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
+cp /AOK/Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
+cp /AOK/Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
 # Copy to root as well
-cp Files/bash_profile /root/.bash_profile
+cp /AOK/Files/bash_profile /root/.bash_profile
 ln -s /root/.bash_profile /root/.bashrc
-cp Files/zshrc /root/.zshrc
-cp Files/vimrc /root/.vimrc
+cp /AOK/Files/zshrc /root/.zshrc
+cp /AOK/Files/vimrc /root/.vimrc
 
 # shadow fle with blank ish password
-cp Files/shadow /etc
+cp /AOK/Files/shadow /etc
 
 
 # Copy some documentation to the ish user home directory
@@ -152,7 +152,7 @@ cp Files/shadow /etc
 echo "---  Copying Docs  ---"
 
 mkdir /home/ish/Docs
-cp -r Docs/* /home/ish/Docs
+cp -r /AOK/Docs/* /home/ish/Docs
 chown -R ish:ish /home/ish/Docs
 
 
@@ -161,21 +161,27 @@ echo "---  Setting up environment  ---"
 # Networking, hostname and possibly others can't start because of
 # current limitations in iSH So we fake it out
 rm /etc/init.d/networking
-cp Files/init.d/* /etc/init.d
+cp /AOK/Files/init.d/* /etc/init.d
 
 # More hackery.  Initial case is the need to make pam_motd.so optional
 # So that the ish user will work in Alpine 3.14
-cp Files/pam.d/* /etc/pam.d
+cp /AOK/Files/pam.d/* /etc/pam.d
 
 #
 #  /dev/null will be created in post_boot.sh if need-be
 #
-rm /dev/null
+# rm /dev/null
+
+# mknod /dev/null c 1 3
+# chmod 666 /dev/null
+
+# mknod /dev/zero c 1 5
+# chmod 666 /dev/zero
 
 
-cp Files/tmux.conf /home/ish/.tmux.conf
+cp /AOK/Files/tmux.conf /home/ish/.tmux.conf
 chown ish:ish /home/ish/.tmux.conf
-cp Files/tmux.conf /root/.tmux.conf
+cp /AOK/Files/tmux.conf /root/.tmux.conf
 
 # I want vim to be vi, aliasing isn't working for some reason
 # /usr/local/bin is first in the path by default, so...
@@ -198,18 +204,8 @@ touch "$FIRST_BOOT_HINT"
 
 echo "---  Initial login method  ---"
 
-# Let's bypass login to implement a more traditional login
-# experience.  By default the login wrapper will loop, meaning
-# Another login prompt will be issued on exit.
-# login.once can be copied to /bin/login to cause iSH
-# to exit on shell termination instead
-#pushd .
-#cd Files/login
-#cp Files/login/login_* Files
-#popd
-
-cp Files/login.loop /bin
-cp Files/login.once /bin
+cp /AOK/Files/login.loop /bin
+cp /AOK/Files/login.once /bin
 
 chmod +x /bin/login.loop
 chmod +x /bin/login.once
@@ -257,7 +253,7 @@ fi
 
 echo "---  Enabling openrc  ---"
 
-cp Files/rc.conf /etc
+cp /AOK/Files/rc.conf /etc
 mkdir /run/openrc
 touch /run/openrc/softlevel
 
