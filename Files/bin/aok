@@ -2,8 +2,9 @@
 #
 #  Script to do various things related to the configuration of ish
 #
-version="0.2.0  2022-06-12"
+version="0.2.1  2022-06-12"
 
+# shellcheck disable=SC1091
 . /AOK/AOK_VARS
 
 verbose=0
