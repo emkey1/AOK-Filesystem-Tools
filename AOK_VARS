@@ -20,23 +20,27 @@ ALPINE_VERSION=3.12.12
 # ALPINE_VERSION=3.16.0
 
 
+# extract the branch or major version
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+
 #
 #  The system will be initially set to this timezone
 #
 INITIAL_TIMEZONE="America/Los_Angeles"
 
 # Alternatives are: enable disable once
-INITIAL_LOGIN_MODE="disable"
+INITIAL_LOGIN_MODE="enable"
 
 
 
 CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync'
 
 #
-# Absolute minimal apk list for testing build and the bootup sequence, some
-# errors will be displayed during build, but they can be ignored in this scenario
+#  Absolute minimal apk list for quicker turn around when testing build
+#  and the boot-up sequences. Some errors will be displayed during build,
+#  but they can be ignored in this scenario.
 #
-#CORE_APKS='openrc bash shadow sudo dcron dcron-openrc coreutils findutils tar file less sed gawk grep util-linux procps mg'
+# CORE_APKS='openrc bash shadow sudo dcron dcron-openrc coreutils findutils tar file less sed gawk grep util-linux procps'
 
 #
 # Additional packages.  These don't work with stock iSH but work with iSH-AOK
