@@ -44,7 +44,7 @@ case "$main_param" in
 esac
 
 if [ "$(whoami)" != "root" ]; then
-    echo "This must be run as root or using sudo!"
+    echo "ERROR: This must be run as root or using sudo!"
     echo
     $0 -h
     exit 1
