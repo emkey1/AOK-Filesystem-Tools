@@ -100,7 +100,7 @@ cd "$BUILD_D" || exit 1
 gunzip -c "$MINIROOT_FS" | tar xf -
 
 # remove instance inside build dir
-rm "$MINIROOT_FS"
+rm "$BUILD_D"/alpine-minirootfs-*
 
 # We need a valid resolv.conf
 cp /etc/resolv.conf "$BUILD_D/etc"
@@ -127,7 +127,7 @@ echo "Populating /AOK on new filesystem"
 
 dest="AOK"
 mkdir "$dest"
-mv BUILD_SETTINGS         "$dest"
+mv BUILD_ENV              "$dest"
 mv AOK_VARS               "$dest"
 mv build_fs               "$dest"
 mv setup_image_chrooted   "$dest"
