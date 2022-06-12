@@ -208,33 +208,32 @@ echo "---  Initial login method  ---"
 
 cp Files/login.loop /bin
 cp Files/login.once /bin
-mv /bin/login /bin/login.alpine
 
-chmod +x /bin/login.alpine
 chmod +x /bin/login.loop
 chmod +x /bin/login.once
-chmod +x /bin/login
 
+#  /bin/login is softlinked, first remove it
+rm /bin/login
 
 if [ "$ALPINE_RELEASE" = "3.16" ]; then
 	#
 	#  login in 3.16 keeps just displaying the prompt in an end-less loop...
 	#  so revert to busybox login
 	#
-	cp /bin/login.alpine /bin/login
+	ln -sf /bin/busybox /bin/login
 else
 	case "$INITIAL_LOGIN_MODE" in
 
 		"enable")
-			cp Files/login.loop /bin/login
+			ln -sf /bin/login.loop /bin/login
 			;;
 
 		"disable")
-			cp /bin/login.alpine /bin/login
+			ln -sf /bin/busybox /bin/login
 			;;
 
 		"once")
-			cp /bin/login.once /bin/login
+			ln -sf /bin/login.once /bin/login
 			;;
 
 		*)
