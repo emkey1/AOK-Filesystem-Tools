@@ -55,7 +55,7 @@ check_for_option() {
 
 
 use_aok_groups() {
-    var_file="/usr/local/etc/AOK_VARS"
+    var_file="/AOK/AOK_VARS"
     if [ ! -f "$var_file" ]; then
         echo "ERROR: $var_file not found!"
         exit 1
@@ -64,7 +64,11 @@ use_aok_groups() {
     #  Convert $var_file to my notation, so that it can be used without
     #  changing the rest of the code.
     #
-    package_groups="$(grep _APKS "$var_file"  | grep -v '#' | sed -e s/_APKS// -e s/BLOAT// -e s/\'//g -e s/=/\|/ | awk '{ print ":" $0 }')"
+    #package_groups="$(grep _APKS "$var_file"  | grep -v '#' | sed -e s/_APKS// -e s/BLOAT// -e s/\'//g -e s/=/\|/ | awk '{ print ":" $0 }')"
+
+    package_groups="$(grep _APKS "$var_file" | grep -v '#' |
+                      sed -e s/_APKS// -e s/BLOAT// -e "s/'//g" -e s/=/\|/ |
+                      awk '{ print ":" $0 }')"
 }
 
 
