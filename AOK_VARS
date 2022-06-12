@@ -26,7 +26,7 @@ ALPINE_VERSION=3.12.12
 INITIAL_TIMEZONE="America/Los_Angeles"
 
 # Alternatives are: enable disable once
-INITIAL_LOGIN_MODE="disable"
+INITIAL_LOGIN_MODE="enable"
 
 
 CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync'
