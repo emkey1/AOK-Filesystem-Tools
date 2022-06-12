@@ -32,9 +32,6 @@ INITIAL_TIMEZONE="America/Los_Angeles"
 # Alternatives are: enable disable once
 INITIAL_LOGIN_MODE="enable"
 
-# extract the branch or major version
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-
 
 #
 #  Always installed packages

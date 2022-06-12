@@ -5,7 +5,7 @@
 version="0.2.1  2022-06-12"
 
 # shellcheck disable=SC1091
-. /AOK/AOK_VARS
+. /AOK/BUILD_ENV  #  in order to find $ALPINE_RELEASE
 
 verbose=0
 prog_name=$(basename "$0")
