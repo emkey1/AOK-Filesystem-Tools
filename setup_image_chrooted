@@ -158,6 +158,20 @@ chown -R ish:ish /home/ish/Docs
 
 echo "---  Setting up environment  ---"
 
+#
+#  This instance of /dev/null is only meaningful if somebody chroots into
+#  the FS before creating the image.
+#  Once iSH boots up this pre-made /dev/null ends up being broken
+#  despite looking right when chrooted.
+#  This is solved by post_boot.sh being run at every boot-up.
+#  It will among other things fix /dev/null if need-be.
+#  This is a bit of a kludge, but for now solves the issue.
+#
+rm /dev/null
+mknod /dev/null c 1 3
+chmod 666 /dev/null
+
+
 # Networking, hostname and possibly others can't start because of
 # current limitations in iSH So we fake it out
 rm /etc/init.d/networking
@@ -166,18 +180,6 @@ cp /AOK/Files/init.d/* /etc/init.d
 # More hackery.  Initial case is the need to make pam_motd.so optional
 # So that the ish user will work in Alpine 3.14
 cp /AOK/Files/pam.d/* /etc/pam.d
-
-#
-#  /dev/null will be created in post_boot.sh if need-be
-#
-# rm /dev/null
-
-# mknod /dev/null c 1 3
-# chmod 666 /dev/null
-
-# mknod /dev/zero c 1 5
-# chmod 666 /dev/zero
-
 
 cp /AOK/Files/tmux.conf /home/ish/.tmux.conf
 chown ish:ish /home/ish/.tmux.conf
