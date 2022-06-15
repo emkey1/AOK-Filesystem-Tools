@@ -13,10 +13,15 @@
 #
 
 #  shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-PARRENT_DIR="$(dirname "$CURRENT_DIR")"
+CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+FS_BUILD_D="$(dirname "$CURRENT_D")"
 
-cd "$PARRENT_DIR" || return
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd "$FS_BUILD_D" || exit 1
+
 
 checkables=(
     build_fs

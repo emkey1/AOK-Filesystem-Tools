@@ -5,7 +5,13 @@
 #
 
 #  shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd "$FS_BUILD_D" || exit 1
 
 # Read in vars
 # shellcheck disable=SC1091
@@ -46,7 +52,7 @@ esac
 if [ "$(whoami)" != "root" ]; then
     echo "ERROR: This must be run as root or using sudo!"
     echo
-    $0 -h
+    "$FS_BUILD_D/$prog_name" -h
     exit 1
 fi
 

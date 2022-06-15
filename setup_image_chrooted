@@ -2,6 +2,19 @@
 #
 # Build the custom iSH-AOK image.  Assumes we are starting with the mini root from Alpine
 
+
+
+#  shellcheck disable=SC1007
+FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd "$FS_BUILD_D" || exit 1
+
+
+
 #
 #  This is run chrooted inside the iSH filesystem
 #
