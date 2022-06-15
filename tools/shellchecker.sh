@@ -37,6 +37,8 @@ checkables=(
 
     Files/sbin/runbg
 
+    Files/sbin/post_boot.sh
+
     Files/bin/aok
     Files/bin/aok_groups
     Files/bin/apt
@@ -52,7 +54,6 @@ checkables=(
     Files/bin/ipad_tmux
     Files/bin/iphone_tmux
     Files/bin/pbcopy
-    Files/bin/post_boot.sh
     Files/bin/showip
     Files/bin/toggle_multicore
     Files/bin/update
