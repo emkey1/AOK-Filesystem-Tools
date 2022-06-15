@@ -141,11 +141,7 @@ groupadd -g 501 ish
 # temp changing UID_MIN is to silence the warning:
 # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
 #  add additional groups with -G
-useradd -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
-
-# For some reason useradd doesn't create the home dir?
-mkdir -p /home/ish
-chown ish:ish /home/ish
+useradd -m -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
 
 # Add dot files for ish
 cp /AOK/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
