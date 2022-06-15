@@ -108,7 +108,9 @@ rm /etc/issue
 cp /AOK/Files/issue /etc
 
 # Sudoers stuff, group wheel can do sudo without password
-echo "%wheel ALL=(ALL) NOPASSWD: ALL # added by setup_image_chrooted" >> /etc/sudoers
+echo "activating group wheel for passwordless sudo"
+sed -i "s/# %wheel ALL=(ALL) NOPASSWD.*/%wheel ALL=(ALL) NOPASSWD: ALL/" /etc/sudoers
+
 
 # Root .profile.
 cp /AOK/Files/profile /etc/profile
