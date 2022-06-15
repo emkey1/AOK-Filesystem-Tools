@@ -1,0 +1,24 @@
+#!/bin/sh
+# This is sourced. Fake bang-path to help editors and linters
+
+#
+#  First case used when inside the Filesystem
+#  second case used during build
+#
+[ -f /AOK/AOK_VARS ] && . /AOK/AOK_VARS || . ./AOK_VARS
+
+# Shorthands for some directories
+BUILD_BASE_D="/tmp/AOK"
+BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
+ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
+
+# extract the branch or major version
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+
+# mini-root fs to be downloaded and used
+MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+
+# the deploy-able iSH filesystem
+AOK_FS="ALPINE_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
+
+FIRST_BOOT_HINT="/etc/FIRSTBOOT"

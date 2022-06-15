@@ -1,5 +1,5 @@
 #!/bin/ash
 echo "bloat has been deprecated"
 echo
-echo "Please run: pkg_groups -a"
+echo "Please run: aok_groups"
 echo

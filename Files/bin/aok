@@ -2,7 +2,10 @@
 #
 #  Script to do various things related to the configuration of ish
 #
-version="0.1.0  2022-05-24"
+version="0.2.1  2022-06-12"
+
+# shellcheck disable=SC1091
+. /AOK/BUILD_ENV  #  in order to find $ALPINE_RELEASE
 
 verbose=0
 prog_name=$(basename "$0")
@@ -25,42 +28,49 @@ EOF
 }
 
 
+if [ -h /bin/login ]; then
+    echo "ERROR: Alpine $ALPINE_RELEASE does not support changing login method!"
+    exit 1
+fi
+
+
 change_login_procedure() {
     case "$1" in
 
-	"once")
-	    echo "Enabling login prompt, but only for initial login.  " \
-		 "AOK app will exit when you logout"
-	    cp /bin/login.once /bin/login
-	    exit 0
-	    ;;
+    "once")
+        echo "Enabling login prompt, but only for initial login.  " \
+             "AOK app will exit when you logout"
+        cp /bin/login.once /bin/login
+        exit 0
+        ;;
 
-	"enable")
-	    echo "Enabling login prompt.  You will be prompted for your " \
-		 "login name and password if one has been set " \
-		 "when launching AOK"
-	    cp /bin/login.loop /bin/login
-	    exit 0
-	    ;;
+    "enable")
+        echo "Enabling login prompt.  You will be prompted for your " \
+             "login name and password if one has been set " \
+             "when launching AOK"
+        cp /bin/login.loop /bin/login
+        exit 0
+        ;;
 
-	"disable")
-	    echo "Disabling login prompt on startup.  You will start at " \
-		 "root prompt where launching AOK"
-	    cp /bin/login.alpine /bin/login
-	    exit 0
-	    ;;
+    "disable")
+        echo "Disabling login prompt on startup.  You will start at " \
+             "root prompt where launching AOK"
+        cp /bin/login.alpine /bin/login
+        exit 0
+        ;;
 
-	"")
-	    echo
-	    echo "ERROR: Missing param indicating new login procedure"
-	    exit 1
-	    ;;
+    "")
+        echo
+        echo "ERROR: Missing param indicating new login procedure"
+        exit 1
+        ;;
 
-	*)
-	    echo
-	    echo "ERROR: Bad param to change login procedure: $1"
-	    exit 1
-	    ;;
+    *)
+        echo
+        echo "ERROR: Bad param to change login procedure: $1"
+        exit 1
+        ;;
+
     esac
 }
 
@@ -79,31 +89,32 @@ echo "$prog_name  $version"
 while true; do
     case "$1" in
 
-	"" | "-h" | "--help" )
-            show_help
-            ;;
+    "" | "-h" | "--help" )
+        show_help
+        ;;
 
-	"-v" | "--verbose" )
-	    if [ "$verbose" -eq 0 ]; then
-		echo "===  Enabling verbose mode  ==="
-		verbose=1
-		set -x
-	    else
-		echo
-		echo "WARNING: Multiple verbose options are ignored"
-	    fi
-            ;;
+    "-v" | "--verbose" )
+        if [ "$verbose" -eq 0 ]; then
+            echo "===  Enabling verbose mode  ==="
+            verbose=1
+            set -x
+        else
+            echo
+            echo "WARNING: Multiple verbose options are ignored"
+        fi
+        ;;
 
-	"-l" | "--login" )
-	    change_login_procedure "$2"
-            ;;
+    "-l" | "--login" )
+        change_login_procedure "$2"
+        ;;
 
-	*)
-	    echo
-	    echo "ERROR: Bad option: $1"
-	    echo
-	    show_help
-	    ;;
+    *)
+        echo
+        echo "ERROR: Bad option: $1"
+        echo
+        show_help
+        ;;
+
     esac
     shift
     [ -z "$1" ] && break  # no more options

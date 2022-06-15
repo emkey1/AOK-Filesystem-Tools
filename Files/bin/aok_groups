@@ -5,10 +5,13 @@
 #
 #  Who said you couldn't do nested arrays in POSIX ??
 #
-version="0.5.1  2022-05-31"
+version="0.6.0  2022-06-13"
 
 
 prog_name=$(basename "$0")
+
+force_mode=0
+
 
 #
 #  By only displaying actions on other OS
@@ -25,15 +28,18 @@ check_for_option() {
     case "$1" in
 
         "" | "-h" | "--help" )
-            echo "usage: $prog_name [-h] | [-g] | [-l] | group1 group2 -group3 ..."
+            echo "usage: $prog_name [-h] | [-g] | [-l] | [-f] | group1 group2 -group3 ..."
             echo
             echo "This is a tool to install/uninstall groups of packages"
             echo "prefixing a group name with - means uninstall that group"
             echo
             echo "options:"
-            echo "  -h, --help     show this help message and exit"
-            echo "  -g             list available groups and exit"
-            echo "  -l             list groups and items and exit"
+            echo "  -h, --help   show this help message and exit"
+            echo "  -g           list available groups and exit"
+            echo "  -l           list groups and items and exit"
+            echo "  -f  --force  installs/deletes will be done even if not running"
+            echo "               on iSH. This is for preparing a FS when chrooted"
+            echo
             exit 0
             ;;
 
@@ -50,12 +56,17 @@ check_for_option() {
             exit 0
             ;;
 
+        "-f" | "--force" )
+            force_mode=1
+            is_iSH=1
+            ;;
+
     esac
 }
 
 
 use_aok_groups() {
-    var_file="/usr/local/etc/AOK_VARS"
+    var_file="/AOK/AOK_VARS"
     if [ ! -f "$var_file" ]; then
         echo "ERROR: $var_file not found!"
         exit 1
@@ -64,7 +75,11 @@ use_aok_groups() {
     #  Convert $var_file to my notation, so that it can be used without
     #  changing the rest of the code.
     #
-    package_groups="$(grep _APKS "$var_file"  | grep -v '#' | sed -e s/_APKS// -e s/BLOAT// -e s/\'//g -e s/=/\|/ | awk '{ print ":" $0 }')"
+    #package_groups="$(grep _APKS "$var_file"  | grep -v '#' | sed -e s/_APKS// -e s/BLOAT// -e s/\'//g -e s/=/\|/ | awk '{ print ":" $0 }')"
+
+    package_groups="$(grep _APKS "$var_file" | grep -v '#' |
+                      sed -e s/_APKS// -e s/BLOAT// -e "s/'//g" -e s/=/\|/ |
+                      awk '{ print ":" $0 }')"
 }
 
 
@@ -170,8 +185,12 @@ main() {
 
     check_for_option "$1"
 
+    # get rid of the force option
+    [ "$force_mode" -eq 1 ] && shift
+
     while [ -n "$1" ]; do
         item="$1"
+
         if [ "$(echo "$item" | cut -b1)" = "-" ]; then
             item="${item#?}"
             task="uninstall"
