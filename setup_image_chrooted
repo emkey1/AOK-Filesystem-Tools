@@ -156,7 +156,7 @@ cp /AOK/Files/zshrc /root/.zshrc
 cp /AOK/Files/vimrc /root/.vimrc
 
 # shadow fle with blank ish password
-cp /AOK/Files/shadow /etc
+sed -i "s/ish:\!:/ish::/" /etc/shadow
 
 
 # Copy some documentation to the ish user home directory
