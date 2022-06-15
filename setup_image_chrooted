@@ -38,21 +38,23 @@ echo "---  Initialize APK Database  ---"
 # apk update
 apk -U upgrade
 
+if [ -n "$CORE_APKS" ]; then
+    echo
+    echo "---  Add initial packages  ---"
 
-echo
-echo "---  Add initial packages  ---"
-
-# In this case we want the variable to expand into its components
-# shellcheck disable=SC2086
-apk add $CORE_APKS
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086
+    apk add $CORE_APKS
+fi
 
 
-echo
-echo "---  Add AOK only packages  ---"
-
-# In this case we want the variable to expand into its components
-# shellcheck disable=SC2086
-apk add $AOK_APKS
+if [ -n "$AOK_APKS" ]; then
+    echo
+    echo "---  Add AOK only packages  ---"
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086
+    apk add $AOK_APKS
+fi
 
 if false; then # does not seem to be needed any more
     echo
