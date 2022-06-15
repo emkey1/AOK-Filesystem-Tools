@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Version: 1.3.0  2022-06-11
+#  Version: 1.3.1  2022-06-15
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.
@@ -110,6 +110,4 @@ fi
 #  Restart all services not in started state, should not be needed normally
 #  but here we are, and if they are already running, nothing will happen.
 #
-# shellcheck disable=SC1007
-current_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-"$current_dir"/do_fix_services
+/usr/local/bin/do_fix_services
