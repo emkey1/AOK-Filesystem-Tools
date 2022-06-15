@@ -76,7 +76,12 @@ echo "---  Preparing build environment  ---"
 
 #
 # Clear build env
-rm -rf "$BUILD_BASE_D"
+if ! rm -rf "$BUILD_BASE_D"; then
+    echo
+    echo "ERROR: Could not clear $BUILD_BASE_D"
+    echo
+    exit 1
+fi
 
 # Download the Alpine miniroot if we need to
 if [ ! -f "$MINIROOT_FS" ]; then
