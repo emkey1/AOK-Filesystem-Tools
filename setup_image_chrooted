@@ -171,19 +171,6 @@ chown -R ish:ish /home/ish/Docs
 
 echo "---  Setting up environment  ---"
 
-#
-#  This instance of /dev/null is only meaningful if somebody chroots into
-#  the FS before creating the image.
-#  Once iSH boots up this pre-made /dev/null ends up being broken
-#  despite looking right when chrooted.
-#  This is solved by post_boot.sh being run at every boot-up.
-#  It will among other things fix /dev/null if need-be.
-#  This is a bit of a kludge, but for now solves the issue.
-#
-rm /dev/null
-mknod /dev/null c 1 3
-chmod 666 /dev/null
-
 
 # Networking, hostname and possibly others can't start because of
 # current limitations in iSH So we fake it out
