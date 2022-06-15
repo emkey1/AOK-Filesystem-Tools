@@ -136,7 +136,7 @@ groupadd -g 501 ish
 
 # temp changing UID_MIN is to silence the warning:
 # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
-useradd -s /bin/bash -u 501 -g 501 -G wheel ish --key UID_MIN=501
+useradd -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
 
 # For some reason useradd doesn't create the home dir?
 mkdir -p /home/ish
@@ -258,8 +258,8 @@ echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
 
 
-echo "---  Adding ish user to various groups  ---"
+# echo "---  Adding ish user to various groups  ---"
 
-addgroup -S ish root
-addgroup -S ish wheel
-addgroup -S ish adm
+# addgroup -S ish root
+# addgroup -S ish wheel
+# addgroup -S ish adm
