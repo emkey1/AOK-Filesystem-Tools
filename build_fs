@@ -129,35 +129,40 @@ mv "$BUILD_ROOT_D"/Docs                  "$AOK_FILES"
 
 chown -R root:root "$AOK_FILES"
 
-
-#
-# And now for the main bit
-#
-if ! chroot "$BUILD_ROOT_D" /AOK/setup_image_chrooted; then
-    echo "ERROR in chroot, aborting build!"
-    exit 1
-fi
-
-
 echo
-echo "=====  Doing some cleanup  ====="
+echo "=====  Doing some FS cleanup  ====="
 echo
 
 rm "$BUILD_ROOT_D"/.gitignore
 rm "$BUILD_ROOT_D"/README.md
+rm "$BUILD_ROOT_D"/TODO.md
+rm -rf "$BUILD_ROOT_D"/tools
 
+#
+# And now for the main bit
+#
+chroot_cmd="/AOK/setup_image_chrooted"
+
+if true; then
+    # dedicated chroot app
+    if ! "$FS_BUILD_D"/tools/do_chroot.sh "$chroot_cmd"; then
+        echo "ERROR in chroot, aborting build!"
+        exit 1
+    fi
+else
+    # simple chroot
+    if ! chroot "$BUILD_ROOT_D" "$chroot_cmd"; then
+        echo "ERROR in chroot, aborting build!"
+        exit 1
+    fi
+    echo "---  Cleanup chroot /dev  ---"
+    rm "$BUILD_ROOT_D"/dev/*
+fi
 
 echo
 echo "The filesystem is ready!"
 
-
 if [ "$main_param" = "$skip_finalize" ]; then
-    #
-    #  The first boot hint prevents running bash inside the chroot, so remove
-    #  it here, build_finish will esnure it is present for first iSH-AOK boot
-    #
-    rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
-
     echo
     echo "You can work on the filesystem by running:"
     echo "  sudo tools/do_chroot.sh"
