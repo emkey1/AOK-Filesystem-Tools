@@ -19,7 +19,7 @@ cd "$FS_BUILD_D" || exit 1
 
 prog_name=$(basename "$0")
 main_param="$1"
-skip_finalize="dont_finish"
+skip_finalize="dont_compress"
 
 
 case "$main_param" in
@@ -122,7 +122,7 @@ mv "$BUILD_ROOT_D"/BUILD_ENV             "$AOK_FILES"
 mv "$BUILD_ROOT_D"/AOK_VARS              "$AOK_FILES"
 mv "$BUILD_ROOT_D"/build_fs              "$AOK_FILES"
 mv "$BUILD_ROOT_D"/setup_image_chrooted  "$AOK_FILES"
-mv "$BUILD_ROOT_D"/build_finish          "$AOK_FILES"
+mv "$BUILD_ROOT_D"/compress_image        "$AOK_FILES"
 mv "$BUILD_ROOT_D"/LICENSE               "$AOK_FILES"
 mv "$BUILD_ROOT_D"/Files                 "$AOK_FILES"
 mv "$BUILD_ROOT_D"/Docs                  "$AOK_FILES"
@@ -159,23 +159,22 @@ if [ "$main_param" = "$skip_finalize" ]; then
     rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
 
     echo
-    echo "You can work on the filesystem by doing:"
-    echo "  sudo chroot $BUILD_ROOT_D bash -l"
+    echo "You can work on the filesystem by running:"
+    echo "  sudo tools/do_chroot.sh"
     echo
-    echo "Since the default login for root is bash, and .bashrc will not be run when you"
-    echo "chroot in, you are recommended to use bash -l to get the env right."
-    echo
-    echo "Once you are done, complete the process by running:"
-    echo "  sudo ./build_finish"
+    echo "Complete the process by running:"
+    echo "  sudo ./compress_image"
     echo
     echo "This creates the compressed image that can be imported into AOK/iSH."
-    echo "You can revisit the filesystem by doing the above chroot and then build_finish"
-    echo "again, in case you need to do further tweaks."
+    echo "You can revisit the filesystem by doing the above do_chroot and then"
+    echo "build_finish again, in case you need to do further tweaks."
     echo "Running build again will erase the current iSH filesystem and create"
     echo "a fresh instance."
     echo
     exit 0
 fi
 
-cd "$CURRENT_DIR" || exit 1
-./build_finish
+if ! "$FS_BUILD_D"/compress_image; then
+    echo "ERROR detected in compress_image"
+    exit 1
+fi
