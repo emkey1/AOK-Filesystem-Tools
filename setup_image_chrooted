@@ -82,11 +82,6 @@ echo "---  Replacing a few key files  ---"
 
 ln /etc/init.d/devfs /etc/init.d/dev
 
-# Update/install a few key files
-
-
-echo "---  Replacing a few key files  ---"
-
 # Set a hostname (Can't currently set hostname)
 # cp Files/hostname /etc
 
@@ -94,7 +89,7 @@ echo "---  Replacing a few key files  ---"
 cp /AOK/Files/interfaces /etc/network
 
 # Move sshd to port 1022 to avoid issues
-cp /AOK/Files/sshd_config /etc/ssh
+sed -i "s/.*Port .*/Port 1022/" /etc/ssh/sshd_config
 
 # /etc/init.d/networking keeps getting screwed up for unknown reasons.
 # Mitigate
