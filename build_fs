@@ -177,7 +177,7 @@ if [ "$main_param" = "$skip_finalize" ]; then
     echo
     echo "This creates the compressed image that can be imported into AOK/iSH."
     echo "You can revisit the filesystem by doing the above do_chroot and then"
-    echo "build_finish again, in case you need to do further tweaks."
+    echo "compress_image again, in case you need to do further tweaks."
     echo "Running build again will erase the current iSH filesystem and create"
     echo "a fresh instance."
     echo
