@@ -200,9 +200,6 @@ mkdir /iCloud
 
 echo "$AOK_VERSION" > /etc/aok_release
 
-#  Tell iSH to run first boot tasks
-touch "$FIRST_BOOT_HINT"
-
 
 echo "---  Initial login method  ---"
 
