@@ -89,7 +89,9 @@ ln /etc/init.d/devfs /etc/init.d/dev
 cp /AOK/Files/interfaces /etc/network
 
 # Move sshd to port 1022 to avoid issues
-sed -i "s/.*Port .*/Port 1022/" /etc/ssh/sshd_config
+sshd_port=1022
+echo "sshd listening on port: $sshd_port"
+sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
 
 # /etc/init.d/networking keeps getting screwed up for unknown reasons.
 # Mitigate
