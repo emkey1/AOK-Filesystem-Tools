@@ -1,14 +1,41 @@
 #!/bin/sh
 
+#  shellcheck disable=SC1007
+FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd "$FS_BUILD_D" || exit 1
+
+
 # Read in vars
 # shellcheck disable=SC1091
 . ./BUILD_ENV
+
+if [ "$(whoami)" != "root" ]; then
+    echo "ERROR: This must be run as root or using sudo!"
+    echo
+    exit 1
+fi
+
+if [ ! -d "$BUILD_ROOT_D" ]; then
+    echo "ERROR: No image built yet, [$BUILD_ROOT_D]!"
+    exit 1
+fi
+
+if [ "$(find $BUILD_ROOT_D/dev | wc -l)" -gt 1 ]; then
+    echo "ERROR: Active chroot session detected!"
+    exit 1
+fi
 
 #
 #  Tell iSH to run first boot tasks
 #
 touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
-
+# echo "removing temp /dev items"
+# rm  -f "$BUILD_ROOT_D"/dev/*
 
 echo
 echo "=====  Creating image  ====="
@@ -32,7 +59,6 @@ if [ -f "/proc/ish" ]; then
     cp "$BUILD_BASE_D/$AOK_FS" "$ICLOUD_ARCHIVE_D"
 fi
 echo
-
 
 #
 #  Remove first boot hint, in order to make chroot bash -l possible
