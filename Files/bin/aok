@@ -38,23 +38,23 @@ change_login_procedure() {
     case "$1" in
 
     "once")
-        echo "Enabling login prompt, but only for initial login.  " \
-             "AOK app will exit when you logout"
+        echo "Enabling login prompt, but only for initial login."
+        echo "  AOK app will exit when you logout"
         cp /bin/login.once /bin/login
         exit 0
         ;;
 
     "enable")
-        echo "Enabling login prompt.  You will be prompted for your " \
-             "login name and password if one has been set " \
-             "when launching AOK"
+        echo "Enabling login prompt."
+        echo "  You will be prompted for your login name and password"
+        echo "  if one has been set when launching AOK"
         cp /bin/login.loop /bin/login
         exit 0
         ;;
 
     "disable")
-        echo "Disabling login prompt on startup.  You will start at " \
-             "root prompt where launching AOK"
+        echo "Disabling login prompt on startup. You will start at root prompt"
+        echo "  when launching AOK"
         cp /bin/login.alpine /bin/login
         exit 0
         ;;
