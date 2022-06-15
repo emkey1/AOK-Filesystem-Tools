@@ -155,7 +155,7 @@ ln -s /root/.bash_profile /root/.bashrc
 cp /AOK/Files/zshrc /root/.zshrc
 cp /AOK/Files/vimrc /root/.vimrc
 
-# shadow fle with blank ish password
+# shadow with blank ish password
 sed -i "s/ish:\!:/ish::/" /etc/shadow
 
 
