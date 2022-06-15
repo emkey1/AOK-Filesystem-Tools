@@ -24,9 +24,13 @@ cd "$FS_BUILD_D" || exit 1
 
 
 checkables=(
+    tools/shellchecker.sh      # First self-check :)
+    tools/do_chroot.sh
+
     build_fs
     setup_image_chrooted
-    build_finish
+    compress_image
+
 
     # Files/bash_profile  # 100s of issues...
     Files/profile
