@@ -138,6 +138,7 @@ mv "$BUILD_ROOT_D"/compress_image        "$AOK_FILES"
 mv "$BUILD_ROOT_D"/LICENSE               "$AOK_FILES"
 mv "$BUILD_ROOT_D"/Files                 "$AOK_FILES"
 mv "$BUILD_ROOT_D"/Docs                  "$AOK_FILES"
+mv "$BUILD_ROOT_D"/tools                 "$AOK_FILES"
 
 chown -R root:root "$AOK_FILES"
 
@@ -148,7 +149,6 @@ echo
 rm "$BUILD_ROOT_D"/.gitignore
 rm "$BUILD_ROOT_D"/README.md
 rm "$BUILD_ROOT_D"/TODO.md
-rm -rf "$BUILD_ROOT_D"/tools
 
 #
 # And now for the main bit
