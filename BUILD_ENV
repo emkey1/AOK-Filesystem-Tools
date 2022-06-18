@@ -1,11 +1,16 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
+#  shellcheck disable=SC2034
 
 #
 #  First case used when inside the Filesystem
 #  second case used during build
 #
-[ -f /AOK/AOK_VARS ] && . /AOK/AOK_VARS || . ./AOK_VARS
+if [ -f ./AOK_VARS ]; then
+	. ./AOK_VARS || exit 1
+else
+	. /AOK/AOK_VARS || exit 1
+fi
 
 # Shorthands for some directories
 BUILD_BASE_D="/tmp/AOK"

@@ -29,6 +29,7 @@ EOF
 
 
 if [ -h /bin/login ]; then
+    #  shellcheck disable=SC2154
     echo "ERROR: Alpine $ALPINE_RELEASE does not support changing login method!"
     exit 1
 fi

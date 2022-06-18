@@ -14,7 +14,7 @@ fi
 
 echo "Removing VNC/X11 packages"
 # In this case we want the variable to split up into separate params...
-# shellcheck disable=SC2086
+# shellcheck disable=SC2154,SC2086
 apk del $VNC_APKS
 
 

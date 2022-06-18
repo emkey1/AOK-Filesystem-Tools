@@ -1,26 +1,23 @@
 #!/usr/bin/env bash
 #
-#  Copyright (c) 2020,2021,2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
-#  Part of https://github.com/jaclu/shell_envs
+#  Version: 1.1.0 2022-06-18
 #
-#  Version: 1.0.4 2022-06-11
-#
-
 #
 #  Runs shellcheck on all included scripts
 #
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-FS_BUILD_D="$(dirname "$CURRENT_D")"
+FS_BUILD_D="$(dirname "${CURRENT_D}")"
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd "$FS_BUILD_D" || exit 1
+cd "${FS_BUILD_D}" || exit 1
 
 
 checkables=(
@@ -62,9 +59,37 @@ checkables=(
     Files/bin/what_owns
 )
 
+do_shellcheck="$(command -v shellcheck)"
+do_checkbashisms="$(command -v checkbashisms)"
+
+if [[ "${do_shellcheck}" = "" ]] && [[ "${do_checkbashisms}" = "" ]]; then
+    echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
+    exit 1
+fi
+
+printf "Using: "
+if [[ -n "${do_shellcheck}" ]]; then
+    printf "%s " "shellcheck"
+fi
+if [[ -n "${do_checkbashisms}" ]]; then
+    printf "%s " "checkbashisms"
+    if [[ -d /proc/ish ]]; then
+        if checkbashisms --version | grep -q 2.21; then
+            echo
+            echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
+            echo "         close to a minute/script"
+        fi
+    fi
+fi
+printf "\n\n"
+
 for script in "${checkables[@]}"; do
     #  abort as soon as one lists issues
-    echo "Checking: $script"
-    shellcheck -x "$script"  || exit 1
-    checkbashisms "$script"  || exit 1
+    echo "Checking: ${script}"
+    if [[ "${do_shellcheck}" != "" ]]; then
+        shellcheck -x -a -o all -e SC2250,SC2312 "${script}"  || exit 1
+    fi
+    if [[ "${do_checkbashisms}" != "" ]]; then
+        checkbashisms -n -e -x "${script}"  || exit 1
+    fi
 done
