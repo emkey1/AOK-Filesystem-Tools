@@ -53,7 +53,7 @@ echo "Image is ready: $BUILD_BASE_D/$AOK_FS"
 #
 # copy it to /iCloud if this runs on iSH
 #
-if [ -f "/proc/ish" ]; then
+if [ -d "/proc/ish" ]; then
     echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
     mkdir -p "$ICLOUD_ARCHIVE_D"
     cp "$BUILD_BASE_D/$AOK_FS" "$ICLOUD_ARCHIVE_D"
