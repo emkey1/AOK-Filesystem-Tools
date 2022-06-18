@@ -27,20 +27,6 @@ if [ "$(uname -s)" = "Darwin" ]; then
     exit 1
 fi
 
-if [ "$(whoami)" != "root" ]; then
-    echo "ERROR: This must be run as root or using sudo!"
-    echo
-    "$FS_BUILD_D/$prog_name" -h
-    exit 1
-fi
-
-if [ "$(find $BUILD_ROOT_D/dev | wc -l)" -gt 1 ]; then
-    echo "ERROR: Active chroot session detected!"
-    exit 1
-fi
-
-
-
 case "$main_param" in
 
     "-h" | "--help")
@@ -67,6 +53,23 @@ case "$main_param" in
         ;;
 
 esac
+
+
+if [ "$(whoami)" != "root" ]; then
+    # Must come after help display, to avoid infinite loop
+    echo "ERROR: This must be run as root or using sudo!"
+    echo
+    "$FS_BUILD_D/$prog_name" -h
+    exit 1
+fi
+
+if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+    echo "ERROR: Active chroot session detected!"
+    echo "       If this is due to a crash, you can clear it by running:"
+    echo "         sudo rm $BUILD_ROOT_D/dev/*"
+    echo
+    exit 1
+fi
 
 
 echo
