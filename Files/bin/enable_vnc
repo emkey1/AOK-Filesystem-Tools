@@ -2,7 +2,7 @@
 
 # Read important stuff
 # shellcheck disable=SC1091
-. /usr/local/etc/AOK_VARS
+. /AOK/AOK_VARS
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
