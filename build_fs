@@ -5,7 +5,13 @@
 #
 
 #  shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd "$FS_BUILD_D" || exit 1
 
 # Read in vars
 # shellcheck disable=SC1091
@@ -13,8 +19,13 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 prog_name=$(basename "$0")
 main_param="$1"
-skip_finalize="dont_finish"
+skip_finalize="dont_compress"
 
+
+if [ "$(uname -s)" = "Darwin" ]; then
+    echo "Unfortunately this does not run on MacOS at this time"
+    exit 1
+fi
 
 case "$main_param" in
 
@@ -43,10 +54,20 @@ case "$main_param" in
 
 esac
 
+
 if [ "$(whoami)" != "root" ]; then
+    # Must come after help display, to avoid infinite loop
     echo "ERROR: This must be run as root or using sudo!"
     echo
-    $0 -h
+    "$FS_BUILD_D/$prog_name" -h
+    exit 1
+fi
+
+if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+    echo "ERROR: Active chroot session detected!"
+    echo "       If this is due to a crash, you can clear it by running:"
+    echo "         sudo rm $BUILD_ROOT_D/dev/*"
+    echo
     exit 1
 fi
 
@@ -59,18 +80,18 @@ if [ "$main_param" = "$skip_finalize" ]; then
     echo "*** Will not create the compressed image! ***"
 fi
 
-if [ "$(uname -s)" = "Darwin" ]; then
-    echo "Unfortunately this does not run on MacOS at this time"
-    exit 1
-fi
-
 
 echo
 echo "---  Preparing build environment  ---"
 
 #
 # Clear build env
-rm -rf "$BUILD_BASE_D"
+if ! rm -rf "$BUILD_BASE_D"; then
+    echo
+    echo "ERROR: Could not clear $BUILD_BASE_D"
+    echo
+    exit 1
+fi
 
 # Download the Alpine miniroot if we need to
 if [ ! -f "$MINIROOT_FS" ]; then
@@ -116,60 +137,64 @@ mv "$BUILD_ROOT_D"/BUILD_ENV             "$AOK_FILES"
 mv "$BUILD_ROOT_D"/AOK_VARS              "$AOK_FILES"
 mv "$BUILD_ROOT_D"/build_fs              "$AOK_FILES"
 mv "$BUILD_ROOT_D"/setup_image_chrooted  "$AOK_FILES"
-mv "$BUILD_ROOT_D"/build_finish          "$AOK_FILES"
+mv "$BUILD_ROOT_D"/compress_image        "$AOK_FILES"
 mv "$BUILD_ROOT_D"/LICENSE               "$AOK_FILES"
 mv "$BUILD_ROOT_D"/Files                 "$AOK_FILES"
 mv "$BUILD_ROOT_D"/Docs                  "$AOK_FILES"
+mv "$BUILD_ROOT_D"/tools                 "$AOK_FILES"
 
 chown -R root:root "$AOK_FILES"
 
-
-#
-# And now for the main bit
-#
-if ! chroot "$BUILD_ROOT_D" /AOK/setup_image_chrooted; then
-    echo "ERROR in chroot, aborting build!"
-    exit 1
-fi
-
-
 echo
-echo "=====  Doing some cleanup  ====="
+echo "=====  Doing some FS cleanup  ====="
 echo
 
 rm "$BUILD_ROOT_D"/.gitignore
 rm "$BUILD_ROOT_D"/README.md
+rm "$BUILD_ROOT_D"/TODO.md
 
+#
+# And now for the main bit
+#
+chroot_cmd="/AOK/setup_image_chrooted"
+
+if true; then
+    # dedicated chroot app
+    if ! "$FS_BUILD_D"/tools/do_chroot.sh "$chroot_cmd"; then
+        echo "ERROR in chroot, aborting build!"
+        exit 1
+    fi
+else
+    # simple chroot
+    if ! chroot "$BUILD_ROOT_D" "$chroot_cmd"; then
+        echo "ERROR in chroot, aborting build!"
+        exit 1
+    fi
+    echo "---  Cleanup chroot /dev  ---"
+    rm "$BUILD_ROOT_D"/dev/*
+fi
 
 echo
 echo "The filesystem is ready!"
 
-
 if [ "$main_param" = "$skip_finalize" ]; then
-    #
-    #  The first boot hint prevents running bash inside the chroot, so remove
-    #  it here, build_finish will esnure it is present for first iSH-AOK boot
-    #
-    rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
-
     echo
-    echo "You can work on the filesystem by doing:"
-    echo "  sudo chroot $BUILD_ROOT_D bash -l"
+    echo "You can work on the filesystem by running:"
+    echo "  sudo tools/do_chroot.sh"
     echo
-    echo "Since the default login for root is bash, and .bashrc will not be run when you"
-    echo "chroot in, you are recommended to use bash -l to get the env right."
-    echo
-    echo "Once you are done, complete the process by running:"
-    echo "  sudo ./build_finish"
+    echo "Complete the process by running:"
+    echo "  sudo ./compress_image"
     echo
     echo "This creates the compressed image that can be imported into AOK/iSH."
-    echo "You can revisit the filesystem by doing the above chroot and then build_finish"
-    echo "again, in case you need to do further tweaks."
+    echo "You can revisit the filesystem by doing the above do_chroot and then"
+    echo "compress_image again, in case you need to do further tweaks."
     echo "Running build again will erase the current iSH filesystem and create"
     echo "a fresh instance."
     echo
     exit 0
 fi
 
-cd "$CURRENT_DIR" || exit 1
-./build_finish
+if ! "$FS_BUILD_D"/compress_image; then
+    echo "ERROR detected in compress_image"
+    exit 1
+fi

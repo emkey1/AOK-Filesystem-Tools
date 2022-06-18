@@ -1,5 +1,6 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
+#  shellcheck disable=SC2034
 
 #
 # A list of variables used during build and for /usr/local/bin stuff

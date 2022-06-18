@@ -2,7 +2,7 @@
 
 # Read important stuff
 # shellcheck disable=SC1091
-. /usr/local/etc/AOK_VARS
+. /AOK/AOK_VARS
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
@@ -14,7 +14,7 @@ fi
 
 echo "Adding critical packages (If missing)"
 # In this case we want the variable to split up into separate params...
-# shellcheck disable=SC2086
+# shellcheck disable=SC2154,SC2086
 apk add $VNC_APKS
 
 echo "Creating directories and writing config files"

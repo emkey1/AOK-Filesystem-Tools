@@ -1,6 +1,21 @@
 #!/bin/sh
 #
+# shellcheck disable=SC2154
+#
 # Build the custom iSH-AOK image.  Assumes we are starting with the mini root from Alpine
+
+
+
+#  shellcheck disable=SC1007
+FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd "$FS_BUILD_D" || exit 1
+
+
 
 #
 #  This is run chrooted inside the iSH filesystem
@@ -26,48 +41,49 @@ echo "---  Initialize APK Database  ---"
 apk -U upgrade
 
 
-echo
-echo "---  Add initial packages  ---"
+if [ -n "$CORE_APKS" ]; then
+    echo
+    echo "---  Add initial packages  ---"
 
-# In this case we want the variable to expand into its components
-# shellcheck disable=SC2086
-apk add $CORE_APKS
-
-
-echo
-echo "---  Add AOK only packages  ---"
-
-# In this case we want the variable to expand into its components
-# shellcheck disable=SC2086
-apk add $AOK_APKS
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086
+    apk add $CORE_APKS
+fi
 
 
-echo
-echo "---- Linking to busybox-extras  ---"
+if [ -n "$AOK_APKS" ]; then
+    echo
+    echo "---  Add AOK only packages  ---"
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086
+    apk add $AOK_APKS
+fi
 
-# Chroot seems to be a bit broken.  When busybox-extras creates soft links it does it via the real path rather than the chroot.  :-(
-# Work around here.
-rm /usr/bin/telnet /usr/bin/ftpget /usr/bin/ftpput /usr/bin/tftp
-ln -s /bin/busybox-extras /usr/bin/telnet
-ln -s /bin/busybox-extras /usr/bin/ftpget
-ln -s /bin/busybox-extras /usr/bin/ftpput
-ln -s /bin/busybox-extras /usr/bin/tftp
+if false; then # does not seem to be needed any more
+    echo
+    echo "---- Linking to busybox-extras  ---"
 
-rm /usr/sbin/dnsd /usr/sbin/fakeidentd /usr/sbin/ftpd /usr/sbin/inetd /usr/sbin/tftpd /usr/sbin/udhcpd /usr/sbin/telnetd
-ln -s /bin/busybox-extras /usr/sbin/dnsd
-ln -s /bin/busybox-extras /usr/sbin/fakeidentd
-ln -s /bin/busybox-extras /usr/sbin/ftpd
-ln -s /bin/busybox-extras /usr/sbin/inetd
-ln -s /bin/busybox-extras /usr/sbin/telnetd
-ln -s /bin/busybox-extras /usr/sbin/tftpd
-ln -s /bin/busybox-extras /usr/sbin/udhcpd
+    # Chroot seems to be a bit broken.  When busybox-extras creates soft links it does it via the real path rather than the chroot.  :-(
+    # Work around here.
+    rm /usr/bin/telnet /usr/bin/ftpget /usr/bin/ftpput /usr/bin/tftp
+    ln -s /bin/busybox-extras /usr/bin/telnet
+    ln -s /bin/busybox-extras /usr/bin/ftpget
+    ln -s /bin/busybox-extras /usr/bin/ftpput
+    ln -s /bin/busybox-extras /usr/bin/tftp
 
-ln /etc/init.d/devfs /etc/init.d/dev
-
-# Update/install a few key files
-
+    rm /usr/sbin/dnsd /usr/sbin/fakeidentd /usr/sbin/ftpd /usr/sbin/inetd /usr/sbin/tftpd /usr/sbin/udhcpd /usr/sbin/telnetd
+    ln -s /bin/busybox-extras /usr/sbin/dnsd
+    ln -s /bin/busybox-extras /usr/sbin/fakeidentd
+    ln -s /bin/busybox-extras /usr/sbin/ftpd
+    ln -s /bin/busybox-extras /usr/sbin/inetd
+    ln -s /bin/busybox-extras /usr/sbin/telnetd
+    ln -s /bin/busybox-extras /usr/sbin/tftpd
+    ln -s /bin/busybox-extras /usr/sbin/udhcpd
+fi
 
 echo "---  Replacing a few key files  ---"
+
+ln /etc/init.d/devfs /etc/init.d/dev
 
 # Set a hostname (Can't currently set hostname)
 # cp Files/hostname /etc
@@ -76,7 +92,9 @@ echo "---  Replacing a few key files  ---"
 cp /AOK/Files/interfaces /etc/network
 
 # Move sshd to port 1022 to avoid issues
-cp /AOK/Files/sshd_config /etc/ssh
+sshd_port=1022
+echo "sshd listening on port: $sshd_port"
+sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
 
 # /etc/init.d/networking keeps getting screwed up for unknown reasons.
 # Mitigate
@@ -92,9 +110,10 @@ cp /AOK/Files/motd /etc
 rm /etc/issue
 cp /AOK/Files/issue /etc
 
-# Sudoers stuff
-rm /etc/sudoers # Don't know why this is needed, but it is
-cp /AOK/Files/sudoers /etc
+# Sudoers stuff, group wheel can do sudo without password
+echo "activating group wheel for passwordless sudo"
+sed -i "s/# %wheel ALL=(ALL) NOPASSWD.*/%wheel ALL=(ALL) NOPASSWD: ALL/" /etc/sudoers
+
 
 # Root .profile.
 cp /AOK/Files/profile /etc/profile
@@ -124,11 +143,8 @@ groupadd -g 501 ish
 
 # temp changing UID_MIN is to silence the warning:
 # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
-useradd -s /bin/bash -u 501 -g 501 ish --key UID_MIN=501
-
-# For some reason useradd doesn't create the home dir?
-mkdir -p /home/ish
-chown ish:ish /home/ish
+#  add additional groups with -G
+useradd -m -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
 
 # Add dot files for ish
 cp /AOK/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
@@ -142,8 +158,8 @@ ln -s /root/.bash_profile /root/.bashrc
 cp /AOK/Files/zshrc /root/.zshrc
 cp /AOK/Files/vimrc /root/.vimrc
 
-# shadow fle with blank ish password
-cp /AOK/Files/shadow /etc
+# shadow with blank ish password
+sed -i "s/ish:\!:/ish::/" /etc/shadow
 
 
 # Copy some documentation to the ish user home directory
@@ -157,19 +173,6 @@ chown -R ish:ish /home/ish/Docs
 
 
 echo "---  Setting up environment  ---"
-
-#
-#  This instance of /dev/null is only meaningful if somebody chroots into
-#  the FS before creating the image.
-#  Once iSH boots up this pre-made /dev/null ends up being broken
-#  despite looking right when chrooted.
-#  This is solved by post_boot.sh being run at every boot-up.
-#  It will among other things fix /dev/null if need-be.
-#  This is a bit of a kludge, but for now solves the issue.
-#
-rm /dev/null
-mknod /dev/null c 1 3
-chmod 666 /dev/null
 
 
 # Networking, hostname and possibly others can't start because of
@@ -199,9 +202,6 @@ sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
 mkdir /iCloud
 
 echo "$AOK_VERSION" > /etc/aok_release
-
-#  Tell iSH to run first boot tasks
-touch "$FIRST_BOOT_HINT"
 
 
 echo "---  Initial login method  ---"
@@ -254,6 +254,9 @@ case "$ALPINE_RELEASE" in
     "3.12" | "3.13" | "3.14" | "3.15")
         openrc-init
         ;;
+
+    *) ;;
+
 esac
 
 
@@ -262,8 +265,8 @@ echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
 
 
-echo "---  Adding ish user to various groups  ---"
+# echo "---  Adding ish user to various groups  ---"
 
-addgroup -S ish root
-addgroup -S ish wheel
-addgroup -S ish adm
+# addgroup -S ish root
+# addgroup -S ish wheel
+# addgroup -S ish adm
