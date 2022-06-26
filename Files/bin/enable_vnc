@@ -72,3 +72,7 @@ xterm*VT100.Translations: #override \
 EVERYWHERE
 
 chown ish.ish /home/ish/.Xresources
+
+cat <<BEATLES > /etc/X11/Xwrapper.config
+allowed_users = anybody
+BEATLES

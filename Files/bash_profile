@@ -244,16 +244,14 @@
    XLOAD=400        # Xlarge load                                
                                                                                 
    # Returns system load as percentage, i.e., '40' rather than '0.40)'.         
-   function load()                                                              
-   {                                                                            
+   function load() {                                                                            
        local SYSLOAD=`uptime | cut -d " " -f 9 | tr , " "`
        # System load of the current host.                                       
        echo $((10#$SYSLOAD))       # Convert to decimal.                        
    }                                                                            
                                                                                 
    # Returns a color indicating system load.                                    
-   function load_color()                                                        
-   {                                                                            
+   function load_color() {                                                                            
        local SYSLOAD=$(load)                                                    
        if [ ${SYSLOAD} -gt ${XLOAD} ]; then                                     
            echo -en ${ALERT}                                                    
@@ -267,8 +265,7 @@
    }                                                                            
                                                                                 
    # Returns a color according to free disk space in $PWD.                      
-   function disk_color()                                                        
-   {                                                                            
+   function disk_color() {                                                                            
        if [ ! -w "${PWD}" ] ; then                                              
            echo -en ${Red}                                                      
            # No 'write' privilege in the current directory.                     
@@ -289,8 +286,7 @@
    }                                                                            
                                                                                 
    # Returns a color according to running/suspended jobs.                       
-   function job_color()                                                         
-   {                                                                            
+   function job_color() {                                                                            
        if [ $(jobs -s | wc -l) -gt "0" ]; then                                  
            echo -en ${BRed}                                                     
        elif [ $(jobs -r | wc -l) -gt "0" ] ; then                               
@@ -300,16 +296,10 @@
                                                                                 
    # Adds some text in the terminal frame (if applicable).                      
                                                                                 
-                                                                                
    # Now we construct the prompt.                                               
    PROMPT_COMMAND="history -a"                                                  
-#           PS1="(\A \u@\h \W) > " # --> PS1="(\A \u@\h \w) > "                  
            PS1="(\[$Green\]\A \[$SU\]\u\[$NC\] /\W)-> " # --> PS1="(\A \u@\h \w) > "                  
                                   # --> Shows full pathname of current dir.     
-   #        ;;                                                                   
-   #esac                                                                         
-                                                                                
-                                                                                
                                                                                 
    export TIMEFORMAT=$'\nreal %3R\tuser %3U\tsys %3S\tpcpu %P\n'                
    export HISTIGNORE="&:bg:fg:ll:h"                                             
