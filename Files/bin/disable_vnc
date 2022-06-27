@@ -22,3 +22,5 @@ if [ -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
     echo "Removing X11 headless config file"
     rm /etc/X11/xorg.conf.d/10-headless.conf
 fi
+
+echo "Leaving /etc/X11/Xwrapper.config.  You can delete it manually by typing 'sudo rm /etc/X11/Xwrapper.config' if so desired."
