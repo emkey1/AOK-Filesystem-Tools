@@ -76,3 +76,9 @@ chown ish.ish /home/ish/.Xresources
 cat <<BEATLES > /etc/X11/Xwrapper.config
 allowed_users = anybody
 BEATLES
+
+echo "------------------------------------------------------"
+echo "VNC has been enabled.  To start the VNC server run..."
+echo "------------------------------------------------------"
+echo
+echo "vnc_start"
