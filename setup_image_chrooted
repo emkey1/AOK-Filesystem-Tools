@@ -201,7 +201,7 @@ sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
 # Make a directory to later mount the iCloud drive on
 mkdir /iCloud
 
-echo "$AOK_VERSION" > /etc/aok_release
+echo "$AOK_VERSION" > /etc/aok-release
 
 
 echo "---  Initial login method  ---"
