@@ -105,10 +105,9 @@ cp /AOK/Files/init.d/* /root/init.d
 cp /AOK/Files/inittab /etc
 
 # Custom MOTD/issue
-rm /etc/motd
-cp /AOK/Files/motd /etc
-rm /etc/issue
-cp /AOK/Files/issue /etc
+sed "s/AOK_VERSION/$AOK_VERSION/" /AOK/Files/motd > /etc/motd
+sed "s/AOK_VERSION/$AOK_VERSION/" /AOK/Files/issue > /etc/issue
+
 
 # Sudoers stuff, group wheel can do sudo without password
 echo "activating group wheel for passwordless sudo"
@@ -203,9 +202,7 @@ mkdir /iCloud
 
 echo "$AOK_VERSION" > /etc/aok-release
 
-
 echo "---  Initial login method  ---"
-
 cp /AOK/Files/login.loop /bin
 cp /AOK/Files/login.once /bin
 

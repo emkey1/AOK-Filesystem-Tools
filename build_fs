@@ -63,10 +63,12 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+
+if      mount | grep -q "$BUILD_ROOT_D" || \
+        [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
     echo "ERROR: Active chroot session detected!"
     echo "       If this is due to a crash, you can clear it by running:"
-    echo "         sudo rm $BUILD_ROOT_D/dev/*"
+    echo "         sudo ./tools/do_chroot.sh -c"
     echo
     exit 1
 fi
