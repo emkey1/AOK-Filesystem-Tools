@@ -125,7 +125,8 @@ gunzip -c "$MINIROOT_FS" | tar xf -
 # remove instance inside build dir
 rm "$BUILD_ROOT_D"/alpine-minirootfs-*
 
-# We need a valid resolv.conf
+#  We need a (for build-host) valid resolv.conf during the chrooted run
+#  iSH will replace it when booting.
 cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 
 
@@ -154,6 +155,7 @@ echo
 rm "$BUILD_ROOT_D"/.gitignore
 rm "$BUILD_ROOT_D"/README.md
 rm "$BUILD_ROOT_D"/TODO.md
+
 
 #
 # And now for the main bit
