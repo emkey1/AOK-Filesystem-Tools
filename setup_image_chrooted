@@ -25,6 +25,9 @@ cd "$FS_BUILD_D" || exit 1
 # shellcheck disable=SC1091
 . /AOK/BUILD_ENV
 
+AOK_FILES="/AOK"
+
+
 echo
 echo "=====  Setting up FS (chrooted)  ====="
 echo
@@ -65,7 +68,7 @@ echo "---  Replacing a few key files  ---"
 ln /etc/init.d/devfs /etc/init.d/dev
 
 # Fake interfaces file
-cp /AOK/Files/interfaces /etc/network
+cp $AOK_FILES/Files/interfaces /etc/network
 
 # Move sshd to port 1022 to avoid issues
 sshd_port=1022
@@ -75,14 +78,14 @@ sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
 # /etc/init.d/networking keeps getting screwed up for unknown reasons.
 # Mitigate
 mkdir /root/init.d
-cp /AOK/Files/init.d/* /root/init.d
+cp $AOK_FILES/Files/init.d/* /root/init.d
 
 # Remove extra unused vty's, make OpenRC work
-cp /AOK/Files/inittab /etc
+cp $AOK_FILES/Files/inittab /etc
 
 # Custom MOTD/issue
-sed "s/AOK_VERSION/$AOK_VERSION/" /AOK/Files/motd > /etc/motd
-sed "s/AOK_VERSION/$AOK_VERSION/" /AOK/Files/issue > /etc/issue
+sed "s/AOK_VERSION/$AOK_VERSION/" $AOK_FILES/Files/motd > /etc/motd
+sed "s/AOK_VERSION/$AOK_VERSION/" $AOK_FILES/Files/issue > /etc/issue
 
 
 # Sudoers stuff, group wheel can do sudo without password
@@ -91,20 +94,20 @@ sed -i "s/# %wheel ALL=(ALL) NOPASSWD.*/%wheel ALL=(ALL) NOPASSWD: ALL/" /etc/su
 
 
 # Root .profile.
-cp /AOK/Files/profile /etc/profile
+cp $AOK_FILES/Files/profile /etc/profile
 
 # Add some simple scripts
-cp /AOK/Files/bin/* /usr/local/bin
+cp $AOK_FILES/Files/bin/* /usr/local/bin
 
 # cron stuff
-cp /AOK/Files/cron/15min/* /etc/periodic/15min
+cp $AOK_FILES/Files/cron/15min/* /etc/periodic/15min
 #cp Files/cron/daily/* /etc/periodic/daily
 #cp Files/cron/hourly/* /etc/periodic/hourly
 #cp Files/cron/monthly/* /etc/periodic/monthly
 #cp Files/cron/weekly/* /etc/periodic/weekly
 
 mkdir -p /usr/local/sbin
-cp /AOK/Files/sbin/* /usr/local/sbin
+cp $AOK_FILES/Files/sbin/* /usr/local/sbin
 
 # Make a link so that showip can also be 'myip'
 ln /usr/local/bin/showip /usr/local/bin/myip
@@ -122,16 +125,16 @@ groupadd -g 501 ish
 useradd -m -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
 
 # Add dot files for ish
-cp /AOK/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
+cp $AOK_FILES/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
 ln -s /home/ish/.bash_profile /home/ish/.bashrc
 chown ish:ish /home/ish/.bashrc
-cp /AOK/Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
-cp /AOK/Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
+cp $AOK_FILES/Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
+cp $AOK_FILES/Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
 # Copy to root as well
-cp /AOK/Files/bash_profile /root/.bash_profile
+cp $AOK_FILES/Files/bash_profile /root/.bash_profile
 ln -s /root/.bash_profile /root/.bashrc
-cp /AOK/Files/zshrc /root/.zshrc
-cp /AOK/Files/vimrc /root/.vimrc
+cp $AOK_FILES/Files/zshrc /root/.zshrc
+cp $AOK_FILES/Files/vimrc /root/.vimrc
 
 # shadow with blank ish password
 sed -i "s/ish:\!:/ish::/" /etc/shadow
@@ -143,7 +146,7 @@ sed -i "s/ish:\!:/ish::/" /etc/shadow
 echo "---  Copying Docs  ---"
 
 mkdir /home/ish/Docs
-cp -r /AOK/Docs/* /home/ish/Docs
+cp -r $AOK_FILES/Docs/* /home/ish/Docs
 chown -R ish:ish /home/ish/Docs
 
 
@@ -153,15 +156,15 @@ echo "---  Setting up environment  ---"
 # Networking, hostname and possibly others can't start because of
 # current limitations in iSH So we fake it out
 rm /etc/init.d/networking
-cp /AOK/Files/init.d/* /etc/init.d
+cp $AOK_FILES/Files/init.d/* /etc/init.d
 
 # More hackery.  Initial case is the need to make pam_motd.so optional
 # So that the ish user will work in Alpine 3.14
-cp /AOK/Files/pam.d/* /etc/pam.d
+cp $AOK_FILES/Files/pam.d/* /etc/pam.d
 
-cp /AOK/Files/tmux.conf /home/ish/.tmux.conf
+cp $AOK_FILES/Files/tmux.conf /home/ish/.tmux.conf
 chown ish:ish /home/ish/.tmux.conf
-cp /AOK/Files/tmux.conf /root/.tmux.conf
+cp $AOK_FILES/Files/tmux.conf /root/.tmux.conf
 
 # I want vim to be vi, aliasing isn't working for some reason
 # /usr/local/bin is first in the path by default, so...
@@ -179,8 +182,8 @@ mkdir /iCloud
 echo "$AOK_VERSION" > /etc/aok-release
 
 echo "---  Initial login method  ---"
-cp /AOK/Files/login.loop /bin
-cp /AOK/Files/login.once /bin
+cp $AOK_FILES/Files/login.loop /bin
+cp $AOK_FILES/Files/login.once /bin
 
 # chmod +x /bin/login.alpine
 chmod +x /bin/login.loop
@@ -215,7 +218,7 @@ fi
 
 echo "---  Enabling openrc  ---"
 
-cp /AOK/Files/rc.conf /etc
+cp $AOK_FILES/Files/rc.conf /etc
 mkdir /run/openrc
 touch /run/openrc/softlevel
 
