@@ -59,34 +59,10 @@ if [ -n "$AOK_APKS" ]; then
     apk add $AOK_APKS
 fi
 
-if false; then # does not seem to be needed any more
-    echo
-    echo "---- Linking to busybox-extras  ---"
-
-    # Chroot seems to be a bit broken.  When busybox-extras creates soft links it does it via the real path rather than the chroot.  :-(
-    # Work around here.
-    rm /usr/bin/telnet /usr/bin/ftpget /usr/bin/ftpput /usr/bin/tftp
-    ln -s /bin/busybox-extras /usr/bin/telnet
-    ln -s /bin/busybox-extras /usr/bin/ftpget
-    ln -s /bin/busybox-extras /usr/bin/ftpput
-    ln -s /bin/busybox-extras /usr/bin/tftp
-
-    rm /usr/sbin/dnsd /usr/sbin/fakeidentd /usr/sbin/ftpd /usr/sbin/inetd /usr/sbin/tftpd /usr/sbin/udhcpd /usr/sbin/telnetd
-    ln -s /bin/busybox-extras /usr/sbin/dnsd
-    ln -s /bin/busybox-extras /usr/sbin/fakeidentd
-    ln -s /bin/busybox-extras /usr/sbin/ftpd
-    ln -s /bin/busybox-extras /usr/sbin/inetd
-    ln -s /bin/busybox-extras /usr/sbin/telnetd
-    ln -s /bin/busybox-extras /usr/sbin/tftpd
-    ln -s /bin/busybox-extras /usr/sbin/udhcpd
-fi
 
 echo "---  Replacing a few key files  ---"
 
 ln /etc/init.d/devfs /etc/init.d/dev
-
-# Set a hostname (Can't currently set hostname)
-# cp Files/hostname /etc
 
 # Fake interfaces file
 cp /AOK/Files/interfaces /etc/network
@@ -260,10 +236,3 @@ esac
 # Set openrc boot level to be default
 echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
-
-
-# echo "---  Adding ish user to various groups  ---"
-
-# addgroup -S ish root
-# addgroup -S ish wheel
-# addgroup -S ish adm
