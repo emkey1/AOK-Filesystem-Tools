@@ -64,9 +64,6 @@ echo "---  Replacing a few key files  ---"
 
 ln /etc/init.d/devfs /etc/init.d/dev
 
-# Set a hostname (Can't currently set hostname)
-# cp Files/hostname /etc
-
 # Fake interfaces file
 cp /AOK/Files/interfaces /etc/network
 
