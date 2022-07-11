@@ -32,8 +32,6 @@ checkables=(
     # Files/bash_profile  # 100s of issues...
     Files/profile
 
-    Files/sbin/runbg
-
     Files/sbin/post_boot.sh
 
     Files/bin/aok
