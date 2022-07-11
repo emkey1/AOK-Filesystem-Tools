@@ -239,10 +239,3 @@ esac
 # Set openrc boot level to be default
 echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
-
-
-# echo "---  Adding ish user to various groups  ---"
-
-# addgroup -S ish root
-# addgroup -S ish wheel
-# addgroup -S ish adm
