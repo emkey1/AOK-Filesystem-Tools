@@ -226,7 +226,12 @@ echo
 echo "The filesystem is ready!"
 
 
-if ! $aok_FS_do_compress ; then
+if $aok_FS_do_compress ; then
+    if ! "$fs_build_d"/compress_image; then
+        echo "ERROR detected in compress_image"
+        exit 1
+    fi
+else
     echo
     echo "You can work on the filesystem by running:"
     echo "  sudo tools/do_chroot.sh"
@@ -244,7 +249,3 @@ if ! $aok_FS_do_compress ; then
 fi
 
 
-if ! "$fs_build_d"/compress_image; then
-    echo "ERROR detected in compress_image"
-    exit 1
-fi
