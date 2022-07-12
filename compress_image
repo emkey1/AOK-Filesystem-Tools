@@ -30,11 +30,12 @@ if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
     exit 1
 fi
 
+hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_HINT"
 if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
     #
     #  Tell iSH to run first boot tasks
     #
-    touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+    touch "$hint_first_boot"
 fi
 
 # echo "removing temp /dev items"
@@ -63,7 +64,11 @@ if [ -d "/proc/ish" ]; then
 fi
 echo
 
+
 #
 #  Remove first boot hint, in order to make chroot bash -l possible
 #
-rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT" > /dev/null
+[ -e "$hint_first_boot" ] && rm "$hint_first_boot"
+
+
+exit 0 #  Avoid exiting with error if above file did not exist
