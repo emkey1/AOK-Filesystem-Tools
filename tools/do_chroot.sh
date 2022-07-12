@@ -9,13 +9,13 @@
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-FS_BUILD_D="$(dirname "$CURRENT_D")"
+fs_build_d="$(dirname "$CURRENT_D")"
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure BUILD_ENV can be found
 #
-cd "$FS_BUILD_D" || exit 1
+cd "$fs_build_d" || exit 1
 
 # shellcheck disable=SC1091
 . ./BUILD_ENV

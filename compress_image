@@ -1,13 +1,13 @@
 #!/bin/sh
 
 #  shellcheck disable=SC1007
-FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd "$FS_BUILD_D" || exit 1
+cd "$fs_build_d" || exit 1
 
 
 # Read in vars

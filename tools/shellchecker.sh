@@ -11,13 +11,13 @@
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-FS_BUILD_D="$(dirname "${CURRENT_D}")"
+fs_build_d="$(dirname "${CURRENT_D}")"
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd "${FS_BUILD_D}" || exit 1
+cd "${fs_build_d}" || exit 1
 
 
 checkables=(
@@ -25,7 +25,7 @@ checkables=(
     tools/do_chroot.sh
 
     build_fs
-    setup_image_chrooted
+    aok_setup_fs
     compress_image
 
 
