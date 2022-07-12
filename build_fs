@@ -31,6 +31,8 @@ Usage: $prog_name [-h] | [c] | [-m] | [-M]
 This builds the iSH-AOK filesystem.
 
 Be aware that creating the FS mods can only complete on iSH or Linux (x86)!
+On all other platforms the FS image can be prepared, but the aok adoptions
+will have to be run inside iSH once it has booted the resulting FS.
 
 Available options:
 
@@ -85,17 +87,17 @@ if ! $aok_FS_mods ; then
     else
         msg="$msg, /AOK files will be copied"
     fi
-    echo "=====  Run mode: $msg  ====="
 elif uname -a | grep -qi linux && uname -a | grep -q x86; then
-    echo "=====  Run mode: Building on x86 Linux  ====="
+    msg="Building on x86 Linux"
 elif [ -d "/proc/ish" ]; then
-    echo "=====  Run mode: Building on iSH  ====="
+    msg="Building on iSH"
 else
     echo "Unfortunately you can not chroot into the image on this device"
     echo "This is only supported on iSH and Linux(x86)"
     echo "You must build using -m or -M on this platform (try -h for help)"
     exit 1
 fi
+echo "=====  Run mode: $msg  ====="
 
 
 if [ "$(whoami)" != "root" ]; then
