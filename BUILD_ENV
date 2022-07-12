@@ -16,9 +16,6 @@ fi
 BUILD_BASE_D="/tmp/AOK"
 BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
 
-# If this is run on an iSH node, the image is copied to this location
-ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
-
 # extract the release/branch/major version, gives something like 3.14
 ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 
@@ -27,7 +24,21 @@ ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 
 # the deploy-able iSH filesystem image name.
-AOK_FS="ALPINE_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}_${ALPINE_RELEASE}.tgz"
+AOK_FS="ALPINE_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
+
+
+#  Where all aok content gets installed on destination FS
+#  to refer to this location from the build env, use $BUILD_ROOT_D/$AOK_CONTENT
+AOK_CONTENT="/AOK"
+
+#
+#  Either run this script chrooted if the host OS supports it, or run it
+#  inside iSH-AOK once it has booted this FS
+#
+SETUP_AOK_FS="$AOK_CONTENT/aok_setup_fs"
+
+# If this is run on an iSH node, the image is copied to this location
+ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 
 #
 # Hint to iSH this is the first time booting. Checked for by
