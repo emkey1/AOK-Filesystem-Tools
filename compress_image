@@ -66,4 +66,4 @@ echo
 #
 #  Remove first boot hint, in order to make chroot bash -l possible
 #
-rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT" > /dev/null
