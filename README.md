@@ -2,8 +2,11 @@
 
 ## Build process
 
-Tweak build settings in `./AOK_VARS`
-
-Build by running `./build_fs`
+Instructions on how to build an iSH family File system: `./build_fs -h`
 
 Further instructions will be displayed when this is run
+
+## Configuration
+
+Tweak build settings in `./AOK_VARS`
+

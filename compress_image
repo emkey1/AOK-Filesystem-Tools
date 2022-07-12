@@ -1,13 +1,13 @@
 #!/bin/sh
 
 #  shellcheck disable=SC1007
-FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd "$FS_BUILD_D" || exit 1
+cd "$fs_build_d" || exit 1
 
 
 # Read in vars
@@ -30,10 +30,14 @@ if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
     exit 1
 fi
 
-#
-#  Tell iSH to run first boot tasks
-#
-touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
+    #
+    #  Tell iSH to run first boot tasks
+    #
+    touch "$hint_first_boot"
+fi
+
 # echo "removing temp /dev items"
 # rm  -f "$BUILD_ROOT_D"/dev/*
 
@@ -60,7 +64,11 @@ if [ -d "/proc/ish" ]; then
 fi
 echo
 
+
 #
 #  Remove first boot hint, in order to make chroot bash -l possible
 #
-rm "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+[ -e "$hint_first_boot" ] && rm "$hint_first_boot"
+
+
+exit 0 #  Avoid exiting with error if above file did not exist

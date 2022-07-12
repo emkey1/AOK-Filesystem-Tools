@@ -2,19 +2,23 @@
 #
 # shellcheck disable=SC2154
 #
-# Build the custom iSH-AOK image.  Assumes we are starting with the mini root from Alpine
 
+if [ ! -d /AOK ]; then
+    echo
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
 
 
 #  shellcheck disable=SC1007
-FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd "$FS_BUILD_D" || exit 1
-
+cd "$fs_build_d" || exit 1
 
 
 #
@@ -25,9 +29,19 @@ cd "$FS_BUILD_D" || exit 1
 # shellcheck disable=SC1091
 . /AOK/BUILD_ENV
 
+has_been_run="/etc/opt/aok_setup_fs-done"
+
+if [ -e "$has_been_run" ]; then
+    echo
+    echo "ERROR: $SETUP_AOK_FS has already been run on this FS!"
+    echo
+    exit 1
+fi
+
 echo
 echo "=====  Setting up FS (chrooted)  ====="
 echo
+
 
 if [ -z "$ALPINE_RELEASE" ]; then
     echo "ERROR: ALPINE_RELEASE param not supplied"
@@ -65,7 +79,7 @@ echo "---  Replacing a few key files  ---"
 ln /etc/init.d/devfs /etc/init.d/dev
 
 # Fake interfaces file
-cp /AOK/Files/interfaces /etc/network
+cp "$AOK_CONTENT"/Files/interfaces /etc/network
 
 # Move sshd to port 1022 to avoid issues
 sshd_port=1022
@@ -75,14 +89,14 @@ sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
 # /etc/init.d/networking keeps getting screwed up for unknown reasons.
 # Mitigate
 mkdir /root/init.d
-cp /AOK/Files/init.d/* /root/init.d
+cp "$AOK_CONTENT"/Files/init.d/* /root/init.d
 
 # Remove extra unused vty's, make OpenRC work
-cp /AOK/Files/inittab /etc
+cp "$AOK_CONTENT"/Files/inittab /etc
 
 # Custom MOTD/issue
-sed "s/AOK_VERSION/$AOK_VERSION/" /AOK/Files/motd > /etc/motd
-sed "s/AOK_VERSION/$AOK_VERSION/" /AOK/Files/issue > /etc/issue
+sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/Files/motd > /etc/motd
+sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/Files/issue > /etc/issue
 
 
 # Sudoers stuff, group wheel can do sudo without password
@@ -91,20 +105,20 @@ sed -i "s/# %wheel ALL=(ALL) NOPASSWD.*/%wheel ALL=(ALL) NOPASSWD: ALL/" /etc/su
 
 
 # Root .profile.
-cp /AOK/Files/profile /etc/profile
+cp "$AOK_CONTENT"/Files/profile /etc/profile
 
 # Add some simple scripts
-cp /AOK/Files/bin/* /usr/local/bin
+cp "$AOK_CONTENT"/Files/bin/* /usr/local/bin
 
 # cron stuff
-cp /AOK/Files/cron/15min/* /etc/periodic/15min
+cp "$AOK_CONTENT"/Files/cron/15min/* /etc/periodic/15min
 #cp Files/cron/daily/* /etc/periodic/daily
 #cp Files/cron/hourly/* /etc/periodic/hourly
 #cp Files/cron/monthly/* /etc/periodic/monthly
 #cp Files/cron/weekly/* /etc/periodic/weekly
 
 mkdir -p /usr/local/sbin
-cp /AOK/Files/sbin/* /usr/local/sbin
+cp "$AOK_CONTENT"/Files/sbin/* /usr/local/sbin
 
 # Make a link so that showip can also be 'myip'
 ln /usr/local/bin/showip /usr/local/bin/myip
@@ -122,16 +136,16 @@ groupadd -g 501 ish
 useradd -m -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
 
 # Add dot files for ish
-cp /AOK/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
+cp "$AOK_CONTENT"/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
 ln -s /home/ish/.bash_profile /home/ish/.bashrc
 chown ish:ish /home/ish/.bashrc
-cp /AOK/Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
-cp /AOK/Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
+cp "$AOK_CONTENT"/Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
+cp "$AOK_CONTENT"/Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
 # Copy to root as well
-cp /AOK/Files/bash_profile /root/.bash_profile
+cp "$AOK_CONTENT"/Files/bash_profile /root/.bash_profile
 ln -s /root/.bash_profile /root/.bashrc
-cp /AOK/Files/zshrc /root/.zshrc
-cp /AOK/Files/vimrc /root/.vimrc
+cp "$AOK_CONTENT"/Files/zshrc /root/.zshrc
+cp "$AOK_CONTENT"/Files/vimrc /root/.vimrc
 
 # shadow with blank ish password
 sed -i "s/ish:\!:/ish::/" /etc/shadow
@@ -143,7 +157,7 @@ sed -i "s/ish:\!:/ish::/" /etc/shadow
 echo "---  Copying Docs  ---"
 
 mkdir /home/ish/Docs
-cp -r /AOK/Docs/* /home/ish/Docs
+cp -r "$AOK_CONTENT"/Docs/* /home/ish/Docs
 chown -R ish:ish /home/ish/Docs
 
 
@@ -153,15 +167,15 @@ echo "---  Setting up environment  ---"
 # Networking, hostname and possibly others can't start because of
 # current limitations in iSH So we fake it out
 rm /etc/init.d/networking
-cp /AOK/Files/init.d/* /etc/init.d
+cp "$AOK_CONTENT"/Files/init.d/* /etc/init.d
 
 # More hackery.  Initial case is the need to make pam_motd.so optional
 # So that the ish user will work in Alpine 3.14
-cp /AOK/Files/pam.d/* /etc/pam.d
+cp "$AOK_CONTENT"/Files/pam.d/* /etc/pam.d
 
-cp /AOK/Files/tmux.conf /home/ish/.tmux.conf
+cp "$AOK_CONTENT"/Files/tmux.conf /home/ish/.tmux.conf
 chown ish:ish /home/ish/.tmux.conf
-cp /AOK/Files/tmux.conf /root/.tmux.conf
+cp "$AOK_CONTENT"/Files/tmux.conf /root/.tmux.conf
 
 # I want vim to be vi, aliasing isn't working for some reason
 # /usr/local/bin is first in the path by default, so...
@@ -179,8 +193,8 @@ mkdir /iCloud
 echo "$AOK_VERSION" > /etc/aok-release
 
 echo "---  Initial login method  ---"
-cp /AOK/Files/login.loop /bin
-cp /AOK/Files/login.once /bin
+cp "$AOK_CONTENT"/Files/login.loop /bin
+cp "$AOK_CONTENT"/Files/login.once /bin
 
 # chmod +x /bin/login.alpine
 chmod +x /bin/login.loop
@@ -215,7 +229,7 @@ fi
 
 echo "---  Enabling openrc  ---"
 
-cp /AOK/Files/rc.conf /etc
+cp "$AOK_CONTENT"/Files/rc.conf /etc
 mkdir /run/openrc
 touch /run/openrc/softlevel
 
@@ -236,3 +250,9 @@ esac
 # Set openrc boot level to be default
 echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
+
+
+#
+#  Indicate this has been completed, to prevent future runs by mistake
+#
+touch "$has_been_run"

@@ -5,61 +5,106 @@
 #
 
 #  shellcheck disable=SC1007
-FS_BUILD_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd "$FS_BUILD_D" || exit 1
+cd "$fs_build_d" || exit 1
 
 # Read in vars
 # shellcheck disable=SC1091
 . ./BUILD_ENV
 
 prog_name=$(basename "$0")
-main_param="$1"
-skip_finalize="dont_compress"
+
+aok_FS_mods=true
+skip_AOK_Files=false
+aok_FS_do_compress=true
 
 
-if [ "$(uname -s)" = "Darwin" ]; then
-    echo "Unfortunately this does not run on MacOS at this time"
+show_help() {
+    cat <<EOF
+Usage: $prog_name [-h] | [c] | [-m] | [-M]
+
+This builds the iSH-AOK filesystem.
+
+Be aware that creating the FS mods can only complete on iSH or Linux (x86)!
+On all other platforms the FS image can be prepared, but the aok adoptions
+will have to be run inside iSH once it has booted the resulting FS.
+
+Available options:
+
+-h, --help         Print this help and exit
+-c  --no_compress  Terminates when FS is prepared, giving you the opportunity to
+                   chroot into it and do your personal adaptations.
+                   Instructions about this procedure and howto then complete
+                   the build once done will be displayed at the end of the build.
+-m  --no_mods      Generate clean rootfs, without applying AOK mods, $AOK_CONTENT
+                   will still be populated, for manual deploy by running
+                   $SETUP_AOK_FS once iSH has booted this FS.
+-M                 Create an unmodified FS, don't even copy $AOK_CONTENT
+EOF
+    exit 0
+}
+
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+        "-h" | "--help" ) show_help ;;
+
+        "-m" | "--no_mods" )
+            aok_FS_mods=false
+            shift
+            ;;
+
+        "-M" )
+            skip_AOK_Files=true
+            aok_FS_mods=false
+            shift
+            ;;
+
+        "-c" |  "--no_compress" )
+            aok_FS_do_compress=false
+            shift
+            ;;
+
+        *)
+            echo "ERROR: bad param, try -h"
+            exit 1
+            ;;
+    esac
+
+done
+
+if ! $aok_FS_mods ; then
+    msg="Will not chroot"
+    if $skip_AOK_Files; then
+        msg="$msg, will not copy /AOK files"
+    else
+        msg="$msg, /AOK files will be copied"
+    fi
+elif uname -a | grep -qi linux && uname -a | grep -q x86; then
+    msg="Building on x86 Linux"
+elif [ -d "/proc/ish" ]; then
+    msg="Building on iSH"
+else
+    echo "Unfortunately you can not chroot into the image on this device"
+    echo "This is only supported on iSH and Linux(x86)"
+    echo "You must build using -m or -M on this platform (try -h for help)"
     exit 1
 fi
-
-case "$main_param" in
-
-    "-h" | "--help")
-        echo "usage: $prog_name [-h] | [--help] | [$skip_finalize]"
-        echo "This builds the iSH-AOK filesystem. If given the parameter:"
-        echo "  $skip_finalize"
-        echo "The process will halt once the FS is ready, giving you the"
-        echo "opportunity to chroot into it and do your personal adaptations."
-        echo
-        echo "Instructions about this procedure and howto then complete the build"
-        echo "once done will be displayed at the end of the build."
-        echo
-        echo "Be aware that this build can only complete on iSH or Linux (x86)!"
-        echo
-        exit 0
-        ;;
-
-    "" | "$skip_finalize")
-        ;; # valid options, continue
-
-    *)
-        echo "ERROR: bad param, try -h"
-        exit 1
-        ;;
-
-esac
+echo "=====  Run mode: $msg  ====="
 
 
 if [ "$(whoami)" != "root" ]; then
     # Must come after help display, to avoid infinite loop
     echo "ERROR: This must be run as root or using sudo!"
     echo
-    "$FS_BUILD_D/$prog_name" -h
+    "$fs_build_d/$prog_name" -h
     exit 1
 fi
 
@@ -78,7 +123,7 @@ echo
 echo "=====  Building a $ALPINE_RELEASE iSH-AOK filesystem  ====="
 echo
 
-if [ "$main_param" = "$skip_finalize" ]; then
+if ! $aok_FS_do_compress ; then
     echo "*** Will not create the compressed image! ***"
 fi
 
@@ -125,63 +170,70 @@ gunzip -c "$MINIROOT_FS" | tar xf -
 # remove instance inside build dir
 rm "$BUILD_ROOT_D"/alpine-minirootfs-*
 
-#  We need a (for build-host) valid resolv.conf during the chrooted run
-#  iSH will replace it when booting.
+
+# We need a valid resolv.conf
 cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 
 
-echo "Populating /AOK on new filesystem"
 
-AOK_FILES="$BUILD_ROOT_D/AOK"
-
-mkdir "$AOK_FILES"
-
-mv "$BUILD_ROOT_D"/BUILD_ENV             "$AOK_FILES"
-mv "$BUILD_ROOT_D"/AOK_VARS              "$AOK_FILES"
-mv "$BUILD_ROOT_D"/build_fs              "$AOK_FILES"
-mv "$BUILD_ROOT_D"/setup_image_chrooted  "$AOK_FILES"
-mv "$BUILD_ROOT_D"/compress_image        "$AOK_FILES"
-mv "$BUILD_ROOT_D"/LICENSE               "$AOK_FILES"
-mv "$BUILD_ROOT_D"/Files                 "$AOK_FILES"
-mv "$BUILD_ROOT_D"/Docs                  "$AOK_FILES"
-mv "$BUILD_ROOT_D"/tools                 "$AOK_FILES"
-
-chown -R root:root "$AOK_FILES"
 
 echo
-echo "=====  Doing some FS cleanup  ====="
+echo "=====  Populating $AOK_CONTENT on new filesystem  ====="
 echo
 
-rm "$BUILD_ROOT_D"/.gitignore
+#
+#  Get rid of files that should not be on dest FS
+#
 rm "$BUILD_ROOT_D"/README.md
 rm "$BUILD_ROOT_D"/TODO.md
+rm "$BUILD_ROOT_D"/.gitignore
 
 
-#
-# And now for the main bit
-#
-chroot_cmd="/AOK/setup_image_chrooted"
+aok_files="$BUILD_ROOT_D/$AOK_CONTENT"
 
-if true; then
-    # dedicated chroot app
-    if ! "$FS_BUILD_D"/tools/do_chroot.sh "$chroot_cmd"; then
-        echo "ERROR in chroot, aborting build!"
-        exit 1
-    fi
-else
-    # simple chroot
-    if ! chroot "$BUILD_ROOT_D" "$chroot_cmd"; then
-        echo "ERROR in chroot, aborting build!"
-        exit 1
-    fi
-    echo "---  Cleanup chroot /dev  ---"
-    rm "$BUILD_ROOT_D"/dev/*
+mkdir "$aok_files"
+
+mv "$BUILD_ROOT_D"/BUILD_ENV         "$aok_files"
+mv "$BUILD_ROOT_D"/AOK_VARS          "$aok_files"
+mv "$BUILD_ROOT_D"/build_fs          "$aok_files"
+mv "$BUILD_ROOT_D"/aok_setup_fs      "$aok_files"
+mv "$BUILD_ROOT_D"/compress_image    "$aok_files"
+mv "$BUILD_ROOT_D"/LICENSE           "$aok_files"
+mv "$BUILD_ROOT_D"/Files             "$aok_files"
+mv "$BUILD_ROOT_D"/Docs              "$aok_files"
+mv "$BUILD_ROOT_D"/tools             "$aok_files"
+
+chown -R root: "$aok_files"
+
+if $skip_AOK_Files ; then
+    # Do this late, when everything going away is already in one single place
+    rm -rf "$aok_files"
 fi
+
+
+
+if $aok_FS_mods ; then
+    #
+    # chrooting and doing setup
+    #
+    # dedicated chroot app
+    if ! "$fs_build_d"/tools/do_chroot.sh "$SETUP_AOK_FS"; then
+        echo "ERROR in chroot, aborting build!"
+        exit 1
+    fi
+fi
+
 
 echo
 echo "The filesystem is ready!"
 
-if [ "$main_param" = "$skip_finalize" ]; then
+
+if $aok_FS_do_compress ; then
+    if ! "$fs_build_d"/compress_image; then
+        echo "ERROR detected in compress_image"
+        exit 1
+    fi
+else
     echo
     echo "You can work on the filesystem by running:"
     echo "  sudo tools/do_chroot.sh"
@@ -198,7 +250,4 @@ if [ "$main_param" = "$skip_finalize" ]; then
     exit 0
 fi
 
-if ! "$FS_BUILD_D"/compress_image; then
-    echo "ERROR detected in compress_image"
-    exit 1
-fi
+
