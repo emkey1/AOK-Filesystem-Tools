@@ -30,10 +30,13 @@ if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
     exit 1
 fi
 
-#
-#  Tell iSH to run first boot tasks
-#
-touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
+    #
+    #  Tell iSH to run first boot tasks
+    #
+    touch "$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+fi
+
 # echo "removing temp /dev items"
 # rm  -f "$BUILD_ROOT_D"/dev/*
 
