@@ -37,17 +37,18 @@ fi
 
 has_been_run="/etc/opt/aok_setup_fs-done"
 
+
+echo "---  Populating $AOK_CONTENT on new filesystem  ---"
+
 if [ -e "$has_been_run" ]; then
-    echo
     echo "ERROR: $SETUP_AOK_FS has already been run on this FS!"
     echo
     exit 1
 fi
 
 echo
-echo "=====  Setting up FS (chrooted)  ====="
+echo "=====  Setting up AOK FS  ====="
 echo
-
 
 if [ -z "$ALPINE_RELEASE" ]; then
     echo "ERROR: ALPINE_RELEASE param not supplied"
@@ -80,6 +81,7 @@ if [ -n "$AOK_APKS" ]; then
 fi
 
 
+echo
 echo "---  Replacing a few key files  ---"
 
 ln /etc/init.d/devfs /etc/init.d/dev

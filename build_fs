@@ -141,8 +141,7 @@ fi
 
 
 echo
-echo "=====  Building a $ALPINE_RELEASE iSH-AOK filesystem  ====="
-echo
+echo "=====  Building a $ALPINE_RELEASE  filesystem  ====="
 
 if ! $aok_FS_do_compress ; then
     echo "*** Will not create the compressed image! ***"
@@ -168,7 +167,7 @@ if [ ! -f "$MINIROOT_FS" ]; then
 fi
 
 # Build in /tmp
-echo "Create $BUILD_ROOT_D, copy minirootfs"
+echo "---  Create $BUILD_ROOT_D, copy minirootfs  ---"
 mkdir -p "$BUILD_ROOT_D"
 
 
@@ -198,10 +197,6 @@ cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 
 
 
-echo
-echo "=====  Populating $AOK_CONTENT on new filesystem  ====="
-echo
-
 #
 #  Get rid of files that should not be on dest FS
 #
@@ -229,6 +224,9 @@ chown -R root: "$aok_files"
 if $skip_AOK_Files ; then
     # Do this late, when everything going away is already in one single place
     rm -rf "$aok_files"
+    echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
+else
+    echo "---  Stored $AOK_CONTENT on new filesystem  ---"
 fi
 
 
