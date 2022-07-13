@@ -1,4 +1,12 @@
 #!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#
+#  Compresses a FS into a tar file that can be mounted by iSH
+#
 
 #  shellcheck disable=SC1007
 fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)

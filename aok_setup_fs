@@ -1,6 +1,15 @@
 #!/bin/sh
 #
-# shellcheck disable=SC2154
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  This enhances an Alpine Linux FS with the AOK changes
+#
+#  On compatible platforms, Linux (x86) and iSH this can be run chrooted
+#  before compressing the file system, to deliver a ready to be used file system.
+#  When the FS is prepared on other platforms,
+#  this file has to be run inside iSH once the file system has been mounted.
 #
 
 if [ ! -d /AOK ]; then

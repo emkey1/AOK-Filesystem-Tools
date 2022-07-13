@@ -1,10 +1,13 @@
 #!/bin/sh
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
 #  License: MIT
 #
-#  Version: 1.3.0 2022-06-27
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #
+#  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
+#  by allocating and freeing OS resources needed.
 #
 
 #  shellcheck disable=SC1007

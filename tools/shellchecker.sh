@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
 #  License: MIT
 #
-#  Version: 1.1.0 2022-06-18
-#
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #
 #  Runs shellcheck on all included scripts
 #

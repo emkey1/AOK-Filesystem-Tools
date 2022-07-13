@@ -1,7 +1,13 @@
 #!/bin/sh
-
 #
-#  This builds an iSH-AOK Filesystem
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Creates a Linux FS image suitable for mounting on iSH
+#
+#  Primary purpose is to create iSH-AOK file systems, but can also be used
+#  to create bare-bones Alpine-Linux file systems.
 #
 
 #  shellcheck disable=SC1007

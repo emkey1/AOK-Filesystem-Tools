@@ -3,6 +3,14 @@
 #  shellcheck disable=SC2034
 
 #
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Environment variables defining how this AOK-FS should be setup
+#
+
+#
 # A list of variables used during build and for /usr/local/bin stuff
 #
 
