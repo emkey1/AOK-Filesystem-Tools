@@ -16,9 +16,9 @@
 #  second case used during build
 #
 if [ -f ./AOK_VARS ]; then
-	. ./AOK_VARS || exit 1
+    . ./AOK_VARS || exit 1
 else
-	. /AOK/AOK_VARS || exit 1
+    . /AOK/AOK_VARS || exit 1
 fi
 
 # Shorthands for some directories
