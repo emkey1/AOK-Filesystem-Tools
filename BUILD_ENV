@@ -3,13 +3,22 @@
 #  shellcheck disable=SC2034
 
 #
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Environment variables used when building the AOK-FS
+#
+
+
+#
 #  First case used when inside the Filesystem
 #  second case used during build
 #
 if [ -f ./AOK_VARS ]; then
-	. ./AOK_VARS || exit 1
+    . ./AOK_VARS || exit 1
 else
-	. /AOK/AOK_VARS || exit 1
+    . /AOK/AOK_VARS || exit 1
 fi
 
 # Shorthands for some directories
@@ -45,3 +54,18 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 # /usr/local/bin/post_boot.sh
 #
 FIRST_BOOT_HINT="/etc/FIRSTBOOT"
+
+
+#
+#  Detecting build environments
+#  0 = other, not able to chroot to complete image
+#  1 = iSH
+#  2 = Linux (x86)
+#
+if [ -d "/proc/ish" ]; then
+    build_env=1
+elif uname -a | grep -qi linux && uname -a | grep -q x86; then
+    build_env=2
+else
+    build_env=0  # chroot not possible
+fi

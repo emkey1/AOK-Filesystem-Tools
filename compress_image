@@ -1,7 +1,20 @@
 #!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#
+#  Compresses a FS into a tar file that can be mounted by iSH
+#
+version="1.3.0"
 
 #  shellcheck disable=SC1007
 fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+prog_name=$(basename "$0")
+
+echo "$prog_name, version $version"
+echo
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -41,7 +54,6 @@ fi
 # echo "removing temp /dev items"
 # rm  -f "$BUILD_ROOT_D"/dev/*
 
-echo
 echo "=====  Creating image  ====="
 echo
 
@@ -52,18 +64,19 @@ cd "$BUILD_ROOT_D" || exit 1
 
 tar cf - . | gzip -9 > "../$AOK_FS"
 
-echo "Image is ready: $BUILD_BASE_D/$AOK_FS"
-
 #
 # copy it to /iCloud if this runs on iSH
 #
-if [ -d "/proc/ish" ]; then
+if [ "$build_env" -eq 1 ]; then
     echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
     mkdir -p "$ICLOUD_ARCHIVE_D"
     cp "$BUILD_BASE_D/$AOK_FS" "$ICLOUD_ARCHIVE_D"
 fi
 echo
 
+
+echo "=====  Image is ready: $BUILD_BASE_D/$AOK_FS  ====="
+echo
 
 #
 #  Remove first boot hint, in order to make chroot bash -l possible

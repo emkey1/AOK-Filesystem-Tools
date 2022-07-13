@@ -1,15 +1,24 @@
 #!/bin/sh
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
 #  License: MIT
 #
-#  Version: 1.3.0 2022-06-27
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #
+#  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
+#  by allocating and freeing OS resources needed.
 #
+version="1.3.0"
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 fs_build_d="$(dirname "$CURRENT_D")"
+prog_name=$(basename "$0")
+
+echo "$prog_name, version $version"
+echo
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -21,7 +30,6 @@ cd "$fs_build_d" || exit 1
 . ./BUILD_ENV
 
 
-prog_name=$(basename "$0")
 CHROOT_TO="$BUILD_ROOT_D"
 
 
@@ -35,13 +43,14 @@ fi
 
 env_prepare() {
     echo "=====  Preparing the environment for chroot  ====="
+    echo
 
 
     echo "---  Mounting system resources  ---"
 
     mount -t proc proc "$CHROOT_TO"/proc
 
-    if [ -d "/proc/ish" ]; then
+    if [ "$build_env" -eq 1 ]; then
         echo "---  Setting up needed /dev items  ---"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
@@ -68,7 +77,7 @@ env_cleanup() {
 
     umount "$CHROOT_TO"/proc
 
-    if [ -d "/proc/ish" ]; then
+    if [ "$build_env" -eq 1 ]; then
         echo "---  Removing the temp /dev entries"
         rm -f "$CHROOT_TO"/dev/*
     else
@@ -144,6 +153,7 @@ else
     cmd="$1"
 fi
 
+echo
 echo "=====  chrooting to: $CHROOT_TO ($cmd)  ====="
 
 # In this case we want the $cmd variable to expand into its components

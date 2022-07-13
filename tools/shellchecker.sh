@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
 #  License: MIT
 #
-#  Version: 1.1.0 2022-06-18
-#
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #
 #  Runs shellcheck on all included scripts
 #
+version="1.1.3"
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 fs_build_d="$(dirname "${CURRENT_D}")"
+prog_name=$(basename "$0")
+
+echo "$prog_name, version $version"
+echo
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -71,7 +77,8 @@ if [[ -n "${do_shellcheck}" ]]; then
 fi
 if [[ -n "${do_checkbashisms}" ]]; then
     printf "%s " "checkbashisms"
-    if [[ -d /proc/ish ]]; then
+    #  shellcheck disable=SC2154
+    if [[ "$build_env" -eq 1 ]]; then
         if checkbashisms --version | grep -q 2.21; then
             echo
             echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"

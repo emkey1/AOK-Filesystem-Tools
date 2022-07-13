@@ -1,11 +1,21 @@
 #!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Creates a Linux FS image suitable for mounting on iSH
+#
+#  Primary purpose is to create iSH-AOK file systems, but can also be used
+#  to create bare-bones Alpine-Linux file systems.
+#
+version="1.3.0"
 
-#
-#  This builds an iSH-AOK Filesystem
-#
 
 #  shellcheck disable=SC1007
 fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+prog_name=$(basename "$0")
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -17,7 +27,6 @@ cd "$fs_build_d" || exit 1
 # shellcheck disable=SC1091
 . ./BUILD_ENV
 
-prog_name=$(basename "$0")
 
 aok_FS_mods=true
 skip_AOK_Files=false
@@ -26,7 +35,9 @@ aok_FS_do_compress=true
 
 show_help() {
     cat <<EOF
-Usage: $prog_name [-h] | [c] | [-m] | [-M]
+$prog_name, version $version
+
+Usage: $prog_name [-h] [-v] [-c] [-m] [-M]
 
 This builds the iSH-AOK filesystem.
 
@@ -36,7 +47,8 @@ will have to be run inside iSH once it has booted the resulting FS.
 
 Available options:
 
--h, --help         Print this help and exit
+-h  --help         Print this help and exit.
+-v  --version      Show version and exit.
 -c  --no_compress  Terminates when FS is prepared, giving you the opportunity to
                    chroot into it and do your personal adaptations.
                    Instructions about this procedure and howto then complete
@@ -49,12 +61,18 @@ EOF
     exit 0
 }
 
+show_version() {
+    echo "$prog_name $version"
+}
+
 
 while [ -n "$1" ]; do
 
     case "$1" in
 
         "-h" | "--help" ) show_help ;;
+
+        "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
 
         "-m" | "--no_mods" )
             aok_FS_mods=false
@@ -80,24 +98,27 @@ while [ -n "$1" ]; do
 
 done
 
+
+#
+#  Displaying build environment
+#
+[ "$build_env" -eq 1 ] && run_mode="Building on iSH"
+[ "$build_env" -eq 2 ] && run_mode="Building on x86 Linux"
+
 if ! $aok_FS_mods ; then
-    msg="Will not chroot"
+    run_mode="Will not chroot"
     if $skip_AOK_Files; then
-        msg="$msg, will not copy /AOK files"
+        run_mode="$run_mode, will not copy $AOK_CONTENT files"
     else
-        msg="$msg, /AOK files will be copied"
+        run_mode="$run_mode, $AOK_CONTENT files will be copied"
     fi
-elif uname -a | grep -qi linux && uname -a | grep -q x86; then
-    msg="Building on x86 Linux"
-elif [ -d "/proc/ish" ]; then
-    msg="Building on iSH"
-else
+elif [ "$build_env" -eq 0 ]; then
     echo "Unfortunately you can not chroot into the image on this device"
     echo "This is only supported on iSH and Linux(x86)"
     echo "You must build using -m or -M on this platform (try -h for help)"
     exit 1
 fi
-echo "=====  Run mode: $msg  ====="
+echo "=====  Run mode: $run_mode  ====="
 
 
 if [ "$(whoami)" != "root" ]; then
@@ -120,8 +141,7 @@ fi
 
 
 echo
-echo "=====  Building a $ALPINE_RELEASE iSH-AOK filesystem  ====="
-echo
+echo "=====  Building a $ALPINE_RELEASE  filesystem  ====="
 
 if ! $aok_FS_do_compress ; then
     echo "*** Will not create the compressed image! ***"
@@ -147,7 +167,7 @@ if [ ! -f "$MINIROOT_FS" ]; then
 fi
 
 # Build in /tmp
-echo "Create $BUILD_ROOT_D, copy minirootfs"
+echo "---  Create $BUILD_ROOT_D, copy minirootfs  ---"
 mkdir -p "$BUILD_ROOT_D"
 
 
@@ -156,7 +176,7 @@ mkdir -p "$BUILD_ROOT_D"
 #  a variable to make sure they are in sync, but I just couldn't get that
 #  to work, some escapes needed?  Should be fixed
 #
-if [ -f "/proc/ish" ]; then
+if [ "$build_env" -eq 1 ]; then
     busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_ROOT_D" || exit 1;tar xf -)
 else
     tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_ROOT_D" || exit 1;tar xf -)
@@ -176,10 +196,6 @@ cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
 
 
 
-
-echo
-echo "=====  Populating $AOK_CONTENT on new filesystem  ====="
-echo
 
 #
 #  Get rid of files that should not be on dest FS
@@ -208,6 +224,9 @@ chown -R root: "$aok_files"
 if $skip_AOK_Files ; then
     # Do this late, when everything going away is already in one single place
     rm -rf "$aok_files"
+    echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
+else
+    echo "---  Stored $AOK_CONTENT on new filesystem  ---"
 fi
 
 
@@ -225,8 +244,8 @@ fi
 
 
 echo
-echo "The filesystem is ready!"
-
+echo "=====  The filesystem is ready!  ====="
+echo
 
 if $aok_FS_do_compress ; then
     if ! "$fs_build_d"/compress_image; then
@@ -234,20 +253,28 @@ if $aok_FS_do_compress ; then
         exit 1
     fi
 else
-    echo
-    echo "You can work on the filesystem by running:"
-    echo "  sudo tools/do_chroot.sh"
-    echo
+    if [ "$build_env" -gt 0 ]; then
+        if $aok_FS_mods ; then
+            set_shell=""
+        else
+            set_shell="/bin/ash"
+        fi
+        echo "You can work on the filesystem by running:"
+        echo "  sudo tools/do_chroot.sh $set_shell"
+        echo
+    fi
+
     echo "Complete the process by running:"
     echo "  sudo ./compress_image"
     echo
     echo "This creates the compressed image that can be imported into AOK/iSH."
-    echo "You can revisit the filesystem by doing the above do_chroot and then"
-    echo "compress_image again, in case you need to do further tweaks."
-    echo "Running build again will erase the current iSH filesystem and create"
-    echo "a fresh instance."
+
+    if [ "$build_env" -gt 0 ]; then
+        echo "You can revisit the filesystem by doing the above do_chroot and then"
+        echo "compress_image again, in case you need to do further tweaks."
+        echo "Running build again will erase the current iSH filesystem and create"
+        echo "a fresh instance."
+    fi
     echo
     exit 0
 fi
-
-
