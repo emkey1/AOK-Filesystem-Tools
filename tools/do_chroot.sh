@@ -9,10 +9,16 @@
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.
 #
+version="1.3.0"
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 fs_build_d="$(dirname "$CURRENT_D")"
+prog_name=$(basename "$0")
+
+echo "$prog_name, version $version"
+echo
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -24,7 +30,6 @@ cd "$fs_build_d" || exit 1
 . ./BUILD_ENV
 
 
-prog_name=$(basename "$0")
 CHROOT_TO="$BUILD_ROOT_D"
 
 
@@ -37,6 +42,7 @@ fi
 
 
 env_prepare() {
+    echo
     echo "=====  Preparing the environment for chroot  ====="
 
 
@@ -147,6 +153,7 @@ else
     cmd="$1"
 fi
 
+echo
 echo "=====  chrooting to: $CHROOT_TO ($cmd)  ====="
 
 # In this case we want the $cmd variable to expand into its components

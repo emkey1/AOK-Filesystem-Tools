@@ -8,10 +8,16 @@
 #
 #  Runs shellcheck on all included scripts
 #
+version="1.1.3"
 
 #  shellcheck disable=SC1007
 CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 fs_build_d="$(dirname "${CURRENT_D}")"
+prog_name=$(basename "$0")
+
+echo "$prog_name, version $version"
+echo
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from

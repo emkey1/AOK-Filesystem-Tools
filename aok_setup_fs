@@ -11,23 +11,20 @@
 #  When the FS is prepared on other platforms,
 #  this file has to be run inside iSH once the file system has been mounted.
 #
+version="1.3.0"
+
+#  shellcheck disable=SC1007
+fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+prog_name=$(basename "$0")
+
+echo "$prog_name, version $version"
+echo
 
 if [ ! -d /AOK ]; then
-    echo
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
-
-
-#  shellcheck disable=SC1007
-fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
-#
-cd "$fs_build_d" || exit 1
 
 
 #
