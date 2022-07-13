@@ -1,4 +1,5 @@
 #!/bin/sh
+#  shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -13,8 +14,6 @@
 #
 version="1.3.0"
 
-#  shellcheck disable=SC1007
-fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 prog_name=$(basename "$0")
 
 echo "$prog_name, version $version"
