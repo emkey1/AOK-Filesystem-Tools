@@ -54,3 +54,18 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 # /usr/local/bin/post_boot.sh
 #
 FIRST_BOOT_HINT="/etc/FIRSTBOOT"
+
+
+#
+#  Detecting build environments
+#  0 = other, not able to chroot to complete image
+#  1 = iSH
+#  2 = Linux (x86)
+#
+if [ -d "/proc/ish" ]; then
+    build_env=1
+elif uname -a | grep -qi linux && uname -a | grep -q x86; then
+    build_env=2
+else
+    build_env=0  # chroot not possible
+fi

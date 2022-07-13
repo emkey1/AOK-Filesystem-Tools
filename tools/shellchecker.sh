@@ -77,7 +77,7 @@ if [[ -n "${do_shellcheck}" ]]; then
 fi
 if [[ -n "${do_checkbashisms}" ]]; then
     printf "%s " "checkbashisms"
-    if [[ -d /proc/ish ]]; then
+    if [ "$build_env" -eq 1 ]; then
         if checkbashisms --version | grep -q 2.21; then
             echo
             echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"

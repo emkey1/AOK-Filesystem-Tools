@@ -42,15 +42,15 @@ fi
 
 
 env_prepare() {
-    echo
     echo "=====  Preparing the environment for chroot  ====="
+    echo
 
 
     echo "---  Mounting system resources  ---"
 
     mount -t proc proc "$CHROOT_TO"/proc
 
-    if [ -d "/proc/ish" ]; then
+    if [ "$build_env" -eq 1 ]; then
         echo "---  Setting up needed /dev items  ---"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
@@ -77,7 +77,7 @@ env_cleanup() {
 
     umount "$CHROOT_TO"/proc
 
-    if [ -d "/proc/ish" ]; then
+    if [ "$build_env" -eq 1 ]; then
         echo "---  Removing the temp /dev entries"
         rm -f "$CHROOT_TO"/dev/*
     else

@@ -257,6 +257,12 @@ esac
 echo "Setting OpenRC runlevel to 'default'"
 echo "default" > /run/openrc/softlevel
 
+echo
+echo "=====  AOK FS is ready  ====="
+if [ "$build_env" -eq 1 ]; then
+    echo "Please restart the app for changes to take full effect!"
+    echo
+fi
 
 #
 #  Indicate this has been completed, to prevent future runs by mistake
