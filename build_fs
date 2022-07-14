@@ -9,7 +9,7 @@
 #  Primary purpose is to create iSH-AOK file systems, but can also be used
 #  to create bare-bones Alpine-Linux file systems.
 #
-version="1.3.0"
+version="1.3.1"
 
 
 #  shellcheck disable=SC1007
@@ -31,7 +31,7 @@ cd "$fs_build_d" || exit 1
 aok_FS_mods=true
 skip_AOK_Files=false
 aok_FS_do_compress=true
-
+FS_compress_verbose=false
 
 show_help() {
     cat <<EOF
@@ -53,6 +53,7 @@ Available options:
                    chroot into it and do your personal adaptations.
                    Instructions about this procedure and howto then complete
                    the build once done will be displayed at the end of the build.
+-z  --zip-progress Display progrss as FS is being compressed.
 -m  --no_mods      Generate clean rootfs, without applying AOK mods, $AOK_CONTENT
                    will still be populated, for manual deploy by running
                    $SETUP_AOK_FS once iSH has booted this FS.
@@ -74,6 +75,16 @@ while [ -n "$1" ]; do
 
         "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
 
+        "-c" |  "--no_compress" )
+            aok_FS_do_compress=false
+            shift
+            ;;
+
+        "-z" | "--zip-progress" )
+            FS_compress_verbose=true
+            shift
+            ;;
+
         "-m" | "--no_mods" )
             aok_FS_mods=false
             shift
@@ -82,11 +93,6 @@ while [ -n "$1" ]; do
         "-M" )
             skip_AOK_Files=true
             aok_FS_mods=false
-            shift
-            ;;
-
-        "-c" |  "--no_compress" )
-            aok_FS_do_compress=false
             shift
             ;;
 
@@ -248,7 +254,12 @@ echo "=====  The filesystem is ready!  ====="
 echo
 
 if $aok_FS_do_compress ; then
-    if ! "$fs_build_d"/compress_image; then
+    if $FS_compress_verbose ; then
+        verbose="-z"
+    else
+        verbose=""
+    fi
+    if ! "$fs_build_d"/compress_image "$verbose"; then
         echo "ERROR detected in compress_image"
         exit 1
     fi
