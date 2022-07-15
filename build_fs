@@ -233,6 +233,10 @@ if $skip_AOK_Files ; then
     echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
 else
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
+    echo "---  copied "$aok_files/Files/profile" -> "$BUILD_ROOT_D"/etc  ---"
+    cp "$aok_files/Files/profile" "$BUILD_ROOT_D"/etc
+    echo "---  created directory /iCloud   ---"
+    mkdir "$BUILD_ROOT_D"/iCloud
 fi
 
 
