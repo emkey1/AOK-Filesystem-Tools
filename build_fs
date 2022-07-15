@@ -234,13 +234,11 @@ if $skip_AOK_Files ; then
 else
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
 
-    # if not running -m the chrooted aok_setup_fs will replace this /etc/profile
-    echo "---  copied "$aok_files/Files/profile" -> "$BUILD_ROOT_D"/etc  ---"
-    cat "$aok_files/Files/profile.aok-complete" > "$BUILD_ROOT_D"/etc/profile
-    cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
-
-    echo "---  created directory /iCloud   ---"
-    mkdir "$BUILD_ROOT_D"/iCloud
+    if ! $aok_FS_mods; then
+        cat "$aok_files/Files/profile.aok-complete" > "$BUILD_ROOT_D"/etc/profile
+        cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
+        echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
+    fi
 fi
 
 
