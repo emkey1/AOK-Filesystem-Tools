@@ -1,6 +1,24 @@
 #!/bin/sh
 # this is sourced, shebang just to hint editors since no extension
 
+AOK_HAS_NOT_BEEN_SETUP="/etc/opt/silence_aok_setup_reminder"
+if [ ! -e "$AOK_HAS_NOT_BEEN_SETUP" ]; then
+   if [ -x /AOK/aok_setup_fs ] && [ ! -x /usr/local/bin/aok ]; then
+       echo
+       echo "/AOK/aok_setup_fs needs to be run in order to set this up as an AOK file systen."
+       echo "This process will automatically run in 15 seconds unless you hit Ctrl-C."
+       echo "Once completed this app will terminate and you have to restart it."
+       echo
+       echo "If you want this reminder to be permanently disabled, run"
+       echo "  touch $AOK_HAS_NOT_BEEN_SETUP"
+       sleep 15
+       /AOK/aok_setup_fs
+       touch "$AOK_HAS_NOT_BEEN_SETUP"
+       exit  # reboot into AOK mode
+   fi
+fi
+
+
 ID="$(id -u)"
 
 # Hack for Alpine 3.14.0
