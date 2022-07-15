@@ -14,12 +14,12 @@
 # A list of variables used during build and for /usr/local/bin stuff
 #
 
-AOK_VERSION="Alpha-98"
+AOK_VERSION="Jac-99"
 
 #
 #  ALPINE_VERSION defines what alpine-minirootfs will be used as a baseline
 #
-ALPINE_VERSION=3.14.6
+#ALPINE_VERSION=3.14.6
 
 #
 #  At this time only 3.12.12 & 3.14.6 are considered fully tested and recommended
@@ -29,16 +29,23 @@ ALPINE_VERSION=3.14.6
 #
 # ALPINE_VERSION=3.13.10
 # ALPINE_VERSION=3.15.4
-# ALPINE_VERSION=3.16.0
+ALPINE_VERSION=3.16.0
 
 
+
+#
+#  If you want to run more than one script, separate with \&\& this means the next
+#  will only run if the previous exited without error
+#  Also note that in this context the ampersands must be escaped!
+#
+FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
 #
 #  The system will be initially set to this timezone
 #
-INITIAL_TIMEZONE="America/Los_Angeles"
+INITIAL_TIMEZONE="Europe/Amsterdam"
 
 # Alternatives are: enable disable once
-INITIAL_LOGIN_MODE="enable"
+INITIAL_LOGIN_MODE="disable"
 
 
 #
