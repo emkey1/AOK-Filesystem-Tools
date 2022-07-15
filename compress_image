@@ -7,14 +7,11 @@
 #
 #  Compresses a FS into a tar file that can be mounted by iSH
 #
-version="1.3.0"
+version="1.3.1"
 
 #  shellcheck disable=SC1007
 fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 prog_name=$(basename "$0")
-
-echo "$prog_name, version $version"
-echo
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -26,6 +23,54 @@ cd "$fs_build_d" || exit 1
 # Read in vars
 # shellcheck disable=SC1091
 . ./BUILD_ENV
+
+
+FS_compress_verbose=false
+
+show_help() {
+    cat <<EOF
+$prog_name, version $version
+
+Usage: $prog_name [-h] [-v] [-c] [-m] [-M]
+
+This creates a compressed tar file. that iSH can mount as a file syste,
+
+Available options:
+
+-h  --help         Print this help and exit.
+-v  --version      Show version and exit.
+-z  --zip-progress Display progrss as FS is being compressed.
+EOF
+    exit 0
+}
+
+show_version() {
+    echo "$prog_name $version"
+}
+
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+        "-h" | "--help" ) show_help ;;
+
+        "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
+
+        "-z" | "--zip-progress" )
+            FS_compress_verbose=true
+            shift
+            ;;
+
+        *)
+            echo "ERROR: bad param, try -h"
+            exit 1
+            ;;
+    esac
+
+done
+
+
 
 if [ "$(whoami)" != "root" ]; then
     echo "ERROR: This must be run as root or using sudo!"
@@ -62,7 +107,22 @@ echo
 #
 cd "$BUILD_ROOT_D" || exit 1
 
-tar cf - . | gzip -9 > "../$AOK_FS"
+if $FS_compress_verbose ; then
+    opts='cvf'
+else
+    opts='cf'
+
+    echo "A full build on an iSH node will take around 12 minutes to complete"
+    echo "The same build even on a modest Linux node will take 30 seconds"
+    echo "A -m build takes around 30s to complete on an iSH node, 1.2s on Linux"
+    echo
+    echo "In order not to have to wait so long with not indication anything is"
+    echo "happening,  you can use the option -z to build_fs or compress_image."
+    echo "This will give a detailed progress report as each file is packed."
+fi
+
+
+tar "$opts" - . | gzip -9 > "../$AOK_FS"
 
 #
 # copy it to /iCloud if this runs on iSH
