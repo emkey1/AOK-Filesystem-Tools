@@ -238,6 +238,14 @@ else
         cat "$aok_files/Files/profile.aok-complete" > "$BUILD_ROOT_D"/etc/profile
         cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
         echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
+
+        #
+        #  Alpine initial motd suggests running setup-alpine. Not available on iSH
+        #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
+        #  one makes sence.
+        #
+        rm "$BUILD_ROOT_D"/etc/motd
+        echo "---  removed initial /etc/motd on new filesystem  ---"
     fi
 fi
 
