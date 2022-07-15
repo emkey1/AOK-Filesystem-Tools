@@ -235,8 +235,13 @@ else
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
 
     if ! $aok_FS_mods; then
-        cat "$aok_files/Files/profile.aok-complete" > "$BUILD_ROOT_D"/etc/profile
+        echo ">> FBA_TASKS [$FBA_TASKS]"
+        pe=$(echo $FBA_TASKS )
+        cat "$aok_files"/Files/profile.aok-complete | \
+            sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
+            >  "$BUILD_ROOT_D"/etc/profile
         cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
+
         echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
 
         #
@@ -245,7 +250,7 @@ else
         #  one makes sence.
         #
         rm "$BUILD_ROOT_D"/etc/motd
-        echo "---  removed initial /etc/motd on new filesystem  ---"
+        echo "---  removed initial /etc/motd from new filesystem  ---"
     fi
 fi
 
