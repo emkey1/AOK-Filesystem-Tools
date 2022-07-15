@@ -5,10 +5,12 @@ if [ -x /AOK/aok_setup_fs ] && [ ! -x /usr/local/bin/aok ]; then
     echo
     echo "/AOK/aok_setup_fs needs to be run in order to set this up as an AOK file systen."
     echo "This process will automatically run in 15 seconds unless you hit Ctrl-C."
+    echo "Estimated run-time is 2-3 minutes."
+    echo
     echo "Once completed this app will terminate and you will have to restart it."
     echo
     echo "This FS will not be able to complete a bootup without aok_setup_fs"
-    echo "having been run."
+    echo "having been run, so this step can't really be avoided."
     sleep 15
     /AOK/aok_setup_fs
 
@@ -16,4 +18,3 @@ if [ -x /AOK/aok_setup_fs ] && [ ! -x /usr/local/bin/aok ]; then
     cp /AOK/Files/profile /etc
     exit  # reboot into AOK mode
 fi
-
