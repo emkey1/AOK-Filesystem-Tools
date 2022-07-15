@@ -233,8 +233,12 @@ if $skip_AOK_Files ; then
     echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
 else
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
+
+    # if not running -m the chrooted aok_setup_fs will replace this /etc/profile
     echo "---  copied "$aok_files/Files/profile" -> "$BUILD_ROOT_D"/etc  ---"
-    cp "$aok_files/Files/profile" "$BUILD_ROOT_D"/etc
+    cat "$aok_files/Files/profile.aok-complete" > "$BUILD_ROOT_D"/etc/profile
+    cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
+
     echo "---  created directory /iCloud   ---"
     mkdir "$BUILD_ROOT_D"/iCloud
 fi
