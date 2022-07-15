@@ -241,6 +241,10 @@ else
     fi
 fi
 
+# Should always happen
+echo "---  created directory /iCloud inside new filesystem   ---"
+mkdir "$BUILD_ROOT_D"/iCloud
+
 
 
 if $aok_FS_mods ; then
