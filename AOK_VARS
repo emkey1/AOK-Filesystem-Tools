@@ -32,6 +32,13 @@ ALPINE_VERSION=3.14.6
 # ALPINE_VERSION=3.16.0
 
 
+
+#
+#  If you want to run more than one script, separate with \&\& this means the next
+#  will only run if the previous exited without error
+#  Also note that in this context the ampersands must be escaped!
+#
+FIRST_BOOT_ADDITIONAL_TASKS=""
 #
 #  The system will be initially set to this timezone
 #

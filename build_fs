@@ -233,7 +233,30 @@ if $skip_AOK_Files ; then
     echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
 else
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
+
+    if ! $aok_FS_mods; then
+        echo ">> FBA_TASKS [$FBA_TASKS]"
+        pe=$(echo $FBA_TASKS )
+        cat "$aok_files"/Files/profile.aok-complete | \
+            sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
+            >  "$BUILD_ROOT_D"/etc/profile
+        cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
+
+        echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
+
+        #
+        #  Alpine initial motd suggests running setup-alpine. Not available on iSH
+        #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
+        #  one makes sence.
+        #
+        rm "$BUILD_ROOT_D"/etc/motd
+        echo "---  removed initial /etc/motd from new filesystem  ---"
+    fi
 fi
+
+# Should always happen
+echo "---  created directory /iCloud inside new filesystem   ---"
+mkdir "$BUILD_ROOT_D"/iCloud
 
 
 
