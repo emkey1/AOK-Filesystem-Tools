@@ -1,0 +1,52 @@
+#!/bin/sh
+# this is sourced, shebang just to hint editors since no extension
+
+#
+#  This profile will be used as first boot on -M builds, when
+#  FIRST_BOOT_ADDITIONAL_TASKS is defined
+#
+
+echo
+echo "Some pre-selected additional tasks will be run to prepare this file system"
+echo "This process will automatically run in 15 seconds unless you hit Ctrl-C."
+echo
+echo "Once completed this app will terminate and you will have to restart it."
+echo
+echo "This FS will not be able to complete a normal boot-up without"
+echo "this having been run, so this step can't really be avoided."
+sleep 15
+
+touch /tmp/first_boot_work_starts
+#
+#  In order to minimize the risk of setting up a failed file system,
+#  each step is checked for successful completion, and if not,
+#  setup is aborted. A non-technical user wont be helped much by this,
+#  They should probably just create a new file system and see if that has
+#  better success.
+#  For the tech-savvy, this will give them a chance to investigate
+#  what went wrong, and hopefully be able to ensure it does not happen on
+#  the next attempt.
+#  Therefore you will see the next two lines after each command.
+
+#  Terminate on error, so that situation can be investigated
+ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 1";echo;return;fi
+
+#
+#  Replace with the normal /etc/profile
+#  Do this before FIRST_BOOT_ADDITIONAL_TASKS are run, to ensure this normalization
+#  of /etc/profile does not over-write user selected changes
+#
+mv /etc/profile.real /etc/profile
+#  Terminate on error, so that situation can be investigated
+ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 2";echo;return;fi
+
+FIRST_BOOT_ADDITIONAL_TASKS
+#  Terminate on error, so that situation can be investigated
+ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 3";echo;return;fi
+
+touch /tmp/first_boot_work_done
+#  Terminate on error, so that situation can be investigated
+ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 4";echo;return;fi
+
+exit  # iPad - teminate iSH, iPhone - reboot
++
