@@ -9,7 +9,7 @@
 #  Primary purpose is to create iSH-AOK file systems, but can also be used
 #  to create bare-bones Alpine-Linux file systems.
 #
-version="1.3.1"
+version="1.3.2"
 
 
 #  shellcheck disable=SC1007
@@ -27,11 +27,6 @@ cd "$fs_build_d" || exit 1
 # shellcheck disable=SC1091
 . ./BUILD_ENV
 
-
-aok_FS_mods=true
-skip_AOK_Files=false
-aok_FS_do_compress=true
-FS_compress_verbose=false
 
 show_help() {
     cat <<EOF
@@ -55,8 +50,8 @@ Available options:
                    the build once done will be displayed at the end of the build.
 -z  --zip-progress Display progrss as FS is being compressed.
 -m  --no_mods      Generate clean rootfs, without applying AOK mods, $AOK_CONTENT
-                   will still be populated, for manual deploy by running
-                   $SETUP_AOK_FS once iSH has booted this FS.
+                   will still be populated, and on first boot $SETUP_AOK_FS
+                   will be run to complete the deploy.
 -M                 Create an unmodified FS, don't even copy $AOK_CONTENT
 EOF
     exit 0
@@ -66,6 +61,42 @@ show_version() {
     echo "$prog_name $version"
 }
 
+
+first_boot_aok_complete() {
+    echo "---  first_boot_aok_complete()   ---"
+    #pe=$(echo $FBA_TASKS )
+    sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
+        "$aok_files"/Files/profile.aok-complete >  "$BUILD_ROOT_D"/etc/profile
+    echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
+    #
+    #  Alpine initial motd suggests running setup-alpine. Not available on iSH
+    #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
+    #  one makes sence.
+    #
+    rm "$BUILD_ROOT_D"/etc/motd
+    echo "---  removed initial /etc/motd from new filesystem  ---"
+}
+
+first_boot_fbat() {
+    echo "---  first_boot_fbat()   ---"
+    [ -z "$FIRST_BOOT_ADDITIONAL_TASKS" ] && return
+    mv "$BUILD_ROOT_D"/etc/profile "$BUILD_ROOT_D"/etc/profile.real
+    sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
+        "$fs_build_d"/Files/profile.fbat >  "$BUILD_ROOT_D"/etc/profile
+    echo "---  copied /etc/profile forcing FIRST_BOOT_ADDITIONAL_TASKS to be run  ---"
+    #
+    #  Alpine initial motd suggests running setup-alpine. Not available on iSH
+    #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
+    #  one makes sence.
+    #
+    rm "$BUILD_ROOT_D"/etc/motd
+    echo "---  removed initial /etc/motd from new filesystem  ---"
+}
+
+aok_FS_mods=true
+skip_AOK_Files=false
+aok_FS_do_compress=true
+FS_compress_verbose=false
 
 while [ -n "$1" ]; do
 
@@ -227,30 +258,17 @@ mv "$BUILD_ROOT_D"/tools             "$aok_files"
 
 chown -R root: "$aok_files"
 
+
 if $skip_AOK_Files ; then
     # Do this late, when everything going away is already in one single place
     rm -rf "$aok_files"
     echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
+    first_boot_fbat
 else
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
 
-    if ! $aok_FS_mods; then
-        echo ">> FBA_TASKS [$FBA_TASKS]"
-        pe=$(echo $FBA_TASKS )
-        cat "$aok_files"/Files/profile.aok-complete | \
-            sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
-            >  "$BUILD_ROOT_D"/etc/profile
-        cat "$aok_files/Files/profile" >> "$BUILD_ROOT_D"/etc/profile
-
-        echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
-
-        #
-        #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-        #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
-        #  one makes sence.
-        #
-        rm "$BUILD_ROOT_D"/etc/motd
-        echo "---  removed initial /etc/motd from new filesystem  ---"
+    if ! $aok_FS_mods ; then
+        first_boot_aok_complete
     fi
 fi
 
