@@ -7,7 +7,7 @@
 #
 #  Compresses a FS into a tar file that can be mounted by iSH
 #
-version="1.3.1"
+version="1.3.2"
 
 #  shellcheck disable=SC1007
 fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -88,13 +88,24 @@ if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
     exit 1
 fi
 
-hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_HINT"
-if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
-    #
-    #  Tell iSH to run first boot tasks
-    #
-    touch "$hint_first_boot"
+if [ -d "$BUILD_ROOT_D"/AOK ]; then
+    tgz_file="$AOK_FS"
+    uses_aok=true
+else
+    tgz_file="$BASIC_FS"
+    uses_aok=false
 fi
+
+if $uses_aok; then
+    hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+    if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
+        #
+        #  Tell iSH to run first boot tasks
+        #
+        touch "$hint_first_boot"
+    fi
+fi
+
 
 # echo "removing temp /dev items"
 # rm  -f "$BUILD_ROOT_D"/dev/*
@@ -122,7 +133,7 @@ else
 fi
 
 
-tar "$opts" - . | gzip -9 > "../$AOK_FS"
+tar "$opts" - . | gzip -9 > "../$tgz_file"
 
 #
 # copy it to /iCloud if this runs on iSH
@@ -138,10 +149,12 @@ echo
 echo "=====  Image is ready: $BUILD_BASE_D/$AOK_FS  ====="
 echo
 
-#
-#  Remove first boot hint, in order to make chroot bash -l possible
-#
-[ -e "$hint_first_boot" ] && rm "$hint_first_boot"
 
+if $uses_aok; then
+    #
+    #  Remove first boot hint, in order to make chroot bash -l possible
+    #
+    [ -e "$hint_first_boot" ] && rm "$hint_first_boot"
+fi
 
 exit 0 #  Avoid exiting with error if above file did not exist
