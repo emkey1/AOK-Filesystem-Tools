@@ -7,7 +7,7 @@
 #
 #  Compresses a FS into a tar file that can be mounted by iSH
 #
-version="1.3.2"
+version="1.3.3"
 
 #  shellcheck disable=SC1007
 fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -141,12 +141,12 @@ tar "$opts" - . | gzip -9 > "../$tgz_file"
 if [ "$build_env" -eq 1 ]; then
     echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
     mkdir -p "$ICLOUD_ARCHIVE_D"
-    cp "$BUILD_BASE_D/$AOK_FS" "$ICLOUD_ARCHIVE_D"
+    cp "$BUILD_BASE_D/$tgz_file" "$ICLOUD_ARCHIVE_D"
 fi
 echo
 
 
-echo "=====  Image is ready: $BUILD_BASE_D/$AOK_FS  ====="
+echo "=====  Image is ready: $BUILD_BASE_D/$tgz_file  ====="
 echo
 
 
