@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Version: 1.3.1  2022-06-15
+#  Version: 1.3.2  2022-07-26
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.
@@ -98,6 +98,19 @@ if [ -e /etc/FIRSTBOOT ]; then
     echo "FIRSTBOOT tasks done"
     rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
 fi
+
+
+#
+#  Sometimes this supposedly man dir ends up being a text file for no obvious
+#  reason. This prevents man-db from being properly installed.
+#  This snippet removes it if it is a regular file and not a dir
+#
+fname_man1="/usr/share/man/man1"
+if [ -f "$fname_man1" ] && [ ! -d "$fname_man1" ]; then
+    echo "Removing text-file that should not exist: $fname_man1"
+    rm "$fname_man1"
+fi
+unset fname_man1
 
 
 # /etc/init.d/networking keeps getting an extra } written at the end
