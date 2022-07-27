@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Version: 1.3.2  2022-07-26
+#  Version: 1.3.3  2022-07-27
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.
@@ -14,7 +14,7 @@
 #    * services sometimes fail to start by init, restarting them here
 #      tends to help
 
-post_boot_log=/tmp/post_boot.log
+post_boot_log=/var/log/post_boot.log
 
 respawn_it() {
     tmp_log_file="/tmp/post_boot-$$"
@@ -98,19 +98,6 @@ if [ -e /etc/FIRSTBOOT ]; then
     echo "FIRSTBOOT tasks done"
     rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
 fi
-
-
-#
-#  Sometimes this supposedly man dir ends up being a text file for no obvious
-#  reason. This prevents man-db from being properly installed.
-#  This snippet removes it if it is a regular file and not a dir
-#
-fname_man1="/usr/share/man/man1"
-if [ -f "$fname_man1" ] && [ ! -d "$fname_man1" ]; then
-    echo "Removing text-file that should not exist: $fname_man1"
-    rm "$fname_man1"
-fi
-unset fname_man1
 
 
 # /etc/init.d/networking keeps getting an extra } written at the end
