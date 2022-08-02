@@ -12,7 +12,7 @@
 #  When the FS is prepared on other platforms,
 #  this file has to be run inside iSH once the file system has been mounted.
 #
-version="1.3.0"
+version="1.3.1"
 
 prog_name=$(basename "$0")
 
@@ -71,7 +71,8 @@ if [ -n "$CORE_APKS" ]; then
 fi
 
 
-if [ -n "$AOK_APKS" ]; then
+# Only deploy on aok kernels and if any are defined
+if grep -qi aok /proc/version && [ -n "$AOK_APKS" ]; then
     echo
     echo "---  Add AOK only packages  ---"
     # In this case we want the variable to expand into its components
