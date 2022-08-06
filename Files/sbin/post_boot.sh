@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Version: 1.3.3  2022-07-27
+#  Version: 1.3.4  2022-08-04
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.
@@ -92,8 +92,6 @@ if [ -e /etc/FIRSTBOOT ]; then
     # Start a couple of services
     rc-update add dcron
     rc-service dcron restart
-    rc-update add runbg
-    rc-service runbg restart
 
     echo "FIRSTBOOT tasks done"
     rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now

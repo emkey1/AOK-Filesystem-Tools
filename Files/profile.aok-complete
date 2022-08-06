@@ -14,8 +14,16 @@ if [ -x /AOK/aok_setup_fs ] && [ ! -x /usr/local/bin/aok ]; then
     echo
     echo "Once completed this app will terminate and you will have to restart it."
     echo
-    echo "This FS will not be able to complete a normal boot-up without"
-    echo "aok_setup_fs having been run, so this step can't really be avoided."
+    echo "This FS will not be in a meaningful state without this procedure,"
+    echo "so this step can't really be avoided."
+    echo
+    echo ">>>>   MPORTANT  <<<<"
+    echo ">> Switching to another task before: Task switching is now supported!"
+    echo ">> is displayed, will cause an instant crash of this app."
+    echo ">> We are investigating how to solve that"
+    echo
+    echo "This is one of the first steps, so will be enabled pretty quickly."
+    echo
     sleep 15
 
     touch /tmp/first_boot_work_starts
