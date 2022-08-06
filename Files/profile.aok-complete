@@ -17,7 +17,7 @@ if [ -x /AOK/aok_setup_fs ] && [ ! -x /usr/local/bin/aok ]; then
     echo "This FS will not be in a meaningful state without this procedure,"
     echo "so this step can't really be avoided."
     echo
-    echo ">>>>   MPORTANT  <<<<"
+    echo ">>>>  IMPORTANT  <<<<"
     echo ">> Switching to another task before: Task switching is now supported!"
     echo ">> is displayed, will cause an instant crash of this app."
     echo ">> We are investigating how to solve that"
