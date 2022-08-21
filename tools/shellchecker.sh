@@ -27,17 +27,24 @@ cd "${fs_build_d}" || exit 1
 
 
 checkables=(
-    tools/shellchecker.sh      # First self-check :)
+    tools/shellchecker.sh      # obviously self-check :)
+
+    AOK_VARS
+    BUILD_ENV
+    aok_setup_fs
+    build_fs
+    compress_image
+
     tools/do_chroot.sh
 
-    build_fs
-    aok_setup_fs
-    compress_image
 
 
     # Files/bash_profile  # 100s of issues...
     Files/profile
+    Files/profile.aok-complete
+    Files/profile.fbat
 
+    # Do this out of order, since it is a key file
     Files/sbin/post_boot.sh
 
     Files/bin/aok
@@ -58,9 +65,13 @@ checkables=(
     Files/bin/showip
     Files/bin/toggle_multicore
     Files/bin/update
+    Files/bin/update_motd
     Files/bin/version
     Files/bin/vnc_start
     Files/bin/what_owns
+
+    Files/cron/15min/dmesg_save
+
 )
 
 do_shellcheck="$(command -v shellcheck)"

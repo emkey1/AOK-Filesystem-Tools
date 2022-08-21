@@ -2,75 +2,81 @@
 # this is sourced, shebang just to hint editors since no extension
 
 #
-#  This profile will be used as first boot on -m builds, to complete the AOK
+#  This profile will be used as first boot on regular builds, to complete the AOK
 #  setup
 #
+#  AOK_COMPLETION_ON_TARGET
+#  If this is present in /etc/profile, we can assume we are running on the
+#  target system during first boot, and this is not a chrooted pre-build,
+#  the detected env is what will be used.
+#
 
-if [ -x /AOK/aok_setup_fs ] && [ ! -x /usr/local/bin/aok ]; then
-    echo
-    echo "/AOK/aok_setup_fs needs to be run in order to set this up as an AOK file systen."
-    echo "This process will automatically run in 15 seconds unless you hit Ctrl-C."
-    echo "Estimated run-time is 2-3 minutes."
-    echo
-    echo "Once completed this app will terminate and you will have to restart it."
-    echo
-    echo "This FS will not be in a meaningful state without this procedure,"
-    echo "so this step can't really be avoided."
-    echo
-    echo ">>>>  IMPORTANT  <<<<"
-    echo ">> Switching to another task before: Task switching is now supported!"
-    echo ">> is displayed, will cause an instant crash of this app."
-    echo ">> We are investigating how to solve that"
-    echo
-    echo "This is one of the first steps, so will be enabled pretty quickly."
-    echo
-    sleep 15
-
-    touch /tmp/first_boot_work_starts
-    #
-    #  In order to minimize the risk of setting up a failed AOK env,
-    #  each step is checked for successful completion, and if not,
-    #  setup is aborted. A non-technical user wont be helped much by this,
-    #  They should probably just create a new file system and see if that has
-    #  better success.
-    #  For the tech-savvy, this will give them a chance to investigate
-    #  what went wrong, and hopefully be able to ensure it does not happen on
-    #  the next attempt.
-    #  Therefore you will see the next two lines after each command.
-
-    #  Terminate on error, so that situation can be investigated
-    ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 1";echo;return;fi
-
-    /AOK/aok_setup_fs
-    #  Terminate on error, so that situation can be investigated
-    ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 2";echo;return;fi
-
-    #
-    #  Replace with the normal /etc/profile
-    #  Do this before FIRST_BOOT_ADDITIONAL_TASKS are run, to ensure this normalization
-    #  of /etc/profile does not over-write user selected changes
-    #
-    cp /AOK/Files/profile /etc
-    #  Terminate on error, so that situation can be investigated
-    ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 3";echo;return;fi
-
-    #
-    # Since we are setting up things, we might as well run post_boot.sh now,
-    # Getting first bootup tasks done, it  will cut down on time for the next boot
-    #
-    /usr/local/sbin/post_boot.sh run
-    #  Terminate on error, so that situation can be investigated
-    ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 4";echo;return;fi
+# shellcheck disable=SC1091
+. /AOK/BUILD_ENV
 
 
-    FIRST_BOOT_ADDITIONAL_TASKS
-    #  Terminate on error, so that situation can be investigated
-    ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 5";echo;return;fi
+# shellcheck disable=SC2154
+echo "====  Completing deploy of Alpine: ${ALPINE_VERSION} iSH-AOK FS: ${AOK_VERSION}  ===="
+
+echo
+echo "/AOK/aok_setup_fs needs to be run in order to set this up as an AOK filesystem."
+# shellcheck disable=SC2154
+echo "This process will automatically run in $FIRST_BOOT_INTRODUCTION_DISPLAY_TIME seconds unless you hit Ctrl-C."
+echo "Estimated run-time is 2-3 minutes."
+echo
+echo "Once this is completed, you will have to restart this app."
+echo
+echo "This FS will not be in a meaningful state without this procedure,"
+echo "so this step can't really be avoided."
+echo
+echo "If you see apk install failures, most likely due to a network glitch,"
+echo "the recommended solution is to hit Ctrl-C and restart the device."
+echo "This setup will be run at next boot if it has not completed,"
+echo "and is the simplest way to ensure you get everything installed."
+echo
+echo ">> Switching to another task before: Task switching is now supported!"
+echo ">> is displayed, has a risk of causing a crash of this app."
+echo ">> We are investigating how to solve that."
+echo
+echo "This is one of the first steps, so will be enabled pretty quickly."
+echo
+echo "If you need more time to read this, hit Ctrl-C then reboot when done."
+echo
+sleep "$FIRST_BOOT_INTRODUCTION_DISPLAY_TIME"
 
 
-    touch /tmp/first_boot_work_done
-    #  Terminate on error, so that situation can be investigated
-    ex_code="$?" && if [ $ex_code -ne 0 ]; then echo "ERROR detected at step 6";echo;return;fi
+# Dont't include time out displaying initial message
+TIME_SETUP_STARTS=$(date +%s)
 
-    exit  # iPad - teminate iSH, iPhone - reboot
-fi
+
+/AOK/aok_setup_fs
+# sleep 2
+
+#
+#  Log time elapsed during first boot
+#
+TIME_SETUP_ENDS=$(date +%s);
+time_elapsed_log_file="/tmp/fist_boot_time_elapsed"
+
+echo $((TIME_SETUP_ENDS-TIME_SETUP_STARTS)) | \
+    awk '{print int($1/60)":"int($1%60)" # minutes:seconds"}' \
+    > "$time_elapsed_log_file"
+echo
+echo
+echo "Setup time: "
+cat "$time_elapsed_log_file"
+echo
+echo "First boot elapsed time logged in $time_elapsed_log_file"
+
+echo
+echo "Restoring /etc/profile"
+#
+#  Not sure why, but if it is not first removed, the new file will overwrite parts
+#  of the old when run in this context.
+#
+rm /etc/profile
+cp /AOK/Files/profile /etc
+
+echo
+echo "Please restart the app for changes to take full effect!"
+echo

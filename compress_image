@@ -97,7 +97,7 @@ else
 fi
 
 if $uses_aok; then
-    hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_HINT"
+    hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_NOT_DONE_HINT"
     if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
         #
         #  Tell iSH to run first boot tasks
@@ -123,12 +123,11 @@ if $FS_compress_verbose ; then
 else
     opts='cf'
 
-    echo "A full build on an iSH node will take around 12 minutes to complete"
-    echo "The same build even on a modest Linux node will take 30 seconds"
-    echo "A -m build takes around 30s to complete on an iSH node, 1.2s on Linux"
+    echo "Compressing the image on an iSH node will take around 12 minutes to complete"
+    echo "The same done even on a modest Linux node will take around 30 seconds"
     echo
-    echo "In order not to have to wait so long with not indication anything is"
-    echo "happening,  you can use the option -z to build_fs or compress_image."
+    echo "In order not to have to wait so long without any indication anything is"
+    echo "happening,  you can use the option -z when running build_fs or compress_image."
     echo "This will give a detailed progress report as each file is packed."
 fi
 

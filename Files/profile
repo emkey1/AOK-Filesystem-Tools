@@ -13,7 +13,9 @@ if [ "$OS" = '3.14.0' ] && [ "$ID" -ne 0 ]; then
 fi
 
 # Wait until initial setup is completed
+this_is_first_boot=0
 while [ -f /etc/FIRSTBOOT ]; do
+   this_is_first_boot=1
    echo "Initial setup still in progress..."
    sleep 1
 done
@@ -60,3 +62,12 @@ LOCK_STATE="$(/usr/local/bin/elock status)"
 echo "Extra Locking State=$LOCK_STATE"
 
 echo ""
+
+if [ "$this_is_first_boot" -eq 1 ]; then
+   #
+   #  This is only triggerd on first boot os a pre-built File system
+   #
+   echo
+   echo "***  Environment setup has been completed, please restart this app now!  ***"
+   echo
+fi
