@@ -1,9 +1,8 @@
 # /etc/inittab
 
 ::sysinit:/sbin/openrc default
-::sysinit:/sbin/openrc default
-::wait:/sbin/openrc default
 ::once:/usr/local/sbin/post_boot.sh
+::wait:/sbin/openrc default
 
 # Set up a couple of getty's
 #tty1::respawn:/sbin/getty 38400 tty1
