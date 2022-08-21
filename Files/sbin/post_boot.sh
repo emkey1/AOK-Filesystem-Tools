@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Version: 1.3.4  2022-08-04
+#  Version: 1.3.5  2022-08-21
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.
@@ -82,18 +82,56 @@ fi
 
 
 # The following is needed for upstream PR #1716
-if [ ! -h /dev/fd ]; then
+if [ ! -L /dev/fd ]; then
     ln -sf /proc/self/fd /dev/fd
 fi
 
 
 if [ -e /etc/FIRSTBOOT ]; then
+    # First a sanity check, to avoid risk of post_boot aborting midway
+    if [ -f /AOK/BUILD_ENV ]; then
+        # shellcheck disable=SC1091
+        . /AOK/BUILD_ENV
+    else
+        echo
+        echo "ERROR: /usr/local/sbin/post_boot.sh Could not find /AOK/AOK_VARS"
+        echo "       This should never happen..."
+        echo
+    fi
+
+    if ! is_aok_kernel; then
+        echo
+        echo "Removing apps that depend on the iSH-AOK kernel"
+        #
+        #  aok dependent bins serve no purpose on this platform, delete
+        #
+        # In this case we want the variable to expand into its components
+        # shellcheck disable=SC2086,SC2154
+        apk del $AOK_APKS
+    fi
+
+    #
+    #  this app reverts to disable if this is not an AOK-kernel,
+    #  so you can always request any login method, not having to worry if it
+    #  actually is supported on the target platform.
+    #
+    #  shellcheck disable=SC2154
+    /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
+
+    echo
+    echo "You might see a few errors printed as services are activated."
+    echo "The iSH family doesn't fully support openrc yet, but the important parts work!"
+    echo
 
     # Start a couple of services
     rc-update add dcron
     rc-service dcron restart
 
+    run_additional_tasks_if_found
+
+    echo
     echo "FIRSTBOOT tasks done"
+
     rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
 fi
 
@@ -101,7 +139,9 @@ fi
 # /etc/init.d/networking keeps getting an extra } written at the end
 # For some unknown reason.  Overwrite it when we login to hopefully
 # mitigate that
-#cp /root/init.d/networking /etc/init.d
+#cp /AOK/Files/init.d/networking /etc/init.d
+
+/usr/local/bin/update_motd
 
 
 #
