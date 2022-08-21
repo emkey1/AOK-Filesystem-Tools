@@ -19,7 +19,8 @@ update your repository!
 
 Vers | script
 -|-
-1.3.3 | build_fs
-1.3.2 | aok_setup_fs
+1.3.4 | build_fs
+1.3.3 | aok_setup_fs
 1.3.3 | compress_image
 1.3.0 | tools/do_chroot.sh
+1.1.3 | tools/shellchecker.sh
