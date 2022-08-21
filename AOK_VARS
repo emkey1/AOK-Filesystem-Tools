@@ -1,7 +1,6 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
 #  shellcheck disable=SC2034
-
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -14,58 +13,59 @@
 # A list of variables used during build and for /usr/local/bin stuff
 #
 
-AOK_VERSION="Alpha-98"
+AOK_VERSION="Alpha-99"
 
 #
 #  ALPINE_VERSION defines what alpine-minirootfs will be used as a baseline
 #
-ALPINE_VERSION=3.14.6
-
-#
-#  At this time only 3.12.12 & 3.14.6 are considered fully tested and recommended
-#
+#  The officially supported and most tested is 3.14
 #  If you try another one please report any issues at
 #     https://github.com/emkey1/AOK-Filesystem-Tools/issues
 #
-# ALPINE_VERSION=3.13.10
-# ALPINE_VERSION=3.15.4
-# ALPINE_VERSION=3.16.0
+# ALPINE_VERSION=3.13.12  # End of Alpine support 2021-11-01
+ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
+# ALPINE_VERSION=3.15.6   # End of Alpine support 2023-11-01
+# ALPINE_VERSION=3.16.2   # End of Alpine support 2024-05-23
 
 
 
 #
-#  If defined, this will be run on first boot on -m and -M builds
-#  If you want to run more than one script, separate with \&\& this means the next
-#  will only run if the previous exited without error
-#  Also note that in this context the ampersands must be escaped!
+#  Use this if you have your own restore procedure.
+#  If defined, this will be run at the end of first boot, at a time when
+#  it should be a full AOK FS
 #
-FIRST_BOOT_ADDITIONAL_TASKS=""
+FIRST_BOOT_ADDITIONAL_TASKS="" #"date ; echo 'one more date'; date"
+
 #
 #  The system will be initially set to this timezone
 #
 INITIAL_TIMEZONE="America/Los_Angeles"
 
+#
 # Alternatives are: enable disable once
+#
 INITIAL_LOGIN_MODE="enable"
 
 
 #
 #  Always installed packages
 #
-CORE_APKS='openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync'
+CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync"
 
 #
-#  Absolute minimal apk list for quicker turn around when testing build
-#  and the boot-up sequences. Some errors will be displayed during build,
-#  but they can be ignored in this scenario.
+#  For testing the deploy procedure, this is a bare minimum of what is needed.
+#  It will not create a meaningful env for normal usage, just what is needed to
+#  not get any errors during deploy. This only takes half the time to install,
+#  its a life saver when debugging the deploy :)
 #
-# CORE_APKS='openrc bash shadow sudo dcron dcron-openrc coreutils findutils tar file less sed gawk grep util-linux procps'
+# CORE_APKS="openssh openrc bash shadow sudo busybox-extras dcron dcron-openrc coreutils findutils tar file less sed gawk grep util-linux tzdata"
 
 #
-# Additional packages.  These don't work with stock iSH but work with iSH-AOK
-# and will probably work with the Linux Kernel iSH
+#  Additional packages.  These don't work with stock iSH but work with iSH-AOK
+#  and will probably work with the Linux Kernel iSH
+#  Will only be installed if the kernel is identified as iSH-AOK
 #
-AOK_APKS='htop procps strace'
+AOK_APKS="htop procps strace"
 
 
 
