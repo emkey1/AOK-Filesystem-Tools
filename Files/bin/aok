@@ -2,13 +2,16 @@
 #
 #  Script to do various things related to the configuration of ish
 #
-version="0.2.1  2022-06-12"
+version="0.2.2  2022-08-21"
 
 # shellcheck disable=SC1091
 . /AOK/BUILD_ENV  #  in order to find $ALPINE_RELEASE
 
 verbose=0
 prog_name=$(basename "$0")
+
+
+login_busybox="/bin/busybox"
 
 
 show_help() {
@@ -28,52 +31,92 @@ EOF
 }
 
 
-if [ -h /bin/login ]; then
-    #  shellcheck disable=SC2154
-    echo "ERROR: Alpine $ALPINE_RELEASE does not support changing login method!"
-    exit 1
-fi
+sanity_check() {
+    #
+    #  If /bin/login is not a soft-link, change it to a safe initial method
+    #  that will work also on non-AOK kernels
+    #
+    if [ ! -L "/bin/login" ]; then
+        if [ -x "$login_busybox" ]; then
+            rm -f /bin/login
+            ln -sf "$login_busybox" /bin/login
+        else
+            echo
+            echo "ERROR: Expected /bin/login to be a soft-link,"
+            echo "       It was not, and failed to find: $login_busybox"
+            echo "       the assumed default candidate to link to."
+            exit 1
+        fi
+    fi
+
+    if ! is_aok_kernel && [ "$requested_method" != "disable" ]; then
+        echo
+        echo "WARNING: non-AOK kernels can only use: disable"
+        echo "       Reverting to this method."
+        echo
+        "$0" -l disable
+        exit 1
+    fi
+
+    unset login_busybox
+}
 
 
 change_login_procedure() {
-    case "$1" in
+    requested_method="$1"
 
-    "once")
-        echo "Enabling login prompt, but only for initial login."
-        echo "  AOK app will exit when you logout"
-        cp /bin/login.once /bin/login
-        exit 0
-        ;;
+    case "$requested_method" in
 
-    "enable")
-        echo "Enabling login prompt."
-        echo "  You will be prompted for your login name and password"
-        echo "  if one has been set when launching AOK"
-        cp /bin/login.loop /bin/login
-        exit 0
-        ;;
+        "once")
+            sanity_check
+            echo "Enabling login prompt, but only for initial login."
+            echo "  AOK app will exit when you logout"
+            ln -sf /bin/login.once /bin/login
+            exit 0
+            ;;
 
-    "disable")
-        echo "Disabling login prompt on startup. You will start at root prompt"
-        echo "  when launching AOK"
-        cp /bin/login.alpine /bin/login
-        exit 0
-        ;;
+        "enable")
+            sanity_check
+            echo "Enabling login prompt."
+            echo "  You will be prompted for your login name and password"
+            echo "  if one has been set when launching AOK"
+            ln -sf /bin/login.loop /bin/login
+            exit 0
+            ;;
 
-    "")
-        echo
-        echo "ERROR: Missing param indicating new login procedure"
-        exit 1
-        ;;
+        "disable")
+            #
+            #  Since we are choosing the safe option, no need for sanity check
+            #  That means in this case we should remove the previous login
+            #
+            echo "Disabling login prompt on startup. You will start at root prompt"
+            echo "  when launching AOK"
+            # shellcheck disable=SC2154
+            if [ -x "$LOGIN_ORIGINAL" ]; then
+                login_bin="$LOGIN_ORIGINAL"
+            else
+                login_bin="$login_busybox"
+            fi
+            rm -f /bin/login
+            ln -sf "$login_bin" /bin/login
+            exit 0
+            ;;
 
-    *)
-        echo
-        echo "ERROR: Bad param to change login procedure: $1"
-        exit 1
-        ;;
+        "")
+            echo
+            echo "ERROR: Missing param indicating new login procedure"
+            exit 1
+            ;;
+
+        *)
+            echo
+            echo "ERROR: Bad param to change login procedure: $1"
+            exit 1
+            ;;
 
     esac
 }
+
 
 
 # execute again as root
