@@ -13,7 +13,7 @@
 # A list of variables used during build and for /usr/local/bin stuff
 #
 
-AOK_VERSION="Alpha-99"
+AOK_VERSION="Beta-001"
 
 #
 #  ALPINE_VERSION defines what alpine-minirootfs will be used as a baseline
@@ -65,9 +65,7 @@ CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox
 #  and will probably work with the Linux Kernel iSH
 #  Will only be installed if the kernel is identified as iSH-AOK
 #
-AOK_APKS="htop procps strace"
-
-
+AOK_APKS="htop procps nload nload-doc htop-doc procps-doc"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
@@ -85,5 +83,5 @@ DEVEL_APKS='python3 py3-pip python3-dev build-base linux-headers cmake'
 NODEJS_APKS='nodejs nodejs-dev'
 BLOAT3_APKS='emacs neofetch'
 
-DOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc'
+DOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc mandoc man-pages bash-doc rsync-doc'
 
