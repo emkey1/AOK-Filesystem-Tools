@@ -34,7 +34,7 @@ ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
 #  If defined, this will be run at the end of first boot, at a time when
 #  it should be a full AOK FS
 #
-FIRST_BOOT_ADDITIONAL_TASKS="" #"date ; echo 'one more date'; date"
+FIRST_BOOT_ADDITIONAL_TASKS="" #"/iCloud/spd/bin/deploy-ish"
 
 #
 #  The system will be initially set to this timezone
