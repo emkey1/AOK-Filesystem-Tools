@@ -9,7 +9,7 @@
 #  Primary purpose is to create iSH-AOK file systems, but can also be used
 #  to create bare-bones Alpine-Linux file systems.
 #
-version="1.3.4"
+version="1.3.5"
 
 
 #  shellcheck disable=SC1007
@@ -39,7 +39,7 @@ show_help() {
     cat <<EOF
 $prog_name, version $version
 
-Usage: $prog_name [-h] [-v] [-c] [-m] [-M]
+Usage: $prog_name [-h] [-v] [-p] [-c] [-z] [-u]
 
 This builds the iSH-AOK filesystem.
 
@@ -132,9 +132,9 @@ display_build_env() {
 
     if [ "$(whoami)" != "root" ]; then
         # Must come after help display, to avoid infinite loop
-        echo "ERROR: This must be run as root or using sudo!"
+        "$0" -h
         echo
-        "$fs_build_d/$prog_name" -h
+        echo "ERROR: This must be run as root or using sudo!"
         exit 1
     fi
 
