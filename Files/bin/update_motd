@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#
+#  This is run during boot-up, and the intended usage case is if you want to
+#  update /etc/motd every time this boots. For instance if it should indicate
+#  the current iSH release, if you are using TestFlight, this might be updated
+#  between runs without human intervention. It could happen also with AppStore
+#  but not on a near daily basis.
+#  hostname might also change between boot-ups.
+#
+
+#
+#  Sample setup that displays release info
+#
+
+# motd_file="/etc/motd"
+# aok_release="/etc/aok-release"
+
+# echo "===>  Welcome to: $(hostname)  <===" > "$motd_file"
+# echo "Alpine release: $(cat /etc/alpine-release)" >> "$motd_file"
+
+# if [ -e "$aok_release" ]; then
+#     echo "AOK release: $(cat $aok_release)" >> "$motd_file"
+# fi
+
+# echo "iSH release: $(cat /proc/ish/version)" >> "$motd_file"
+
+# echo "" >> "$motd_file"
