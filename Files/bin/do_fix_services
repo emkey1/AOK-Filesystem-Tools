@@ -5,6 +5,11 @@
 #  This way XX can be human friendly andd give help
 #  whilst do_XX just does it, so more suitable to be called
 #  from oher scripts
-# 
+#
+#  Any service not listed as started, will be restarted.
 
-rc-status  |grep -v -e started -e Runlevel:  | awk '{cmd="rc-service " $1 " restart" ; system(cmd)}'
+#  Enable for debugging, to see initial boot-up status, before this check is run
+# date      >  /tmp/initial-service-status
+# rc-status >> /tmp/initial-service-status
+
+rc-status  |grep -v -e started -e Runlevel: -e started | awk '{cmd="rc-service " $1 " restart" ; system(cmd)}'
