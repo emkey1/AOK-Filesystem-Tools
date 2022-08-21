@@ -18,12 +18,14 @@
 if [ -f ./AOK_VARS ]; then
     . ./AOK_VARS || exit 1
 else
+    #  shellcheck disable=SC1091
     . /AOK/AOK_VARS || exit 1
 fi
 
 # Shorthands for some directories
 BUILD_BASE_D="/tmp/AOK"
 BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
+MINIROOT_FS_CACHE_D="/tmp/Alpine_miniroot_fs_cache"
 
 # extract the release/branch/major version, gives something like 3.14
 ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
@@ -33,7 +35,7 @@ ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 
 # image name for AOK builds
-AOK_FS="ALPINE_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
+AOK_FS="Alpine_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
 
 # image name for generic builds
 BASIC_FS="Alpine-${ALPINE_VERSION}-iSH.tgz"
@@ -56,7 +58,22 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 # Hint to iSH this is the first time booting. Checked for by
 # /usr/local/bin/post_boot.sh
 #
-FIRST_BOOT_HINT="/etc/FIRSTBOOT"
+FIRST_BOOT_NOT_DONE_HINT="/etc/FIRSTBOOT"
+
+ADDITIONAL_TASKS_SCRIPT="/etc/opt/additional_tasks"
+#
+#  How long the introduction should be displayed when the system is setup
+#  during first boot
+#
+FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=1  # >> reset to 15 !!!
+
+
+#
+#  After all packages are installed, if /bin/login was something other than
+#  a soft-link to /bin/busybox, it will be renamed to this, so it can be
+#  selected later.
+#
+LOGIN_ORIGINAL="/bin/login.alpine"
 
 
 #
@@ -72,3 +89,21 @@ elif uname -a | grep -qi linux && uname -a | grep -q x86; then
 else
     build_env=0  # chroot not possible
 fi
+
+
+is_aok_kernel() {
+    grep -qi aok /proc/ish/version 2> /dev/null
+    return $?
+}
+
+run_additional_tasks_if_found() {
+    if [ -n "$ADDITIONAL_TASKS_SCRIPT" ]; then
+        if [ -x "$ADDITIONAL_TASKS_SCRIPT" ]; then
+            echo
+            echo "Running additional setup tasks"
+            echo
+            $ADDITIONAL_TASKS_SCRIPT
+            rm "$ADDITIONAL_TASKS_SCRIPT"
+        fi
+    fi
+}
