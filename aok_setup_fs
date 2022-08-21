@@ -12,9 +12,297 @@
 #  When the FS is prepared on other platforms,
 #  this file has to be run inside iSH once the file system has been mounted.
 #
-version="1.3.2"
+version="1.3.3"
 
 prog_name=$(basename "$0")
+
+#
+#  Check if this is running on the destination platform, ie we can trust
+#  detection of is_aok_kernel etc
+#
+dest_platform_env="$(grep AOK_COMPLETION_ON_TARGET /etc/profile)"
+
+has_been_run="/etc/opt/aok_setup_fs-done"
+
+
+activate_runbg() {
+    echo
+    echo "====  Ensuring this will run in the background  ===="
+    echo
+
+    echo "---  Ensuring openrc is installed  ---"
+    apk add openrc
+
+    echo "---  AOK /etc/init.d overrides  ---"
+    cp "$AOK_CONTENT"/Files/init.d/* /etc/init.d
+
+
+    #
+    #  Not needed on all releases
+    #
+    case "$ALPINE_RELEASE" in
+
+        "3.13" | "3.16")
+            echo "---  Not changing /etc/rc.conf on this Alpine release  ---"
+            ;;
+
+        *)
+            if is_aok_kernel; then
+                echo "---  Replacing /etc/rc.conf  ---"
+                cp /etc/rc.conf /etc/rc.conf.orig
+                cp "$AOK_CONTENT"/Files/rc.conf /etc
+            else
+                echo "---  Not changing /etc/rc.conf when not AOK kernel  ---"
+            fi
+
+            ;;
+
+    esac
+
+
+    mkdir /run/openrc
+    touch /run/openrc/softlevel
+
+    #
+    # Older Alpines needs to run openrc-init
+    #
+    case "$ALPINE_RELEASE" in
+
+        "3.12" | "3.13" | "3.14" | "3.15")
+            openrc-init
+            ;;
+
+        *)
+            echo "Skipping openrc-init on: $ALPINE_RELEASE"
+            ;;
+
+    esac
+
+
+    echo "---  Setting runlevel to 'default'  ---"
+    echo
+    echo "You might see a few errors printed as services are activated."
+    echo "The iSH family doesn't fully support openrc yet, but the important parts work!"
+    echo
+    openrc default
+
+
+    echo "---  Activating runbg  ---"
+    rc-update add runbg
+    rc-service runbg start
+
+
+    if [ -n "$dest_platform_env" ]; then
+        #  Only report task switching usable if this a post-boot generated
+        #  file system
+        echo
+        echo
+        echo
+        echo "--->  Task switching is now supported!  <---"
+        echo
+        echo
+    fi
+}
+
+install_apks() {
+    echo "---  upgrade installed apks  ---"
+    apk -U upgrade
+
+    if [ -n "$CORE_APKS" ]; then
+        echo
+        echo "---  Add initial packages  ---"
+
+        #  busybox-extras no longer a package starting with 3.16, so delete if present
+        if [ "$(awk 'BEGIN{print ('"$ALPINE_RELEASE"' > 3.15)}')" -eq 1 ]; then
+            echo "removing busybox-extras from core apks, not available past 3.15"
+            CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
+        fi
+
+        # In this case we want the variable to expand into its components
+        # shellcheck disable=SC2086
+        apk add $CORE_APKS
+
+        #
+        #  Starting with 3.16 shadow /bin/login is in its own package
+        #  simplest way to handle this is to just check if such a package
+        #  is present, if found install it.
+        #
+        if [ -n "$(apk search shadow-login)" ]; then
+            apk add shadow-login
+        fi
+    fi
+
+    if [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
+        echo
+        echo "---  Skipping AOK only packages on non AOK kernels  ---"
+    elif [ -n "$AOK_APKS" ]; then
+        #  Only deploy on aok kernels and if any are defined
+        #  This might not be deployed on a system with the AOK kernel, but we cant
+        #  know at this point in time, so play it safe and install them
+        echo
+        echo "---  Add AOK only packages  ---"
+        # In this case we want the variable to expand into its components
+        # shellcheck disable=SC2086
+        apk add $AOK_APKS
+    fi
+}
+
+replace_key_files() {
+    echo
+    echo "---  Replacing a few key files  ---"
+
+    # Remove extra unused vty's, make OpenRC work
+    cp "$AOK_CONTENT"/Files/inittab /etc
+
+    # Fake interfaces file
+    cp "$AOK_CONTENT"/Files/interfaces /etc/network
+
+    ln /etc/init.d/devfs /etc/init.d/dev
+
+    # Networking, hostname and possibly others can't start because of
+    # current limitations in iSH So we fake it out
+    rm /etc/init.d/networking
+
+    # More hackery.  Initial case is the need to make pam_motd.so optional
+    # So that the ish user will work in Alpine 3.14
+    cp "$AOK_CONTENT"/Files/pam.d/* /etc/pam.d
+}
+
+setup_environment() {
+    echo "---  Setting up environment  ---"
+
+    #  Announce what AOK release this is
+    echo "$AOK_VERSION" > /etc/aok-release
+
+    #
+    #  If this is run on the dest platform, /etc/profile will be replaced
+    #  in AOK/Files/profile.aok-complete
+    #
+    if [ -z "$dest_platform_env" ]; then
+        echo
+        echo "Copying /etc/profile"
+        cp "$AOK_CONTENT"/Files/profile /etc/profile
+    fi
+
+    # Custom motd/issue
+    sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/Files/motd > /etc/motd
+    sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/Files/issue > /etc/issue
+
+    # Set initial TZ
+    ln -sf /usr/share/zoneinfo/"$INITIAL_TIMEZONE" /etc/localtime
+    #echo "$INITIAL_TIMEZONE" >  /etc/timezone
+
+    # cron stuff
+    cp "$AOK_CONTENT"/Files/cron/15min/* /etc/periodic/15min
+
+    # Move sshd to port 1022 to avoid issues
+    sshd_port=1022
+    echo "sshd will use port: $sshd_port"
+    sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
+
+
+    echo "Add our stuff to /usr/local/bin"
+    cp "$AOK_CONTENT"/Files/bin/* /usr/local/bin
+
+    # Make a link so that showip can also be 'myip'
+    ln /usr/local/bin/showip /usr/local/bin/myip
+
+    chmod +x /usr/local/bin/*
+
+
+    echo "Add our stuff to /usr/local/sbin"
+    mkdir -p /usr/local/sbin
+    cp "$AOK_CONTENT"/Files/sbin/* /usr/local/sbin
+    chmod +x /usr/local/sbin/*
+
+
+    #
+    #  Setting vi to be the full vim in /usr/local/bin, since its first in PATH
+    #
+    ln -s /usr/bin/vim /usr/local/bin/vi
+
+
+    echo "Activating group wheel for passwordless sudo"
+    cp "$AOK_CONTENT"/Files/sudoers.d/wheel /etc/sudoers.d
+    chmod 440 /etc/sudoers.d/wheel
+}
+
+user_root() {
+    #
+    #  Change roots shell
+    #
+    sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
+
+    #
+    #  root user env
+    #
+    cp "$AOK_CONTENT"/Files/bash_profile /root/.bash_profile
+    ln -s /root/.bash_profile /root/.bashrc
+    cp "$AOK_CONTENT"/Files/zshrc /root/.zshrc
+    cp "$AOK_CONTENT"/Files/vimrc /root/.vimrc
+    cp "$AOK_CONTENT"/Files/tmux.conf /root/.tmux.conf
+}
+
+user_ish() {
+    echo "---  Creating the ish user and group  ---"
+
+    groupadd -g 501 ish
+
+    # temp changing UID_MIN is to silence the warning:
+    # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
+    #  add additional groups with -G
+    useradd -m -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
+
+    # shadow with blank ish password
+    sed -i "s/ish:\!:/ish::/" /etc/shadow
+
+    # Add dot files for ish
+    cp "$AOK_CONTENT"/Files/bash_profile ~ish/.bash_profile
+    ln -s ~ish/.bash_profile ~ish/.bashrc
+    cp "$AOK_CONTENT"/Files/zshrc ~ish/.zshrc
+    cp "$AOK_CONTENT"/Files/vimrc ~ish/.vimrc
+
+    mkdir ~ish/Docs
+    cp -r "$AOK_CONTENT"/Docs/* ~ish/Docs
+
+    cp "$AOK_CONTENT"/Files/tmux.conf ~ish/.tmux.conf
+
+    # set ownership
+    chown -R ish: ~ish
+}
+
+setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    echo "---  Install AOK login methods  ---"
+    cp "$AOK_CONTENT"/Files/login.loop /bin
+    chmod +x /bin/login.loop
+    cp "$AOK_CONTENT"/Files/login.once /bin
+    chmod +x /bin/login.once
+
+    #
+    #  Save the original login, if it was not just a soft-link
+    #
+    if [ -x /bin/login ] && [ ! -L /bin/login ]; then
+        #  If it is a file, assume it to be the shadow login binary, save it
+        #  so that it can be selected later
+        mv /bin/login "$LOGIN_ORIGINAL"
+    fi
+
+    #  For now use a safe method, if supported the requested method will be
+    #  setup towards the end of the setup process
+    ln -sf /bin/busybox /bin/login
+}
+
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
 
 echo "$prog_name, version $version"
 echo
@@ -25,19 +313,13 @@ if [ ! -d /AOK ]; then
     exit 1
 fi
 
-
-#
-#  This is run chrooted inside the iSH filesystem
-#
-
 # Set some variables
 # shellcheck disable=SC1091
 . /AOK/BUILD_ENV
 
-has_been_run="/etc/opt/aok_setup_fs-done"
 
 
-echo "====  Populating $AOK_CONTENT on new filesystem  ===="
+echo "====  Setting up iSH-AOK FS: ${AOK_VERSION} on new filesystem  ===="
 
 if [ -e "$has_been_run" ]; then
     echo "ERROR: $SETUP_AOK_FS has already been run on this FS!"
@@ -45,48 +327,11 @@ if [ -e "$has_been_run" ]; then
     exit 1
 fi
 
+echo "---  apk upgrade  ---"
+apk upgrade
 
-echo
-echo "====  Ensuring this will run in the background  ===="
-echo
-
-echo "---  Enabling openrc  ---"
-apk add openrc
-cp "$AOK_CONTENT"/Files/init.d/* /etc/init.d
-
-cp "$AOK_CONTENT"/Files/rc.conf /etc
-mkdir /run/openrc
-touch /run/openrc/softlevel
-
-#
-# Older Alpines needs to run openrc-init
-#
-case "$ALPINE_RELEASE" in
-
-    "3.12" | "3.13" | "3.14" | "3.15")
-        openrc-init
-        ;;
-
-    *) ;;
-
-esac
-
-
-echo "---  Setting runlevel to 'default'  ---"
-openrc default
-
-
-echo "---  Activating runbg  ---"
-rc-update add runbg
-rc-service runbg start
-
-echo
-echo
-echo
-echo ">>>>  Task switching is now supported!  <<<<"
-echo
-echo
-echo
+#  Do this early on dest platform, to allow task switching ASAP
+[ -n "$dest_platform_env" ] && activate_runbg
 
 echo
 echo "=====  Setting up AOK FS  ====="
@@ -97,187 +342,40 @@ if [ -z "$ALPINE_RELEASE" ]; then
     exit 1
 fi
 
+install_apks
+#  if it is a chrooted pre-build, it makes more sense to do it here, after
+#  everything is already installed and upgraded
+[ -z "$dest_platform_env" ] && activate_runbg
 
-echo "---  upgrade installed apks  ---"
+replace_key_files
+setup_environment
+user_root
+user_ish
+setup_login
 
-apk -U upgrade
-
-
-if [ -n "$CORE_APKS" ]; then
-    echo
-    echo "---  Add initial packages  ---"
-
-    # In this case we want the variable to expand into its components
-    # shellcheck disable=SC2086
-    apk add $CORE_APKS
-fi
-
-
-# Only deploy on aok kernels and if any are defined
-if grep -qi aok /proc/version && [ -n "$AOK_APKS" ]; then
-    echo
-    echo "---  Add AOK only packages  ---"
-    # In this case we want the variable to expand into its components
-    # shellcheck disable=SC2086
-    apk add $AOK_APKS
-fi
-
-
-echo
-echo "---  Replacing a few key files  ---"
-
-ln /etc/init.d/devfs /etc/init.d/dev
-
-# Fake interfaces file
-cp "$AOK_CONTENT"/Files/interfaces /etc/network
-
-# Move sshd to port 1022 to avoid issues
-sshd_port=1022
-echo "sshd listening on port: $sshd_port"
-sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
-
-# /etc/init.d/networking keeps getting screwed up for unknown reasons.
-# Mitigate
-mkdir /root/init.d
-cp "$AOK_CONTENT"/Files/init.d/* /root/init.d
-
-# Remove extra unused vty's, make OpenRC work
-cp "$AOK_CONTENT"/Files/inittab /etc
-
-# Custom MOTD/issue
-sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/Files/motd > /etc/motd
-sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/Files/issue > /etc/issue
-
-
-# Sudoers stuff, group wheel can do sudo without password
-echo "activating group wheel for passwordless sudo"
-sed -i "s/# %wheel ALL=(ALL) NOPASSWD.*/%wheel ALL=(ALL) NOPASSWD: ALL/" /etc/sudoers
-
-
-# Root .profile.
-cp "$AOK_CONTENT"/Files/profile /etc/profile
-
-# Add some simple scripts
-cp "$AOK_CONTENT"/Files/bin/* /usr/local/bin
-
-# cron stuff
-cp "$AOK_CONTENT"/Files/cron/15min/* /etc/periodic/15min
-#cp Files/cron/daily/* /etc/periodic/daily
-#cp Files/cron/hourly/* /etc/periodic/hourly
-#cp Files/cron/monthly/* /etc/periodic/monthly
-#cp Files/cron/weekly/* /etc/periodic/weekly
-
-mkdir -p /usr/local/sbin
-cp "$AOK_CONTENT"/Files/sbin/* /usr/local/sbin
-
-# Make a link so that showip can also be 'myip'
-ln /usr/local/bin/showip /usr/local/bin/myip
-
-chmod +x /usr/local/bin/*
-
-
-echo "---  Creating the ish user and group  ---"
-
-groupadd -g 501 ish
-
-# temp changing UID_MIN is to silence the warning:
-# ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
-#  add additional groups with -G
-useradd -m -s /bin/bash -u 501 -g 501 -G wheel,root,adm ish --key UID_MIN=501
-
-# Add dot files for ish
-cp "$AOK_CONTENT"/Files/bash_profile /home/ish/.bash_profile; chown ish:ish /home/ish/.bash_profile
-ln -s /home/ish/.bash_profile /home/ish/.bashrc
-chown ish:ish /home/ish/.bashrc
-cp "$AOK_CONTENT"/Files/zshrc /home/ish/.zshrc; chown ish:ish /home/ish/.zshrc
-cp "$AOK_CONTENT"/Files/vimrc /home/ish/.vimrc; chown ish:ish /home/ish/.vimrc
-# Copy to root as well
-cp "$AOK_CONTENT"/Files/bash_profile /root/.bash_profile
-ln -s /root/.bash_profile /root/.bashrc
-cp "$AOK_CONTENT"/Files/zshrc /root/.zshrc
-cp "$AOK_CONTENT"/Files/vimrc /root/.vimrc
-
-# shadow with blank ish password
-sed -i "s/ish:\!:/ish::/" /etc/shadow
-
-
-# Copy some documentation to the ish user home directory
-
-
-echo "---  Copying Docs  ---"
-
-mkdir /home/ish/Docs
-cp -r "$AOK_CONTENT"/Docs/* /home/ish/Docs
-chown -R ish:ish /home/ish/Docs
-
-
-echo "---  Setting up environment  ---"
-
-
-# Networking, hostname and possibly others can't start because of
-# current limitations in iSH So we fake it out
-rm /etc/init.d/networking
-
-# More hackery.  Initial case is the need to make pam_motd.so optional
-# So that the ish user will work in Alpine 3.14
-cp "$AOK_CONTENT"/Files/pam.d/* /etc/pam.d
-
-cp "$AOK_CONTENT"/Files/tmux.conf /home/ish/.tmux.conf
-chown ish:ish /home/ish/.tmux.conf
-cp "$AOK_CONTENT"/Files/tmux.conf /root/.tmux.conf
-
-# I want vim to be vi, aliasing isn't working for some reason
-# /usr/local/bin is first in the path by default, so...
-ln -s /usr/bin/vim /usr/local/bin/vi
-
-ln /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
-echo "$INITIAL_TIMEZONE" >  /etc/timezone
-
-# Change roots shell
-sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
-
-echo "$AOK_VERSION" > /etc/aok-release
-
-echo "---  Initial login method  ---"
-cp "$AOK_CONTENT"/Files/login.loop /bin
-cp "$AOK_CONTENT"/Files/login.once /bin
-
-# chmod +x /bin/login.alpine
-chmod +x /bin/login.loop
-chmod +x /bin/login.once
-
-#
-#  3.16 no longer has a separate login binary, it just soft links to busybox
-#  and fails when running the alternate login bins. Just keeps printing
-#  the login promppt in an endless loop
-#
-if [ -h /bin/login ]; then
-    echo
-    echo "WARNING: Alpine $ALPINE_RELEASE does not support changing login method"
-    echo
-else
-    mv /bin/login /bin/login.alpine
-
-    if ! /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"; then
-        echo "ERROR: Failed to set up INITIAL_LOGIN_MODE [$INITIAL_LOGIN_MODE]"
-        exit 1
-    fi
-fi
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
 #
 if [ ! -x /bin/login ]; then
-    echo "ERROR: no run-able /bin/login present!"
+    echo
+    echo "CRITICAL ERROR!!: no run-able /bin/login present!"
+    echo
     exit 1
 fi
 
 
 echo
 echo "=====  AOK FS is ready  ====="
-if [ "$build_env" -eq 1 ]; then
-    echo "Please restart the app for changes to take full effect!"
+echo
+
+
+if [ -n "$dest_platform_env" ]; then
     echo
+    echo "---  Running final first boot tasks  ---"
+    echo
+    # Give it any param, so that it doesn't fork and run in the background...
+    /usr/local/sbin/post_boot.sh foreground
 fi
 
 #
