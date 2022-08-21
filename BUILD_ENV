@@ -65,7 +65,7 @@ ADDITIONAL_TASKS_SCRIPT="/etc/opt/additional_tasks"
 #  How long the introduction should be displayed when the system is setup
 #  during first boot
 #
-FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=1  # >> reset to 15 !!!
+FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=15
 
 
 #
