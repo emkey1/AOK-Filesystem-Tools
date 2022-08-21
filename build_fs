@@ -9,7 +9,7 @@
 #  Primary purpose is to create iSH-AOK file systems, but can also be used
 #  to create bare-bones Alpine-Linux file systems.
 #
-version="1.3.3"
+version="1.3.4"
 
 
 #  shellcheck disable=SC1007
@@ -27,6 +27,13 @@ cd "$fs_build_d" || exit 1
 # shellcheck disable=SC1091
 . ./BUILD_ENV
 
+aok_FS_mods=false
+skip_AOK_Files=false
+aok_FS_do_compress=true
+FS_compress_verbose=false
+
+aok_files="$BUILD_ROOT_D/$AOK_CONTENT"
+
 
 show_help() {
     cat <<EOF
@@ -36,23 +43,23 @@ Usage: $prog_name [-h] [-v] [-c] [-m] [-M]
 
 This builds the iSH-AOK filesystem.
 
-Be aware that creating the FS mods can only complete on iSH or Linux (x86)!
-On all other platforms the FS image can be prepared, but the aok adoptions
-will have to be run inside iSH once it has booted the resulting FS.
+Default is to setup a minimal FS to be completed when deployed, this creates
+far smaller image files, at the cost of taking a couple of minutes to complete
+on the device upon first boot.
 
 Available options:
 
 -h  --help         Print this help and exit.
 -v  --version      Show version and exit.
+-p  --prebuilt     Build the entire FS on the running platform, making for quicker
+                   imports on target device, but 10 times larger image files.
+                   This can only be done on iSH or Linux (x86)!
 -c  --no_compress  Terminates when FS is prepared, giving you the opportunity to
                    chroot into it and do your personal adaptations.
                    Instructions about this procedure and howto then complete
                    the build once done will be displayed at the end of the build.
 -z  --zip-progress Display progrss as FS is being compressed.
--m  --no_mods      Generate clean rootfs, without applying AOK mods, $AOK_CONTENT
-                   will still be populated, and on first boot $SETUP_AOK_FS
-                   will be run to complete the deploy.
--M                 Create an unmodified FS, don't even copy $AOK_CONTENT
+-u                 Create an unmodified FS, don't even copy $AOK_CONTENT
 EOF
     exit 0
 }
@@ -61,217 +68,225 @@ show_version() {
     echo "$prog_name $version"
 }
 
+parse_arguments() {
+    while [ -n "$1" ]; do
 
-first_boot_aok_complete() {
-    echo "---  first_boot_aok_complete()   ---"
-    #pe=$(echo $FBA_TASKS )
-    sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
-        "$aok_files"/Files/profile.aok-complete >  "$BUILD_ROOT_D"/etc/profile
-    echo "---  copied /etc/profile forcing aok_setup_fs to be run  ---"
+        case "$1" in
+
+            "-h" | "--help" ) show_help ;;
+
+            "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
+
+            "-c" |  "--no_compress" )
+                aok_FS_do_compress=false
+                shift
+                ;;
+
+            "-z" | "--zip-progress" )
+                FS_compress_verbose=true
+                shift
+                ;;
+
+            "-p" | "--prebuilt" )
+                aok_FS_mods=true
+                shift
+                ;;
+
+            "-u" )
+                skip_AOK_Files=true
+                aok_FS_mods=false
+                shift
+                ;;
+
+            *)
+                echo "ERROR: bad param, try -h"
+                exit 1
+                ;;
+        esac
+
+    done
+}
+
+display_build_env() {
     #
-    #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-    #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
-    #  one makes sence.
+    #  Displaying build environment
     #
-    rm "$BUILD_ROOT_D"/etc/motd
-    echo "---  removed initial /etc/motd from new filesystem  ---"
+    [ "$build_env" -eq 1 ] && run_mode="Building on iSH"
+    [ "$build_env" -eq 2 ] && run_mode="Building on x86 Linux"
+
+    if ! $aok_FS_mods ; then
+        run_mode="Will not chroot"
+        if $skip_AOK_Files; then
+            run_mode="$run_mode, will not copy $AOK_CONTENT files"
+        else
+            run_mode="$run_mode, $AOK_CONTENT files will be copied"
+        fi
+    elif [ "$build_env" -eq 0 ]; then
+        echo "Unfortunately you can not chroot into the image on this device"
+        echo "This is only supported on iSH and Linux(x86)"
+        echo "You must build using -m or -M on this platform (try -h for help)"
+        exit 1
+    fi
+    echo "=====  Run mode: $run_mode  ====="
+
+
+    if [ "$(whoami)" != "root" ]; then
+        # Must come after help display, to avoid infinite loop
+        echo "ERROR: This must be run as root or using sudo!"
+        echo
+        "$fs_build_d/$prog_name" -h
+        exit 1
+    fi
+
+
+    if      mount | grep -q "$BUILD_ROOT_D" || \
+            [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+        echo "ERROR: Active chroot session detected!"
+        echo "       If this is due to a crash or abort, you can clear it by running:"
+        echo "         sudo ./tools/do_chroot.sh -c"
+        echo
+        exit 1
+    fi
+
+
+    echo
+    echo "=====  Building a $ALPINE_RELEASE  filesystem  ====="
+
+    if ! $aok_FS_do_compress ; then
+        echo "*** Will not create the compressed image! ***"
+    fi
+}
+
+clear_build_env() {
+    #
+    # Clear build env
+    #
+    if ! rm -rf "$BUILD_BASE_D"; then
+        echo
+        echo "ERROR: Could not clear $BUILD_BASE_D"
+        echo
+        exit 1
+    fi
+}
+
+cache_miniroot_fs() {
+    #
+    #  Create miniroot fs cache dir if not present, cd to it and if download
+    #  miniroot fs if not cached
+    #
+    if [ ! -d "$MINIROOT_FS_CACHE_D" ]; then
+        mkdir -p "$MINIROOT_FS_CACHE_D"
+    fi
+    cd "$MINIROOT_FS_CACHE_D" || exit 1
+
+    # Download the Alpine miniroot if we need to
+    if [ ! -f "$MINIROOT_FS" ]; then
+        echo "Caching miniroot"
+        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_FS"
+    fi
+}
+
+copy_AOK_to_fs() {
+    #
+    #  Copy AOK content to destination
+    #
+
+    cp -pR "$fs_build_d"/ "$aok_files"
+    #
+    #  Remove stuff that should not be there
+    #
+    rm -f  "$aok_files"/README.md
+    rm -f  "$aok_files"/TODO.md
+    rm -rf "$aok_files"/.git*
+
+    # #
+    # #  Move the AOK stuff into /AOK
+    # #
+    # aok_files="$BUILD_ROOT_D/$AOK_CONTENT"
+
+    # mkdir "$aok_files"
+
+    # mv "$BUILD_ROOT_D"/BUILD_ENV         "$aok_files"
+    # mv "$BUILD_ROOT_D"/AOK_VARS          "$aok_files"
+
+    # mv "$BUILD_ROOT_D"/build_fs          "$aok_files"
+    # mv "$BUILD_ROOT_D"/aok_setup_fs      "$aok_files"
+    # mv "$BUILD_ROOT_D"/compress_image    "$aok_files"
+    # mv "$BUILD_ROOT_D"/LICENSE           "$aok_files"
+    # mv "$BUILD_ROOT_D"/Files             "$aok_files"
+    # mv "$BUILD_ROOT_D"/Docs              "$aok_files"
+    # mv "$BUILD_ROOT_D"/tools             "$aok_files"
+
+    chown -R root: "$aok_files"
+
+    unset d_aok
+}
+
+add_additional_tasks_if_defined() {
+    #
+    #  If defined, append additional tasks
+    #
+    mkdir -p "$BUILD_ROOT_D/etc/opt"
+    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+        {
+            echo "#!/bin/sh"
+            echo "$FIRST_BOOT_ADDITIONAL_TASKS"
+        }  > "$BUILD_ROOT_D/$ADDITIONAL_TASKS_SCRIPT"
+        chmod 755 "$BUILD_ROOT_D/$ADDITIONAL_TASKS_SCRIPT"
+        echo "---  setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $ADDITIONAL_TASKS_SCRIPT  ---"
+    fi
 }
 
 first_boot_fbat() {
     echo "---  first_boot_fbat()   ---"
     [ -z "$FIRST_BOOT_ADDITIONAL_TASKS" ] && return
+    #
+    #  Only set up a custom first boot handler, if there were user defined
+    #  tasks to be run.
+    #
+
+    #  /etc/profile will be restored just before the additional tasks
+    #  are run, this saves it to a in this context known name
     mv "$BUILD_ROOT_D"/etc/profile "$BUILD_ROOT_D"/etc/profile.real
-    sed "s#FIRST_BOOT_ADDITIONAL_TASKS#$FIRST_BOOT_ADDITIONAL_TASKS#" \
-        "$fs_build_d"/Files/profile.fbat >  "$BUILD_ROOT_D"/etc/profile
-    echo "---  copied /etc/profile forcing FIRST_BOOT_ADDITIONAL_TASKS to be run  ---"
-    #
-    #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-    #  Since aok_setup_fs will create an AOK relevant motd, deleting the default
-    #  one makes sence.
-    #
-    rm "$BUILD_ROOT_D"/etc/motd
-    echo "---  removed initial /etc/motd from new filesystem  ---"
+
+    cp "$fs_build_d"/Files/profile.fbat "$BUILD_ROOT_D"/etc/profile
 }
 
-aok_FS_mods=true
-skip_AOK_Files=false
-aok_FS_do_compress=true
-FS_compress_verbose=false
-
-while [ -n "$1" ]; do
-
-    case "$1" in
-
-        "-h" | "--help" ) show_help ;;
-
-        "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
-
-        "-c" |  "--no_compress" )
-            aok_FS_do_compress=false
-            shift
-            ;;
-
-        "-z" | "--zip-progress" )
-            FS_compress_verbose=true
-            shift
-            ;;
-
-        "-m" | "--no_mods" )
-            aok_FS_mods=false
-            shift
-            ;;
-
-        "-M" )
-            skip_AOK_Files=true
-            aok_FS_mods=false
-            shift
-            ;;
-
-        *)
-            echo "ERROR: bad param, try -h"
-            exit 1
-            ;;
-    esac
-
-done
+first_boot_aok_complete() {
+    echo "---  first_boot_aok_complete()   ---"
+    cp "$aok_files"/Files/profile.aok-complete "$BUILD_ROOT_D"/etc/profile
+    echo "---  custom /etc/profile forcing aok_setup_fs to be run on first boot  ---"
+}
 
 
+
+#===============================================================
 #
-#  Displaying build environment
+#   Main
 #
-[ "$build_env" -eq 1 ] && run_mode="Building on iSH"
-[ "$build_env" -eq 2 ] && run_mode="Building on x86 Linux"
+#===============================================================
 
-if ! $aok_FS_mods ; then
-    run_mode="Will not chroot"
-    if $skip_AOK_Files; then
-        run_mode="$run_mode, will not copy $AOK_CONTENT files"
-    else
-        run_mode="$run_mode, $AOK_CONTENT files will be copied"
-    fi
-elif [ "$build_env" -eq 0 ]; then
-    echo "Unfortunately you can not chroot into the image on this device"
-    echo "This is only supported on iSH and Linux(x86)"
-    echo "You must build using -m or -M on this platform (try -h for help)"
-    exit 1
-fi
-echo "=====  Run mode: $run_mode  ====="
+parse_arguments "$@"
 
-
-if [ "$(whoami)" != "root" ]; then
-    # Must come after help display, to avoid infinite loop
-    echo "ERROR: This must be run as root or using sudo!"
-    echo
-    "$fs_build_d/$prog_name" -h
-    exit 1
-fi
-
-
-if      mount | grep -q "$BUILD_ROOT_D" || \
-        [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
-    echo "ERROR: Active chroot session detected!"
-    echo "       If this is due to a crash, you can clear it by running:"
-    echo "         sudo ./tools/do_chroot.sh -c"
-    echo
-    exit 1
-fi
-
-
-echo
-echo "=====  Building a $ALPINE_RELEASE  filesystem  ====="
-
-if ! $aok_FS_do_compress ; then
-    echo "*** Will not create the compressed image! ***"
-fi
-
+display_build_env
 
 echo
 echo "---  Preparing build environment  ---"
 
-#
-# Clear build env
-if ! rm -rf "$BUILD_BASE_D"; then
-    echo
-    echo "ERROR: Could not clear $BUILD_BASE_D"
-    echo
-    exit 1
-fi
+clear_build_env
+cache_miniroot_fs
 
-# Download the Alpine miniroot if we need to
-if [ ! -f "$MINIROOT_FS" ]; then
-    echo "Caching miniroot"
-    wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_FS"
-fi
-
-# Build in /tmp
 echo "---  Create $BUILD_ROOT_D, copy minirootfs  ---"
 mkdir -p "$BUILD_ROOT_D"
 
-
-#
-#  TODO: Normally I would have put the common part of the command in
-#  a variable to make sure they are in sync, but I just couldn't get that
-#  to work, some escapes needed?  Should be fixed
-#
-if [ "$build_env" -eq 1 ]; then
-    busybox tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_ROOT_D" || exit 1;tar xf -)
-else
-    tar cf - --exclude='.git' --exclude='./main' --exclude='./save' . | (cd "$BUILD_ROOT_D" || exit 1;tar xf -)
-fi
-
 cd "$BUILD_ROOT_D" || exit 1
-
-# Unzip Alpine, remove tar.gz
-gunzip -c "$MINIROOT_FS" | tar xf -
-
-# remove instance inside build dir
-rm "$BUILD_ROOT_D"/alpine-minirootfs-*
-
-
-# We need a valid resolv.conf
-cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
-
-
-
-
-#
-#  Get rid of files that should not be on dest FS
-#
-rm "$BUILD_ROOT_D"/README.md
-rm "$BUILD_ROOT_D"/TODO.md
-rm "$BUILD_ROOT_D"/.gitignore
-
-
-aok_files="$BUILD_ROOT_D/$AOK_CONTENT"
-
-mkdir "$aok_files"
-
-mv "$BUILD_ROOT_D"/BUILD_ENV         "$aok_files"
-mv "$BUILD_ROOT_D"/AOK_VARS          "$aok_files"
-
-#  busybox-extras no longer a package starting with 3.16, so delete if present
-if [ "$ALPINE_RELEASE" \> "3.15" ]; then
-    echo "removing busybox-extras from core apks, not available past 3.15"
-    sed -i "s/busybox\-extras//" "$aok_files"/AOK_VARS
-fi
-
-mv "$BUILD_ROOT_D"/build_fs          "$aok_files"
-mv "$BUILD_ROOT_D"/aok_setup_fs      "$aok_files"
-mv "$BUILD_ROOT_D"/compress_image    "$aok_files"
-mv "$BUILD_ROOT_D"/LICENSE           "$aok_files"
-mv "$BUILD_ROOT_D"/Files             "$aok_files"
-mv "$BUILD_ROOT_D"/Docs              "$aok_files"
-mv "$BUILD_ROOT_D"/tools             "$aok_files"
-
-chown -R root: "$aok_files"
-
+tar xfz "$MINIROOT_FS_CACHE_D"/"$MINIROOT_FS"
 
 if $skip_AOK_Files ; then
-    # Do this late, when everything going away is already in one single place
-    rm -rf "$aok_files"
     echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
     first_boot_fbat
 else
+    copy_AOK_to_fs
     echo "---  Stored $AOK_CONTENT on new filesystem  ---"
 
     if ! $aok_FS_mods ; then
@@ -279,17 +294,33 @@ else
     fi
 fi
 
+
+#
+#  Alpine initial motd suggests running setup-alpine. Not available on iSH
+#  Since aok_setup_fs will create an AOK relevant motd, deleting the default
+#  one makes sence.
+#
+rm "$BUILD_ROOT_D"/etc/motd
+echo "---  removed initial /etc/motd from new filesystem  ---"
+
+
 # Should always happen
 echo "---  created directory /iCloud inside new filesystem   ---"
 mkdir "$BUILD_ROOT_D"/iCloud
 
 
+add_additional_tasks_if_defined
 
 if $aok_FS_mods ; then
     #
     # chrooting and doing setup
     #
+    # We need a valid resolv.conf for the chrooted env to be able to do networking
+    cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
+    echo "---  copied host /etc/resolve.conf to new filesystem  ---"
+
     # dedicated chroot app
+    #if ! "$fs_build_d"/tools/do_chroot.sh "$SETUP_AOK_FS"; then
     if ! "$fs_build_d"/tools/do_chroot.sh "$SETUP_AOK_FS"; then
         echo "ERROR in chroot, aborting build!"
         exit 1
