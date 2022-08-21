@@ -127,12 +127,19 @@ if [ -e /etc/FIRSTBOOT ]; then
     rc-update add dcron
     rc-service dcron restart
 
+    #
+    #  Do this before run_additional_tasks_if_found to avoid getting stuck
+    #  if the FIRST_BOOT_ADDITIONAL_TASKS does a sudo or something else
+    #  processing /etc/profile. In such a case that process would otherwise
+    #  get stuck forever, waiting for this file to be removed.
+    #
+    rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
+
     run_additional_tasks_if_found
 
     echo
     echo "FIRSTBOOT tasks done"
 
-    rm /etc/FIRSTBOOT # Only do this stuff once, so remove the file now
 fi
 
 
