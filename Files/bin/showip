@@ -4,8 +4,8 @@ INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
 echo "Internet IP: $INT_IP"
 
-if [ -f "/proc/ish/network" ]; then
-    OUTPUT=$(cat /proc/ish/network | grep en0 | grep -v INET6)
+if [ -f "/proc/ish/ips" ]; then
+    OUTPUT=$(cat /proc/ish/ips | grep en0 | grep -v INET6)
     OUTPUT_ARRAY=($OUTPUT)
     LOCAL_IP=${OUTPUT_ARRAY[1]}
 else
