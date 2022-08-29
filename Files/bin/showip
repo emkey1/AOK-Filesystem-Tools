@@ -1,11 +1,15 @@
-#!/bin/sh
-
-echo "This only works properly with wireless connections for now"
+#!/bin/bash
 
 INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
 echo "Internet IP: $INT_IP"
 
-LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
+if [ -f "/proc/ish/network" ]; then
+    OUTPUT=$(cat /proc/ish/network | grep en0 | grep -v INET6)
+    OUTPUT_ARRAY=($OUTPUT)
+    LOCAL_IP=${OUTPUT_ARRAY[1]}
+else
+    LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
+fi
 
-echo "Local IP:$LOCAL_IP"
+echo "Local IP: $LOCAL_IP"
