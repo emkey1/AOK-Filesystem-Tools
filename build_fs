@@ -447,7 +447,7 @@ if $aok_FS_do_compress ; then
     fi
 
     #  shellcheck disable=SC2086
-    if ! "$AOK_CONTENT"/compress_image $label "$extra_params"; then
+    if ! "$AOK_CONTENT"/compress_image $label $extra_params; then
         error_msg "detected in compress_image"
     fi
 else
