@@ -314,6 +314,7 @@ setup_Alpine_in_advance() {
     #
     # chrooting and doing setup
     #
+    msg_1 "Pre-building FS"
     if ! "$AOK_CONTENT"/tools/do_chroot.sh "$SETUP_ALPINE_FS"; then
         error_msg "in chroot, aborting build!"
     fi
