@@ -66,7 +66,6 @@ checkables=(
     common_AOK/usr_local_bin/pbcopy
     common_AOK/usr_local_bin/toggle_multicore
     common_AOK/usr_local_bin/version
-    common_AOK/usr_local_sbin/update_motd
     common_AOK/first_boot.sh
     common_AOK/setup_common_env.sh
 
