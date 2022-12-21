@@ -1,5 +1,6 @@
 #!/bin/sh
 # this is sourced, shebang just to hint editors since no extension
+# shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -28,11 +29,10 @@ if ! is_aok_kernel; then
     #  aok dependent bins serve no purpose on this platform, delete
     #
     # In this case we want the variable to expand into its components
-    # shellcheck disable=SC2086,SC2154
+    # shellcheck disable=SC2086
     apk del $AOK_APKS
 fi
 
-# shellcheck disable=SC2154
 select_profile "$PROFILE_ALPINE"
 
 build_status_clear "$STATUS_BEING_BUILT"
