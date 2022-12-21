@@ -103,7 +103,7 @@ build_status_get() {
 
     esac
 
-    [ -z "$2" ] && msg_3 "build_status_get($1) $status"
+    # [ -z "$2" ] && msg_3 "build_status_get($1) $status"
     unset status
     return "$exitstatus"
 }
