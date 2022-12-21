@@ -95,14 +95,14 @@ if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
 fi
 
 if [ -z "$tar_name" ]; then
-    tar_ball="$AOK_FS"
+    tarball="$AOK_FS"
 else
-    tar_ball="${tar_name}"
+    tarball="${tar_name}"
 fi
 
 
 # set location
-tar_ball="$BUILD_BASE_D/$tar_ball"
+tarball="$BUILD_BASE_D/$tarball"
 
 
 # echo "removing temp /dev items"
@@ -117,10 +117,10 @@ cd "$BUILD_ROOT_D" || exit 99
 
 if $use_bzip2 ; then
     opts="cfj"
-    ext="tar.bz2"
+    tarball="${tarball}.tar.bz2"
 else
     opts="cfz"
-    ext="tgz"
+    tarball="${tarball}.tgz"
 fi
 
 if $verbose ; then
@@ -128,7 +128,7 @@ if $verbose ; then
 fi
 
 
-tar "$opts" "${tar_ball}.$ext" .
+tar "$opts" "$tarball" .
 
 #
 # copy it to /iCloud if this runs on iSH
@@ -136,12 +136,12 @@ tar "$opts" "${tar_ball}.$ext" .
 if is_ish ; then
     msg_2 "Copying image into $ICLOUD_ARCHIVE_D"
     mkdir -p "$ICLOUD_ARCHIVE_D"
-    cp "$tar_ball" "$ICLOUD_ARCHIVE_D"
+    cp "$tarball" "$ICLOUD_ARCHIVE_D"
 fi
 echo
 
 
-msg_1 "Image is ready: $tar_ball"
+msg_1 "Image is ready: $tarball"
 
 
 exit 0 #  Avoid exiting with error if above file did not exist
