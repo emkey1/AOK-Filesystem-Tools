@@ -301,15 +301,16 @@ ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
 
 
 #
-#  First profiles used during 1st boot to finalize setup
+#  First profiles used during boot to finalize setup
 #  Lastly the final profiles, depending on Distribution
+#  Using variables in order to only have to assign filenames in one place
 #
 PROFILE_ALPINE_PRE_BUILT="$AOK_CONTENT"/Alpine/etc/profile.prebuilt-FS
 PROFILE_ALPINE_DEPLOY_ON_DEST="$AOK_CONTENT"/Alpine/etc/profile.build_on_dest
 PROFILE_CHOOSE_DISTRO="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
+PROFILE_DEBIAN_COMPLETE_DEPLOY="$AOK_CONTENT"/Debian/etc/profile.finish_setup
 PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
 PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
-PROFILE_DEBIAN_COMPLETE_DEPLOY="$AOK_CONTENT"/Debian/etc/profile.finish_setup
 
 
 #
