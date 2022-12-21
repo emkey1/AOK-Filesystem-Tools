@@ -48,10 +48,14 @@ cp -av /opt/AOK/Debian/etc/inittab /etc
 msg_2 "removing bad runbg if found"
 rm -f /etc/init.d/runbg
 
-msg_2 "Disabeling some services"
-disabeling_services rcS.d S01mountkernfs.sh
-disabeling_services rc2.d S01rsyslog S02cron S02rsync
-disabeling_services rc3.d S01rsyslog S02cron S02rsync
+#
+# Trying to balance what services can br removed whilst not causing system
+# to be unbootable, work in progress, so not activated yet...
+#
+# msg_2 "Disabeling some services"
+# disabeling_services rcS.d S01mountkernfs.sh
+# disabeling_services rc2.d S01rsyslog S02cron S02rsync
+# disabeling_services rc3.d S01rsyslog S02cron S02rsync
 
 msg_2 "apt update & upgrade"
 apt update && apt upgrade
