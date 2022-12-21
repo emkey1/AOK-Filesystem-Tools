@@ -64,18 +64,6 @@ EOF
     exit 0
 }
 
-ensure_usable_wget() {
-    msg_2 "ensure_usable_wget()"
-    if ls -l "$(command -v wget)" | grep -q busybox ; then
-        error_msg "You need to install a real wget, busybox does not handle redirects"
-    fi
-    # msg_3 "ensure_usable_wget()  done"
-}
-
-show_version() {  # Multi OK 1
-    echo "$prog_name $version"
-}
-
 parse_arguments() {  # Multi OK 1
     while [ -n "$1" ]; do
 
@@ -83,7 +71,7 @@ parse_arguments() {  # Multi OK 1
 
             "-h" | "--help" ) show_help ;;
 
-            "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
+            "-v" | "-V" | "--version" ) show_version ;;
 
             "-d" | "--debian" )
                 build_debian_FS=true
@@ -125,6 +113,19 @@ parse_arguments() {  # Multi OK 1
         esac
 
     done
+}
+
+show_version() {  # Multi OK 1
+    echo "$prog_name $version"
+    exit 0
+}
+
+ensure_usable_wget() {
+    msg_2 "ensure_usable_wget()"
+    if ls -l "$(command -v wget)" | grep -q busybox ; then
+        error_msg "You need to install a real wget, busybox does not handle redirects"
+    fi
+    # msg_3 "ensure_usable_wget()  done"
 }
 
 display_build_env() {  # Multi OK 1
