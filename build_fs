@@ -25,11 +25,11 @@ prog_name=$(basename "$0")
 #  shellcheck disable=SC1007
 cd "$AOK_CONTENT" || exit 1
 
-build_debian_FS=false            # true means build Debian FS
+verbose=false              # true displays tar/untar progress
+build_debian_FS=false      # true means build Debian FS
 distro_select=false        # true means choose between Alpine and Debian
 pre_build_FS=false         # true meand generat4 pre-built FS
 aok_FS_do_compress=true    # compress FS at end of build_fs
-FS_compress_verbose=false  # Do tar -v
 
 aok_files="${BUILD_ROOT_D}${AOK_CONTENT}"
 
@@ -49,7 +49,8 @@ on the device upon first boot.
 Available options:
 
 -h  --help         Print this help and exit.
--v  --version      Show version and exit.
+-V  --version      Show version and exit.
+-v  --verbose      Displays extra info, like untaring/taring progress
 -s  --select       Offer selection between Alpine & Debian on first boot.
 -d  --debian       Build a Debian FS.
 -p  --prebuilt     Build the entire FS on the running platform, making for quicker
@@ -59,7 +60,6 @@ Available options:
                    chroot into it and do your personal adaptations.
                    Instructions about this procedure and howto then complete
                    the build once done will be displayed at the end of the build.
--z  --zip-progress Display progrss as FS is being compressed.
 EOF
     exit 0
 }
@@ -71,7 +71,12 @@ parse_arguments() {  # Multi OK 1
 
             "-h" | "--help" ) show_help ;;
 
-            "-v" | "-V" | "--version" ) show_version ;;
+            "-V" | "--version" ) show_version ;;
+
+            "-v" | "--verbose" )
+                verbose=true
+                shift
+                ;;
 
             "-d" | "--debian" )
                 build_debian_FS=true
@@ -98,11 +103,6 @@ parse_arguments() {  # Multi OK 1
 
             "-c" |  "--no_compress" )
                 aok_FS_do_compress=false
-                shift
-                ;;
-
-            "-z" | "--zip-progress" )
-                FS_compress_verbose=true
                 shift
                 ;;
 
@@ -371,7 +371,12 @@ if $build_debian_FS ; then
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
     msg_2 "Extracting Debian tarball"
-    tar xfj "$DEBIAN_FS_CACHE_D/$DEBIAN_FS" || {
+    if $verbose ; then
+        options="xfvj"
+    else
+        options="xfj"
+    fi
+    tar "$options" "$DEBIAN_FS_CACHE_D/$DEBIAN_FS" || {
         echo "ERROR: Failed to untar Debian-fs"
         echo
         echo "Try to remove the cached file and run this again"
@@ -383,7 +388,12 @@ else
     cache_miniroot_fs
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
-    tar xfz "$MINIROOT_FS_CACHE_D"/"$MINIROOT_FS" || {
+    if $verbose ; then
+        options="xfvz"
+    else
+        options="xfz"
+    fi
+    tar "$options" "$MINIROOT_FS_CACHE_D"/"$MINIROOT_FS" || {
         echo "ERROR: Failed to untar root-fs"
         echo
         echo "Try to remove the cached file and run this again"
@@ -426,10 +436,10 @@ msg_1 "The filesystem is ready!"
 #  Consider to generate a tarball
 #
 if $aok_FS_do_compress ; then
-    if $FS_compress_verbose ; then
-        verbose="-z"
+    if $verbose ; then
+        extra_param="-z"
     else
-        verbose=""
+        extra_param=""
     fi
 
     if $build_debian_FS ; then
@@ -442,7 +452,7 @@ if $aok_FS_do_compress ; then
     fi
 
     #  shellcheck disable=SC2086
-    if ! "$AOK_CONTENT"/compress_image $label "$verbose"; then
+    if ! "$AOK_CONTENT"/compress_image $label "$extra_param"; then
         error_msg "detected in compress_image"
     fi
 else
