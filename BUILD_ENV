@@ -131,12 +131,7 @@ select_profile() {
     #  will not be kept, in fact removed if present
     #
     replacement_profile="$1"
-    # if [ -n "$2" ]; then
-    #     keep_org=false
-    # else
-    #     keep_org=true
-    # fi
-    msg_2 "select_profile($replacement_profile)"
+    # msg_2 "select_profile($replacement_profile)"
     if [ -z "$replacement_profile" ]; then
         error_msg "select_profile() - no param"
     fi
@@ -244,12 +239,12 @@ BUILD_STATUS_RAW="/etc/opt/AOK"
 #
 if build_status_get "$STATUS_IS_CHROOTED" ; then
     BUILD_ROOT_D=""
-    msg_1 "This is chrooted"
+    msg_3 "This is chrooted"
 elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT" ; then
     BUILD_ROOT_D=""
-    msg_1 "This is running on dest platform"
+    msg_3 "This is running on dest platform"
 else
-    msg_1 "Not chrooted, not dest platform"
+    msg_3 "Not chrooted, not dest platform"
     BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
 fi
 
