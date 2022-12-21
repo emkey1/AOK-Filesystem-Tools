@@ -50,8 +50,4 @@ sleep "$FIRST_BOOT_INTRODUCTION_DISPLAY_TIME"
 msg_1 "Running $SETUP_ALPINE_FS"
 "$SETUP_ALPINE_FS"
 
-select_profile "$PROFILE_ALPINE"
-
-run_additional_tasks_if_found
-
 msg_1 "Your system is setup! Please reboot / restart app"

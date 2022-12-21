@@ -116,6 +116,7 @@ show_version() {  # Multi OK 1
 
 ensure_usable_wget() {
     msg_2 "ensure_usable_wget()"
+    #  shellcheck disable=SC2010
     if ls -l "$(command -v wget)" | grep -q busybox ; then
         error_msg "You need to install a real wget, busybox does not handle redirects"
     fi
@@ -316,7 +317,6 @@ setup_Alpine_in_advance() {
     if ! "$AOK_CONTENT"/tools/do_chroot.sh "$SETUP_ALPINE_FS"; then
         error_msg "in chroot, aborting build!"
     fi
-
     select_profile "$PROFILE_ALPINE_PRE_BUILT"
 }
 

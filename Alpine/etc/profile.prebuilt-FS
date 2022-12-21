@@ -35,10 +35,4 @@ fi
 # shellcheck disable=SC2154
 select_profile "$PROFILE_ALPINE"
 
-run_additional_tasks_if_found
-
 msg_1 "Your system is setup! Please reboot / restart app"
-
-#  Maybe, needs to end on a row longer than /Alpinr/etc/progile (84)
-#  in order not to coninue in that file after doing this one,
-#  and exit cant be used since /etc/profile is sourced

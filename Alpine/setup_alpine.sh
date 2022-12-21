@@ -259,3 +259,7 @@ msg_1 "Running $SETUP_COMMON_AOK"
 
 msg_1 "running $SETUP_ALPINE_FINAL"
 "$SETUP_ALPINE_FINAL"
+
+select_profile "$PROFILE_ALPINE"
+
+run_additional_tasks_if_found
