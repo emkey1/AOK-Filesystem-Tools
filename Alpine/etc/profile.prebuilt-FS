@@ -35,4 +35,6 @@ fi
 # shellcheck disable=SC2154
 select_profile "$PROFILE_ALPINE"
 
+build_status_clear "$STATUS_BEING_BUILT"
+
 msg_1 "Your system is setup! Please reboot / restart app"

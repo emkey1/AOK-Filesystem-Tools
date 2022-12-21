@@ -319,6 +319,12 @@ setup_Alpine_in_advance() {
         error_msg "in chroot, aborting build!"
     fi
     select_profile "$PROFILE_ALPINE_PRE_BUILT"
+
+    #
+    #  Since some final steps need to run by the above profile
+    #  mark the FS as in build state
+    #
+    build_status_set "$STATUS_BEING_BUILT"
 }
 
 setup_Alpine_on_1st_boot() {
