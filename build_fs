@@ -64,6 +64,14 @@ EOF
     exit 0
 }
 
+ensure_usable_wget() {
+    msg_2 "ensure_usable_wget()"
+    if ls -l "$(command -v wget)" | grep -q busybox ; then
+        error_msg "You need to install a real wget, busybox one is not usable"
+    fi
+    # msg_3 "ensure_usable_wget()  done"
+}
+
 show_version() {  # Multi OK 1
     echo "$prog_name $version"
 }
@@ -184,6 +192,8 @@ cache_miniroot_fs() {  # Multi OK 1
     #  Create miniroot fs cache dir if not present, cd to it and if download
     #  miniroot fs if not cached
     #
+    ensure_usable_wget
+
     if [ ! -d "$MINIROOT_FS_CACHE_D" ]; then
         mkdir -p "$MINIROOT_FS_CACHE_D"
     fi
@@ -199,6 +209,8 @@ cache_miniroot_fs() {  # Multi OK 1
 
 cache_Debian_fs() {
     msg_2 "cache_Debian_fs()"
+    ensure_usable_wget
+
     if [ ! -d "$DEBIAN_FS_CACHE_D" ]; then
         mkdir -p "$DEBIAN_FS_CACHE_D"
     fi
