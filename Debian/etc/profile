@@ -1,0 +1,48 @@
+#!/bin/sh
+# Fake bangpath to trick linters and editors
+
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+if [ "$(id -u)" -eq 0 ]; then
+  PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+else
+  PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
+fi
+export PATH
+
+if [ "$(id -u)" -eq 0 ] && [ ! -e /etc/opt/AOK/is_chrooted ]; then
+    # Only run when root and not chrooted
+    /usr/local/bin/fix_dev
+fi
+
+
+if [ -n "${PS1-}" ]; then
+  if [ -n "${BASH-}" ] && [ "$BASH" != "/bin/sh" ]; then
+    # The file bash.bashrc already sets the default PS1.
+    # PS1='\h:\w\$ '
+    if [ -f /etc/bash.bashrc ]; then
+      #  shellcheck disable=SC1091
+      . /etc/bash.bashrc
+    fi
+  else
+    if [ "$(id -u)" -eq 0 ]; then
+      PS1='# '
+    else
+      PS1='$ '
+    fi
+  fi
+fi
+
+if [ -d /etc/profile.d ]; then
+  for i in /etc/profile.d/*.sh; do
+    if [ -r "$i" ]; then
+      #  shellcheck disable=SC1090
+      . "$i"
+    fi
+  done
+  unset i
+fi
+
+# Be sure to set the locale
+export LANG=C.UTF-8

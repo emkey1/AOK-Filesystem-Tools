@@ -1,0 +1,44 @@
+#!/bin/sh
+# this is sourced, shebang just to hint editors since no extension
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#
+#  This profile will be used as first boot on regular builds, to complete the AOK
+#  setup
+#
+#  AOK_COMPLETION_ON_TARGET
+#  If this is present in /etc/profile, we can assume we are running on the
+#  target system during first boot, and this is not a chrooted pre-build,
+#  the detected env is what will be used.
+#
+
+# shellcheck disable=SC1091
+. /opt/AOK/BUILD_ENV
+
+
+msg_1 "Running first boot tasks"
+
+if ! is_aok_kernel; then
+    msg_2 "Removing apps that depend on the iSH-AOK kernel"
+    #
+    #  aok dependent bins serve no purpose on this platform, delete
+    #
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086,SC2154
+    apk del $AOK_APKS
+fi
+
+# shellcheck disable=SC2154
+select_profile "$PROFILE_ALPINE"
+
+run_additional_tasks_if_found
+
+msg_1 "Your system is setup! Please reboot / restart app"
+
+#  Maybe, needs to end on a row longer than /Alpinr/etc/progile (84)
+#  in order not to coninue in that file after doing this one,
+#  and exit cant be used since /etc/profile is sourced

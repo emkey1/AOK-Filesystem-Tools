@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+
+tmux new-session -s "My iPhone" -d
+tmux split-window -v
+tmux -2 attach-session -d

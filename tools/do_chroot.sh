@@ -1,4 +1,6 @@
 #!/bin/sh
+# shellcheck disable=SC2154
+
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -9,49 +11,39 @@
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.
 #
-version="1.3.0"
-
-#  shellcheck disable=SC1007
-CURRENT_D=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-fs_build_d="$(dirname "$CURRENT_D")"
-prog_name=$(basename "$0")
-
-echo "$prog_name, version $version"
-echo
-
+version="1.4.0a"
 
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure BUILD_ENV can be found
 #
-cd "$fs_build_d" || exit 1
+cd /opt/AOK || exit 99
 
 # shellcheck disable=SC1091
-. ./BUILD_ENV
+. /opt/AOK/BUILD_ENV
+
+prog_name=$(basename "$0")
 
 
 CHROOT_TO="$BUILD_ROOT_D"
 
 
 if [ "$(whoami)" != "root" ]; then
-    echo "ERROR: This must be run as root or using sudo!"
-    echo
-    exit 1
+    error_msg "This must be run as root or using sudo!"
 fi
 
 
 
 env_prepare() {
-    echo "=====  Preparing the environment for chroot  ====="
-    echo
+    msg_2 "Preparing the environment for chroot"
 
 
-    echo "---  Mounting system resources  ---"
+    msg_3 "Mounting system resources"
 
     mount -t proc proc "$CHROOT_TO"/proc
 
-    if [ "$build_env" -eq 1 ]; then
-        echo "---  Setting up needed /dev items  ---"
+    if [ "$BUILD_ENV" -eq 1 ]; then
+        msg_3 "Setting up needed /dev items"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
         chmod 666 "$CHROOT_TO"/dev/null
@@ -62,25 +54,25 @@ env_prepare() {
         mknod "$CHROOT_TO"/dev/zero c 1 5
         chmod 666 "$CHROOT_TO"/dev/zero
     else
-        # mount -o bind /tmp "$CHROOT_TO"/tmp
         mount -t sysfs sys "$CHROOT_TO"/sys
         mount -o bind /dev "$CHROOT_TO"/dev
     fi
+    msg_3 "copying current /etc/resolv.conf"
+    cp /etc/resolv.conf "$CHROOT_TO/etc"
 }
 
 env_cleanup() {
-    echo
-    echo "=====  Doing some post chroot cleanup  ====="
+    msg_2 "Doing some post chroot cleanup"
 
-
-    echo "---  Un-mounting system resources  ---"
+    msg_3 "Un-mounting system resources"
 
     umount "$CHROOT_TO"/proc
 
-    if [ "$build_env" -eq 1 ]; then
-        echo "---  Removing the temp /dev entries"
+    if [ "$BUILD_ENV" -eq 1 ]; then
+        msg_3 "Removing the temp /dev entries"
         rm -f "$CHROOT_TO"/dev/*
     else
+        msg_3 "Unmounting /sys & /dev"
         # umount "$CHROOT_TO"/tmp
         umount "$CHROOT_TO"/sys
         umount "$CHROOT_TO"/dev
@@ -95,7 +87,8 @@ chroot with env setup so this works on both Linux & iSH
 
 Available options:
 
--h, --help     Print this help and exit
+-h  --help     Print this help and exit
+-v  --version  Display version and exit
 -c  --cleanup  Cleanup env
 -p, --path     What dir to chroot into, defaults to: $BUILD_ROOT_D
 command        What to run, defaults to "bash -l", command params must be quoted!
@@ -112,6 +105,12 @@ case "$1" in
         exit 0
         ;;
 
+    "-v" | "--version" )
+        echo "$prog_name, version $version"
+        echo
+        exit 0
+        ;;
+
     "-p" | "--path" )
         if [ -n "$2" ]; then
             CHROOT_TO="$2"
@@ -122,8 +121,7 @@ case "$1" in
             shift  # get rid of the option
             shift  # get rid of the dir
         else
-            echo "ERROR: -p assumes a param pointing to where to chroot!"
-            exit 1
+            error_msg "-p assumes a param pointing to where to chroot!"
         fi
         ;;
 
@@ -135,8 +133,7 @@ case "$1" in
     *)
         firstchar="$(echo "$1" | cut -c1-1)"
         if [ "$firstchar" = "-" ]; then
-            echo "ERROR: invalid option! Try using: -h"
-            exit 1
+            error_msg "invalid option! Try using: -h"
         fi
         ;;
 
@@ -153,16 +150,19 @@ else
     cmd="$1"
 fi
 
-echo
-echo "=====  chrooting to: $CHROOT_TO ($cmd)  ====="
+msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-# In this case we want the $cmd variable to expand into its components
-# shellcheck disable=SC2086
+build_status_set "$STATUS_IS_CHROOTED"
+
+#  In this case we want the $cmd variable to expand into its components
+#  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
 exit_code="$?"
 
+build_status_clear "$STATUS_IS_CHROOTED"
 
 env_cleanup
 
+echo
 # If there was an error in the chroot process, propagate it
 exit "$exit_code"

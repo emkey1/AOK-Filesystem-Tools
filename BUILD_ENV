@@ -1,35 +1,197 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
-#  shellcheck disable=SC2034
-
+#  shellcheck disable=SC2034,SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#
 #  Environment variables used when building the AOK-FS
 #
 
+#
+#  To make things simple, this is the expected location for AOK-Filesystem-tools
+#  both on build and iSH systems
+#
+AOK_CONTENT="/opt/AOK"
+
+# Locations for building File systems
+BUILD_BASE_D="/tmp/AOK"
+
+
+#  shellcheck disable=SC1091
+. "$AOK_CONTENT"/AOK_VARS || exit 1
+
+
+error_msg() {
+    msg="$1"
+    exit_code="${2:-1}"
+    if [ -z "$msg" ]; then
+        echo
+        echo "error_msg() no param"
+        exit 9
+    fi
+    echo
+    echo "ERROR: $msg"
+    echo
+    [ "$exit_code" -ne 0 ] && exit "$exit_code"
+}
 
 #
-#  First case used when inside the Filesystem
-#  second case used during build
+#  The msg_ functions are ordered, lower number infers more important updates
+#  so they should stand out more
 #
-if [ -f ./AOK_VARS ]; then
-    . ./AOK_VARS || exit 1
+msg_1() {
+    [ -z "$1" ] && error_msg "msg_1() no param"
+    echo
+    echo "====  $1  ===="
+}
+
+msg_2() {
+    [ -z "$1" ] && error_msg "msg_2() no param"
+    echo "---  $1   ---"
+}
+
+msg_3() {
+    [ -z "$1" ] && error_msg "msg_3() no param"
+    echo "-> $1"
+}
+
+
+is_ish() {
+    test -d /proc/ish
+}
+
+is_aok_kernel() {
+    grep -qi aok /proc/ish/version 2> /dev/null
+}
+
+openrc_might_trigger_errors() {
+    echo
+    echo "You might see a few errors printed as services are activated."
+    echo "The iSH family doesn't fully support openrc yet, but the important parts work!"
+    echo
+}
+
+
+
+build_status_set() {
+    if [ -z "$1" ]; then
+        error_msg "build_status_set() no param"
+    fi
+    mkdir -p "$BUILD_STATUS"
+    msg_3 "build_staus_set($1)"
+    touch "$BUILD_STATUS/$1"
+}
+
+build_status_get() {
+    #
+    # A second param prevents logging of status
+    #
+    if [ -z "$1" ]; then
+        error_msg "build_status_get() no param"
+    fi
+    test -f "$BUILD_STATUS/$1"
+    exitstatus="$?"
+    case "$exitstatus" in
+
+        0 ) status="True" ;;
+
+        *)  status="False" ;;
+
+    esac
+
+    [ -z "$2" ] && msg_3 "build_status_get($1) $status"
+    unset status
+    return "$exitstatus"
+}
+
+#  shellcheck disable=SC2120
+build_status_clear() {
+    msg_3 "build_status_clear($1)"
+    if [ -n "$1" ]; then
+        fname="$BUILD_STATUS/$1"
+        rm -f "$fname"
+        msg_3 "Cleared $fname"
+    fi
+    if [ "$(find "$BUILD_STATUS"/ 2>/dev/null |wc -l)" -le 1 ]; then
+        rm "$BUILD_STATUS" -rf
+        msg_3 "Cleared entire $BUILD_STATUS"
+    fi
+}
+
+
+
+#  shellcheck disable=SC2120
+select_profile() {
+    #
+    #  If param two is defined, the previous profile (profile.org)
+    #  will not be kept, in fact removed if present
+    #
+    replacement_profile="$1"
+    # if [ -n "$2" ]; then
+    #     keep_org=false
+    # else
+    #     keep_org=true
+    # fi
+    msg_2 "select_profile($replacement_profile)"
+    if [ -z "$replacement_profile" ]; then
+        error_msg "select_profile() - no param"
+    fi
+    msg_3 "Selecting profile: $replacement_profile"
+    cp -a "$replacement_profile" "$BUILD_ROOT_D"/etc/profile
+    chmod 744 "$BUILD_ROOT_D"/etc/profile
+    chown root: "$BUILD_ROOT_D"/etc/profile
+    # msg_3 "select_profile($replacement_profile)  done"
+ }
+
+run_additional_tasks_if_found() {
+    msg_2 "run_additional_tasks_if_found()"
+    if [ -x "$ADDITIONAL_TASKS_SCRIPT" ]; then
+        msg_1 "Running additional setup tasks"
+        "$ADDITIONAL_TASKS_SCRIPT" && rm "$ADDITIONAL_TASKS_SCRIPT"
+    else
+        msg_3 "No additional tasks to be run"
+    fi
+    # msg_2 "run_additional_tasks_if_found()  done"
+}
+
+
+#
+#  Detecting build environments
+#  0 = other, not able to chroot to complete image
+#  1 = iSH
+#  2 = Linux (x86)
+#
+if is_ish ; then
+    BUILD_ENV=1
+elif uname -a | grep -qi linux && uname -a | grep -q x86; then
+    BUILD_ENV=2
 else
-    #  shellcheck disable=SC1091
-    . /AOK/AOK_VARS || exit 1
+    BUILD_ENV=0  # chroot not possible
 fi
 
-# Shorthands for some directories
-BUILD_BASE_D="/tmp/AOK"
-BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
+
+
+#
+#  Locations for "other" stuff
+#
+
+#  Where Alpine miniroot fs is cached
 MINIROOT_FS_CACHE_D="/tmp/Alpine_miniroot_fs_cache"
 
-# extract the release/branch/major version, gives something like 3.14
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+#  Where Debian FS is cached
+DEBIAN_FS_CACHE_D="/tmp/Debian_fs_cache"
 
+# If this is run on an iSH node, the image is copied to this location
+ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
+
+
+#
+#  Pre-generated image names
+#
 
 # mini-root fs to be downloaded and used
 MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
@@ -37,35 +199,117 @@ MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 # image name for AOK builds
 AOK_FS="Alpine_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
 
+# image name for downloaded Debian tar ball
+DEBIAN_FS="$(echo "$DEBIAN_TARBALL" | grep -oE '[^/]+$')"
+
+
 # image name for generic builds
 BASIC_FS="Alpine-${ALPINE_VERSION}-iSH.tgz"
 
 
-#  Where all aok content gets installed on destination FS
-#  to refer to this location from the build env, use $BUILD_ROOT_D/$AOK_CONTENT
-AOK_CONTENT="/AOK"
 
 #
-#  Either run this script chrooted if the host OS supports it, or run it
-#  inside iSH-AOK once it has booted this FS
+#  Statuses are files put in place in /etc/opt/AOK on the destination FS
+#  to indicate various states of progress
 #
-SETUP_AOK_FS="$AOK_CONTENT/aok_setup_fs"
 
-# If this is run on an iSH node, the image is copied to this location
-ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
+#  Indicator this is an env being built
+STATUS_BEING_BUILT="env_beeing_built"
+#
+#  Select distro has been prepared, ie the prepare does not to be run during
+#  deploy
+#
+STATUS_SELECT_DISTRO_PREPARED="select_distro_prepared"
+#  This is chrooted
+STATUS_IS_CHROOTED="is_chrooted"
 
 #
-# Hint to iSH this is the first time booting. Checked for by
-# /usr/local/bin/post_boot.sh
+#  Hint to /profile that this was a pre-built FS, meaning /etc/profile should not
+#  wait for $FIRST_BOOT_NOT_DONE_HINT to disappear, and post_boot.sh should not
+#  run (from inittab) /etc/profile will
 #
-FIRST_BOOT_NOT_DONE_HINT="/etc/FIRSTBOOT"
+STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
 
-ADDITIONAL_TASKS_SCRIPT="/etc/opt/additional_tasks"
+
+
+#
+#  temp value until we know if this is dest FS, so that BUILD_ROOT_D can be
+#  selected
+#
+BUILD_STATUS_RAW="/etc/opt/AOK"
+
+#
+#  STATUS_BEING_BUILT and BUILD_STATUS, used by build_status_get()
+#  must be defined before this
+#
+if build_status_get "$STATUS_IS_CHROOTED" ; then
+    BUILD_ROOT_D=""
+    msg_1 "This is chrooted"
+elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT" ; then
+    BUILD_ROOT_D=""
+    msg_1 "This is running on dest platform"
+else
+    msg_1 "Not chrooted, not dest platform"
+    BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
+fi
+
+
+#  Now the proper value can be set
+BUILD_STATUS="${BUILD_ROOT_D}${BUILD_STATUS_RAW}"
+
+
+#  Placeholder, to store  what version of AOK that was used
+FILE_AOK_RELEASE="$BUILD_ROOT_D"/etc/aok-release
+
+#  Placeholder, only used for Alpine deploys
+FILE_ALPINE_RELEASE="$BUILD_ROOT_D"/etc/alpine-release
+
+
 #
 #  How long the introduction should be displayed when the system is setup
 #  during first boot
 #
 FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=15
+
+
+
+#
+#  Alpine related build env
+#
+
+#
+#  Extract the release/branch/major version, from the requested Alpine,
+#  gives something like 3.14
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+
+#
+#  Either run this script chrooted if the host OS supports it, or run it
+#  inside iSH-AOK once it has booted this FS
+#
+SETUP_ALPINE_FS="$AOK_CONTENT"/Alpine/setup_alpine.sh
+SETUP_ALPINE_FINAL="$AOK_CONTENT"/Alpine/setup_alpine_final_tasks.sh
+SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
+SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
+SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
+
+
+#
+#  First boot additional tasks to be run, defined in AOK_VARS,
+#  FIRST_BOOT_ADDITIONAL_TASKS
+#
+ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
+
+
+#
+#  First profiles used during 1st boot to finalize setup
+#  Lastly the final profiles, depending on Distribution
+#
+PROFILE_ALPINE_PRE_BUILT="$AOK_CONTENT"/Alpine/etc/profile.prebuilt-FS
+PROFILE_ALPINE_DEPLOY_ON_DEST="$AOK_CONTENT"/Alpine/etc/profile.build_on_dest
+PROFILE_CHOOSE_DISTRO="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
+PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
+PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
+PROFILE_DEBIAN_COMPLETE_DEPLOY="$AOK_CONTENT"/Debian/etc/profile.finish_setup
 
 
 #
@@ -77,33 +321,14 @@ LOGIN_ORIGINAL="/bin/login.alpine"
 
 
 #
-#  Detecting build environments
-#  0 = other, not able to chroot to complete image
-#  1 = iSH
-#  2 = Linux (x86)
+#  Local overrides, ignored by git. They will be appended to BUILD_ENV
+#  if found. This is intended for debuging and testing, since stuff
+#  found will be appended to this file on the destination.
+#  Produciton changes should go here, and such releases should be
+#  built without the asociated dot-files.
 #
-if [ -d "/proc/ish" ]; then
-    build_env=1
-elif uname -a | grep -qi linux && uname -a | grep -q x86; then
-    build_env=2
-else
-    build_env=0  # chroot not possible
-fi
+local_overrides="$AOK_CONTENT/.BUILD_ENV"
 
-
-is_aok_kernel() {
-    grep -qi aok /proc/ish/version 2> /dev/null
-    return $?
-}
-
-run_additional_tasks_if_found() {
-    if [ -n "$ADDITIONAL_TASKS_SCRIPT" ]; then
-        if [ -x "$ADDITIONAL_TASKS_SCRIPT" ]; then
-            echo
-            echo "Running additional setup tasks"
-            echo
-            $ADDITIONAL_TASKS_SCRIPT
-            rm "$ADDITIONAL_TASKS_SCRIPT"
-        fi
-    fi
-}
+#  shellcheck disable=SC1090
+[ -f "$local_overrides" ] && . "$local_overrides"
+unset local_overrides

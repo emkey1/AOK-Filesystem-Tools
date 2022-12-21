@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+# wrap dmesg to give semi sane output
+#
+my @buffer = `/bin/dmesg`;
+my $line;
+
+my $discard = shift(@buffer); # Discard the first line, it sucks
+
+while($line = shift(@buffer)) {
+    $line =~ s/^\s+//;
+    print $line;
+}

@@ -13,7 +13,7 @@
 # A list of variables used during build and for /usr/local/bin stuff
 #
 
-AOK_VERSION="Beta-001"
+AOK_VERSION="Beta-002"
 
 #
 #  ALPINE_VERSION defines what alpine-minirootfs will be used as a baseline
@@ -22,24 +22,30 @@ AOK_VERSION="Beta-001"
 #  If you try another one please report any issues at
 #     https://github.com/emkey1/AOK-Filesystem-Tools/issues
 #
-# ALPINE_VERSION=3.13.12  # End of Alpine support 2021-11-01
-ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
+# ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
 # ALPINE_VERSION=3.15.6   # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.2   # End of Alpine support 2024-05-23
+ALPINE_VERSION=3.16.3   # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.0   # End of Alpine support 2024-05-23
 
+#
+#  If a Debian install is selected, this tarball will be used
+#
+DEBIAN_TARBALL="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2"
 
 
 #
-#  Use this if you have your own restore procedure.
-#  If defined, this will be run at the end of first boot, at a time when
-#  it should be a full AOK FS
+#  Always installed packages
 #
-FIRST_BOOT_ADDITIONAL_TASKS="" #"/iCloud/spd/bin/deploy-ish"
+CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync"
+
 
 #
-#  The system will be initially set to this timezone
+#  Additional packages.  These don't work with stock iSH but work with iSH-AOK
+#  and will probably work with the Linux Kernel iSH
+#  Will only be installed if the kernel is identified as iSH-AOK
 #
-INITIAL_TIMEZONE="America/Los_Angeles"
+AOK_APKS="htop procps nload nload-doc htop-doc procps-doc"
+
 
 #
 # Alternatives are: enable disable once
@@ -48,24 +54,22 @@ INITIAL_LOGIN_MODE="enable"
 
 
 #
-#  Always installed packages
+#  Use this if you have your own restore procedure.
+#  If defined, this will be run at the end of first boot, at a time when
+#  it should be a full AOK FS
+#  If this is a script, it must be available on the final FS
 #
-CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync"
+# FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
+
 
 #
-#  For testing the deploy procedure, this is a bare minimum of what is needed.
-#  It will not create a meaningful env for normal usage, just what is needed to
-#  not get any errors during deploy. This only takes half the time to install,
-#  its a life saver when debugging the deploy :)
+#  Please never enable this here. If you want to hard-code timezone,
+#  please put this variable with your TZ preference in .AOK_VARS
+#  If not hardcoded, /usr/local/bin/set-timezone will be run during
+#  setup, allowing user to select timezone.
 #
-# CORE_APKS="openssh openrc bash shadow sudo busybox-extras dcron dcron-openrc coreutils findutils tar file less sed gawk grep util-linux tzdata"
+# AOK_TIMEZONE="Europe/Amsterdam"
 
-#
-#  Additional packages.  These don't work with stock iSH but work with iSH-AOK
-#  and will probably work with the Linux Kernel iSH
-#  Will only be installed if the kernel is identified as iSH-AOK
-#
-AOK_APKS="htop procps nload nload-doc htop-doc procps-doc"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
@@ -83,5 +87,18 @@ DEVEL_APKS='python3 py3-pip python3-dev build-base linux-headers cmake'
 NODEJS_APKS='nodejs nodejs-dev'
 BLOAT3_APKS='emacs neofetch'
 
-DOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc mandoc man-pages bash-doc rsync-doc'
+DOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc'
 
+
+#
+#  Local overrides, ignored by git. They will be appended to AOK_VARS
+#  if found. This is intended for debuging and testing, since stuff
+#  found will be appended to this file on the destination.
+#  Produciton changes should go here, and such releases should be
+#  built without the asociated dot-files.
+#
+local_overrides="/opt/AOK/.AOK_VARS"
+
+#  shellcheck disable=SC1090
+[ -f "$local_overrides" ] && . "$local_overrides"
+unset local_overrides

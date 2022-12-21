@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+# Login:                        Name:
+# Directory:                    Shell:
+# On since
+# (No) Mail
+# (No) Plan
+my $seen = 0;
+my $look_for = $ARGV[0];
+setpwent();
+while (@list = getpwent())  {
+    ($LOGIN,$PASSWORD,$UID,$GID,$QUOTA,$COMMENT,$GECOS,$HOMEDIR,$SHELL) = @list[0,1,2,3,4,5,6,7,8];
+    if($LOGIN eq $look_for) {
+        $seen = 1;
+        print "Login: $LOGIN                    Name: $GECOS\n";
+        print "Directory: $HOMEDIR              Shell: $SHELL\n";
+    }
+    #print "$LOGIN,$PASSWORD,$UID,$GID,$QUOTA,$COMMENT,$GECOS,$HOMEDIR,$SHELL\n";
+                            }
+endpwent();

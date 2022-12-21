@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+# Script to give people a few hints on apk when they type apt for some
+# godforsaken reason
+
+echo "Alpine Linux uses the 'apk' package manager.  Here are some common"
+echo "commands."
+echo
+echo "apk add <package anme>   # Add a package"
+echo "apk del <package name>   # Remove an installed package"
+echo
+echo "apk -v search <string>   # Search apk's with a particular string"

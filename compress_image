@@ -1,28 +1,25 @@
 #!/bin/sh
+# shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #
 #  Compresses a FS into a tar file that can be mounted by iSH
 #
-version="1.3.4"
+version="1.3.5"
 
-#  shellcheck disable=SC1007
-fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 prog_name=$(basename "$0")
 
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
-#
-cd "$fs_build_d" || exit 1
 
+#
+#  Point to AOK-Filesystem-Tools dir, in case this was run with a path
+#
+#  shellcheck disable=SC1091
+. /opt/AOK/BUILD_ENV
 
-# Read in vars
-# shellcheck disable=SC1091
-. ./BUILD_ENV
 
 
 FS_compress_verbose=false
@@ -39,6 +36,7 @@ Available options:
 
 -h  --help         Print this help and exit.
 -v  --version      Show version and exit.
+-l  --label        Provide a name for tarball (without extension)
 -z  --zip-progress Display progrss as FS is being compressed.
 EOF
     exit 0
@@ -57,105 +55,99 @@ while [ -n "$1" ]; do
 
         "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
 
+        "-l" | "--label" )
+            shift
+            tar_name="$1"
+            if [ -z "$tar_name" ]; then
+                echo "ERROR: label needs name as additional param!"
+                exit 1
+            fi
+            ;;
+
         "-z" | "--zip-progress" )
             FS_compress_verbose=true
-            shift
             ;;
 
         *)
-            echo "ERROR: bad param, try -h"
-            exit 1
+            error_msg "bad param, try -h"
             ;;
     esac
+    shift
 
 done
-
 
 
 if [ "$(whoami)" != "root" ]; then
     # Must come after help display, to avoid infinite loop
     "$0" -h
-    echo
-    echo "ERROR: This must be run as root or using sudo!"
-    exit 1
+
+    error_msg "This must be run as root or using sudo!"
 fi
 
 if [ ! -d "$BUILD_ROOT_D" ]; then
-    echo "ERROR: No image built yet, [$BUILD_ROOT_D]!"
-    exit 1
+    error_msg "No image built yet, [$BUILD_ROOT_D]!"
 fi
 
 if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
-    echo "ERROR: Active chroot session detected!"
-    exit 1
+    error_msg "Active chroot session detected!"
 fi
 
-if [ -d "$BUILD_ROOT_D"/AOK ]; then
-    tgz_file="$AOK_FS"
-    uses_aok=true
+if [ -z "$tar_name" ]; then
+    tar_ball="$AOK_FS"
 else
-    tgz_file="$BASIC_FS"
-    uses_aok=false
+    tar_ball="${tar_name}.tgz"
 fi
 
-if $uses_aok; then
-    hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_NOT_DONE_HINT"
-    if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
-        #
-        #  Tell iSH to run first boot tasks
-        #
-        touch "$hint_first_boot"
-    fi
-fi
+
+# set location
+tar_ball="$BUILD_BASE_D/$tar_ball"
 
 
 # echo "removing temp /dev items"
 # rm  -f "$BUILD_ROOT_D"/dev/*
 
-echo "=====  Creating image  ====="
-echo
+msg_1 "Creating image"
 
 #
 # Tar up and zip the result
 #
-cd "$BUILD_ROOT_D" || exit 1
+cd "$BUILD_ROOT_D" || exit 99
 
 if $FS_compress_verbose ; then
     opts='cvf'
 else
     opts='cf'
 
-    echo "Compressing the image on an iSH node will take around 12 minutes to complete"
-    echo "The same done even on a modest Linux node will take around 30 seconds"
-    echo
+
+    if grep -q AOK_COMPLETION_ON_TARGET "$BUILD_ROOT_D"/etc/profile; then
+        #
+        #  This is a pre-built image, so fairly large, give a hint about
+        #  expected compress time
+        #
+        echo "Compressing a pre-built image on an iSH node will take around 12 minutes to complete"
+        echo "The same done even on a modest Linux node will take around 30 seconds"
+        echo
+    fi
     echo "In order not to have to wait so long without any indication anything is"
     echo "happening,  you can use the option -z when running build_fs or compress_image."
     echo "This will give a detailed progress report as each file is packed."
 fi
 
 
-tar "$opts" - . | gzip -9 > "../$tgz_file"
+tar "$opts" "$tar_ball" .
 
 #
 # copy it to /iCloud if this runs on iSH
 #
-if [ "$build_env" -eq 1 ]; then
-    echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
+if is_ish ; then
+    msg_2 "Copying image into $ICLOUD_ARCHIVE_D"
     mkdir -p "$ICLOUD_ARCHIVE_D"
-    cp "$BUILD_BASE_D/$tgz_file" "$ICLOUD_ARCHIVE_D"
+    cp "$tar_ball" "$ICLOUD_ARCHIVE_D"
 fi
 echo
 
 
-echo "=====  Image is ready: $BUILD_BASE_D/$tgz_file  ====="
-echo
+msg_1 "Image is ready: $tar_ball"
 
-
-if $uses_aok; then
-    #
-    #  Remove first boot hint, in order to make chroot bash -l possible
-    #
-    [ -e "$hint_first_boot" ] && rm "$hint_first_boot"
-fi
 
 exit 0 #  Avoid exiting with error if above file did not exist

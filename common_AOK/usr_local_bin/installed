@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+
+apk -vv info | sort
