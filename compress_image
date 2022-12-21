@@ -35,9 +35,9 @@ This creates a compressed tar file. that iSH can mount as a file syste,
 Available options:
 
 -h  --help         Print this help and exit.
--v  --version      Show version and exit.
+-V  --version      Show version and exit.
 -l  --label        Provide a name for tarball (without extension)
--z  --zip-progress Display progrss as FS is being compressed.
+-v  --verbose      Display progrss as FS is being compressed.
 EOF
     exit 0
 }
@@ -53,7 +53,7 @@ while [ -n "$1" ]; do
 
         "-h" | "--help" ) show_help ;;
 
-        "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
+        "-V" | "--version" ) show_version ; exit 0 ;;
 
         "-l" | "--label" )
             shift
@@ -64,7 +64,7 @@ while [ -n "$1" ]; do
             fi
             ;;
 
-        "-z" | "--zip-progress" )
+        "-v" | "--verbose" )
             FS_compress_verbose=true
             ;;
 

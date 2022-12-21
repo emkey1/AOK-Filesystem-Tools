@@ -437,7 +437,7 @@ msg_1 "The filesystem is ready!"
 #
 if $aok_FS_do_compress ; then
     if $verbose ; then
-        extra_param="-z"
+        extra_param="-v"
     else
         extra_param=""
     fi
