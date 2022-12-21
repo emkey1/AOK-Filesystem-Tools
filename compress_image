@@ -21,8 +21,9 @@ prog_name=$(basename "$0")
 . /opt/AOK/BUILD_ENV
 
 
+use_bzip2=false
+verbose=false
 
-FS_compress_verbose=false
 
 show_help() {
     cat <<EOF
@@ -36,6 +37,7 @@ Available options:
 
 -h  --help         Print this help and exit.
 -V  --version      Show version and exit.
+-j  --bzip2        Use bzip2 compression
 -l  --label        Provide a name for tarball (without extension)
 -v  --verbose      Display progrss as FS is being compressed.
 EOF
@@ -44,6 +46,7 @@ EOF
 
 show_version() {
     echo "$prog_name $version"
+    exit 0
 }
 
 
@@ -53,7 +56,9 @@ while [ -n "$1" ]; do
 
         "-h" | "--help" ) show_help ;;
 
-        "-V" | "--version" ) show_version ; exit 0 ;;
+        "-V" | "--version" ) show_version ;;
+
+        "-j" |  "--bzip2" ) use_bzip2=true ;;
 
         "-l" | "--label" )
             shift
@@ -64,16 +69,13 @@ while [ -n "$1" ]; do
             fi
             ;;
 
-        "-v" | "--verbose" )
-            FS_compress_verbose=true
-            ;;
+        "-v" | "--verbose" ) verbose=true ;;
 
         *)
             error_msg "bad param, try -h"
             ;;
     esac
     shift
-
 done
 
 
@@ -95,7 +97,7 @@ fi
 if [ -z "$tar_name" ]; then
     tar_ball="$AOK_FS"
 else
-    tar_ball="${tar_name}.tgz"
+    tar_ball="${tar_name}"
 fi
 
 
@@ -113,28 +115,20 @@ msg_1 "Creating image"
 #
 cd "$BUILD_ROOT_D" || exit 99
 
-if $FS_compress_verbose ; then
-    opts='cvf'
+if $use_bzip2 ; then
+    opts="cfj"
+    ext="tar.bz2"
 else
-    opts='cf'
+    opts="cfz"
+    ext="tgz"
+fi
 
-
-    if grep -q AOK_COMPLETION_ON_TARGET "$BUILD_ROOT_D"/etc/profile; then
-        #
-        #  This is a pre-built image, so fairly large, give a hint about
-        #  expected compress time
-        #
-        echo "Compressing a pre-built image on an iSH node will take around 12 minutes to complete"
-        echo "The same done even on a modest Linux node will take around 30 seconds"
-        echo
-    fi
-    echo "In order not to have to wait so long without any indication anything is"
-    echo "happening,  you can use the option -z when running build_fs or compress_image."
-    echo "This will give a detailed progress report as each file is packed."
+if $verbose ; then
+    opts="v$opts"
 fi
 
 
-tar "$opts" "$tar_ball" .
+tar "$opts" "${tar_ball}.$ext" .
 
 #
 # copy it to /iCloud if this runs on iSH

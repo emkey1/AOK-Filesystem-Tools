@@ -197,7 +197,7 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 MINIROOT_FS="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 
 # image name for AOK builds
-AOK_FS="Alpine_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}.tgz"
+AOK_FS="Alpine_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}"
 
 # image name for downloaded Debian tar ball
 DEBIAN_FS="$(echo "$DEBIAN_TARBALL" | grep -oE '[^/]+$')"

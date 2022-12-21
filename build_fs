@@ -26,6 +26,7 @@ prog_name=$(basename "$0")
 cd "$AOK_CONTENT" || exit 1
 
 verbose=false              # true displays tar/untar progress
+use_bzip2=false            # Use tgz when compressing image
 build_debian_FS=false      # true means build Debian FS
 distro_select=false        # true means choose between Alpine and Debian
 pre_build_FS=false         # true meand generat4 pre-built FS
@@ -48,14 +49,15 @@ on the device upon first boot.
 
 Available options:
 
--h  --help         Print this help and exit.
--V  --version      Show version and exit.
+-h  --help         Print this help and exit
+-V  --version      Show version and exit
 -v  --verbose      Displays extra info, like untaring/taring progress
 -s  --select       Offer selection between Alpine & Debian on first boot.
 -d  --debian       Build a Debian FS.
 -p  --prebuilt     Build the entire FS on the running platform, making for quicker
                    imports on target device, but 10 times larger image files.
                    This can only be done on iSH or Linux (x86)!
+-j  --bzip2        Use bzip2 compression for distribution
 -c  --no_compress  Terminates when FS is prepared, giving you the opportunity to
                    chroot into it and do your personal adaptations.
                    Instructions about this procedure and howto then complete
@@ -73,15 +75,9 @@ parse_arguments() {  # Multi OK 1
 
             "-V" | "--version" ) show_version ;;
 
-            "-v" | "--verbose" )
-                verbose=true
-                shift
-                ;;
+            "-v" | "--verbose" ) verbose=true ;;
 
-            "-d" | "--debian" )
-                build_debian_FS=true
-                shift
-                ;;
+            "-d" | "--debian" ) build_debian_FS=true ;;
 
             "-s" | "--select" )
                 if $pre_build_FS ; then
@@ -89,7 +85,6 @@ parse_arguments() {  # Multi OK 1
                     exit 1
                 fi
                 distro_select=true
-                shift
                 ;;
 
             "-p" | "--prebuilt" )
@@ -98,20 +93,19 @@ parse_arguments() {  # Multi OK 1
                     exit 1
                 fi
                 pre_build_FS=true
-                shift
                 ;;
 
-            "-c" |  "--no_compress" )
-                aok_FS_do_compress=false
-                shift
-                ;;
+            "-j" | "--bzip2" ) use_bzip2=true ;;
+
+            "-c" |  "--no_compress" ) aok_FS_do_compress=false ;;
 
             *)
                 echo "ERROR: bad param, try -h"
                 exit 1
                 ;;
-        esac
 
+        esac
+        shift
     done
 }
 
@@ -436,12 +430,13 @@ msg_1 "The filesystem is ready!"
 #  Consider to generate a tarball
 #
 if $aok_FS_do_compress ; then
+    extra_params=""
     if $verbose ; then
-        extra_param="-v"
-    else
-        extra_param=""
+        extra_params="-v"
     fi
-
+    if $use_bzip2 ; then
+        extra_params="$extra_params -j"
+    fi
     if $build_debian_FS ; then
         label="-l Debian-ish-AOK-$AOK_VERSION"
     elif $distro_select ; then
@@ -452,7 +447,7 @@ if $aok_FS_do_compress ; then
     fi
 
     #  shellcheck disable=SC2086
-    if ! "$AOK_CONTENT"/compress_image $label "$extra_param"; then
+    if ! "$AOK_CONTENT"/compress_image $label "$extra_params"; then
         error_msg "detected in compress_image"
     fi
 else
