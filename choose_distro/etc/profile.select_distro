@@ -57,7 +57,7 @@ if [ "$dialog_app" = "whiptail" ] && [ "${TERM#*screen}" != "$TERM" ]; then
     exit 1
 fi
 
-text="Alpine is fully useable, regular AOK FS.
+text="Alpine is the regular AOK FS, fully stable.
 Debian is experimental, not yet stable, it is version 10 (Buster).
 This was end of lifed 2022-07-18 and is thus now unmaintained.
 But should be fine for testing Debian under iSH."
