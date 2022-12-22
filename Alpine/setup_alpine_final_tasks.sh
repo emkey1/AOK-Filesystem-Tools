@@ -40,8 +40,13 @@ fi
 #
 #  Setup Initial login mode
 #
+msg_3 "Setting defined login mode: $INITIAL_LOGIN_MODE"
 #  shellcheck disable=SC2154
 /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
+
+msg_3 "Preparing initial motd"
+/usr/local/sbin/update_motd
+
 
 # Not the right place to set profile, since this can be called in different ways
 
