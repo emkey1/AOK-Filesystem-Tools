@@ -23,12 +23,20 @@
 
 msg_1 "Running first boot tasks"
 
-if ! is_aok_kernel; then
+if is_aok_kernel; then
+    msg_2 "Ensuring apps that depend on the iSH-AOK kernel are installed"
+    #
+    #  If this FS was setup on a regular iSH, the iSH-AOK apps were
+    #  not installed on initial build. If it was this is redundant,
+    #  but harmless, just ensuring expected apks are installed.
+    #
+    # shellcheck disable=SC2086
+    apk add $AOK_APKS
+else
     msg_2 "Removing apps that depend on the iSH-AOK kernel"
     #
-    #  aok dependent bins serve no purpose on this platform, delete
+    #  aok dependent bins serve no purpose on other platforms, delete
     #
-    # In this case we want the variable to expand into its components
     # shellcheck disable=SC2086
     apk del $AOK_APKS
 fi
