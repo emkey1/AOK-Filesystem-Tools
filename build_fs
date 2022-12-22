@@ -58,7 +58,7 @@ Available options:
                    imports on target device, but 10 times larger image files.
                    This can only be done on iSH or Linux (x86)!
 -j  --bzip2        Use bzip2 compression for distribution
--c  --no_compress  Terminates when FS is prepared, giving you the opportunity to
+-N  --no_compress  Terminates when FS is prepared, giving you the opportunity to
                    chroot into it and do your personal adaptations.
                    Instructions about this procedure and howto then complete
                    the build once done will be displayed at the end of the build.
@@ -97,7 +97,7 @@ parse_arguments() {  # Multi OK 1
 
             "-j" | "--bzip2" ) use_bzip2=true ;;
 
-            "-c" |  "--no_compress" ) aok_FS_do_compress=false ;;
+            "-N" |  "--no_compress" ) aok_FS_do_compress=false ;;
 
             *)
                 echo "ERROR: bad param, try -h"
