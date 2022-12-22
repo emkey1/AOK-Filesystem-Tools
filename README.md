@@ -2,6 +2,15 @@
 
 ## Recent changes
 
+If /iCloud is not mounted, there will be a question if it is desired
+to mount it right at the start of the install
+
+-s (select distro) builds should be built on iSH/Linux (x86)
+This way the boot image can be prepared, with whiptail being installed
+and will boot straight into the Distro selection prompt.
+If built on other devices, the resulting image will have to first
+install newt, before offering the prompt.
+
 It is assumed this is cloned into /opt/AOK
 
 This makes deploys much easier since this location can be assumed,
