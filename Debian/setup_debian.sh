@@ -35,6 +35,16 @@ disabeling_services() {
 }
 
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
+
+! is_iCloud_mounted && iCloud_mount_prompt_notification
+
 msg_1 "Setup Debian"
 
 if test -f /AOK ; then
@@ -60,6 +70,7 @@ rm -f /etc/init.d/runbg
 msg_2 "apt update & upgrade"
 apt update && apt upgrade
 
+! is_iCloud_mounted && should_icloud_be_mounted
 
 msg_2 "Installing net-tools (/sbin/ifconfig)"
 apt install net-tools
