@@ -2,6 +2,7 @@
 
 Debian image
 
+- offer to mont /iCloud
 - remove /etc/aok_release
 - uninstall openrc
 
