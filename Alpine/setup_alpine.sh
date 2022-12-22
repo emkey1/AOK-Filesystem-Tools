@@ -25,10 +25,6 @@
 #  TODO: should vim really be a link to vi, goes against normal procedures
 #
 
-version="1.4.0-b"
-
-prog_name=$(basename "$0")
-
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
@@ -188,10 +184,9 @@ replace_key_files() {
 #
 #===============================================================
 
-echo "$prog_name, version $version"
-echo
+test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
-
+! is_iCloud_mounted && iCloud_mount_prompt_notification
 
 msg_1 "Setting up iSH-AOK FS: ${AOK_VERSION} on new filesystem"
 
@@ -200,6 +195,8 @@ echo "$ALPINE_RELEASE" > "$FILE_ALPINE_RELEASE"
 msg_2 "apk update & upgrade"
 apk update
 apk upgrade
+
+! is_iCloud_mounted && should_icloud_be_mounted
 
 #  Do this early on dest platform, ie non-chrooted, to allow task switching ASAP
 build_status_get "$STATUS_IS_CHROOTED" || activate_runbg
