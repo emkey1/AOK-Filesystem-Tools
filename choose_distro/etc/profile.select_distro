@@ -60,7 +60,7 @@ fi
 text="Alpine is the regular AOK FS, fully stable.
 Debian is experimental, not yet stable, it is version 10 (Buster).
 This was end of lifed 2022-07-18 and is thus now unmaintained.
-But should be fine for testing Debian under iSH."
+But should be fine for testing Debian under iSH-AOK."
 
 $dialog_app                         \
     --title     "Select AOK Distro" \
