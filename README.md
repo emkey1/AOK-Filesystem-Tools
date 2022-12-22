@@ -4,26 +4,64 @@
 
 It is assumed this is cloned into /opt/AOK
 
-This makes deploys much easier since this location can be assumed, regardless if it is run chrooted on a deploy platform, or if it is run inside iSH
+This makes deploys much easier since this location can be assumed,
+regardless if it is run chrooted on a deploy platform, or if it is run
+on destination
 
+## Build process
+
+Instructions on how to build an iSH family File system: `./build_fs -h`
+
+## Configuration
+
+Main settings are in AOK_VARS, BUILD_ENV have some buil-related settings
+
+You can override this with local settings in .AOK_VARS and .BUILD_ENV,
+both will be ignored by git. Please note that if either is found,
+it's content will be appended to the destination AOK_VARS/BUILD_ENV,
+so motly for devel/debug. For production style deploys, it is recomended
+to update AOK_VARS and not have a .AOK_VARS/.BUILD_ENV present.
+
+## Further setup steps
+
+To keep things simple /etc/profile is used to run additional setups
+steps, since it will be run at bootup on iSH/iSH-AOK
+Once setup is done /etc/profile will be replaced with the "normal" one.
 
 ## Multi distro
 
-run build_fs -d to create a Distro asking if you want to use Alpine or Debian
+run build_fs -s to create a Distro asking if you want to use Alpine or
+Debian
 
-### Running multi-boot chrooted
+## Prebuilt FS
 
-When testing distro select in a chroot env, some extra steps are needed,
+Both Alpine and Debian FS can be prebuilt. Advantage is that FS is ready
+to be used right away, drawback is that the tarball will be larger.
+Especially in the case of Alpine, since the initial FS Installing on
+first boot is only arround 6MB, a pre-built AOK Alpine FS is something
+like 50MB.
+
+With Debian the difference in size will be less noticeable, in both
+cases it will be over 230MB
+
+The recomended distribution method for Debian is to build with -s
+Select between Alpine/Debian on first boot, initial tarball will be
+arround 6MB.
+
+### Running chrooted
+
+When testing setups in a chroot env, some extra steps are needed,
 since in chroot /etc/profile is not run
 
-`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie setup directly
+`sudo ./tools/do_chroot.sh /bin/sh`  There might not be a bash at
+this point so must use /bin/sh if a shell is wanted, this also avoids
+unintentionally running /etc/profile, if that is not desired.
 
-`sudo ./tools/do_chroot.sh /bin/sh`  There is no bash at this point so must use /bin/sh if a shell is wanted
+`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
+deploy directly
 
-When rebooting after Alpine / Debian is initially setup, bash will be present
-so second chroot can be `sudo ./tools/do_chroot.sh` in order to trigger
-/etc/profile, which might contain remaining deploy steps
-
+When rebooting after Alpine / Debian is initially setup, bash will be
+present so chroot can be done as `sudo ./tools/do_chroot.sh`
 
 ## Known Debian issues
 
@@ -33,31 +71,5 @@ The AOK alternate logins are not yet deployed, pending testing
 
 ### services
 
-The service handling on iSH Debian is not yet done
-
-## Build process
-
-Instructions on how to build an iSH family File system: `./build_fs -h`
-
-Further instructions will be displayed when this is run
-
-## Configuration
-
-Tweak build settings in `./AOK_VARS`
-
-You can override this with local settings in .AOK_VARS
-
-## Tool Versions
-
-Check with -h or -v
-
-If you don't have the latest version of the script you intend to use,
-update your repository!
-
-Vers | script
--|-
-1.3.4 | build_fs
-1.3.3 | Alpine/setup_alpine_env
-1.3.3 | compress_image
-1.3.0 | tools/do_chroot.sh
-1.1.3 | tools/shellchecker.sh
+The service handling on iSH Debian is not yet done,
+runbg isn't setup as a propper debian service
