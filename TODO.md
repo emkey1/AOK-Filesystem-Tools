@@ -2,6 +2,7 @@
 
 Debian image
 
+- make os select fit iPhone screen
 - offer to mont /iCloud
 - remove /etc/aok_release
 - uninstall openrc
