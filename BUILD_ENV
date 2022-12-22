@@ -68,6 +68,10 @@ is_aok_kernel() {
     grep -qi aok /proc/ish/version 2> /dev/null
 }
 
+is_iCloud_mounted() {
+    mount | grep -wq iCloud
+}
+
 openrc_might_trigger_errors() {
     echo
     echo "You might see a few errors printed as services are activated."
@@ -141,6 +145,61 @@ select_profile() {
     chown root: "$BUILD_ROOT_D"/etc/profile
     # msg_3 "select_profile($replacement_profile)  done"
  }
+
+
+iCloud_mount_prompt_notification() {
+    # abort if not running on iSH
+    ! test -d /proc/ish && return
+
+    echo "
+ | There is one more prompt            |
+ | about mounting /iCloud,             |
+ | right after the package updates.    |
+ | After that, the rest of the install |
+ | runs without need for interactions. |
+"
+}
+
+should_icloud_be_mounted() {
+    # abort if not running on iSH
+    ! test -d /proc/ish && return
+
+    msg_2 "should_icloud_be_mounted()"
+    if ! is_iCloud_mounted ; then
+        if [ -f /etc/alpine-release ]; then
+            apk add newt  # contains whiptail
+        elif [ -f /etc/debian_version ]; then
+            apt install newt
+        else
+            error_msg "Unrecognized distro, aborting"
+        fi
+        text="Do you want to mount iCloud now?"
+        whiptail                            \
+            --topleft                       \
+            --title     "Mount iCloud"      \
+            --yesno "$text" 0 0
+
+        exitstatus=$?
+        if [ "$exitstatus" -eq 0 ]; then
+            mount -t ios x /iCloud
+        fi
+    fi
+    # msg_3 "should_icloud_be_mounted()  done"
+}
+
+
+notification_additional_tasks() {
+    msg_2 "notification_additional_tasks()"
+    if [ -f "$ADDITIONAL_TASKS_SCRIPT" ]; then
+        echo "Additional tasks defined."
+        echo "At the end of the install, this will be run:"
+        echo "-----"
+        cat "$ADDITIONAL_TASKS_SCRIPT"
+        echo "-----"
+        echo
+    fi
+    # msg_3 "notification_additional_tasks() done"
+}
 
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
