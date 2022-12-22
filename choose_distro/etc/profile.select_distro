@@ -57,18 +57,13 @@ if [ "$dialog_app" = "whiptail" ] && [ "${TERM#*screen}" != "$TERM" ]; then
     exit 1
 fi
 
-
-
-text="In case of Debian, version 10 (Buster) will be used.
-It is the last version that runs in x86-32 envs.
-This was end of lifed 2022-07-18 and is thus now
-unmaintained.
+text="Alpine is fully useable, regular AOK FS.
+Debian is experimental, not yet stable, it is version 10 (Buster).
+This was end of lifed 2022-07-18 and is thus now unmaintained.
 But should be fine for testing Debian under iSH."
-# Assuming you don't run services open to the wider internet,
-# it should not be a security concern."
 
 $dialog_app                         \
-    --title     "Select Distro"     \
+    --title     "Select AOK Distro" \
     --yes-button "Alpine"           \
     --no-button  "Debian"           \
     --yesno "$text" 0 0
