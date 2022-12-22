@@ -16,6 +16,10 @@ while [ -e /etc/opt/AOK/env_beeing_built ]; do
    sleep 1
 done
 
+#
+#  Only show motd on login screens
+#  Work in progress, not sure if this works as intended on ssh logins
+#
 if [ "$PPID" -lt 2 ]; then
    echo
    cat /etc/motd
