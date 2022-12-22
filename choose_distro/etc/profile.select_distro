@@ -80,7 +80,6 @@ if [ "$exitstatus" -eq 0 ]; then
     # Alpine selected
     msg_1 "running $SETUP_ALPINE_FS"
     "$SETUP_ALPINE_FS"
-    select_profile "$PROFILE_ALPINE"
 else
     "$AOK_CONTENT"/choose_distro/install_debian.sh
 fi
