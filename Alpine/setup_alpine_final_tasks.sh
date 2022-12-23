@@ -22,7 +22,7 @@ msg_1 "Final Alpine setup steps"
 
 #  Will be run again in post_boot.sh, but since some tasks are done before
 #  That happens, it makes sense to run it now
-/usr/local/bin/fix_dev
+/usr/local/sbin/fix_dev
 
 
 

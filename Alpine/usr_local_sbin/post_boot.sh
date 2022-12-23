@@ -67,7 +67,7 @@ fi
 
 if [ ! -e /etc/opt/AOK/is_chrooted ]; then
     # Don't bother if chrooted
-    /usr/local/bin/fix_dev
+    /usr/local/sbin/fix_dev
 fi
 
 

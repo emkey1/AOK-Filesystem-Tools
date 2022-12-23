@@ -35,8 +35,11 @@ setup_environment() {
 
     msg_3 "Add our common stuff to /usr/local/bin"
     cp "$AOK_CONTENT"/common_AOK/usr_local_bin/* /usr/local/bin
-
     chmod +x /usr/local/bin/*
+
+    msg_3 "Add our common stuff to /usr/local/sbin"
+    cp "$AOK_CONTENT"/common_AOK/usr_local_sbin/* /usr/local/sbin
+    chmod +x /usr/local/sbin/*
 
 
     msg_3 "Activating group sudo for no passwd sudo"
@@ -65,7 +68,7 @@ setup_environment() {
 
 
 setup_login() {
-    if [ -f etc/debian_version ]; then
+    if [ -f /etc/debian_version ]; then
         # -> For now Debian login is not altered
         return
     fi

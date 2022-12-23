@@ -11,12 +11,12 @@
 
 #
 #  Ensure all devs are in a good state.
-#  Since it is not installed yet in /usr/local/bin, run it from source
+#  Since it is not installed yet in /usr/local/sbin, run it from source
 #  It wil be deployed in SETUP_COMMON_AOK
 #
 if is_ish ; then
     # Don't bother if just chrooted
-    "$AOK_CONTENT"/common_AOK/usr_local_bin/fix_dev
+    "$AOK_CONTENT"/common_AOK/usr_local_sbin/fix_dev
 fi
 
 

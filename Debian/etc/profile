@@ -13,8 +13,17 @@ export PATH
 
 if [ "$(id -u)" -eq 0 ] && [ ! -e /etc/opt/AOK/is_chrooted ]; then
     # Only run when root and not chrooted
-    /usr/local/bin/fix_dev
+    /usr/local/sbin/fix_dev
 fi
+
+#
+#  Only show motd on login screens
+#
+if [ "$PPID" -lt 2 ]; then
+   echo
+   cat /etc/motd
+fi
+
 
 
 if [ -n "${PS1-}" ]; then
