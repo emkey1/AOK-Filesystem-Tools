@@ -4,7 +4,7 @@
 # Copyright (c) 2021: Jacob.Lundqvist@gmail.com 2021-05-20
 # License: MIT
 #
-# This service reads the GPS and discards the output to /dev/null. 
+# This service reads the GPS and discards the output to /dev/null.
 # So this is not tracking you in any way. The sole purpose of this
 # is that this is the only way to ensure an iOS program continues to run
 # in the background.
@@ -28,7 +28,7 @@ pidfile="/run/$RC_SVCNAME.pid"
 # The below parts are just adding some additional sanity, not needed
 # in order for the daemon to work by itself.
 #
-# Pointless to have more than one thing doing this. 
+# Pointless to have more than one thing doing this.
 # The below aborts with error if:  cat /dev/location
 # is already running.
 # And displays warning if other processes are detected

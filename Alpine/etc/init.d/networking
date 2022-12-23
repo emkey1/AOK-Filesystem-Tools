@@ -1,6 +1,6 @@
 #!/sbin/openrc-run
 
-# note that the spoofprotect, syncoockies and ip_forward options are set in 
+# note that the spoofprotect, syncoockies and ip_forward options are set in
 # /etc/sysctl.conf
 
 : ${cfgfile:="/etc/network/interfaces"}
