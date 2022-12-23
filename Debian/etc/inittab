@@ -9,6 +9,14 @@ fixdev::sysinit:/usr/local/sbin/fix_dev
 # Update motd (in case iSH has been updated)
 motd::sysinit:/usr/local/sbin/update_motd
 
+#
+# services in /etc/rc2.d doesnt startup right now
+# this is a hack workaround, running intended services from
+# this script works. This should be investigated...
+#
+ms:2:once:/usr/local/sbin/manual_services
+
+
 # Boot-time system configuration/initialization script.
 # This is run first except when booting in emergency (-b) mode.
 si::sysinit:/etc/init.d/rcS

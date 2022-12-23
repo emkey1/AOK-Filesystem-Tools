@@ -14,6 +14,12 @@ if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
     sudo ssh-keygen -A
 fi
 
+if [ -f /etc/debian_version ]; then
+    echo "For iSH-Debian, you enable sshd in the file /usr/local/sbin/manual_services"
+    echo "This is a bit of a hack, but at least it works for now..."
+    exit 0
+fi
+
 sudo rc-update add sshd
 
 sudo rc-service sshd start
