@@ -169,7 +169,7 @@ should_icloud_be_mounted() {
         if [ -f /etc/alpine-release ]; then
             apk add newt  # contains whiptail
         elif [ -f /etc/debian_version ]; then
-            apt install newt
+            apt install whiptail
         else
             error_msg "Unrecognized distro, aborting"
         fi
