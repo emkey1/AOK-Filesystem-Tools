@@ -1,5 +1,17 @@
 # /etc/inittab
 
+# Ensure all devices  are ok
+::sysinit:/usr/local/sbin/fix_dev
+
+#
+#  Update motd (in case iSH has been updated)
+#  On iSH we get console before this is executed despite the fact that
+#  sysinit actions are supposed to happen before conssole is activated
+#  This means first boot after new iSH will show outdated version
+#  on bootup
+#
+::sysinit:/usr/local/sbin/update_motd
+
 ::sysinit:/sbin/openrc default
 ::once:/usr/local/sbin/post_boot.sh
 ::wait:/sbin/openrc default
@@ -20,4 +32,3 @@
 
 # Stuff to do before rebooting
 ::shutdown:/sbin/openrc shutdown
-

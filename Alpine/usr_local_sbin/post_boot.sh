@@ -64,24 +64,6 @@ if [ -z "$1" ]; then
     exit 0
 fi
 
-
-if [ ! -e /etc/opt/AOK/is_chrooted ]; then
-    # Don't bother if chrooted
-    /usr/local/sbin/fix_dev
-fi
-
-
-# The following is needed for upstream PR #1716
-if [ ! -L /dev/fd ]; then
-    echo "--  Adding /dev/fd  --"
-    ln -sf /proc/self/fd /dev/fd
-fi
-
-
-#  Update motd to indicate current env
-/usr/local/sbin/update_motd
-
-
 #
 #  Add dcron if not done so already, typically a first boot task
 #

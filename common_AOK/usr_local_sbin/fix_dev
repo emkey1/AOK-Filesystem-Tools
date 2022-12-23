@@ -40,3 +40,8 @@ rm -f /dev/ptmx      && mknod -m 666 /dev/ptmx       c   5 2
 rm -f /dev/clipboard && mknod -m 666 /dev/clipboard  c 240 0
 rm -f /dev/location  && mknod -m 666 /dev/location   c 240 1
 )
+
+# The following is needed for upstream PR #1716
+if [ ! -L /dev/fd ]; then
+    ln -sf /proc/self/fd /dev/fd
+fi
