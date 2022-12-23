@@ -56,7 +56,7 @@ checkables=(
     common_AOK/usr_local_bin/disable_sshd
     common_AOK/usr_local_bin/elock
     common_AOK/usr_local_bin/enable_sshd
-    common_AOK/usr_local_bin/fix_dev
+    common_AOK/usr_local_sbin/fix_dev
     common_AOK/usr_local_bin/fix_services
     common_AOK/usr_local_bin/iCloud
     common_AOK/usr_local_bin/installed
