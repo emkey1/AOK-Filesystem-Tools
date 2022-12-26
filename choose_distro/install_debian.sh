@@ -37,7 +37,7 @@ wget "$DEBIAN_TARBALL"
 
 
 
-msg_2 "Extracting Debian"
+msg_2 "Extracting Debian (will show unpack time)"
 mkdir -p /Debian
 cd /Debian || exit 98
 time tar xfj "$debian_download_location"/*
