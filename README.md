@@ -62,8 +62,8 @@ arround 6MB.
 When testing setups in a chroot env, some extra steps are needed,
 since in chroot /etc/profile is not run
 
-`sudo ./tools/do_chroot.sh /bin/sh`  There might not be a bash at
-this point so must use /bin/sh if a shell is wanted, this also avoids
+`sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash at
+this point so must use /bin/ash if a shell is wanted, this also avoids
 unintentionally running /etc/profile, if that is not desired.
 
 `sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
