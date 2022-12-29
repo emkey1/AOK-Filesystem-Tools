@@ -43,7 +43,7 @@ fi
 # has_been_run="/etc/opt/aok_setup_fs-done"
 
 
-activate_runbg() {
+activate_runbg_alpine() {
     msg_1 "Activating this to run in the background"
 
     msg_2 "Ensuring openrc is installed"
@@ -199,7 +199,7 @@ apk upgrade
 ! is_iCloud_mounted && should_icloud_be_mounted
 
 #  Do this early on dest platform, ie non-chrooted, to allow task switching ASAP
-build_status_get "$STATUS_IS_CHROOTED" || activate_runbg
+build_status_get "$STATUS_IS_CHROOTED" || activate_runbg_alpine
 
 msg_1 "Setting up AOK FS"
 
@@ -211,7 +211,7 @@ install_apks
 
 #  if it is a chrooted pre-build, it makes more sense to do it here, after
 #  everything is already installed and upgraded
-build_status_get "$STATUS_IS_CHROOTED" && activate_runbg
+build_status_get "$STATUS_IS_CHROOTED" && activate_runbg_alpine
 
 replace_key_files
 
