@@ -34,6 +34,31 @@ disabeling_services() {
     done
 }
 
+activate_runbg_alpine() {
+    msg_1 "Activating this to run in the background"
+
+    msg_2 "Removing previous service if any"
+    rc-update del runbg
+
+    msg_2 "Adding runbg service"
+    cp -a "$AOK_CONTENT"/Debian/etc/init.d/runbg /etc/init.d
+
+    msg_2 "Activating runbg"
+    rc-update add runbg
+    rc-service runbg start
+
+    if ! build_status_get "$STATUS_IS_CHROOTED" ; then
+        #  Only report task switching usable if this a post-boot generated
+        #  file system
+        echo
+        echo
+        msg_1 "Task switching is now supported!"
+        echo
+        echo
+    fi
+}
+
+
 
 #===============================================================
 #
@@ -55,9 +80,8 @@ fi
 msg_2 "Using custom inittab"
 cp -av /opt/AOK/Debian/etc/inittab /etc
 
-msg_2 "removing bad runbg if found"
-rm -f /etc/init.d/runbg
-
+activate_runbg_alpine
+error_msg "Debug abort"
 #
 #  This speeds up update / upgrade quite a bit, you can always
 #  re-enable later if it is wished for
