@@ -35,7 +35,7 @@ activate_runbg() {
 
     echo "---  AOK /etc/init.d overrides  ---"
     cp "$AOK_CONTENT"/Files/init.d/* /etc/init.d
-
+    erro
 
     #
     #  Not needed on all releases
