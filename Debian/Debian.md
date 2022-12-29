@@ -58,7 +58,6 @@ of distro. And for Alpine there is no additional deploy time.
 
 ### debian bzip2
 
-
 sudo ./build_fs -d -j
 
 - Generic Linux cloud host (2vCPU 2G Ram): 58s
