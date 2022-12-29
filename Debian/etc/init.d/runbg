@@ -1,0 +1,139 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          runbg
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Reads GPS to ensure iSH continues to run when in background
+# Description:       Reads GPS to ensure iSH continues to run
+#                    when in background.
+### END INIT INFO
+
+#
+# Copyright (c) 2021: Jacob.Lundqvist@gmail.com 2021-12-29
+# License: MIT
+#
+# This service reads the GPS and discards the output to /dev/null.
+# So this is not tracking you in any way. The sole purpose of this
+# is that this is the only way to ensure an iOS program continues to run
+# in the background.
+# This process has no noticeable impact on battery life.
+#
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="ensure iSH runs in background"
+NAME=runbg
+
+DAEMON="/usr/bin/cat"
+DAEMON_ARGS="/dev/location > /dev/null"
+PIDFILE=/run/${NAME}.pid
+
+SCRIPTNAME=/etc/init.d/$NAME
+
+
+# Define LSB log_* functions.
+. /lib/lsb/init-functions
+
+
+do_start()
+{
+	# Return
+	#   0 if daemon has been started
+	#   1 if daemon was already running
+	#   other if daemon could not be started or a failure occured
+	start-stop-daemon --start --quiet  --background --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_ARGS
+}
+
+do_stop()
+{
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   other if daemon could not be stopped or a failure occurred
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --exec $DAEMON
+}
+
+
+
+create_xconsole() {
+	XCONSOLE=/dev/xconsole
+	if [ "$(uname -s)" != "Linux" ]; then
+		XCONSOLE=/run/xconsole
+		ln -sf $XCONSOLE /dev/xconsole
+	fi
+	if [ ! -e $XCONSOLE ]; then
+		mknod -m 640 $XCONSOLE p
+		chown root:adm $XCONSOLE
+		[ -x /sbin/restorecon ] && /sbin/restorecon $XCONSOLE
+	fi
+}
+
+check_for_other_polling() {
+    other_pids=$(ps |grep "cat /dev/location" | grep -v grep | awk '{ print $1 }' |  tr '\n' ' ')
+}
+
+
+start_pre() {
+    check_for_other_polling
+    if [ "$other_pids" != "" ]; then
+	    echo "ERROR: Other processes polling GPS [ $other_pids]"
+        log_end_msg 1
+   fi
+}
+
+
+stop_post() {
+    check_for_other_polling
+    if [ "$other_pids" != "" ]; then
+	    echo "WARNING: Other processes polling GPS [ $other_pids]"
+        log_end_msg 1
+   fi
+}
+
+
+case "$1" in
+  start)
+	log_daemon_msg "Starting $DESC" "$NAME"
+	# create_xconsole
+    # start_pre
+	do_start
+	case "$?" in
+		0) log_end_msg 0 ;;
+		1) log_progress_msg "already started"
+		   log_end_msg 0 ;;
+		*) log_end_msg 1 ;;
+	esac
+
+	;;
+  stop)
+	log_daemon_msg "Stopping $DESC" "$NAME"
+	do_stop
+	case "$?" in
+
+		0)  # stop_post
+            log_end_msg 0
+            ;;
+
+		1) log_progress_msg "already stopped"
+		   log_end_msg 0 ;;
+		*) log_end_msg 1 ;;
+	esac
+
+	;;
+  restart|force-reload)
+	$0 stop
+	$0 start
+	;;
+  try-restart)
+	$0 status >/dev/null 2>&1 && $0 restart
+	;;
+  status)
+	status_of_proc -p $PIDFILE $DAEMON && exit 0 || exit $?
+	;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|try-restart|status}" >&2
+	exit 3
+	;;
+esac
+
+:
