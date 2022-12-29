@@ -18,7 +18,7 @@ command="cat"
 command_args="/dev/location > /dev/null"
 command_background="YES"
 
-pidfile="/run/$RC_SVCNAME.pid"
+pidfile="/run/runbg.pid"
 
 
 #
