@@ -7,22 +7,21 @@
 # Enable sshd to run automatically
 #
 
-echo
-
-if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
-    echo "Generating SSH host keys"
-    sudo ssh-keygen -A
+if [ -f /etc/alpine-release ]; then
+    srvc_name="sshd"
+elif [ -f /etc/debian_version ]; then
+    srvc_name="ssh"
+else
+    echo "Unknown distro, aborting"
+    exit 1
 fi
 
-if [ -f /etc/debian_version ]; then
-    echo "For iSH-Debian, you enable sshd in the file /usr/local/sbin/manual_services"
-    echo "This is a bit of a hack, but at least it works for now..."
-    exit 0
-fi
+echo "Generating SSH host keys if not present"
+sudo ssh-keygen -A
 
-sudo rc-update add sshd
+sudo rc-update add "$srvc_name"
 
-sudo rc-service sshd start
+sudo rc-service "$srvc_name" start
 
 echo
 echo "Remember to set a password for the ish user if you haven't already"
