@@ -75,7 +75,7 @@ present so chroot can be done as `sudo ./tools/do_chroot.sh`
 
 ### login
 
-The AOK alternate logins are not yet deployed, pending testing
+The AOK alternate logins are not yet used, pending testing
 
 ### services
 
