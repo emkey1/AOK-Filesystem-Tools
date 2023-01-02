@@ -35,13 +35,8 @@ fi
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-
-
-
-
 # Pretty sure this is no longer needed, but i leave it commented out for now
 # has_been_run="/etc/opt/aok_setup_fs-done"
-
 
 activate_runbg_alpine() {
     msg_1 "Activating this to run in the background"
@@ -51,8 +46,8 @@ activate_runbg_alpine() {
 
     msg_2 "Adding runbg service"
     cp -a "$AOK_CONTENT"/Alpine/etc/init.d/runbg /etc/init.d
-    if [ -n "$(echo "$(cat /etc/alpine-release)" 3.14.8 | \
-         awk '{if ($1 <= $2) print $1}')" ]; then
+    if [ -n "$(echo "$(cat /etc/alpine-release)" 3.14.8 |
+        awk '{if ($1 <= $2) print $1}')" ]; then
         msg_3 "Adding some /etc/init.d files for older versions"
         cp -av "$AOK_CONTENT"/Alpine/etc/init.d/devfs /etc/init.d
         cp -av "$AOK_CONTENT"/Alpine/etc/init.d/hostname /etc/init.d
@@ -65,19 +60,19 @@ activate_runbg_alpine() {
     #
     case "$ALPINE_RELEASE" in
 
-        "3.14")
-            if is_aok_kernel; then
-                msg_2 "Replacing /etc/rc.conf"
-                cp /etc/rc.conf /etc/rc.conf.orig
-                cp "$AOK_CONTENT"/Alpine/etc/rc.conf /etc
-            else
-                msg_2 "Not changing /etc/rc.conf when not AOK kernel"
-            fi
-            ;;
+    "3.14")
+        if is_aok_kernel; then
+            msg_2 "Replacing /etc/rc.conf"
+            cp /etc/rc.conf /etc/rc.conf.orig
+            cp "$AOK_CONTENT"/Alpine/etc/rc.conf /etc
+        else
+            msg_2 "Not changing /etc/rc.conf when not AOK kernel"
+        fi
+        ;;
 
-        *)
-            # Not changing /etc/rc.conf on this Alpine release
-            ;;
+    *)
+        # Not changing /etc/rc.conf on this Alpine release
+        ;;
 
     esac
 
@@ -89,25 +84,25 @@ activate_runbg_alpine() {
     #
     case "$ALPINE_RELEASE" in
 
-        "3.12" | "3.13" | "3.14" | "3.15")
-            openrc-init
-            ;;
+    "3.12" | "3.13" | "3.14" | "3.15")
+        openrc-init
+        ;;
 
-        *)
-            msg_2 "Skipping openrc-init on: $ALPINE_RELEASE"
-            ;;
+    *)
+        msg_2 "Skipping openrc-init on: $ALPINE_RELEASE"
+        ;;
 
     esac
 
     msg_2 "Setting runlevel to 'default'"
     openrc_might_trigger_errors
-    openrc default 2> /dev/null
+    openrc default 2>/dev/null
 
     msg_2 "Activating runbg"
     rc-update add runbg
     rc-service runbg start
 
-    if ! build_status_get "$STATUS_IS_CHROOTED" ; then
+    if ! build_status_get "$STATUS_IS_CHROOTED"; then
         #  Only report task switching usable if this a post-boot generated
         #  file system
         echo
@@ -176,13 +171,13 @@ replace_key_files() {
     cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
 }
 
-
-
 #===============================================================
 #
 #   Main
 #
 #===============================================================
+
+tsa_start="$(date +%s)"
 
 test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
@@ -190,7 +185,7 @@ test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
 msg_1 "Setting up iSH-AOK FS: ${AOK_VERSION} on new filesystem"
 
-echo "$ALPINE_RELEASE" > "$FILE_ALPINE_RELEASE"
+echo "$ALPINE_RELEASE" >"$FILE_ALPINE_RELEASE"
 
 msg_2 "apk update & upgrade"
 apk update
@@ -215,11 +210,9 @@ build_status_get "$STATUS_IS_CHROOTED" && activate_runbg_alpine
 
 replace_key_files
 
-
 msg_3 "adding pkg shadow & group sudo"
 apk add shadow
 groupadd sudo
-
 
 # cron stuff
 cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
@@ -229,14 +222,10 @@ mkdir -p /usr/local/bin
 cp "$AOK_CONTENT"/Alpine/usr_local_bin/* /usr/local/bin
 chmod +x /usr/local/bin/*
 
-
 msg_3 "Add our stuff to /usr/local/sbin"
 mkdir -p /usr/local/sbin
 cp "$AOK_CONTENT"/Alpine/usr_local_sbin/* /usr/local/sbin
 chmod +x /usr/local/sbin/*
-
-
-
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
@@ -250,7 +239,6 @@ fi
 # #
 # touch "$has_been_run"
 
-
 msg_1 "Running $SETUP_COMMON_AOK"
 "$SETUP_COMMON_AOK"
 
@@ -258,5 +246,8 @@ msg_1 "running $SETUP_ALPINE_FINAL"
 "$SETUP_ALPINE_FINAL"
 
 select_profile "$PROFILE_ALPINE"
+
+duration="$(($(date +%s) - tsa_start))"
+printf "\nTime elapsed for Alpine install: %ss\n" "$duration"
 
 run_additional_tasks_if_found

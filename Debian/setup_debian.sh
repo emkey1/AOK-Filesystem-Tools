@@ -41,7 +41,7 @@ activate_runbg_debian() {
 #
 #===============================================================
 
-t_start="$(date +%s)"
+tsd_start="$(date +%s)"
 
 test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
@@ -122,5 +122,5 @@ run_additional_tasks_if_found
 
 msg_1 "Your system is setup! Please reboot / restart app"
 
-duration="$(($(date +%s) - t_start))"
+duration="$(($(date +%s) - tsd_start))"
 printf "\nTime elapsed for deploy: %ss\n" "$duration"

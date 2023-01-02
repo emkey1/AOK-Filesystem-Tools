@@ -5,20 +5,20 @@
 #
 #  shellcheck disable=SC2114,SC2154
 
-
 #  shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
+
+tid_start="$(date +%s)"
 
 #
 #  Ensure all devs are in a good state.
 #  Since it is not installed yet in /usr/local/sbin, run it from source
 #  It wil be deployed in SETUP_COMMON_AOK
 #
-if is_ish ; then
+if is_ish; then
     # Don't bother if just chrooted
     "$AOK_CONTENT"/common_AOK/usr_local_sbin/fix_dev
 fi
-
 
 msg_1 "Installing Debian"
 
@@ -35,8 +35,6 @@ cd "$debian_download_location" || exit 99
 msg_2 "Downloading $DEBIAN_TARBALL"
 wget "$DEBIAN_TARBALL"
 
-
-
 msg_2 "Extracting Debian (will show unpack time)"
 mkdir -p /Debian
 cd /Debian || exit 98
@@ -51,10 +49,9 @@ msg_3 "maintaining /etc/opt"
 cp -av /etc/opt /Debian/etc
 
 msg_2 "Moving Debian /etc/profile into place"
-cp  "$AOK_CONTENT"/Debian/etc/profile /Debian/etc/profile
+cp "$AOK_CONTENT"/Debian/etc/profile /Debian/etc/profile
 
 rm -rf "$debian_download_location"
-
 
 #
 #  Step 2, Get rid of Alpine FS
@@ -85,7 +82,6 @@ msg_3 "Deleting last parts of Alpine"
 /busybox rm /bin -rf
 /busybox rm /sbin -rf
 
-
 #
 #  Step 3, Move Debian into place
 #
@@ -110,7 +106,6 @@ msg_3 "Putting Debian stuff into place"
 msg_3 "Copying Alpine lib (musl) to /usr/lib"
 /busybox cp /lib/* /usr/lib
 
-
 #  replace /lib with soft-link to /usr/lib
 # /busybox echo "> Replacing /lib with a soft-link to /usr/lib"
 msg_3 "Replacing /lib with a soft-link to /usr/lib"
@@ -127,3 +122,6 @@ rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
 
 "$SETUP_DEBIAN"
+
+duration="$(($(date +%s) - tid_start))"
+printf "\nTime elapsed for Debian install: %ss\n" "$duration"
