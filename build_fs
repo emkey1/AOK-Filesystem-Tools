@@ -293,7 +293,7 @@ chroot_if_possible() {
             error_msg "in chroot, aborting build!"
         fi
     else
-        error_msg "Could not chroot, did not run: $action"
+        msg_2 "Could not chroot, did not run: $action"
     fi
 
 }
