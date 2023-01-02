@@ -336,10 +336,13 @@ setup_Debian() {
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
     msg_1 "Preparing for distro selections"
+    #
+    #  If this build platform cant chroot, then the preparational steps
+    #  will be run on 1st boot, a slight delay, but end result is
+    #  the same.
+    #
     chroot_if_possible "$SETUP_CHOOSE_DISTRO_PREPARE"
 
-    # If Alpine is selected profile.org will be the intended, in case
-    # the build procedures get lost
     select_profile "$PROFILE_CHOOSE_DISTRO"
     # msg_3 "select_distro_on_1st_boot()  done"
 }
