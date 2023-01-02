@@ -16,6 +16,13 @@ else
     exit 1
 fi
 
+#
+#  The Debian iSH distro does not use DSA keys, but to keep this code
+#  simple, using -A will generate all missing keys, should not be a
+#  security risk, since if the config does not use all keys, they will
+#  be ignored even if present, and there doesn't seem to be another
+#  simple way to ensure host keys are present.
+#
 echo "Generating SSH host keys if not present"
 sudo ssh-keygen -A
 
