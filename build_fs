@@ -349,8 +349,7 @@ select_distro_on_1st_boot() {
 
 display_build_time() {
     duration="$(($(date +%s) - t_start))"
-    printf "\nTime elapsed for build: %ss\n" "$duration"
-
+    display_time_elapsed "$duration" "Build FS"
 }
 
 #===============================================================

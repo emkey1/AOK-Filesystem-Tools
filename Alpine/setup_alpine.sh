@@ -248,6 +248,6 @@ msg_1 "running $SETUP_ALPINE_FINAL"
 select_profile "$PROFILE_ALPINE"
 
 duration="$(($(date +%s) - tsa_start))"
-printf "\nTime elapsed for Alpine install: %ss\n" "$duration"
+display_time_elapsed "$duration" "Setup Alpine"
 
 run_additional_tasks_if_found

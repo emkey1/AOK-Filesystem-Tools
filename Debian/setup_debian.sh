@@ -123,4 +123,4 @@ run_additional_tasks_if_found
 msg_1 "Your system is setup! Please reboot / restart app"
 
 duration="$(($(date +%s) - tsd_start))"
-printf "\nTime elapsed for deploy: %ss\n" "$duration"
+display_time_elapsed "$duration" "Setup Debian"

@@ -124,4 +124,4 @@ rm /usr/lib/ld-musl*
 "$SETUP_DEBIAN"
 
 duration="$(($(date +%s) - tid_start))"
-printf "\nTime elapsed for Debian install: %ss\n" "$duration"
+display_time_elapsed "$duration" "Debian install"

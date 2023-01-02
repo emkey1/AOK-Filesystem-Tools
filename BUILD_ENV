@@ -203,6 +203,17 @@ run_additional_tasks_if_found() {
     # msg_2 "run_additional_tasks_if_found()  done"
 }
 
+display_time_elapsed() {
+    t_in="$1"
+    label="$2"
+
+    mins="$((t_in / 60))"
+    rem_mins="$((t_in - mins * 60))"
+    echo
+    echo "Time elapsed: $mins:$rem_mins - $label"
+    echo
+}
+
 #
 #  Detecting build environments
 #  0 = other, not able to chroot to complete image
