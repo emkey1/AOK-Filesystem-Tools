@@ -17,17 +17,19 @@ motd_file="/etc/motd"
 motd_template="/etc/motd_template"
 aok_release="/etc/aok-release"
 
-echo "[35m===>  Welcome to: $(hostname)  <===" > "$motd_file"
-echo "Alpine release: $(cat /etc/alpine-release)" >> "$motd_file"
+echo "[35m===>  Welcome to: $(hostname)  <===" >"$motd_file"
+echo "Alpine release: $(cat /etc/alpine-release)" >>"$motd_file"
 
 if [ -e "$aok_release" ]; then
-    echo "AOK release: $(cat "$aok_release")" >> "$motd_file"
+    echo "AOK release: $(cat "$aok_release")" >>"$motd_file"
 fi
 
 if [ -d /proc/ish ]; then
     # Dont do this whilst chrooted in linux etc
-    echo "iSH release: $(cat /proc/ish/version)" >> "$motd_file"
+    echo "iSH release: $(cat /proc/ish/version)" >>"$motd_file"
+else
+    echo "iSH release: Can't be detected whilst chrooted" >>"$motd_file"
 fi
 
-echo "[0m" >> "$motd_file"
-cat "$motd_template" >> "$motd_file"
+echo "[0m" >>"$motd_file"
+cat "$motd_template" >>"$motd_file"

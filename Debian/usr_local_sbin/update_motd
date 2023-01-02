@@ -35,6 +35,8 @@ fi
 if [ -d /proc/ish ]; then
     # Dont do this whilst chrooted in linux etc
     echo "iSH release: $(cat /proc/ish/version)" >>"$motd_file"
+else
+    echo "iSH release: Can't be detected whilst chrooted" >>"$motd_file"
 fi
 
 echo "[0m" >>"$motd_file"
