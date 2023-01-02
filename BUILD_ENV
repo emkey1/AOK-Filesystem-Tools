@@ -20,10 +20,8 @@ AOK_CONTENT="/opt/AOK"
 # Locations for building File systems
 BUILD_BASE_D="/tmp/AOK"
 
-
 #  shellcheck disable=SC1091
 . "$AOK_CONTENT"/AOK_VARS || exit 1
-
 
 error_msg() {
     msg="$1"
@@ -59,13 +57,12 @@ msg_3() {
     echo "-> $1"
 }
 
-
 is_ish() {
     test -d /proc/ish
 }
 
 is_aok_kernel() {
-    grep -qi aok /proc/ish/version 2> /dev/null
+    grep -qi aok /proc/ish/version 2>/dev/null
 }
 
 is_iCloud_mounted() {
@@ -78,8 +75,6 @@ openrc_might_trigger_errors() {
     echo "The iSH family doesn't fully support openrc yet, but the important parts work!"
     echo
 }
-
-
 
 build_status_set() {
     if [ -z "$1" ]; then
@@ -101,9 +96,9 @@ build_status_get() {
     exitstatus="$?"
     case "$exitstatus" in
 
-        0 ) status="True" ;;
+    0) status="True" ;;
 
-        *)  status="False" ;;
+    *) status="False" ;;
 
     esac
 
@@ -120,13 +115,11 @@ build_status_clear() {
         rm -f "$fname"
         msg_3 "Cleared $fname"
     fi
-    if [ "$(find "$BUILD_STATUS"/ 2>/dev/null |wc -l)" -le 1 ]; then
+    if [ "$(find "$BUILD_STATUS"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$BUILD_STATUS" -rf
         msg_3 "Cleared entire $BUILD_STATUS"
     fi
 }
-
-
 
 #  shellcheck disable=SC2120
 select_profile() {
@@ -144,8 +137,7 @@ select_profile() {
     chmod 744 "$BUILD_ROOT_D"/etc/profile
     chown root: "$BUILD_ROOT_D"/etc/profile
     # msg_3 "select_profile($replacement_profile)  done"
- }
-
+}
 
 iCloud_mount_prompt_notification() {
     # abort if not running on iSH
@@ -165,18 +157,18 @@ should_icloud_be_mounted() {
     ! test -d /proc/ish && return
 
     msg_2 "should_icloud_be_mounted()"
-    if ! is_iCloud_mounted ; then
+    if ! is_iCloud_mounted; then
         if [ -f /etc/alpine-release ]; then
-            apk add newt  # contains whiptail
+            apk add newt # contains whiptail
         elif [ -f /etc/debian_version ]; then
             apt install whiptail
         else
             error_msg "Unrecognized distro, aborting"
         fi
         text="Do you want to mount iCloud now?"
-        whiptail                            \
-            --topleft                       \
-            --title     "Mount iCloud"      \
+        whiptail \
+            --topleft \
+            --title "Mount iCloud" \
             --yesno "$text" 0 0
 
         exitstatus=$?
@@ -186,7 +178,6 @@ should_icloud_be_mounted() {
     fi
     # msg_3 "should_icloud_be_mounted()  done"
 }
-
 
 notification_additional_tasks() {
     msg_2 "notification_additional_tasks()"
@@ -212,22 +203,19 @@ run_additional_tasks_if_found() {
     # msg_2 "run_additional_tasks_if_found()  done"
 }
 
-
 #
 #  Detecting build environments
 #  0 = other, not able to chroot to complete image
 #  1 = iSH
 #  2 = Linux (x86)
 #
-if is_ish ; then
+if is_ish; then
     BUILD_ENV=1
 elif uname -a | grep -qi linux && uname -a | grep -q x86; then
     BUILD_ENV=2
 else
-    BUILD_ENV=0  # chroot not possible
+    BUILD_ENV=0 # chroot not possible
 fi
-
-
 
 #
 #  Locations for "other" stuff
@@ -242,7 +230,6 @@ DEBIAN_FS_CACHE_D="/tmp/Debian_fs_cache"
 # If this is run on an iSH node, the image is copied to this location
 ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 
-
 #
 #  Pre-generated image names
 #
@@ -256,11 +243,8 @@ AOK_FS="Alpine_${ALPINE_VERSION}-iSH-AOK_${AOK_VERSION}"
 # image name for downloaded Debian tar ball
 DEBIAN_FS="$(echo "$DEBIAN_TARBALL" | grep -oE '[^/]+$')"
 
-
 # image name for generic builds
 BASIC_FS="Alpine-${ALPINE_VERSION}-iSH.tgz"
-
-
 
 #
 #  Statuses are files put in place in /etc/opt/AOK on the destination FS
@@ -284,8 +268,6 @@ STATUS_IS_CHROOTED="is_chrooted"
 #
 STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
 
-
-
 #
 #  temp value until we know if this is dest FS, so that BUILD_ROOT_D can be
 #  selected
@@ -296,21 +278,19 @@ BUILD_STATUS_RAW="/etc/opt/AOK"
 #  STATUS_BEING_BUILT and BUILD_STATUS, used by build_status_get()
 #  must be defined before this
 #
-if build_status_get "$STATUS_IS_CHROOTED" ; then
+if build_status_get "$STATUS_IS_CHROOTED"; then
     BUILD_ROOT_D=""
-    msg_3 "This is chrooted"
-elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT" ; then
+    # msg_3 "This is chrooted"
+elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT"; then
     BUILD_ROOT_D=""
-    msg_3 "This is running on dest platform"
+    # msg_3 "This is running on dest platform"
 else
-    msg_3 "Not chrooted, not dest platform"
+    # msg_3 "Not chrooted, not dest platform"
     BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
 fi
 
-
 #  Now the proper value can be set
 BUILD_STATUS="${BUILD_ROOT_D}${BUILD_STATUS_RAW}"
-
 
 #  Placeholder, to store  what version of AOK that was used
 FILE_AOK_RELEASE="$BUILD_ROOT_D"/etc/aok-release
@@ -318,14 +298,11 @@ FILE_AOK_RELEASE="$BUILD_ROOT_D"/etc/aok-release
 #  Placeholder, only used for Alpine deploys
 FILE_ALPINE_RELEASE="$BUILD_ROOT_D"/etc/alpine-release
 
-
 #
 #  How long the introduction should be displayed when the system is setup
 #  during first boot
 #
 FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=15
-
-
 
 #
 #  Alpine related build env
@@ -346,13 +323,11 @@ SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
 SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
 SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
 
-
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
 #  FIRST_BOOT_ADDITIONAL_TASKS
 #
 ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
-
 
 #
 #  First profiles used during boot to finalize setup
@@ -366,14 +341,12 @@ PROFILE_DEBIAN_COMPLETE_DEPLOY="$AOK_CONTENT"/Debian/etc/profile.finish_setup
 PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
 PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
 
-
 #
 #  After all packages are installed, if /bin/login was something other than
 #  a soft-link to /bin/busybox, it will be renamed to this, so it can be
 #  selected later.
 #
 LOGIN_ORIGINAL="/bin/login.alpine"
-
 
 #
 #  Local overrides, ignored by git. They will be appended to BUILD_ENV
