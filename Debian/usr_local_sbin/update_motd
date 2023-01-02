@@ -14,25 +14,28 @@
 #  hostname might also change between boot-ups.
 #
 
+# Debug log
+echo "[$(date)]  update_motd" >>/var/log/debug.log
+
 #
 #  Sample setup that displays release info
 #
 
 motd_file="/etc/motd"
-motd_template="/etc/motd_template"  # The iSH-AOK logo :)
+motd_template="/etc/motd_template" # The iSH-AOK logo :)
 aok_release="/etc/aok-release"
 
-echo "[35m===>  Welcome to: $(hostname)  <===" > "$motd_file"
-echo "Debian release: $(cat /etc/debian_version)" >> "$motd_file"
+echo "[35m===>  Welcome to: $(hostname)  <===" >"$motd_file"
+echo "Debian release: $(cat /etc/debian_version)" >>"$motd_file"
 
 if [ -e "$aok_release" ]; then
-    echo "AOK release: $(cat "$aok_release")" >> "$motd_file"
+    echo "AOK release: $(cat "$aok_release")" >>"$motd_file"
 fi
 
 if [ -d /proc/ish ]; then
     # Dont do this whilst chrooted in linux etc
-    echo "iSH release: $(cat /proc/ish/version)" >> "$motd_file"
+    echo "iSH release: $(cat /proc/ish/version)" >>"$motd_file"
 fi
 
-echo "[0m" >> "$motd_file"
-cat "$motd_template" >> "$motd_file"
+echo "[0m" >>"$motd_file"
+cat "$motd_template" >>"$motd_file"
