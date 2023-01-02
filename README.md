@@ -23,7 +23,7 @@ Instructions on how to build an iSH family File system: `./build_fs -h`
 
 ## Configuration
 
-Main settings are in AOK_VARS, BUILD_ENV have some buil-related settings
+Main settings are in AOK_VARS, BUILD_ENV have some build-related settings
 
 You can override this with local settings in .AOK_VARS and .BUILD_ENV,
 both will be ignored by git. Please note that if either is found,
