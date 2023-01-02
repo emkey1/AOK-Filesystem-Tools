@@ -23,13 +23,11 @@ dialog_app="whiptail"
 
 if ! build_status_get "$STATUS_SELECT_DISTRO_PREPARED"; then
     msg_1 "Need to run $SETUP_CHOOSE_DISTRO_PREPARE"
-    # "$SETUP_CHOOSE_DISTRO_PREPARE"
+    "$SETUP_CHOOSE_DISTRO_PREPARE"
 else
     msg_1 "$SETUP_CHOOSE_DISTRO_PREPARE alredy done"
 fi
 build_status_clear "$STATUS_SELECT_DISTRO_PREPARED"
-
-
 
 #
 #  Ensure TERM is sensible, tmux and ch-rooting tends to leave it in a state
@@ -68,11 +66,11 @@ and is thus now unmaintained.
 But should be fine for testing Debian
 under iSH-AOK."
 
-$dialog_app                         \
-    --topleft                       \
-    --title     "Select AOK Distro" \
-    --yes-button "Alpine"           \
-    --no-button  "Debian"           \
+$dialog_app \
+    --topleft \
+    --title "Select AOK Distro" \
+    --yes-button "Alpine" \
+    --no-button "Debian" \
     --yesno "$text" 0 0
 
 exitstatus=$?
