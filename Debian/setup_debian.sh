@@ -14,51 +14,26 @@
 #  shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-disabeling_services() {
-    msg_2 "disabeling_services($1)"
-    if [ -z "$1" ]; then
-        error_msg "no dir param"
-    fi
+activate_runbg_debian() {
 
-    ddir="/etc/$1"
-    if [ ! -d "$ddir" ]; then
-        error_msg "dir $ddir does not seem to exist"
-    fi
-    cd "$ddir" || exit 124
-    mkdir -p NOT
-    shift
-
-    while [ -n "$1" ]; do
-        mv "$1" NOT
-        shift
-    done
-}
-
-activate_runbg_alpine() {
-    msg_1 "Activating this to run in the background"
-
-    msg_2 "Removing previous service if any"
-    rc-update del runbg
-
-    msg_2 "Adding runbg service"
+    msg_3 "Adding Debian runbg service"
     cp -a "$AOK_CONTENT"/Debian/etc/init.d/runbg /etc/init.d
 
-    msg_2 "Activating runbg"
-    rc-update add runbg
-    rc-service runbg start
-
-    if ! build_status_get "$STATUS_IS_CHROOTED" ; then
-        #  Only report task switching usable if this a post-boot generated
-        #  file system
-        echo
-        echo
-        msg_1 "Task switching is now supported!"
-        echo
-        echo
-    fi
+    #
+    #  Since this was booted up with potentially invalid settings for
+    #  openrc, at this time this service can not reliably be set up with
+    #  the normal procedure:
+    #    rc-update add runbg
+    #    rc-service runbg start
+    #  Instead we need to hardcode the intended state manually.
+    #  The inittab used by this deploy will reset the openrc env into
+    #  a clean state during future bootups, so this service should
+    #  start normally as intended on all future bootups.
+    #
+    msg_3 "Activating runbg"
+    cd /etc/runlevels/default || exit 126
+    ln -sf /etc/init.d/runbg .
 }
-
-
 
 #===============================================================
 #
@@ -66,62 +41,78 @@ activate_runbg_alpine() {
 #
 #===============================================================
 
+t_start="$(date +%s)"
+
 test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
 ! is_iCloud_mounted && iCloud_mount_prompt_notification
 
 msg_1 "Setup Debian"
 
-if test -f /AOK ; then
+if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
     rm -rf /AOK
 fi
 
-msg_2 "Using custom inittab"
-cp -av /opt/AOK/Debian/etc/inittab /etc
-
-activate_runbg_alpine
-error_msg "Debug abort"
 #
 #  This speeds up update / upgrade quite a bit, you can always
 #  re-enable later if it is wished for
 #
-msg_2 "commenting out all deb-src entries"
+msg_2 "sources.list without deb-src entries"
 cp /opt/AOK/Debian/etc/apt_sources.list /etc/apt/sources.list
-
-#
-# Trying to balance what services can br removed whilst not causing system
-# to be unbootable, work in progress, so not activated yet...
-#
-# msg_2 "Disabeling some services"
-# disabeling_services rcS.d S01mountkernfs.sh
-# disabeling_services rc2.d S01rsyslog S02cron S02rsync
-# disabeling_services rc3.d S01rsyslog S02cron S02rsync
 
 msg_2 "apt update & upgrade"
 apt update && apt upgrade -y
 
 ! is_iCloud_mounted && should_icloud_be_mounted
 
-msg_2 "Installing openssh-server & net-tools (ifconfig)"
-apt install openssh-server net-tools
-
-
 msg_2 "Add our Debian stuff to /usr/local/bin"
 mkdir -p /usr/local/bin
 cp "$AOK_CONTENT"/Debian/usr_local_bin/* /usr/local/bin
 chmod +x /usr/local/bin/*
-
 
 msg_2 "Add our Debian stuff to /usr/local/sbin"
 mkdir -p /usr/local/sbin
 cp "$AOK_CONTENT"/Debian/usr_local_sbin/* /usr/local/sbin
 chmod +x /usr/local/sbin/*
 
+# Ensure hostname is in /etc/hosts
+/usr/local/sbin/ensure_hostname_in_host_file.sh
+
+msg_2 "Installing custom inittab"
+cp -av /opt/AOK/Debian/etc/inittab /etc
+
+msg_3 "Remove ssh host keys if present in FS to ensure not using known keys"
+rm /etc/ssh/ssh_host*key*
+
+msg_2 "Installing openssh-server"
+apt install openssh-server
+
+#
+#  Most of the Debian services, mounting fs, setting up networking etc
+#  serve no purpose in iSH, since all this is either handled by iPadOS
+#  or done before bootup, so we only need to run actual services
+#
+msg_3 "Disabling previous runlevel tasks"
+rm /etc/runlevels/sysinit/*
+rm /etc/runlevels/default/*
+
+#
+#  Since iSH doesn't do any cleanup upon shutdown, services will leave
+#  their previous running state in /run, confusing Debian on next boot.
+#  So far, the simplest way to avoid this is to replace /run early on
+#  bootup with a state of no services running, allowing all intended
+#  services to start in a fresh state.
+#  inittab runs /usr/local/sbin/reset-run-dir.sh before switching to
+#  runlevel default during bootup, using this tarball to reset /run
+#
+msg_3 "Copying bootup run state to /etc/opt/openrc_empty_run.tgz"
+cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
+
+activate_runbg_debian
 
 msg_1 "Running $SETUP_COMMON_AOK"
 "$SETUP_COMMON_AOK"
-
 
 build_status_clear "$STATUS_BEING_BUILT"
 
@@ -130,3 +121,6 @@ select_profile "$PROFILE_DEBIAN"
 run_additional_tasks_if_found
 
 msg_1 "Your system is setup! Please reboot / restart app"
+
+duration="$(($(date +%s) - t_start))"
+printf "\nTime elapsed for deploy: %ss\n" "$duration"
