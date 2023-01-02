@@ -46,14 +46,13 @@ Debian
 
 Both Alpine and Debian FS can be prebuilt. Advantage is that FS is ready
 to be used right away, drawback is that the tarball will be larger.
-Especially in the case of Alpine, since the initial FS Installing on
-first boot is only arround 6MB, a pre-built AOK Alpine FS is something
-like 50MB.
+In the case of Alpine, the initial FS Installing on first boot is only
+arround 6MB, a pre-built AOK Alpine FS is something like 50MB.
 
 With Debian the difference in size will be less noticeable, in both
 cases it will be over 230MB
 
-The recomended distribution method for Debian is to build with -s
+The recomended distribution method is to build with -s
 Select between Alpine/Debian on first boot, initial tarball will be
 arround 6MB.
 
@@ -62,14 +61,14 @@ arround 6MB.
 When testing setups in a chroot env, some extra steps are needed,
 since in chroot /etc/profile is not run
 
+`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
+deploy directly.
+
 `sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash at
 this point so must use /bin/ash if a shell is wanted, this also avoids
 unintentionally running /etc/profile, if that is not desired.
 
-`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
-deploy directly
-
-When rebooting after Alpine / Debian is initially setup, bash will be
+After Alpine / Debian is initially setup, bash will be
 present so chroot can be done as `sudo ./tools/do_chroot.sh`
 
 ## Known Debian issues
@@ -80,5 +79,8 @@ The AOK alternate logins are not yet deployed, pending testing
 
 ### services
 
-The service handling on iSH Debian is not yet done,
-runbg isn't setup as a propper debian service
+runbg is installed and active from the start
+sshd is turned on/off by running enable_sshd / disable_sshd
+All the default Debian services are disabled. Most of them are related
+to booting the FS, networking, setting up random numbers etc.
+Tasks that are taken care of by iSH
