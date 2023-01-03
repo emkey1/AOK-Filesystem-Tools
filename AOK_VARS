@@ -53,7 +53,7 @@ INITIAL_LOGIN_MODE="enable"
 #  If defined, this will be run at the end of first boot, at a time when
 #  it should be a full AOK FS
 #  If this is a script, it must be available with this PATH on the final
-#  FS, that means it needs to be in the iCloud mount.
+#  FS, that means it most likely needs to be in the iCloud mount.
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
 
@@ -88,6 +88,7 @@ BLOAT3_APKS='emacs neofetch'
 
 DOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc'
 
+# =====================================================================
 #
 #  Local overrides, ignored by git. They will be appended to AOK_VARS
 #  if found. This is intended for debuging and testing, since stuff
