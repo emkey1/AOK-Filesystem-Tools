@@ -457,7 +457,7 @@ if $aok_FS_do_compress; then
         label="$ALPINE_FS"
     fi
 
-    #  shellcheck disable=SC2086
+    #  shellcheck disable=SC2086,SC2248
     if ! "$AOK_CONTENT"/compress_image -l $label $extra_params; then
         error_msg "detected in compress_image"
     fi
