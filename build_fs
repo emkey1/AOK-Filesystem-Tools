@@ -191,9 +191,9 @@ cache_miniroot_fs() { # Multi OK 1
     cd "$MINIROOT_FS_CACHE_D" || exit 1
 
     # Download the Alpine miniroot if we need to
-    if [ ! -f "$MINIROOT_FS" ]; then
+    if [ ! -f "$MINIROOT_TARBALL" ]; then
         msg_3 "Caching miniroot tarball"
-        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_FS"
+        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_TARBALL"
     fi
     # msg_3 "cache_miniroot_fs() done"
 }
@@ -209,8 +209,8 @@ cache_Debian_fs() {
         error_msg "Failed to cd to debian cache"
     }
 
-    if [ ! -f "$DEBIAN_FS" ]; then
-        wget "$DEBIAN_TARBALL"
+    if [ ! -f "$DEBIAN_TARBALL" ]; then
+        wget "$DEBIAN_IMAGE"
     fi
     # msg_3 "cache_Debian_fs() done"
 }
@@ -379,11 +379,11 @@ if $build_debian_FS; then
     else
         options="xfj"
     fi
-    tar "$options" "$DEBIAN_FS_CACHE_D/$DEBIAN_FS" || {
+    tar "$options" "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL" || {
         echo "ERROR: Failed to untar Debian-fs"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_FS"
+        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL"
         exit 1
     }
 else
@@ -396,11 +396,11 @@ else
     else
         options="xfz"
     fi
-    tar "$options" "$MINIROOT_FS_CACHE_D"/"$MINIROOT_FS" || {
+    tar "$options" "$MINIROOT_FS_CACHE_D"/"$MINIROOT_TARBALL" || {
         echo "ERROR: Failed to untar root-fs"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$MINIROOT_FS_CACHE_D/$MINIROOT_FS"
+        echo "$MINIROOT_FS_CACHE_D/$MINIROOT_TARBALL"
         exit 1
     }
 fi
@@ -444,17 +444,21 @@ if $aok_FS_do_compress; then
     if $use_bzip2; then
         extra_params="$extra_params -j"
     fi
+
+    #
+    #  Set name for tarball
+    #
     if $build_debian_FS; then
-        label="-l Debian-ish-AOK-$AOK_VERSION"
+        label="$DEBIAN_FS"
     elif $distro_select; then
         #  shellcheck disable=SC2154
-        label="-l SelectDistro-$AOK_VERSION"
+        label="$SELECT_DISTRO_FS"
     else
-        label=""
+        label="$ALPINE_FS"
     fi
 
     #  shellcheck disable=SC2086
-    if ! "$AOK_CONTENT"/compress_image $label $extra_params; then
+    if ! "$AOK_CONTENT"/compress_image -l $label $extra_params; then
         error_msg "detected in compress_image"
     fi
     display_build_time

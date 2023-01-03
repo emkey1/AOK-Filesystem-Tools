@@ -13,17 +13,14 @@ version="1.3.5"
 
 prog_name=$(basename "$0")
 
-
 #
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
 #
 #  shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-
 use_bzip2=false
 verbose=false
-
 
 show_help() {
     cat <<EOF
@@ -49,35 +46,33 @@ show_version() {
     exit 0
 }
 
-
 while [ -n "$1" ]; do
 
     case "$1" in
 
-        "-h" | "--help" ) show_help ;;
+    "-h" | "--help") show_help ;;
 
-        "-V" | "--version" ) show_version ;;
+    "-V" | "--version") show_version ;;
 
-        "-j" |  "--bzip2" ) use_bzip2=true ;;
+    "-j" | "--bzip2") use_bzip2=true ;;
 
-        "-l" | "--label" )
-            shift
-            tar_name="$1"
-            if [ -z "$tar_name" ]; then
-                echo "ERROR: label needs name as additional param!"
-                exit 1
-            fi
-            ;;
+    "-l" | "--label")
+        shift
+        tar_name="$1"
+        if [ -z "$tar_name" ]; then
+            echo "ERROR: label needs name as additional param!"
+            exit 1
+        fi
+        ;;
 
-        "-v" | "--verbose" ) verbose=true ;;
+    "-v" | "--verbose") verbose=true ;;
 
-        *)
-            error_msg "bad param, try -h"
-            ;;
+    *)
+        error_msg "bad param, try -h"
+        ;;
     esac
     shift
 done
-
 
 if [ "$(whoami)" != "root" ]; then
     # Must come after help display, to avoid infinite loop
@@ -95,15 +90,13 @@ if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
 fi
 
 if [ -z "$tar_name" ]; then
-    tarball="$AOK_FS"
+    tarball="$ALPINE_FS"
 else
     tarball="${tar_name}"
 fi
 
-
 # set location
 tarball="$BUILD_BASE_D/$tarball"
-
 
 # echo "removing temp /dev items"
 # rm  -f "$BUILD_ROOT_D"/dev/*
@@ -115,7 +108,7 @@ msg_1 "Creating image"
 #
 cd "$BUILD_ROOT_D" || exit 99
 
-if $use_bzip2 ; then
+if $use_bzip2; then
     opts="cfj"
     tarball="${tarball}.tar.bz2"
 else
@@ -123,25 +116,22 @@ else
     tarball="${tarball}.tgz"
 fi
 
-if $verbose ; then
+if $verbose; then
     opts="v$opts"
 fi
-
 
 tar "$opts" "$tarball" .
 
 #
 # copy it to /iCloud if this runs on iSH
 #
-if is_ish ; then
+if is_ish; then
     msg_2 "Copying image into $ICLOUD_ARCHIVE_D"
     mkdir -p "$ICLOUD_ARCHIVE_D"
     cp "$tarball" "$ICLOUD_ARCHIVE_D"
 fi
 echo
 
-
 msg_1 "Image is ready: $tarball"
-
 
 exit 0 #  Avoid exiting with error if above file did not exist
