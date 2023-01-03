@@ -24,19 +24,14 @@ cd /opt/AOK || exit 99
 
 prog_name=$(basename "$0")
 
-
 CHROOT_TO="$BUILD_ROOT_D"
-
 
 if [ "$(whoami)" != "root" ]; then
     error_msg "This must be run as root or using sudo!"
 fi
 
-
-
 env_prepare() {
     msg_2 "Preparing the environment for chroot"
-
 
     msg_3 "Mounting system resources"
 
@@ -81,7 +76,7 @@ env_cleanup() {
 
 show_help() {
     cat <<EOF
-Usage: $prog_name [-h] | [-u] | [-p dir] command
+Usage: $prog_name [-h] | [-v] | [-c] | [-p dir] command
 
 chroot with env setup so this works on both Linux & iSH
 
@@ -91,58 +86,59 @@ Available options:
 -v  --version  Display version and exit
 -c  --cleanup  Cleanup env
 -p, --path     What dir to chroot into, defaults to: $BUILD_ROOT_D
-command        What to run, defaults to "bash -l", command params must be quoted!
+command        What to run, defaults to "bash -l", command and params must be quoted!
 EOF
 
 }
 
-
+#===============================================================
+#
+#   Main
+#
+#===============================================================
 
 case "$1" in
 
-    "-h" | "--help" )
-        show_help
-        exit 0
-        ;;
+"-h" | "--help")
+    show_help
+    exit 0
+    ;;
 
-    "-v" | "--version" )
-        echo "$prog_name, version $version"
-        echo
-        exit 0
-        ;;
+"-v" | "--version")
+    echo "$prog_name, version $version"
+    echo
+    exit 0
+    ;;
 
-    "-p" | "--path" )
-        if [ -n "$2" ]; then
-            CHROOT_TO="$2"
-            if [ ! -d "$CHROOT_TO" ]; then
-                echo "ERROR: [$CHROOT_TO] is not a directory!"
-                exit 1
-            fi
-            shift  # get rid of the option
-            shift  # get rid of the dir
-        else
-            error_msg "-p assumes a param pointing to where to chroot!"
+"-p" | "--path")
+    if [ -n "$2" ]; then
+        CHROOT_TO="$2"
+        if [ ! -d "$CHROOT_TO" ]; then
+            echo "ERROR: [$CHROOT_TO] is not a directory!"
+            exit 1
         fi
-        ;;
+        shift # get rid of the option
+        shift # get rid of the dir
+    else
+        error_msg "-p assumes a param pointing to where to chroot!"
+    fi
+    ;;
 
-    "-c" | "--cleanup" )
-        env_cleanup
-        exit 0
-        ;;
+"-c" | "--cleanup")
+    env_cleanup
+    exit 0
+    ;;
 
-    *)
-        firstchar="$(echo "$1" | cut -c1-1)"
-        if [ "$firstchar" = "-" ]; then
-            error_msg "invalid option! Try using: -h"
-        fi
-        ;;
+*)
+    firstchar="$(echo "$1" | cut -c1-1)"
+    if [ "$firstchar" = "-" ]; then
+        error_msg "invalid option! Try using: -h"
+    fi
+    ;;
 
 esac
 
-
-
 env_prepare
-
 
 if [ "$1" = "" ]; then
     cmd="bash -l"
