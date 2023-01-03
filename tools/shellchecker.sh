@@ -15,18 +15,15 @@ prog_name=$(basename "$0")
 echo "$prog_name, version $version"
 echo
 
-
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
 cd /opt/AOK || exit 1
 
-
 checkables=(
     tools/do_chroot.sh
-    tools/shellchecker.sh      # obviously self-check :)
-
+    tools/shellchecker.sh # obviously self-check :)
 
     # Alpine/cron/15min/dmesg_save
     Alpine/etc/profile
@@ -42,7 +39,7 @@ checkables=(
     Alpine/usr_local_bin/update
     Alpine/usr_local_bin/vnc_start
     Alpine/usr_local_bin/what_owns
-    # Alpine/usr_local_bin/Xdummy
+    ## Alpine/usr_local_bin/Xdummy
     Alpine/usr_local_sbin/post_boot.sh
     Alpine/usr_local_sbin/update_motd
     Alpine/setup_alpine_final_tasks.sh
@@ -69,7 +66,9 @@ checkables=(
     common_AOK/first_boot.sh
     common_AOK/setup_common_env.sh
 
-    Debian/etc/profile
+    # Weird, if this is used, I get shellcheck issues listed in /etc/bash.bashrc
+    ##Debian/etc/profile
+
     Debian/usr_local_sbin/update_motd
     Debian/setup_debian.sh
 
@@ -108,9 +107,9 @@ for script in "${checkables[@]}"; do
     #  abort as soon as one lists issues
     echo "Checking: ${script}"
     if [[ "${do_shellcheck}" != "" ]]; then
-        shellcheck -x -a -o all -e SC2250,SC2312 "${script}"  || exit 1
+        shellcheck -x -a -o all -e SC2250,SC2312 "${script}" || exit 1
     fi
     if [[ "${do_checkbashisms}" != "" ]]; then
-        checkbashisms -n -e -x "${script}"  || exit 1
+        checkbashisms -n -e -x "${script}" || exit 1
     fi
 done
