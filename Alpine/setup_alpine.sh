@@ -46,7 +46,7 @@ activate_runbg_alpine() {
 
     msg_2 "Adding runbg service"
     cp -a "$AOK_CONTENT"/Alpine/etc/init.d/runbg /etc/init.d
-    if [ -n "$(echo "$(cat /etc/alpine-release)" 3.14.8 |
+    if [ -n "$(echo "$(cat $FILE_ALPINE_RELEASE)" 3.14.8 |
         awk '{if ($1 <= $2) print $1}')" ]; then
         msg_3 "Adding some /etc/init.d files for older versions"
         cp -av "$AOK_CONTENT"/Alpine/etc/init.d/devfs /etc/init.d
