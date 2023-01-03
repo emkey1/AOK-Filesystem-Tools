@@ -18,11 +18,11 @@ setup_environment() {
     msg_2 "Setting up environment"
 
     #  Announce what AOK release this is
-    echo "$AOK_VERSION" > "$FILE_AOK_RELEASE"
+    echo "$AOK_VERSION" >"$FILE_AOK_RELEASE"
 
     cp "$AOK_CONTENT"/common_AOK/etc/motd_template /etc
 
-    sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue > /etc/issue
+    sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue >/etc/issue
 
     msg_3 "Populate /etc/skel"
     cp -av "$AOK_CONTENT"/common_AOK/etc/skel /etc
@@ -40,7 +40,6 @@ setup_environment() {
     msg_3 "Add our common stuff to /usr/local/sbin"
     cp "$AOK_CONTENT"/common_AOK/usr_local_sbin/* /usr/local/sbin
     chmod +x /usr/local/sbin/*
-
 
     msg_3 "Activating group sudo for no passwd sudo"
     cp "$AOK_CONTENT"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
@@ -65,10 +64,8 @@ setup_environment() {
     fi
 }
 
-
-
 setup_login() {
-    if [ -f /etc/debian_version ]; then
+    if [ -f "$FILE_DEBIAN_VERSION" ]; then
         # -> For now Debian login is not altered
         return
     fi
@@ -97,7 +94,6 @@ setup_login() {
     ln -sf /bin/busybox /bin/login
 }
 
-
 copy_skel_files() {
     dest="$1"
     if [ -z "$dest" ]; then
@@ -107,7 +103,6 @@ copy_skel_files() {
     cd "$dest" || exit 99
     ln -sf .bash_profile .bashrc
 }
-
 
 user_root() {
     msg_2 "Setting up root user env"
@@ -146,7 +141,6 @@ user_ish() {
     # set ownership
     chown -R ish: ~ish
 }
-
 
 setup_environment
 setup_login
