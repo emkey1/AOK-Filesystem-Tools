@@ -71,6 +71,12 @@ unintentionally running /etc/profile, if that is not desired.
 After Alpine / Debian is initially setup, bash will be
 present so chroot can be done as `sudo ./tools/do_chroot.sh`
 
+## Known Alpine issues
+
+When Alpine login is enabled /etc/motd is not displayed, I have tried to
+figure out a way to display it only on logins, but not come up with
+a good way, when login is disabled, it is displayed.
+
 ## Known Debian issues
 
 ### login
