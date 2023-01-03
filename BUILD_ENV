@@ -23,6 +23,11 @@ BUILD_BASE_D="/tmp/AOK"
 #  shellcheck disable=SC1091
 . "$AOK_CONTENT"/AOK_VARS || exit 1
 
+#
+#  Display an error message, second optional param is exit code,
+#  defaulting to 1. If exit code is 0 this will not exit, just display
+#  the error message, then continue.
+#
 error_msg() {
     msg="$1"
     exit_code="${2:-1}"
@@ -57,6 +62,9 @@ msg_3() {
     echo "-> $1"
 }
 
+#
+#  Some boolean checks
+#
 is_ish() {
     test -d /proc/ish
 }
@@ -69,6 +77,11 @@ is_iCloud_mounted() {
     mount | grep -wq iCloud
 }
 
+#
+#  Warning message displayed, indicating errors during openrc actions
+#  can be ignored, and are not to be read as failures in the deploy
+#  procedure
+#
 openrc_might_trigger_errors() {
     echo
     echo "You might see a few errors printed as services are activated."
@@ -76,6 +89,10 @@ openrc_might_trigger_errors() {
     echo
 }
 
+#
+#  build_status_xxx is manipulating state files under /etc/opt/AOK on
+#  the dest FS, indicating things like if this is chrooted and so on
+#
 build_status_set() {
     if [ -z "$1" ]; then
         error_msg "build_status_set() no param"
@@ -123,20 +140,18 @@ build_status_clear() {
 
 #  shellcheck disable=SC2120
 select_profile() {
-    #
-    #  If param two is defined, the previous profile (profile.org)
-    #  will not be kept, in fact removed if present
-    #
     replacement_profile="$1"
-    # msg_2 "select_profile($replacement_profile)"
     if [ -z "$replacement_profile" ]; then
         error_msg "select_profile() - no param"
     fi
     msg_3 "Selecting profile: $replacement_profile"
     cp -a "$replacement_profile" "$BUILD_ROOT_D"/etc/profile
+    #
+    #  Normaly profile is sourced, but in order to be able to directly
+    #  run it if manually triggering a deploy, make it executable
+    #
     chmod 744 "$BUILD_ROOT_D"/etc/profile
     chown root: "$BUILD_ROOT_D"/etc/profile
-    # msg_3 "select_profile($replacement_profile)  done"
 }
 
 iCloud_mount_prompt_notification() {
@@ -158,12 +173,14 @@ should_icloud_be_mounted() {
 
     msg_2 "should_icloud_be_mounted()"
     if ! is_iCloud_mounted; then
-        if [ -f /etc/alpine-release ]; then
-            apk add newt # contains whiptail
-        elif [ -f /etc/debian_version ]; then
-            apt install whiptail
-        else
-            error_msg "Unrecognized distro, aborting"
+        if [ -z "$(command -v whiptail)" ]; then
+            if [ -f "$FILE_ALPINE_RELEASE" ]; then
+                apk add newt # contains whiptail
+            elif [ -f "$FILE_DEBIAN_VERSION" ]; then
+                apt install whiptail
+            else
+                error_msg "Unrecognized distro, aborting"
+            fi
         fi
         text="Do you want to mount iCloud now?"
         whiptail \
@@ -238,29 +255,27 @@ MINIROOT_FS_CACHE_D="/tmp/Alpine_miniroot_fs_cache"
 #  Where Debian FS is cached
 DEBIAN_FS_CACHE_D="/tmp/Debian_fs_cache"
 
-# If this is run on an iSH node, the image is copied to this location
+#
+#  If this is built on an iSH node, and iCloud is mounted, the image is
+#  copied to this location
+#
 ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 
 #
-#  Pre-generated image names
+#  Names of the rootfs tarballs used for initial population of FS
 #
-
-# Alpine mini-root fs to be downloaded
 MINIROOT_TARBALL="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-
 DEBIAN_TARBALL="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
 
-# image name for Alpine builds
+#
+#  Names of the generated distribution tarballs
+#
 ALPINE_FS="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-
-# image name for Debian builds
+SELECT_DISTRO_FS="SelectDistro-iSH-AOK-$AOK_VERSION"
 DEBIAN_FS="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
 # DEBIAN_FS="$(echo "$DEBIAN_TARBALL" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
-
-# image name for Select Distro builds
-SELECT_DISTRO_FS="SelectDistro-iSH-AOK-$AOK_VERSION"
 
 #
 #  Statuses are files put in place in /etc/opt/AOK on the destination FS
@@ -308,36 +323,18 @@ fi
 #  Now the proper value can be set
 BUILD_STATUS="${BUILD_ROOT_D}${BUILD_STATUS_RAW}"
 
-#  Placeholder, to store  what version of AOK that was used
-FILE_AOK_RELEASE="$BUILD_ROOT_D"/etc/aok-release
-
-#  Placeholder, only used for Alpine deploys
+#  Where to find native FS version
 FILE_ALPINE_RELEASE="$BUILD_ROOT_D"/etc/alpine-release
+FILE_DEBIAN_VERSION="$BUILD_ROOT_D"/etc/debian_version
+
+#  Placeholder, to store what version of AOK that was used to build FS
+FILE_AOK_RELEASE="$BUILD_ROOT_D"/etc/aok-release
 
 #
 #  How long the introduction should be displayed when the system is setup
 #  during first boot
 #
 FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=15
-
-#
-#  Alpine related build env
-#
-
-#
-#  Extract the release/branch/major version, from the requested Alpine,
-#  gives something like 3.14
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-
-#
-#  Either run this script chrooted if the host OS supports it, or run it
-#  inside iSH-AOK once it has booted this FS
-#
-SETUP_ALPINE_FS="$AOK_CONTENT"/Alpine/setup_alpine.sh
-SETUP_ALPINE_FINAL="$AOK_CONTENT"/Alpine/setup_alpine_final_tasks.sh
-SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
-SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
-SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
 
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
@@ -364,6 +361,26 @@ PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
 #
 LOGIN_ORIGINAL="/bin/login.alpine"
 
+#
+#  Alpine related build env
+#
+
+#
+#  Extract the release/branch/major version, from the requested Alpine,
+#  gives something like 3.14
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+
+#
+#  Either run this script chrooted if the host OS supports it, or run it
+#  inside iSH-AOK once it has booted this FS
+#
+SETUP_ALPINE_FS="$AOK_CONTENT"/Alpine/setup_alpine.sh
+SETUP_ALPINE_FINAL="$AOK_CONTENT"/Alpine/setup_alpine_final_tasks.sh
+SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
+SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
+SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
+
+# =====================================================================
 #
 #  Local overrides, ignored by git. They will be appended to BUILD_ENV
 #  if found. This is intended for debuging and testing, since stuff
