@@ -32,13 +32,14 @@ mkdir -p "$debian_download_location"
 
 cd "$debian_download_location" || exit 99
 
-msg_2 "Downloading $DEBIAN_TARBALL"
-wget "$DEBIAN_TARBALL"
+msg_2 "Downloading $DEBIAN_IMAGE"
+wget "$DEBIAN_IMAGE"
 
 msg_2 "Extracting Debian (will show unpack time)"
 mkdir -p /Debian
 cd /Debian || exit 98
 time tar xfj "$debian_download_location"/*
+
 cd /
 msg_3 "Extracted Debian tarball"
 
