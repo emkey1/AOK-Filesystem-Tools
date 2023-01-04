@@ -210,12 +210,11 @@ notification_additional_tasks() {
 }
 
 run_additional_tasks_if_found() {
-    msg_2 "run_additional_tasks_if_found()"
+    # msg_2 "run_additional_tasks_if_found()"
     if [ -x "$ADDITIONAL_TASKS_SCRIPT" ]; then
         msg_1 "Running additional setup tasks"
         "$ADDITIONAL_TASKS_SCRIPT" && rm "$ADDITIONAL_TASKS_SCRIPT"
-    else
-        msg_3 "No additional tasks to be run"
+        echo
     fi
     # msg_2 "run_additional_tasks_if_found()  done"
 }
