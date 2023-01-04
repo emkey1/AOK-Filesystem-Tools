@@ -122,6 +122,9 @@ rm /busybox
 rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
 
+msg_1 "Filesystem is Now Debian, running setup"
+echo
+
 "$SETUP_DEBIAN"
 
 duration="$(($(date +%s) - tid_start))"
