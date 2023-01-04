@@ -64,7 +64,7 @@ it is version 10 (Buster).
 This was end of lifed 2022-07-18
 and is thus now unmaintained.
 But should be fine for testing Debian
-under iSH-AOK."
+with the AOK FS extensions under iSH-AOK."
 
 $dialog_app \
     --topleft \
@@ -81,6 +81,7 @@ if [ "$exitstatus" -eq 0 ]; then
     msg_1 "running $SETUP_ALPINE_FS"
     "$SETUP_ALPINE_FS"
 else
+    test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
     "$AOK_CONTENT"/choose_distro/install_debian.sh
 fi
 
