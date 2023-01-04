@@ -50,8 +50,8 @@ INITIAL_LOGIN_MODE="enable"
 
 #
 #  Use this if you have your own restore procedure.
-#  If defined, this will be run at the end of first boot, at a time when
-#  it should be a full AOK FS
+#  If defined, this will be run after deploy has completed, at a time
+#  when it should be running inside a full AOK FS
 #  If this is a script, it must be available with this PATH on the final
 #  FS, that means it most likely needs to be in the iCloud mount.
 #
