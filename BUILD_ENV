@@ -213,6 +213,7 @@ run_additional_tasks_if_found() {
     # msg_2 "run_additional_tasks_if_found()"
     if [ -x "$ADDITIONAL_TASKS_SCRIPT" ]; then
         msg_1 "Running additional setup tasks"
+        echo
         "$ADDITIONAL_TASKS_SCRIPT" && rm "$ADDITIONAL_TASKS_SCRIPT"
         echo
     fi
