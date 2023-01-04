@@ -161,6 +161,7 @@ display_build_env() { # Multi OK 1
     if ! $aok_FS_do_compress; then
         msg_2 "*** Will not create the compressed image! ***"
     fi
+    echo
 }
 
 clear_build_env() { # Multi OK 1
@@ -363,6 +364,8 @@ t_start="$(date +%s)"
 parse_arguments "$@"
 
 display_build_env
+
+test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
 msg_2 "Preparing build environment"
 
