@@ -86,3 +86,9 @@ else
 fi
 
 build_status_clear "$STATUS_BEING_BUILT"
+
+#
+#  Need to exit running this profile, otherwise control will spill over
+#  into the replaced profile if it has more lines than this one
+#
+exit

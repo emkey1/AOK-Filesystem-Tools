@@ -3,6 +3,8 @@
 
 /opt/AOK/Debian/setup_debian.sh
 
-#  Need to end running profile, otherwise control will spill over into
-#  replaced real profile
+#
+#  Need to exit running this profile, otherwise control will spill over
+#  into the replaced profile if it has more lines than this one
+#
 exit

@@ -20,7 +20,6 @@
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-
 msg_1 "Running first boot tasks"
 
 if is_aok_kernel; then
@@ -46,3 +45,9 @@ select_profile "$PROFILE_ALPINE"
 build_status_clear "$STATUS_BEING_BUILT"
 
 msg_1 "Your system is setup! Please reboot / restart app"
+
+#
+#  Need to exit running this profile, otherwise control will spill over
+#  into the replaced profile if it has more lines than this one
+#
+exit

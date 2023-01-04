@@ -15,7 +15,6 @@
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-
 # shellcheck disable=SC2154
 echo "====  Completing deploy of Alpine: ${ALPINE_VERSION} iSH-AOK FS: ${AOK_VERSION}  ===="
 
@@ -45,9 +44,13 @@ echo "If you need more time to read this, hit Ctrl-C then reboot when done."
 echo
 sleep "$FIRST_BOOT_INTRODUCTION_DISPLAY_TIME"
 
-
-
 msg_1 "Running $SETUP_ALPINE_FS"
 "$SETUP_ALPINE_FS"
 
 msg_1 "Your system is setup! Please reboot / restart app"
+
+#
+#  Need to exit running this profile, otherwise control will spill over
+#  into the replaced profile if it has more lines than this one
+#
+exit
