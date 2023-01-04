@@ -1,3 +1,4 @@
 # TODO
 
-- make os select fit iPhone screen
+- Generating bzip2 images only results in very moderate size reductions
+should be investigated to hopefully generate smaller images.
