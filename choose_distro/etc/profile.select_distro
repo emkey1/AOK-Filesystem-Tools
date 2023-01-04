@@ -13,10 +13,7 @@
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-#
-#  If chrooted inside tmux TERM causes whiptail to fail, set it to something
-#  safe.
-#
+tcd_start="$(date +%s)"
 
 # dialog_app="dialog --erase-on-exit"
 dialog_app="whiptail"
@@ -76,8 +73,8 @@ $dialog_app \
 exitstatus=$?
 
 if [ "$exitstatus" -eq 0 ]; then
-    echo
     # Alpine selected
+    echo
     msg_1 "running $SETUP_ALPINE_FS"
     "$SETUP_ALPINE_FS"
 else
@@ -86,6 +83,9 @@ else
 fi
 
 build_status_clear "$STATUS_BEING_BUILT"
+
+duration="$(($(date +%s) - tcd_start))"
+display_time_elapsed "$duration" "Choose Distro"
 
 #
 #  Need to exit running this profile, otherwise control will spill over
