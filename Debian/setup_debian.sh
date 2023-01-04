@@ -118,9 +118,9 @@ build_status_clear "$STATUS_BEING_BUILT"
 
 select_profile "$PROFILE_DEBIAN"
 
+duration="$(($(date +%s) - tsd_start))"
+display_time_elapsed "$duration" "Setup Debian"
+
 run_additional_tasks_if_found
 
 msg_1 "Your system is setup! Please reboot / restart app"
-
-duration="$(($(date +%s) - tsd_start))"
-display_time_elapsed "$duration" "Setup Debian"
