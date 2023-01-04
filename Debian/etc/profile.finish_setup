@@ -1,2 +1,8 @@
 #!/bin/sh
+# Fake bangpath to trick linters and editors
+
 /opt/AOK/Debian/setup_debian.sh
+
+#  Need to end running profile, otherwise control will spill over into
+#  replaced real profile
+exit
