@@ -161,7 +161,7 @@ iCloud_mount_prompt_notification() {
     echo "
  | There is one more prompt            |
  | about mounting /iCloud,             |
- | right after the package updates.    |
+ | right after the package upgrade.    |
  | After that, the rest of the install |
  | runs without need for interactions. |
 "

@@ -49,11 +49,6 @@ test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
 
 msg_1 "Setup Debian"
 
-if test -f /AOK; then
-    msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
-    rm -rf /AOK
-fi
-
 #
 #  This speeds up update / upgrade quite a bit, you can always
 #  re-enable later if it is wished for
@@ -61,22 +56,35 @@ fi
 msg_2 "sources.list without deb-src entries"
 cp /opt/AOK/Debian/etc/apt_sources.list /etc/apt/sources.list
 
-msg_2 "apt update & upgrade"
-apt update && apt upgrade -y
+msg_2 "apt update"
+apt update
 
 ! is_iCloud_mounted && should_icloud_be_mounted
 
-msg_2 "Add our Debian stuff to /usr/local/bin"
+if test -f /AOK; then
+    msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
+    rm -rf /AOK
+fi
+
+msg_2 "apt upgrade"
+apt upgrade -y
+
+msg_2 "Add Debian AOK stuff to /usr/local/bin"
 mkdir -p /usr/local/bin
 cp "$AOK_CONTENT"/Debian/usr_local_bin/* /usr/local/bin
 chmod +x /usr/local/bin/*
 
-msg_2 "Add our Debian stuff to /usr/local/sbin"
+msg_2 "Add Debian AOK stuff to /usr/local/sbin"
 mkdir -p /usr/local/sbin
 cp "$AOK_CONTENT"/Debian/usr_local_sbin/* /usr/local/sbin
 chmod +x /usr/local/sbin/*
 
-# Ensure hostname is in /etc/hosts
+#
+#  Ensure hostname is in /etc/hosts
+#  If not there will be various error messages displayed.
+#  This will be run each time this boots, so if name is changed
+#  the new name will be bound to 127.0.0.1
+#
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 msg_2 "Installing custom inittab"
@@ -111,6 +119,9 @@ cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
 
 activate_runbg_debian
 
+#
+#  Common deploy, used both for Alpine & Debian
+#
 msg_1 "Running $SETUP_COMMON_AOK"
 "$SETUP_COMMON_AOK"
 
