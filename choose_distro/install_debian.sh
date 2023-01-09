@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
 #  shellcheck disable=SC2114,SC2154
@@ -129,3 +129,4 @@ echo
 
 duration="$(($(date +%s) - tid_start))"
 display_time_elapsed "$duration" "Debian install"
+unset duration

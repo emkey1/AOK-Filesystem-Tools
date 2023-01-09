@@ -4,7 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Needs to run on destination platform, build idev_ip.c and install into
 #  /usr/local/bin

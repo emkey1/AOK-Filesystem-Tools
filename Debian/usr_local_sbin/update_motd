@@ -4,7 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  This is run during boot-up, and the intended usage case is if you want to
 #  update /etc/motd every time this boots. For instance if it should indicate

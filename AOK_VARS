@@ -19,16 +19,12 @@
 AOK_VERSION="Beta-002"
 
 #
-#  ALPINE_VERSION defines what Alpine version will be used
-#
-#  The officially supported and most tested is 3.14
-#  If you try another one please report any issues at
-#     https://github.com/emkey1/AOK-Filesystem-Tools/issues
+#  ALPINE_VERSION defines what Alpine release will be used
 #
 # ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
 # ALPINE_VERSION=3.15.6   # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.0   # End of Alpine support 2024-05-23
+ALPINE_VERSION=3.16.3   # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.0   # End of Alpine support 2024-11-22
 
 #
 #  If a Debian install is selected, this tarball will be used
@@ -52,8 +48,9 @@ INITIAL_LOGIN_MODE="enable"
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time
 #  when it should be running inside a full AOK FS
-#  If this is a script, it must be available with this PATH on the final
+#  If this is a script, it must be available with this PATH on the new
 #  FS, that means it most likely needs to be in the iCloud mount.
+#  This one is also better to define in .AOK_VARS
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
 
@@ -78,7 +75,7 @@ AOK_APKS="htop procps nload nload-doc htop-doc procps-doc"
 #  repeatedly.
 #
 #  You can add/modify all the groups to your liking.
-#
+#  Again, consider using .AOK_VARS
 
 VNC_APKS='x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
 

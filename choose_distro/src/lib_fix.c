@@ -1,3 +1,11 @@
+/*
+   Part of https://github.com/emkey1/AOK-Filesystem-Tools
+
+   License: MIT
+
+   Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

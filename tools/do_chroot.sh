@@ -6,7 +6,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.

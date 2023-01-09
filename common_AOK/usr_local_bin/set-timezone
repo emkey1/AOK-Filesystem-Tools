@@ -2,7 +2,7 @@
 #
 #  Part of https://github.com/jaclu/ish-config
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -10,8 +10,7 @@
 #  https://gist.github.com/eduardoaugustojulio/fa83cf85efa39919d6a70ca679e91f28
 #
 
-# --erase-on-exit prevents scrollback from being lost, but isnt available on Deb 10
-dialog_app="dialog"  # --erase-on-exit"
+dialog_app="dialog"
 # dialog_app="whiptail"
 
 

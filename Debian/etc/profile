@@ -12,7 +12,8 @@ fi
 export PATH
 
 #
-#  Only show motd on login screens
+#  Only show motd on login screens is the intent, not sure if this is
+#  a good way...
 #
 if [ "$PPID" -lt 2 ]; then
     echo

@@ -10,7 +10,7 @@
 #  Primary purpose is to create iSH-AOK file systems, but can also be used
 #  to create bare-bones Alpine-Linux file systems.
 #
-version="2.0.0-a"
+version="2.0.3"
 
 #  shellcheck disable=SC1007
 prog_name=$(basename "$0")
@@ -139,15 +139,14 @@ display_build_env() { # Multi OK 1
     fi
     msg_1 "Run mode: $run_mode"
 
+    unset run_mode
+
     if [ "$(whoami)" != "root" ]; then
         # Must come after help display, to avoid infinite loop
         "$0" -h
         error_msg "This must be run as root or using sudo!"
     fi
 
-    # if build_status_get "$STATUS_BEING_BUILT" ; then
-    #     error_msg "Can't build a new env whilst the current is being built!"
-    # fi
     if [ -d "$BUILD_ROOT_D/dev" ] && [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
         echo "ERROR: Active chroot session detected!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
@@ -156,7 +155,7 @@ display_build_env() { # Multi OK 1
         exit 1
     fi
 
-    msg_1 "Building a $ALPINE_RELEASE  filesystem"
+    msg_1 "Building an iSH-AOK: $AOK_VERSION filesystem"
 
     if ! $aok_FS_do_compress; then
         msg_2 "*** Will not create the compressed image! ***"
@@ -238,6 +237,8 @@ integrate_overrides() {
         } >>"$aok_files"/"$conf_file"
         cat "$AOK_CONTENT"/."$conf_file" >>"$aok_files"/"$conf_file"
     fi
+
+    unset conf_file
 }
 
 copy_AOK_to_dest() {
@@ -273,8 +274,7 @@ add_additional_tasks_if_defined() {
     msg_2 "add_additional_tasks_if_defined($FIRST_BOOT_ADDITIONAL_TASKS)"
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
         msg_3 "Creating additional tasks script"
-        add_task_dest="$BUILD_ROOT_D"/opt
-        mkdir -p "$add_task_dest"
+        mkdir -p "$BUILD_ROOT_D"/opt
         {
             echo "#!/bin/sh"
             echo "$FIRST_BOOT_ADDITIONAL_TASKS"
@@ -297,6 +297,7 @@ chroot_if_possible() {
         msg_2 "Could not chroot, did not run: $action"
     fi
 
+    unset action
 }
 
 setup_Alpine_in_advance() {
@@ -326,7 +327,7 @@ setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
     # by setting this as the first of two, this will become the default profile
     # when install is completed
-    select_profile "$PROFILE_ALPINE_DEPLOY_ON_DEST"
+    select_profile "$PROFILE_ALPINE_SETUP_AOK"
 }
 
 setup_Debian() {
@@ -351,6 +352,7 @@ select_distro_on_1st_boot() {
 display_build_time() {
     duration="$(($(date +%s) - t_start))"
     display_time_elapsed "$duration" "Build FS"
+    unset duration
 }
 
 #===============================================================
@@ -407,6 +409,7 @@ else
         exit 1
     }
 fi
+unset options
 
 copy_AOK_to_dest
 msg_2 "Stored $AOK_CONTENT on new filesystem"
@@ -416,7 +419,7 @@ add_additional_tasks_if_defined
 if $pre_build_FS; then
     setup_Alpine_in_advance
 elif $build_debian_FS; then
-    select_profile "$PROFILE_DEBIAN_COMPLETE_DEPLOY"
+    select_profile "$PROFILE_DEBIAN_SETUP_AOK"
 elif $distro_select; then
     select_distro_on_1st_boot
 else
@@ -427,11 +430,11 @@ fi
 #  Since SETUP_ALPINE_FS will create an AOK relevant motd,
 #  deleting the default one makes sence.
 #
+msg_2 "remove initial /etc/motd from new filesystem"
 rm "$BUILD_ROOT_D"/etc/motd
-msg_2 "removed initial /etc/motd from new filesystem"
 
 # Should always happen
-msg_2 "created directory /iCloud inside new filesystem"
+msg_2 "create directory /iCloud inside new filesystem"
 mkdir "$BUILD_ROOT_D"/iCloud
 
 msg_1 "The filesystem is ready!"
@@ -464,6 +467,9 @@ if $aok_FS_do_compress; then
     if ! "$AOK_CONTENT"/compress_image -l $label $extra_params; then
         error_msg "detected in compress_image"
     fi
+    unset extra_params
+    unset label
+
     display_build_time
 else
     if [ "$BUILD_ENV" -gt 0 ]; then
@@ -475,6 +481,7 @@ else
         echo "You can work on the filesystem by running:"
         echo "  sudo tools/do_chroot.sh $set_shell"
         echo
+	unset set_shell
     fi
 
     echo "Complete the process by running:"

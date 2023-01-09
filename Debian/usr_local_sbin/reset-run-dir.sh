@@ -4,7 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  This is a hack to reset /run into a state with no services running,
 #  if this is not done, upon boot openrc will think services are running

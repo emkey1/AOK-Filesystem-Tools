@@ -5,7 +5,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Setup Distro choice
 #
@@ -57,8 +57,8 @@ fully stable. This will install
 Alpine $ALPINE_RELEASE
 
 Debian is experimental, not yet stable,
-it is version 10 (Buster).
-This was end of lifed 2022-07-18
+this is version 10 (Buster).
+It was end of lifed 2022-07-18
 and is thus now unmaintained.
 But should be fine for testing Debian
 with the AOK FS extensions under iSH-AOK."
@@ -89,6 +89,10 @@ display_time_elapsed "$duration" "Choose Distro"
 
 #
 #  Need to exit running this profile, otherwise control will spill over
-#  into the replaced profile if it has more lines than this one
+#  into the replaced profile if it has more lines than this one.
+#  In order for this exit not to terminate the session instantly
+#  a shell is started, in order to be able to inspect the deploy
+#  outcome.
 #
+/bin/ash
 exit

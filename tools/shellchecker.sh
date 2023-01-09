@@ -2,17 +2,16 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
 #  Runs shellcheck on all included scripts
 #
-version="1.1.3"
 
 prog_name=$(basename "$0")
 
-echo "$prog_name, version $version"
+echo "$prog_name"
 echo
 
 #
@@ -27,7 +26,7 @@ checkables=(
 
     # Alpine/cron/15min/dmesg_save
     Alpine/etc/profile
-    Alpine/etc/profile.build_on_dest
+    Alpine/etc/profile.setup_aok
     Alpine/etc/profile.prebuilt-FS
     Alpine/usr_local_bin/aok
     Alpine/usr_local_bin/aok_groups

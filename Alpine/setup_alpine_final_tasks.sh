@@ -34,19 +34,21 @@ if ! build_status_get "$STATUS_IS_CHROOTED" ; then
     openrc_might_trigger_errors
     /usr/local/sbin/post_boot.sh foreground
 else
-    msg_1 "Skipping post_boot.sh when chrooted"
+    msg_2 "Skipping post_boot.sh when chrooted"
 fi
 
 #
 #  Setup Initial login mode
 #
-msg_3 "Setting defined login mode: $INITIAL_LOGIN_MODE"
+msg_2 "Setting defined login mode: $INITIAL_LOGIN_MODE"
 #  shellcheck disable=SC2154
 /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 
-msg_3 "Preparing initial motd"
+msg_2 "Preparing initial motd"
 /usr/local/sbin/update_motd
 
+msg_1 "Setup complete!"
+echo
 
 # Not the right place to set profile, since this can be called in different ways
 

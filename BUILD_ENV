@@ -6,7 +6,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Environment variables used when building the AOK-FS
 #
@@ -16,9 +16,6 @@
 #  both on build and iSH systems
 #
 AOK_CONTENT="/opt/AOK"
-
-# Locations for building File systems
-BUILD_BASE_D="/tmp/AOK"
 
 #  shellcheck disable=SC1091
 . "$AOK_CONTENT"/AOK_VARS || exit 1
@@ -40,6 +37,8 @@ error_msg() {
     echo "ERROR: $msg"
     echo
     [ "$exit_code" -ne 0 ] && exit "$exit_code"
+    unset msg
+    unset exit_code
 }
 
 #
@@ -49,17 +48,17 @@ error_msg() {
 msg_1() {
     [ -z "$1" ] && error_msg "msg_1() no param"
     echo
-    echo "====  $1  ===="
+    echo "===  $1  ==="
 }
 
 msg_2() {
     [ -z "$1" ] && error_msg "msg_2() no param"
-    echo "---  $1   ---"
+    echo "---  $1"
 }
 
 msg_3() {
     [ -z "$1" ] && error_msg "msg_3() no param"
-    echo "-> $1"
+    echo "  -  $1"
 }
 
 #
@@ -71,6 +70,14 @@ is_ish() {
 
 is_aok_kernel() {
     grep -qi aok /proc/ish/version 2>/dev/null
+}
+
+is_debian() {
+    test -f /etc/debian_version
+}
+
+is_alpine() {
+    test -f /etc/alpine-release
 }
 
 is_iCloud_mounted() {
@@ -87,6 +94,21 @@ openrc_might_trigger_errors() {
     echo "You might see a few errors printed as services are activated."
     echo "The iSH family doesn't fully support openrc yet, but the important parts work!"
     echo
+}
+
+display_time_elapsed() {
+    t_in="$1"
+    label="$2"
+
+    mins="$((t_in / 60))"
+    rem_mins="$((t_in - mins * 60))"
+    echo
+    echo "Time elapsed: $mins:$rem_mins - $label"
+    echo
+    unset t_in
+    unset label
+    unset mins
+    unset rem_mins
 }
 
 #
@@ -113,15 +135,11 @@ build_status_get() {
     exitstatus="$?"
     case "$exitstatus" in
 
-    0) status="True" ;;
+    0) return 0 ;;
 
-    *) status="False" ;;
+    *) return 1 ;;
 
     esac
-
-    # [ -z "$2" ] && msg_3 "build_status_get($1) $status"
-    unset status
-    return "$exitstatus"
 }
 
 #  shellcheck disable=SC2120
@@ -131,6 +149,7 @@ build_status_clear() {
         fname="$BUILD_STATUS/$1"
         rm -f "$fname"
         msg_3 "Cleared $fname"
+	unset fname
     fi
     if [ "$(find "$BUILD_STATUS"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$BUILD_STATUS" -rf
@@ -152,6 +171,7 @@ select_profile() {
     #
     chmod 744 "$BUILD_ROOT_D"/etc/profile
     chown root: "$BUILD_ROOT_D"/etc/profile
+    unset replacement_profile
 }
 
 iCloud_mount_prompt_notification() {
@@ -161,7 +181,7 @@ iCloud_mount_prompt_notification() {
     echo "
  | There is one more prompt            |
  | about mounting /iCloud,             |
- | right after the package upgrade.    |
+ | right after the package update.     |
  | After that, the rest of the install |
  | runs without need for interactions. |
 "
@@ -189,21 +209,72 @@ should_icloud_be_mounted() {
             --yesno "$text" 0 0
 
         exitstatus=$?
+
         if [ "$exitstatus" -eq 0 ]; then
             mount -t ios x /iCloud
         fi
+	unset text
+	unset exitstatus
     fi
     # msg_3 "should_icloud_be_mounted()  done"
 }
 
+start_setup() {
+    distro_name="$1"
+    if [ -z "$distro_name" ]; then
+	error_msg "call to start_setup() without param!"
+    fi
+
+    test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
+
+    ! is_iCloud_mounted && iCloud_mount_prompt_notification
+
+    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for $distro_name"
+
+    if is_ish ; then
+        msg_3 "iSH now able to run in the background"
+        cat /dev/location > /dev/null &
+    fi
+
+    copy_local_bins "$distro_name"
+    unset distro_name
+}
+
+copy_local_bins() {
+    src_dir="$1"
+    if [ -z "$src_dir" ]; then
+	error_msg "call to copy_local_bins() without param!"
+    fi
+
+    msg_1 "Copying /usr/local stuff for $src_dir"
+
+    msg_3 "Add $src_dir AOK stuff to /usr/local/bin"
+    mkdir -p /usr/local/bin
+    cp "$AOK_CONTENT"/"$src_dir"/usr_local_bin/* /usr/local/bin
+    chmod +x /usr/local/bin/*
+
+    msg_3 "Add $src_dir AOK stuff to /usr/local/sbin"
+    mkdir -p /usr/local/sbin
+    cp "$AOK_CONTENT"/"$src_dir"/usr_local_sbin/* /usr/local/sbin
+    chmod +x /usr/local/sbin/*
+    echo
+    unset src_dir
+}
+
+install_runbg() {
+    msg_2 "Adding runbg service"
+    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/runbg /etc/init.d
+    # openrc_might_trigger_errors
+    rc-update add runbg default
+}
+
 notification_additional_tasks() {
-    msg_2 "notification_additional_tasks()"
     if [ -f "$ADDITIONAL_TASKS_SCRIPT" ]; then
-        echo "Additional tasks defined."
+	msg_2 "notification_additional_tasks()"
         echo "At the end of the install, this will be run:"
-        echo "-----"
+        echo "--------------------"
         cat "$ADDITIONAL_TASKS_SCRIPT"
-        echo "-----"
+        echo "--------------------"
         echo
     fi
     # msg_3 "notification_additional_tasks() done"
@@ -218,17 +289,6 @@ run_additional_tasks_if_found() {
         echo
     fi
     # msg_2 "run_additional_tasks_if_found()  done"
-}
-
-display_time_elapsed() {
-    t_in="$1"
-    label="$2"
-
-    mins="$((t_in / 60))"
-    rem_mins="$((t_in - mins * 60))"
-    echo
-    echo "Time elapsed: $mins:$rem_mins - $label"
-    echo
 }
 
 #
@@ -299,6 +359,9 @@ STATUS_IS_CHROOTED="is_chrooted"
 #
 STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
 
+#  Locations for building File systems
+BUILD_BASE_D="/tmp/AOK"
+
 #
 #  temp value until we know if this is dest FS, so that BUILD_ROOT_D can be
 #  selected
@@ -348,9 +411,9 @@ ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
 #  Using variables in order to only have to assign filenames in one place
 #
 PROFILE_ALPINE_PRE_BUILT="$AOK_CONTENT"/Alpine/etc/profile.prebuilt-FS
-PROFILE_ALPINE_DEPLOY_ON_DEST="$AOK_CONTENT"/Alpine/etc/profile.build_on_dest
+PROFILE_ALPINE_SETUP_AOK="$AOK_CONTENT"/Alpine/etc/profile.setup_aok
 PROFILE_CHOOSE_DISTRO="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
-PROFILE_DEBIAN_COMPLETE_DEPLOY="$AOK_CONTENT"/Debian/etc/profile.finish_setup
+PROFILE_DEBIAN_SETUP_AOK="$AOK_CONTENT"/Debian/etc/profile.setup_aok
 PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
 PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
 

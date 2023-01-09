@@ -85,8 +85,8 @@ The AOK alternate logins are not yet used, pending testing
 
 ### services
 
-runbg is installed and active from the start
-sshd is turned on/off by running enable_sshd / disable_sshd
+runbg is installed and active from the start.
+sshd is toggled by running: enable_sshd / disable_sshd
 All the default Debian services are disabled. Most of them are related
 to booting the FS, networking, setting up random numbers etc.
-Tasks that are taken care of by iSH
+

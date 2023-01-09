@@ -1,6 +1,7 @@
 # /etc/inittab: init(8) configuration.
-# $Id: inittab,v 1.91 2002/01/25 13:35:21 miquels Exp $
-
+# Based on: v 1.91 2002/01/25 13:35:21 miquels Exp $
+# Modified by: Jacob.Lundqvist@gmail.com 2023
+#
 # The default runlevel.
 id:2:initdefault:
 

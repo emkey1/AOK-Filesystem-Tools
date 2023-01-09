@@ -1,3 +1,8 @@
+#
+#  Per default sources are commented out, to reduce time to update
+#  repos on slow iPads
+#
+
 deb http://deb.debian.org/debian buster main contrib non-free
 # deb-src http://deb.debian.org/debian buster main contrib non-free
 

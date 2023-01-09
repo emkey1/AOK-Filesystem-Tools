@@ -11,8 +11,15 @@
 host_file="/etc/hosts"
 host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
 
-echo "Ensuring hostname is in $host_file"
+msg_2() {
+    echo "---  $1"
+}
+
+msg_3() {
+    echo "  -  $1"
+}
+msg_2 "Ensuring hostname is in $host_file"
 if ! grep -q "$host_name" "$host_file"; then
-    echo "adding hostname: $host_name to $host_file"
-    echo "127.0.0.1\t$host_name" >>"$host_file"
+    msg_3 "adding hostname: $host_name to $host_file"
+    msg_3 "127.0.0.1\t$host_name" >>"$host_file"
 fi

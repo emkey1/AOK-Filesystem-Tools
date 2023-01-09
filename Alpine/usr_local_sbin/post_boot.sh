@@ -4,9 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
-#
-#  Version: 1.3.5  2022-08-21
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Intended usage is for small systems where a cron might not be running and or
 #  needing to do some sanity checks after booting.

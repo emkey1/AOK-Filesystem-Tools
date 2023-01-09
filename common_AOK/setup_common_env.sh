@@ -5,7 +5,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #
 #  This should be run inside the env, either chrooted or during deploy
@@ -15,33 +15,30 @@
 . /opt/AOK/BUILD_ENV
 
 setup_environment() {
-    msg_2 "Setting up environment"
+
+    install_runbg
 
     #  Announce what AOK release this is
+    msg_2 "Set $FILE_AOK_RELEASE to $AOK_VERSION"
     echo "$AOK_VERSION" >"$FILE_AOK_RELEASE"
 
     cp "$AOK_CONTENT"/common_AOK/etc/motd_template /etc
 
     sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue >/etc/issue
 
-    msg_3 "Populate /etc/skel"
+    msg_2 "Populate /etc/skel"
     cp -av "$AOK_CONTENT"/common_AOK/etc/skel /etc
 
     # Move sshd to port 1022 to avoid issues
     sshd_port=1022
-    msg_3 "sshd will use port: $sshd_port"
+    msg_2 "sshd will use port: $sshd_port"
     sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
     #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
+    unset sshd_port
 
-    msg_3 "Add our common stuff to /usr/local/bin"
-    cp "$AOK_CONTENT"/common_AOK/usr_local_bin/* /usr/local/bin
-    chmod +x /usr/local/bin/*
+    copy_local_bins common_AOK
 
-    msg_3 "Add our common stuff to /usr/local/sbin"
-    cp "$AOK_CONTENT"/common_AOK/usr_local_sbin/* /usr/local/sbin
-    chmod +x /usr/local/sbin/*
-
-    msg_3 "Activating group sudo for no passwd sudo"
+    msg_2 "Activating group sudo for no passwd sudo"
     cp "$AOK_CONTENT"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
     chmod 440 /etc/sudoers.d/sudo_no_passwd
 
@@ -56,8 +53,9 @@ setup_environment() {
     #  this point if Debian is being installed, probably due to switching
     #  from Alpine to Debian without having rebooted yet.
     #
+    msg_2 "Setitng time zone"
     if [ -n "$AOK_TIMEZONE" ]; then
-        msg_2 "Using hardcoded TZ: $AOK_TIMEZONE"
+        msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
         ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
     else
         /usr/local/bin/set-timezone
@@ -102,6 +100,8 @@ copy_skel_files() {
     rsync -a /etc/skel/ "$dest"
     cd "$dest" || exit 99
     ln -sf .bash_profile .bashrc
+
+    unset dest
 }
 
 user_root() {

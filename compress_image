@@ -5,11 +5,11 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Compresses a FS into a tar file that can be mounted by iSH
 #
-version="1.3.5"
+version="1.3.7"
 
 prog_name=$(basename "$0")
 

@@ -4,19 +4,22 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Fixes /dev entries in one go, suitable for cut-paste
 #
+
+msg_2() {
+    echo "---  $1"
+}
+
 if [ "$(uname)" = "Darwin" ]; then
     echo "Don't run this on MacOS!!"
     exit 1
 fi
 
 if [ -e /etc/opt/AOK/is_chrooted ]; then
-    echo
-    echo "--  Skipping fix_dev when chrooted  --"
-    echo
+    msg_2 "Skipping fix_dev when chrooted"
     exit 0
 fi
 
