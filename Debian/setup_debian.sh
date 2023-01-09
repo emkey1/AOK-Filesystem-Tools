@@ -61,7 +61,7 @@ rm /etc/runlevels/default/*
 #  re-enable later if it is wished for
 #
 msg_2 "Installing sources.list without deb-src entries"
-cp /opt/AOK/Debian/etc/apt_sources.list /etc/apt/sources.list
+cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
 msg_2 "apt update"
 apt update
@@ -85,7 +85,7 @@ apt upgrade -y
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 msg_2 "Installing custom inittab"
-cp -av /opt/AOK/Debian/etc/inittab /etc
+cp -av "$AOK_CONTENT"/Debian/etc/inittab /etc
 
 #
 #  Install sshd, then remove the service, in order to not leave it running

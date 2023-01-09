@@ -14,7 +14,7 @@
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-/opt/AOK/Debian/setup_debian.sh
+"$AOK_CONTENT"/Debian/setup_debian.sh
 
 #
 #  Need to exit running this profile, otherwise control will spill over
