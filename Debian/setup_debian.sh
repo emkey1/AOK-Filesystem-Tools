@@ -60,6 +60,10 @@ apt update
 msg_2 "apt upgrade"
 apt upgrade -y
 
+msg_2 "Adding env versions to /etc/update-motd.d"
+mkdir -p /etc/update-motd.d
+cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/51-env-versions /etc/update-motd.d
+
 #
 #  Since iSH doesn't do any cleanup upon shutdown, services will leave
 #  their previous running state in /run, confusing Debian on next boot.
@@ -90,7 +94,7 @@ rm /etc/runlevels/default/*
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 msg_2 "Installing custom inittab"
-cp -av "$AOK_CONTENT"/Debian/etc/inittab /etc
+cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
 
 #
 #  Install sshd, then remove the service, in order to not leave it running
