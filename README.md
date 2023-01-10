@@ -66,10 +66,13 @@ deploy directly.
 
 `sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash at
 this point so must use /bin/ash if a shell is wanted, this also avoids
-unintentionally running /etc/profile, if that is not desired.
+unintentionally running /etc/profile, if that is not desired, if the
+setup has completed the default shell bash will run profile.
+Using ash/sh as shell avoids this.
 
 After Alpine / Debian is initially setup, bash will be
-present so chroot can be done as `sudo ./tools/do_chroot.sh`
+present so chroot can be done as `sudo ./tools/do_chroot.sh` to get a
+normal session.
 
 ## Known Alpine issues
 
@@ -94,7 +97,11 @@ is defined. It will unmount /iCloud. Since there is (as far as I know)
 no way to mount it via /etc/fstab during next startup, thus removing the
 mount permanently, until manually added again.
 
-Therefore as of now all default services are initially disabled.
+Therefore /run is restored to a clean state via /etc/inittab during sysinit 
+in order to not trick openrc that services are already running.
+
+Further, as of now all default services are initially disabled.
+
 Most of them are related to booting the FS, networking,
 setting up random numbers etc.
 Tasks that are done by iOS and the iSH app itself.
@@ -105,21 +112,22 @@ Services can be added after setup, using something like
 runbg is installed and active from the start.
 sshd is toggled by running: enable_sshd / disable_sshd
 
-### Generic Debian Services useable inside iSH
+### Generic Debian Services found to be working inside iSH
 
 - cron
 - ssh
 
-sshd is setup up by the AOK deploy, but not active.
+sshd is setup up by the AOK deploy, but not initially active.
 It can be enabled / disabled by running enable_sshd / disable_sshd
 
 ### Specific iSH-AOK services
 
 - runbg
 
-I have tried to convert runbg to be a posix script,
+I have tried to convert runbg to be a posix script 
+as is normally the case in Debian when using openrc
 using the #!/bin/sh shebang, but so far no success.
+
 So as of now I use the same here as for Alpine,
 using a #!/sbin/openrc-run style script.
 It seems to work fine, so there is that.
-
