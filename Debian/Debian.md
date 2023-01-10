@@ -12,11 +12,18 @@ It can be enabled / disabled by running enable_sshd / disable_sshd
 
 - runbg
 
+## runbg
+
+I have tried to convert runbg to be a posix script,
+using the #!/bin/sh shebang, but so far no success.
+So as of now I use the same here as for Alpine,
+using a #!/sbin/openrc-run style script.
+
 ## Removable?
 
-apts that can be removed to create a smaller FS whilst not making FS
-unbootable, work in progress, and since most usage cases at this point
-are probably devels, removing compilers might be counter productive.
+I am experimenting to see what apts can be removed in order to create
+a smaller FS distribution, whilst not making FS unbootable.
+Installing them again during setup.
 
 ```bash
 locales
