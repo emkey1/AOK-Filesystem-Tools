@@ -16,7 +16,10 @@
 
 setup_environment() {
 
-    install_runbg
+    msg_2 "Adding runbg service"
+    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/"$RUNBG_SCRIPT" /etc/init.d
+    # openrc_might_trigger_errors
+    rc-update add runbg default
 
     #  Announce what AOK release this is
     msg_2 "Set $FILE_AOK_RELEASE to $AOK_VERSION"
