@@ -79,14 +79,47 @@ a good way, when login is disabled, it is displayed.
 
 ## Known Debian issues
 
-### login
+### Login
 
 The AOK alternate logins are not yet used, pending testing
 
-### services
+### Services
+
+Since iSH insta-terminates when you exit the console, this has some
+impact on services:
+
+- It can't be expected that shutdown cleanup will be done from within Debian
+- If indeed init 0 or init 6 is done and as is normally the case umountfs
+is defined. It will unmount /iCloud. Since there is (as far as I know)
+no way to mount it via /etc/fstab during next startup, thus removing the
+mount permanently, until manually added again.
+
+Therefore as of now all default services are initially disabled.
+Most of them are related to booting the FS, networking,
+setting up random numbers etc.
+Tasks that are done by iOS and the iSH app itself.
+
+Services can be added after setup, using something like
+`rc-update add cron default`
 
 runbg is installed and active from the start.
 sshd is toggled by running: enable_sshd / disable_sshd
-All the default Debian services are disabled. Most of them are related
-to booting the FS, networking, setting up random numbers etc.
+
+### Generic Debian Services useable inside iSH
+
+- cron
+- ssh
+
+sshd is setup up by the AOK deploy, but not active.
+It can be enabled / disabled by running enable_sshd / disable_sshd
+
+### Specific iSH-AOK services
+
+- runbg
+
+I have tried to convert runbg to be a posix script,
+using the #!/bin/sh shebang, but so far no success.
+So as of now I use the same here as for Alpine,
+using a #!/sbin/openrc-run style script.
+It seems to work fine, so there is that.
 

@@ -1,24 +1,5 @@
 # Debian
 
-## Generic Debian Services useable inside iSH
-
-- cron
-- ssh
-
-sshd is setup up by the AOK deploy, but not active.
-It can be enabled / disabled by running enable_sshd / disable_sshd
-
-### Specific iSH-AOK services
-
-- runbg
-
-## runbg
-
-I have tried to convert runbg to be a posix script,
-using the #!/bin/sh shebang, but so far no success.
-So as of now I use the same here as for Alpine,
-using a #!/sbin/openrc-run style script.
-
 ## Removable?
 
 I am experimenting to see what apts can be removed in order to create
@@ -49,8 +30,10 @@ udev
 
 At least older iPads are pathetically slow. Deploying a basic cloud host
 even for just a few hours/days is a gigantic time saver if you are
-building Debian FS. For Alpine builds this is not that much of a
-concern.
+experimenting with building AOK FS for Debian.
+For Alpine builds this is not that much of a concern.
+On a normal cloud node build time is in the 20s range, then the time to
+download the image. Compared to +30 min build time on my iPad 5th.
 
 Additional benefit if you want to experiment with Debian, regardless if
 you build on Linux or iOS, a pre built Debian just cost you the
@@ -59,6 +42,7 @@ Installing a pre-built Debian even on my iPad is arround 10 mins.
 
 Using a -s build (selection between Alpine & Debian on first boot.)
 takes 25 mins just to download and unpack if you chose Debian on my iPad
+On more modern hardware it can be assumed to be much swifter.
 
 -s is still the recomended general build option, since it gives you late
 choice of distro. And for Alpine there is no additional deploy time.
