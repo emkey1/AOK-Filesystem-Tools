@@ -81,9 +81,8 @@ cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
 #  serve no purpose in iSH, since all this is either handled by iPadOS
 #  or done before bootup, so if any are needed they will be added.
 #
-msg_2 "Disabling normal runlevel tasks"
-rm /etc/runlevels/sysinit/*
-rm /etc/runlevels/default/*
+msg_2 "Disabling normal openrc runlevel tasks"
+rm /etc/runlevels/*/* -f
 
 #
 #  Ensure hostname is in /etc/hosts
