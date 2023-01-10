@@ -23,7 +23,7 @@ setup_environment() {
     sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue >/etc/issue
 
     msg_2 "Adding runbg service"
-    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/"$RUNBG_SCRIPT" /etc/init.d
+    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/runbg /etc/init.d
     # openrc_might_trigger_errors
     rc-update add runbg default
 
