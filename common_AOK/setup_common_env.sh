@@ -16,18 +16,16 @@
 
 setup_environment() {
 
-    msg_2 "Adding runbg service"
-    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/"$RUNBG_SCRIPT" /etc/init.d
-    # openrc_might_trigger_errors
-    rc-update add runbg default
-
     #  Announce what AOK release this is
     msg_2 "Set $FILE_AOK_RELEASE to $AOK_VERSION"
     echo "$AOK_VERSION" >"$FILE_AOK_RELEASE"
 
-    cp "$AOK_CONTENT"/common_AOK/etc/motd_template /etc
-
     sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue >/etc/issue
+
+    msg_2 "Adding runbg service"
+    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/"$RUNBG_SCRIPT" /etc/init.d
+    # openrc_might_trigger_errors
+    rc-update add runbg default
 
     msg_2 "Populate /etc/skel"
     cp -av "$AOK_CONTENT"/common_AOK/etc/skel /etc

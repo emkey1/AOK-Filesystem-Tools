@@ -35,6 +35,31 @@ tsd_start="$(date +%s)"
 
 start_setup Debian
 
+if test -f /AOK; then
+    msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
+    rm -rf /AOK
+fi
+
+#
+#  This speeds up update / upgrade quite a bit during setup.
+#  You can always re-enable later if it is wished for
+#
+msg_2 "Installing sources.list without deb-src entries"
+cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
+
+msg_2 "apt update"
+apt update
+
+#
+#  Do this check before upgrade, to allow for it to happen as early as
+#  possible, since it might require operator interaction.
+#  After this the setup can run on its own.
+#
+! is_iCloud_mounted && should_icloud_be_mounted
+
+msg_2 "apt upgrade"
+apt upgrade -y
+
 #
 #  Since iSH doesn't do any cleanup upon shutdown, services will leave
 #  their previous running state in /run, confusing Debian on next boot.
@@ -50,31 +75,11 @@ cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
 #
 #  Most of the Debian services, mounting fs, setting up networking etc
 #  serve no purpose in iSH, since all this is either handled by iPadOS
-#  or done before bootup, so we only need to run actual services.
+#  or done before bootup, so if any are needed they will be added.
 #
-msg_2 "Disabling previous runlevel tasks"
+msg_2 "Disabling normal runlevel tasks"
 rm /etc/runlevels/sysinit/*
 rm /etc/runlevels/default/*
-
-#
-#  This speeds up update / upgrade quite a bit, you can always
-#  re-enable later if it is wished for
-#
-msg_2 "Installing sources.list without deb-src entries"
-cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
-
-msg_2 "apt update"
-apt update
-
-! is_iCloud_mounted && should_icloud_be_mounted
-
-if test -f /AOK; then
-    msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
-    rm -rf /AOK
-fi
-
-msg_2 "apt upgrade"
-apt upgrade -y
 
 #
 #  Ensure hostname is in /etc/hosts

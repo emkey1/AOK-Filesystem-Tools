@@ -1,6 +1,12 @@
 #!/bin/sh
 
-echo "Debian release: $(cat /etc/debian_version)"
+deb_version="/etc/debian_version"
+aok_release="/etc/aok-release"
+
+
+if [ -e "$deb_version" ]; then
+    echo "Debian release: $(cat $deb_version)"
+fi
 
 if [ -e "$aok_release" ]; then
     echo "AOK release:    $(cat /etc/aok-release)"
