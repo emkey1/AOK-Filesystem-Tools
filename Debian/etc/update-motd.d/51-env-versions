@@ -1,11 +1,9 @@
 #!/bin/sh
 
-aok_release="/etc/aok-release"
-
 echo "Debian release: $(cat /etc/debian_version)"
 
 if [ -e "$aok_release" ]; then
-    echo "AOK release:    $(cat "$aok_release")"
+    echo "AOK release:    $(cat /etc/aok-release)"
 fi
 
 if [ -d /proc/ish ]; then
