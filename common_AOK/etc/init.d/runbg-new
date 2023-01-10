@@ -33,13 +33,7 @@ pidfile="/run/runbg.pid"
 #
 
 check_for_other_polling() {
-    #  Argh Alpine (BusyBox) displays pid,user instead of user,pid
-    if [ -f /etc/alpine-release ]; then
-        ps_cmd="ps axu -o user,pid,args"
-    else
-        ps_cmd="ps axu"
-    fi
-    other_pids="$($ps_cmd | grep /dev/location | grep -v grep | awk '{ print $2 }' |  tr '\n' ' ')"
+    other_pids="$(ps ax | grep /dev/location | grep -v grep | awk '{ print $1 }' |  tr '\n' ' ')"
 }
 
 
