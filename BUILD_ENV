@@ -261,13 +261,6 @@ copy_local_bins() {
     unset src_dir
 }
 
-install_runbg() {
-    msg_2 "Adding runbg service"
-    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/"$RUNBG_SCRIPT" /etc/init.d
-    # openrc_might_trigger_errors
-    rc-update add runbg default
-}
-
 notification_additional_tasks() {
     if [ -f "$ADDITIONAL_TASKS_SCRIPT" ]; then
 	msg_2 "notification_additional_tasks()"
