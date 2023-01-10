@@ -13,16 +13,16 @@ aok_release="/etc/aok-release"
 
 
 if [ -e "$deb_version" ]; then
-    echo "Debian release: $(cat $deb_version)"
+    echo "Debian release:  $(cat $deb_version)"
 fi
 
 if [ -e "$aok_release" ]; then
-    echo "AOK release:    $(cat /etc/aok-release)"
+    echo "AOK-FS release:  $(cat /etc/aok-release)"
 fi
 
 if [ -d /proc/ish ]; then
     # Dont do this whilst chrooted in linux etc
-    echo "iSH release:    $(cat /proc/ish/version)"
+    echo "iSH release:     $(cat /proc/ish/version)"
 else
-    echo "iSH release:    Can't be detected whilst chrooted"
+    echo "iSH release:     Can't be detected whilst chrooted"
 fi
