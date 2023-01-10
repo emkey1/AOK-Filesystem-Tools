@@ -31,14 +31,14 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 env_prepare() {
-    msg_2 "Preparing the environment for chroot"
+    # msg_2 "Preparing the environment for chroot"
 
-    msg_3 "Mounting system resources"
+    # msg_3 "Mounting system resources"
 
     mount -t proc proc "$CHROOT_TO"/proc
 
     if [ "$BUILD_ENV" -eq 1 ]; then
-        msg_3 "Setting up needed /dev items"
+        # msg_3 "Setting up needed /dev items"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
         chmod 666 "$CHROOT_TO"/dev/null
@@ -52,23 +52,21 @@ env_prepare() {
         mount -t sysfs sys "$CHROOT_TO"/sys
         mount -o bind /dev "$CHROOT_TO"/dev
     fi
-    msg_3 "copying current /etc/resolv.conf"
+    # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
 }
 
 env_cleanup() {
     msg_2 "Doing some post chroot cleanup"
 
-    msg_3 "Un-mounting system resources"
-
+    # msg_3 "Un-mounting system resources"
     umount "$CHROOT_TO"/proc
 
     if [ "$BUILD_ENV" -eq 1 ]; then
-        msg_3 "Removing the temp /dev entries"
+        # msg_3 "Removing the temp /dev entries"
         rm -f "$CHROOT_TO"/dev/*
     else
-        msg_3 "Unmounting /sys & /dev"
-        # umount "$CHROOT_TO"/tmp
+        # msg_3 "Unmounting /sys & /dev"
         umount "$CHROOT_TO"/sys
         umount "$CHROOT_TO"/dev
     fi

@@ -120,14 +120,11 @@ build_status_set() {
         error_msg "build_status_set() no param"
     fi
     mkdir -p "$BUILD_STATUS"
-    msg_3 "build_staus_set($1)"
+    # msg_3 "build_staus_set($1)"
     touch "$BUILD_STATUS/$1"
 }
 
 build_status_get() {
-    #
-    # A second param prevents logging of status
-    #
     if [ -z "$1" ]; then
         error_msg "build_status_get() no param"
     fi
@@ -144,16 +141,16 @@ build_status_get() {
 
 #  shellcheck disable=SC2120
 build_status_clear() {
-    msg_3 "build_status_clear($1)"
+    # msg_3 "build_status_clear($1)"
     if [ -n "$1" ]; then
         fname="$BUILD_STATUS/$1"
         rm -f "$fname"
-        msg_3 "Cleared $fname"
+        # msg_3 "Cleared $fname"
 	unset fname
     fi
     if [ "$(find "$BUILD_STATUS"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$BUILD_STATUS" -rf
-        msg_3 "Cleared entire $BUILD_STATUS"
+        # msg_3 "Cleared entire $BUILD_STATUS"
     fi
 }
 
