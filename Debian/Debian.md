@@ -1,24 +1,16 @@
 # Debian
 
-## Services
+## Generic Debian Services useable inside iSH
 
-The script in /etc/rc2.d/ssh doesnt trigger sshd
-I found a hack workarround by triggering a script direcly from
-inittab, /usr/loca/sbin/manual_services
-To make it even more weird, sshd needs to be first stopped
-then started twice to come to life
+- cron
+- ssh
 
-## Services
+sshd is setup up by the AOK deploy, but not active.
+It can be enabled / disabled by running enable_sshd / disable_sshd
 
-Since a lot of services related to mounting filesystems networking etc
-are handled outside the virtual Operating System, I have disabled all
-default services in setup_debian.sh
-Currently there is no cron or syslog running, the last updates I have
-ssen is that neither works in iSH-AOK Debian. This might be incorrect,
-or get solved, and is probably be an issue that needs to be looked into.
+### Specific iSH-AOK services
 
-By default runbg is added. If you run enable_sshd ssh will be added as a
-service.
+- runbg
 
 ## Removable?
 
