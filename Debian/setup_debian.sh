@@ -25,6 +25,24 @@ fi
 #  shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
+install_sshd() {
+    #
+    #  Install sshd, then remove the service, in order to not leave it running
+    #  unless requested to: with enable_sshd / disable_sshd
+    #
+    msg_1 "Installing openssh-server"
+
+    msg_3 "Remove ssh host keys if present in FS to ensure not using known keys"
+    rm /etc/ssh/ssh_host*key*
+
+    openrc_might_trigger_errors
+
+    apt install openssh-server
+
+    msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    rc-update del ssh default
+}
+
 #===============================================================
 #
 #   Main
@@ -95,20 +113,7 @@ rm /etc/runlevels/*/* -f
 msg_2 "Installing custom inittab"
 cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
 
-#
-#  Install sshd, then remove the service, in order to not leave it running
-#  unless requested to: with enable_sshd / disable_sshd
-#
-msg_1 "Installing openssh-server"
-msg_3 "Remove ssh host keys if present in FS to ensure not using known keys"
-rm /etc/ssh/ssh_host*key*
-
-openrc_might_trigger_errors
-
-apt install openssh-server
-
-msg_3 "Disable sshd for now, enable it with: enable_sshd"
-rc-update del ssh default
+install_sshd
 
 #
 #  Common deploy, used both for Alpine & Debian
