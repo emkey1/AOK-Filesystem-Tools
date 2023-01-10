@@ -248,12 +248,12 @@ copy_local_bins() {
 
     msg_1 "Copying /usr/local stuff for $src_dir"
 
-    msg_3 "Add $src_dir AOK stuff to /usr/local/bin"
+    msg_3 "Add $src_dir AOK-FS stuff to /usr/local/bin"
     mkdir -p /usr/local/bin
     cp "$AOK_CONTENT"/"$src_dir"/usr_local_bin/* /usr/local/bin
     chmod +x /usr/local/bin/*
 
-    msg_3 "Add $src_dir AOK stuff to /usr/local/sbin"
+    msg_3 "Add $src_dir AOK-FS stuff to /usr/local/sbin"
     mkdir -p /usr/local/sbin
     cp "$AOK_CONTENT"/"$src_dir"/usr_local_sbin/* /usr/local/sbin
     chmod +x /usr/local/sbin/*
