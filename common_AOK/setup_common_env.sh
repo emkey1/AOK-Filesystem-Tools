@@ -28,7 +28,7 @@ setup_environment() {
     rc-update add runbg default
 
     msg_2 "Populate /etc/skel"
-    cp -av "$AOK_CONTENT"/common_AOK/etc/skel /etc
+    cp -a "$AOK_CONTENT"/common_AOK/etc/skel /etc
 
     # Move sshd to port 1022 to avoid issues
     sshd_port=1022
