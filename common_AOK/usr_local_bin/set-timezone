@@ -10,8 +10,16 @@
 #  https://gist.github.com/eduardoaugustojulio/fa83cf85efa39919d6a70ca679e91f28
 #
 
-dialog_app="dialog"
+# --erase-on-exit prevents scrollback from being lost, but isnt available on Deb 10
+dialog_app="dialog --erase-on-exit"
 # dialog_app="whiptail"
+
+if [ -f /etc/debian_version ]; then
+    # older Debians use a dialog versioon not compatible with this
+    # so enforce whiptail
+    dialog_app="whiptail"
+fi
+
 
 
 do_clear() {
