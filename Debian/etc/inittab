@@ -13,14 +13,12 @@ id:2:initdefault:
 fxdv::sysinit:/usr/local/sbin/fix_dev
 # Ensure hostname is in /etc/hosts
 ehih::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
-# Update motd (in case iSH kernel has been updated)
-motd::sysinit:/usr/local/sbin/update_motd
 # Reset /run dir to an initial state with no services running
 rrd::sysinit:/usr/local/sbin/reset-run-dir.sh
 
 # Boot-time system configuration/initialization script.
 # This is run first except when booting in emergency (-b) mode.
-#si::sysinit:/etc/init.d/rcS
+si::sysinit:/etc/init.d/rcS
 
 # What to do in single-user mode.
 ~~:S:wait:/sbin/sulogin --force
