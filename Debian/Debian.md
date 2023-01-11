@@ -14,7 +14,13 @@ libgcc-8-dev linux-libc-dev kmod manpages-dev patch udev gcc-8 cpp-8 locales bin
 
 528MB -> 399MB
 
+this is v9
 
+more removals
+
+libdevmapper1.02.1 vim-common elogind gpg-agent gpg gpgconf
+
+-> 419MB
 
 
 ## Build times

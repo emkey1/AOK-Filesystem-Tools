@@ -85,7 +85,7 @@ fi
 
 msg_2 "Adding env versions to /etc/update-motd.d"
 mkdir -p /etc/update-motd.d
-cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/51-env-versions /etc/update-motd.d
+cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
 #
 #  Since iSH doesn't do any cleanup upon shutdown, services will leave
@@ -118,7 +118,8 @@ rm /etc/runlevels/*/* -f
 msg_2 "Installing custom inittab"
 cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
 
-install_sshd
+# temp disabled to speed up deploy test turn arround
+#install_sshd
 
 #
 #  Common deploy, used both for Alpine & Debian

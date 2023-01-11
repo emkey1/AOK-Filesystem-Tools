@@ -8,8 +8,8 @@
 #
 #  Displays AOK release info
 #
-deb_version="/etc/debian_version"
+aok_release="/etc/aok-release"
 
-if [ -e "$deb_version" ]; then
-    echo "^[[35mDebian release:  $(cat $deb_version)^[[0m"
+if [ -e "$aok_release" ]; then
+    echo "[36mAOK-FS release:  $(cat $aok_release)[0m"
 fi
