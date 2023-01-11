@@ -78,6 +78,11 @@ apt update
 msg_2 "apt upgrade"
 apt upgrade -y
 
+if [ -n "$CORE_DEB_PKGS" ]; then
+    msg_2 "Add core Debian packages"
+    apt install "$CORE_DEB_PKGS"
+fi
+
 msg_2 "Adding env versions to /etc/update-motd.d"
 mkdir -p /etc/update-motd.d
 cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/51-env-versions /etc/update-motd.d

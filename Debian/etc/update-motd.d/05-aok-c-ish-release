@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Displays AOK release info
+#
+if [ -d /proc/ish ]; then
+    # Dont do this whilst chrooted in linux etc
+    echo "^[[35miSH release:     $(cat /proc/ish/version)^[[0m"
+else
+    echo "^[[35miSH release:     Can't be detected whilst chrooted^[[0m"
+fi

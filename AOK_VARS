@@ -27,11 +27,6 @@ ALPINE_VERSION=3.16.3   # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.0   # End of Alpine support 2024-11-22
 
 #
-#  If a Debian install is selected, this tarball will be used
-#
-DEBIAN_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2"
-
-#
 # Alternatives are: enable disable once
 #
 INITIAL_LOGIN_MODE="enable"
@@ -65,6 +60,16 @@ CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox
 #  Will only be installed if the kernel is identified as iSH-AOK
 #
 AOK_APKS="htop procps nload nload-doc htop-doc procps-doc"
+
+#
+#  If a Debian install is selected, this tarball will be used
+#
+DEBIAN_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2"
+
+#
+#  Additional apts for Debian image
+#
+CORE_DEB_PKGS=""
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups

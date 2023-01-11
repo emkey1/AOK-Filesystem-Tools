@@ -6,19 +6,34 @@
 id:2:initdefault:
 
 #
-#  Some bootup tasks, to ensure system is in good health
-#  Be aware, task names can be max 4 chars long!
+#  These two items should be the very first sysinit entries
+#  to ensure iSH is in a usable state for openrc!
 #
 # Ensure devs are ok
-fxdv::sysinit:/usr/local/sbin/fix_dev
-# Ensure hostname is in /etc/hosts
-ehih::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
-# Reset /run dir to an initial state with no services running
-rrd::sysinit:/usr/local/sbin/reset-run-dir.sh
+fx1::sysinit:/usr/local/sbin/fix_dev
 
-# Boot-time system configuration/initialization script.
-# This is run first except when booting in emergency (-b) mode.
-si::sysinit:/etc/init.d/rcS
+# Reset /run dir to an initial state with no services running
+fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
+
+#
+#  Not system critical but we might as well do it here
+#  instead of creating a full service for the task
+#
+hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
+
+
+#
+# Initialization command
+# Normally this would be sysinit, but when this is choosen
+# on Debian running inside iSH-AOK, init & openrc fails 
+# to transition over to the runlevel default.
+# This is solved by using boot here
+#
+si::sysinit:/sbin/openrc boot
+
+# normal inittab Boot command invocation
+#rc::sysinit:/sbin/openrc boot
+
 
 # What to do in single-user mode.
 ~~:S:wait:/sbin/sulogin --force

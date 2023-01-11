@@ -2,29 +2,20 @@
 
 ## Removable?
 
+unpacked image before 528M
+
 I am experimenting to see what apts can be removed in order to create
 a smaller FS distribution, whilst not making FS unbootable.
 Installing them again during setup.
 
-```bash
-locales
-manpages-dev
-gcc
-binutils-i686-linux-gnu
-cpp
-cpp-8
-dmsetup
-dmidecode
-rsyslog
-make
-libc-dev-bin
-libgcc-8-dev
-linux-libc-dev
-kmod
-manpages-dev
-patch
-udev
-```
+Dont remove: gcc-8-base
+
+libgcc-8-dev linux-libc-dev kmod manpages-dev patch udev gcc-8 cpp-8 locales binutils-i686-linux-gnu make tasksel tasksel-data dmidecode libc-dev-bin rsyslog
+
+528MB -> 399MB
+
+
+
 
 ## Build times
 
