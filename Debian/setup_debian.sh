@@ -81,13 +81,28 @@ if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_2 "apt upgrade"
     apt upgrade -y
 
+    #
+    #  Not a resource hog, but since it depends on locales being installed above,
+    #  it is also in this condition.
+    #
+    msg_2 "Setup locale"
+    apt install locales
+    locale-gen en_US.UTF-8
+    # update-locale en_US.UTF-8
+
     if [ -n "$CORE_DEB_PKGS" ]; then
 	msg_2 "Add core Debian packages"
 	echo "$CORE_DEB_PKGS"
+	#
 	#  Since this shell started without any apt DB (was created by apt upddate)
 	#  we need to run the install in a new shell
-	bash -c "apt install -y $CORE_DEB_PKGS"
+	#  To avoid being forced to choose timezone here frontend is disabled
+	#  Later in the setup depending on if AOK_TIMEZONE is set
+	#  time zone will either be hardcoded, or asked for
+	#
+	bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
     fi
+
 fi
 
 msg_2 "Adding env versions to /etc/update-motd.d"
