@@ -112,21 +112,21 @@ display_time_elapsed() {
 }
 
 #
-#  build_status_xxx is manipulating state files under /etc/opt/AOK on
+#  bldstat_xxx is manipulating state files under /etc/opt/AOK on
 #  the dest FS, indicating things like if this is chrooted and so on
 #
-build_status_set() {
+bldstat_set() {
     if [ -z "$1" ]; then
-        error_msg "build_status_set() no param"
+        error_msg "bldstat_set() no param"
     fi
     mkdir -p "$BUILD_STATUS"
     # msg_3 "build_staus_set($1)"
     touch "$BUILD_STATUS/$1"
 }
 
-build_status_get() {
+bldstat_get() {
     if [ -z "$1" ]; then
-        error_msg "build_status_get() no param"
+        error_msg "bldstat_get() no param"
     fi
     test -f "$BUILD_STATUS/$1"
     exitstatus="$?"
@@ -140,8 +140,8 @@ build_status_get() {
 }
 
 #  shellcheck disable=SC2120
-build_status_clear() {
-    # msg_3 "build_status_clear($1)"
+bldstat_clear() {
+    # msg_3 "bldstat_clear($1)"
     if [ -n "$1" ]; then
         fname="$BUILD_STATUS/$1"
         rm -f "$fname"
@@ -359,10 +359,10 @@ BUILD_BASE_D="/tmp/AOK"
 BUILD_STATUS_RAW="/etc/opt/AOK"
 
 #
-#  STATUS_BEING_BUILT and BUILD_STATUS, used by build_status_get()
+#  STATUS_BEING_BUILT and BUILD_STATUS, used by bldstat_get()
 #  must be defined before this
 #
-if build_status_get "$STATUS_IS_CHROOTED"; then
+if bldstat_get "$STATUS_IS_CHROOTED"; then
     BUILD_ROOT_D=""
     # msg_3 "This is chrooted"
 elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT"; then

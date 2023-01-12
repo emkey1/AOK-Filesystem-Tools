@@ -249,7 +249,7 @@ copy_AOK_to_dest() {
 
     mkdir -p "$aok_files"
     mkdir -p "$BUILD_ROOT_D"/etc/opt
-    build_status_set "$STATUS_BEING_BUILT"
+    bldstat_set "$STATUS_BEING_BUILT"
 
     rsync -ah \
         --exclude=.git/ \
@@ -305,7 +305,7 @@ setup_Alpine_in_advance() {
     mkdir -p /etc/opt
 
     #  Indicate this FS is pre-built
-    build_status_set "$STATUS_PREBUILT_FS"
+    bldstat_set "$STATUS_PREBUILT_FS"
 
     #
     # chrooting and doing setup
@@ -320,7 +320,7 @@ setup_Alpine_in_advance() {
     #  Since some final steps need to run by the above profile
     #  mark the FS as in build state
     #
-    build_status_set "$STATUS_BEING_BUILT"
+    bldstat_set "$STATUS_BEING_BUILT"
 }
 
 setup_Alpine_on_1st_boot() {

@@ -26,7 +26,7 @@ msg_1 "Final Alpine setup steps"
 
 
 
-if ! build_status_get "$STATUS_IS_CHROOTED" ; then
+if ! bldstat_get "$STATUS_IS_CHROOTED" ; then
     #
     #  Run this after services has been activated, so that check they run
     #  is meaningful
@@ -52,4 +52,4 @@ echo
 
 # Not the right place to set profile, since this can be called in different ways
 
-build_status_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$STATUS_BEING_BUILT"

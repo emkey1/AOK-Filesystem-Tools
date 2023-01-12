@@ -151,7 +151,7 @@ fi
 msg_1 "Setup complete!"
 echo
 
-build_status_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$STATUS_BEING_BUILT"
 
 select_profile "$PROFILE_DEBIAN"
 

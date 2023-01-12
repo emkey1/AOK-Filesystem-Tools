@@ -30,4 +30,4 @@ msg_3 "Installing newt (whiptail) & wget (needed for Debian download)"
 apk add newt wget
 
 # shellcheck disable=SC2154
-build_status_set "$STATUS_SELECT_DISTRO_PREPARED"
+bldstat_set "$STATUS_SELECT_DISTRO_PREPARED"

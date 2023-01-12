@@ -18,13 +18,13 @@ tcd_start="$(date +%s)"
 # dialog_app="dialog --erase-on-exit"
 dialog_app="whiptail"
 
-if ! build_status_get "$STATUS_SELECT_DISTRO_PREPARED"; then
+if ! bldstat_get "$STATUS_SELECT_DISTRO_PREPARED"; then
     msg_1 "Need to run $SETUP_CHOOSE_DISTRO_PREPARE"
     "$SETUP_CHOOSE_DISTRO_PREPARE"
 else
     msg_1 "$SETUP_CHOOSE_DISTRO_PREPARE alredy done"
 fi
-build_status_clear "$STATUS_SELECT_DISTRO_PREPARED"
+bldstat_clear "$STATUS_SELECT_DISTRO_PREPARED"
 
 #
 #  Ensure TERM is sensible, tmux and ch-rooting tends to leave it in a state
@@ -82,7 +82,7 @@ else
     "$AOK_CONTENT"/choose_distro/install_debian.sh
 fi
 
-build_status_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$STATUS_BEING_BUILT"
 
 duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
