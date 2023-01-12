@@ -32,12 +32,12 @@ install_sshd() {
     #
     msg_1 "Installing openssh-server"
 
-    msg_3 "Remove ssh host keys if present in FS to ensure not using known keys"
+    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
     rm /etc/ssh/ssh_host*key*
 
     openrc_might_trigger_errors
 
-    apt install openssh-server
+    apt install -y openssh-server
 
     msg_3 "Disable sshd for now, enable it with: enable_sshd"
     rc-update del ssh default
@@ -53,61 +53,19 @@ tsd_start="$(date +%s)"
 
 start_setup Debian
 
+#
+#  Ensure hostname is in /etc/hosts
+#  If not there will be various error messages displayed.
+#  This will be run from inittab each time this boots, so if name is
+#  changed in iOS, the new name will be bound to 127.0.0.1
+#  on next restart, or right away if you run this manually
+#
+/usr/local/sbin/ensure_hostname_in_host_file.sh
+
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
     rm -rf /AOK
 fi
-
-#
-#  This speeds up update / upgrade quite a bit during setup.
-#  You can always re-enable later if it is wished for
-#
-if [ "$QUICK_DEPLOY" -ne 1 ]; then
-    msg_2 "Installing sources.list"
-    cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
-
-    msg_2 "apt update"
-    apt update
-fi
-
-#
-#  Do this check before upgrade, to allow for it to happen as early as
-#  possible, since it might require operator interaction.
-#  After this the setup can run on its own.
-#
-! is_iCloud_mounted && should_icloud_be_mounted
-
-if [ "$QUICK_DEPLOY" -ne 1 ]; then
-    msg_2 "apt upgrade"
-    apt upgrade -y
-
-    #
-    #  Not a resource hog, but since it depends on locales being installed above,
-    #  it is also in this condition.
-    #
-    msg_2 "Setup locale"
-    apt install locales
-    locale-gen en_US.UTF-8
-    # update-locale en_US.UTF-8
-
-    if [ -n "$CORE_DEB_PKGS" ]; then
-	msg_2 "Add core Debian packages"
-	echo "$CORE_DEB_PKGS"
-	#
-	#  Since this shell started without any apt DB (was created by apt upddate)
-	#  we need to run the install in a new shell
-	#  To avoid being forced to choose timezone here frontend is disabled
-	#  Later in the setup depending on if AOK_TIMEZONE is set
-	#  time zone will either be hardcoded, or asked for
-	#
-	bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
-    fi
-
-fi
-
-msg_2 "Adding env versions to /etc/update-motd.d"
-mkdir -p /etc/update-motd.d
-cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
 #
 #  Since iSH doesn't do any cleanup upon shutdown, services will leave
@@ -121,33 +79,74 @@ cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/* /etc/update-motd.d
 msg_2 "Copying bootup run state to /etc/opt/openrc_empty_run.tgz"
 cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
 
+msg_2 "Installing custom inittab"
+cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
+
 #
 #  Most of the Debian services, mounting fs, setting up networking etc
-#  serve no purpose in iSH, since all this is either handled by iPadOS
-#  or done before bootup, so if any are needed they will be added.
+#  serve no purpose in iSH, since all this is either handled by iOS
+#  or done by the app before bootup
 #
 msg_2 "Disabling previous openrc runlevel tasks"
 rm /etc/runlevels/*/* -f
 
-#
-#  Ensure hostname is in /etc/hosts
-#  If not there will be various error messages displayed.
-#  This will be run each time this boots, so if name is changed
-#  in iOS, the new name will be bound to 127.0.0.1
-#
-/usr/local/sbin/ensure_hostname_in_host_file.sh
+msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
+mkdir -p /etc/update-motd.d
+cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
-msg_2 "Installing custom inittab"
-cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
+#
+#  This must run before any task doing apt actions
+#
+if [ "$QUICK_DEPLOY" -ne 1 ]; then
+    msg_2 "Installing sources.list"
+    cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
-# temp disabled to speed up deploy test turn arround
-#install_sshd
+    msg_2 "apt update"
+    apt update
+fi
+
+#
+#  Do this check after update and before upgrade, to allow for it to
+#  happen as early as possible, since it might require operator interaction.
+#  After this the setup can run on its own.
+#
+! is_iCloud_mounted && should_icloud_be_mounted
+
+#
+#  Should be run before installing CORE_DEB_PKGS to minimize amount of
+#  warnings displayed due to no locale being set
+#
+if [ "$QUICK_DEPLOY" -ne 1 ]; then
+    msg_2 "Setup locale"
+    apt install locales
+fi
 
 #
 #  Common deploy, used both for Alpine & Debian
 #
 msg_1 "Running $SETUP_COMMON_AOK"
 "$SETUP_COMMON_AOK"
+
+#
+#  Do this after all other essential configs, to hopefully still have
+#  a working system if iSH crashes during apt upgrade
+#  or install of CORE_DEB_PKGS
+#
+if [ "$QUICK_DEPLOY" -ne 1 ]; then
+    msg_1 "apt upgrade"
+    apt upgrade -y
+fi
+
+if [ "$QUICK_DEPLOY" -ne 1 ] && [ -n "$CORE_DEB_PKGS" ]; then
+    msg_1 "Add core Debian packages"
+    echo "$CORE_DEB_PKGS"
+    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+
+    install_sshd
+fi
+
+#msg_2 "Setting runlevel default"
+#openrc default
 
 msg_1 "Setup complete!"
 echo
