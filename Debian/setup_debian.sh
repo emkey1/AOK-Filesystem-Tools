@@ -62,11 +62,13 @@ fi
 #  This speeds up update / upgrade quite a bit during setup.
 #  You can always re-enable later if it is wished for
 #
-msg_2 "Installing sources.list without deb-src entries"
-cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
+if [ "$QUICK_DEPLOY" -ne 1 ]; then
+    msg_2 "Installing sources.list"
+    cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
-msg_2 "apt update"
-apt update
+    msg_2 "apt update"
+    apt update
+fi
 
 #
 #  Do this check before upgrade, to allow for it to happen as early as
@@ -75,12 +77,17 @@ apt update
 #
 ! is_iCloud_mounted && should_icloud_be_mounted
 
-msg_2 "apt upgrade"
-apt upgrade -y
+if [ "$QUICK_DEPLOY" -ne 1 ]; then
+    msg_2 "apt upgrade"
+    apt upgrade -y
 
-if [ -n "$CORE_DEB_PKGS" ]; then
-    msg_2 "Add core Debian packages"
-    apt install "$CORE_DEB_PKGS"
+    if [ -n "$CORE_DEB_PKGS" ]; then
+	msg_2 "Add core Debian packages"
+	echo "$CORE_DEB_PKGS"
+	#  Since this shell started without any apt DB (was created by apt upddate)
+	#  we need to run the install in a new shell
+	bash -c "apt install -y $CORE_DEB_PKGS"
+    fi
 fi
 
 msg_2 "Adding env versions to /etc/update-motd.d"
@@ -104,14 +111,14 @@ cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
 #  serve no purpose in iSH, since all this is either handled by iPadOS
 #  or done before bootup, so if any are needed they will be added.
 #
-msg_2 "Disabling normal openrc runlevel tasks"
+msg_2 "Disabling previous openrc runlevel tasks"
 rm /etc/runlevels/*/* -f
 
 #
 #  Ensure hostname is in /etc/hosts
 #  If not there will be various error messages displayed.
 #  This will be run each time this boots, so if name is changed
-#  the new name will be bound to 127.0.0.1
+#  in iOS, the new name will be bound to 127.0.0.1
 #
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
@@ -137,6 +144,7 @@ select_profile "$PROFILE_DEBIAN"
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 unset duration
+
 
 run_additional_tasks_if_found
 
