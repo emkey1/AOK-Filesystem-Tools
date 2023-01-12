@@ -113,7 +113,7 @@ show_version() { # Multi OK 1
 }
 
 ensure_usable_wget() {
-    msg_2 "ensure_usable_wget()"
+    # msg_2 "ensure_usable_wget()"
     #  shellcheck disable=SC2010
     if ls -l "$(command -v wget)" | grep -q busybox; then
         error_msg "You need to install a real wget, busybox does not handle redirects"
@@ -379,18 +379,30 @@ if $build_debian_FS; then
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
     msg_2 "Extracting Debian tarball"
-    if $verbose; then
-        options="xfvj"
+    if
+    test "${string#*$word}" != "$string" && echo "$word found in $string"
+    test "${DEBIAN_TARBALL#*tgz}" != "$DEBIAN_TARBALL" ; then
+	# is tgz
+	filter="z"
     else
-        options="xfj"
+	filter="j"
     fi
-    tar "$options" "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL" || {
+    if $verbose; then
+        verb="v"
+    else
+        verb=""
+    fi
+    #error_msg "tar xf${verb}${filter}"
+
+    tar "xf${verb}${filter}" "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL" || {
         echo "ERROR: Failed to untar Debian-fs"
         echo
         echo "Try to remove the cached file and run this again"
         echo "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL"
         exit 1
     }
+    unset filter
+    unset verb
 else
     msg_2 "Create $BUILD_ROOT_D, copy minirootfs"
     cache_miniroot_fs
@@ -412,7 +424,7 @@ fi
 unset options
 
 copy_AOK_to_dest
-msg_2 "Stored $AOK_CONTENT on new filesystem"
+msg_2 "Deployed $AOK_CONTENT on new filesystem"
 
 add_additional_tasks_if_defined
 
