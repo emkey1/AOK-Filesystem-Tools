@@ -25,14 +25,11 @@ hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
 #
 # Initialization command
 # Normally this would be sysinit, but when this is choosen
-# on Debian running inside iSH-AOK, init & openrc fails 
+# on Debian running on iSH-AOK, init & openrc fails 
 # to transition over to the runlevel default.
-# This is solved by using boot here
+# This is solved by using boot as initial runlevel on iSH-AOK
 #
 si::sysinit:/sbin/openrc boot
-
-# normal inittab Boot command invocation
-#rc::sysinit:/sbin/openrc boot
 
 
 # What to do in single-user mode.
@@ -56,48 +53,8 @@ l6:6:wait:/etc/init.d/rc 6
 # Normally not reached, but fallthrough in case of emergency.
 z6:6:respawn:/sbin/sulogin --force
 
-# What to do when CTRL-ALT-DEL is pressed.
-ca:12345:ctrlaltdel:/sbin/shutdown -t1 -a -r now
-
-# Action on special keypress (ALT-UpArrow).
-#kb::kbrequest:/bin/echo "Keyboard Request--edit /etc/inittab to let this work."
-
-# What to do when the power fails/returns.
-pf::powerwait:/etc/init.d/powerfail start
-pn::powerfailnow:/etc/init.d/powerfail now
-po::powerokwait:/etc/init.d/powerfail stop
-
-# /sbin/getty invocations for the runlevels.
 #
-# The "id" field MUST be the same as the last
-# characters of the device (after "tty").
+#  Ctrl-Alt-Del, powerfails, additional consoles and serial ports
+#  are skipped in this inittab, since none of it is supported
+#  in iSH as of yet
 #
-# Format:
-#  <id>:<runlevels>:<action>:<process>
-#
-# Note that on most Debian systems tty7 is used by the X Window System,
-# so if you want to add more getty's go ahead but skip tty7 if you run X.
-#
-#1:2345:respawn:/sbin/getty 38400 tty1
-#2:23:respawn:/sbin/getty 38400 tty2
-#3:23:respawn:/sbin/getty 38400 tty3
-#4:23:respawn:/sbin/getty 38400 tty4
-#5:23:respawn:/sbin/getty 38400 tty5
-#6:23:respawn:/sbin/getty 38400 tty6
-
-# Example how to put a getty on a serial line (for a terminal)
-#
-#T0:23:respawn:/sbin/getty -L ttyS0 9600 vt100
-#T1:23:respawn:/sbin/getty -L ttyS1 9600 vt100
-#
-# or on a USB serial line
-#U0:23:respawn:/sbin/getty -L ttyUSB0 9600 vt100
-
-# Example how to put a getty on a modem line.
-#
-#T3:23:respawn:/sbin/mgetty -x0 -s 57600 ttyS3
-
-# Example for systemd-nspawn
-# Only /dev/console exists inside nspawn, so we need a getty on that.
-# Also make sure to comment out the gettys on tty* above.
-#C0:2345:respawn:/sbin/getty -8 --noclear --keep-baud console 115200,38400,9600
