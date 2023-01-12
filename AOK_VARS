@@ -69,7 +69,7 @@ DEBIAN_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2
 #
 #  Additional apts for Debian image
 #
-CORE_DEB_PKGS=""
+CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
