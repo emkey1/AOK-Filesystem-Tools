@@ -491,7 +491,7 @@ else
             set_shell="/bin/ash"
         fi
         echo "You can work on the filesystem by running:"
-        echo "  sudo tools/do_chroot.sh $set_shell"
+        echo "  sudo ./tools/do_chroot.sh $set_shell"
         echo
 	unset set_shell
     fi
