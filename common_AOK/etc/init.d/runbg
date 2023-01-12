@@ -10,7 +10,6 @@
 #  This process has no noticeable impact on battery life.
 #
 
-name="keep iSH running in background"
 description="Reads GPS to ensure iSH continues to run when in background"
 
 command="/bin/cat"
