@@ -433,6 +433,17 @@ SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
 SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
 SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
 
+#
+#  Should normally not be changed! Enabling his will create a limited env
+#  missing features and functionality!
+#
+#  To speed up deploy cycle on slow devices, set this to 1
+#  This will not add all apt repositories, skip installing CORE_DEB_PKGS etc
+#  Ideal candidate to modify in .BUILD_ENV
+#
+QUICK_DEPLOY=0
+
+
 # =====================================================================
 #
 #  Local overrides, ignored by git. They will be appended to BUILD_ENV
