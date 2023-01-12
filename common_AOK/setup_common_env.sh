@@ -98,7 +98,7 @@ copy_skel_files() {
     if [ -z "$dest" ]; then
         error_msg "copy_skel_files() needs a destination param"
     fi
-    rsync -a /etc/skel/ "$dest"
+    cp -r /etc/skel/. "$dest"
     cd "$dest" || exit 99
     ln -sf .bash_profile .bashrc
 
