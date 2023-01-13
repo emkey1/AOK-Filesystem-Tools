@@ -93,9 +93,21 @@ parse_arguments() { # Multi OK 1
             pre_build_FS=true
             ;;
 
-        "-j" | "--bzip2") use_bzip2=true ;;
+        "-j" | "--bzip2")
+	    if ! $aok_FS_do_compress; then
+		echo "-j and -N can not be combined!"
+		exit 1
+	    fi
+	    use_bzip2=true
+	    ;;
 
-        "-N" | "--no_compress") aok_FS_do_compress=false ;;
+        "-N" | "--no_compress")
+	    if  $use_bzip2; then
+		echo "-j and -N can not be combined!"
+		exit 1
+	    fi
+	    aok_FS_do_compress=false
+	    ;;
 
         *)
             echo "ERROR: bad param, try -h"
