@@ -488,7 +488,7 @@ if $aok_FS_do_compress; then
         #  shellcheck disable=SC2154
         label="$SELECT_DISTRO_IMG"
     else
-        label="$ALPINE_FS"
+        label="$ALPINE_IMG"
     fi
 
     #  shellcheck disable=SC2086,SC2248
@@ -503,6 +503,7 @@ if [ "$BUILD_ENV" -gt 0 ]; then
     else
         set_shell="/bin/ash"
     fi
+    echo
     echo "You can work on the filesystem by running:"
     echo "  sudo ./tools/do_chroot.sh $set_shell"
     echo
@@ -510,5 +511,4 @@ if [ "$BUILD_ENV" -gt 0 ]; then
     echo "  sudo ./tools/do_chroot.sh /etc/profilel"
 fi
 
-echo
 display_build_time
