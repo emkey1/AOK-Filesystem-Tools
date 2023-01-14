@@ -134,7 +134,6 @@ if is_ish; then
     mkdir -p "$ICLOUD_ARCHIVE_D"
     cp "$tarball" "$ICLOUD_ARCHIVE_D"
 fi
-echo
 
 msg_1 "Image is ready: $tarball"
 
