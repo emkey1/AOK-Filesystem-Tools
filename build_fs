@@ -149,6 +149,12 @@ display_build_env() { # Multi OK 1
         exit 1
     fi
     msg_1 "Run mode: $run_mode"
+    
+    if [ "$QUICK_DEPLOY" -ne 0 ]; then
+        echo
+        echo "**  Using QUICK_DEPLOY=$QUICK_DEPLOY  **"
+        echo
+    fi
 
     unset run_mode
 
