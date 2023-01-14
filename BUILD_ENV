@@ -314,18 +314,18 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-MINIROOT_TARBALL="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-DEBIAN_TARBALL="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
+ALPINE_SRC_IMG="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+DEBIAN_SRC_IMG="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Names of the generated distribution tarballs
 #
-ALPINE_FS="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-SELECT_DISTRO_FS="SelectDistro-iSH-AOK-$AOK_VERSION"
-DEBIAN_FS="Debian-iSH-AOK-$AOK_VERSION"
+ALPINE_IMG="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
+SELECT_DISTRO_IMG="SelectDistro-iSH-AOK-$AOK_VERSION"
+DEBIAN_IMG="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
-# DEBIAN_FS="$(echo "$DEBIAN_TARBALL" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
+# DEBIAN_IMG="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
 
 #
 #  Statuses are files put in place in /etc/opt/AOK on the destination FS
@@ -335,17 +335,17 @@ DEBIAN_FS="Debian-iSH-AOK-$AOK_VERSION"
 #  Indicator this is an env being built
 STATUS_BEING_BUILT="env_beeing_built"
 #
-#  Select distro has been prepared, ie the prepare does not to be run during
-#  deploy
+#  Select distro has been prepared, ie the prepare sterp does not to be
+#  run during deploy
 #
 STATUS_SELECT_DISTRO_PREPARED="select_distro_prepared"
 #  This is chrooted
 STATUS_IS_CHROOTED="is_chrooted"
 
 #
-#  Hint to /profile that this was a pre-built FS, meaning /etc/profile should not
-#  wait for $FIRST_BOOT_NOT_DONE_HINT to disappear, and post_boot.sh should not
-#  run (from inittab) /etc/profile will
+#  Hint to /profile that this was a pre-built FS, meaning /etc/profile
+#  should not wait for $FIRST_BOOT_NOT_DONE_HINT to disappear, and
+#  post_boot.sh should not run (from inittab) /etc/profile will
 #
 STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
 
@@ -353,8 +353,8 @@ STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
 BUILD_BASE_D="/tmp/AOK"
 
 #
-#  temp value until we know if this is dest FS, so that BUILD_ROOT_D can be
-#  selected
+#  temp value until we know if this is dest FS, so that BUILD_ROOT_D can
+#  be selected
 #
 BUILD_STATUS_RAW="/etc/opt/AOK"
 
@@ -408,9 +408,9 @@ PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
 PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
 
 #
-#  After all packages are installed, if /bin/login was something other than
-#  a soft-link to /bin/busybox, it will be renamed to this, so it can be
-#  selected later.
+#  After all packages are installed, if /bin/login was something other
+#  than a soft-link to /bin/busybox, it will be renamed to this,
+#  so it can be selected later.
 #
 LOGIN_ORIGINAL="/bin/login.alpine"
 
@@ -429,7 +429,7 @@ ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 #
 SETUP_ALPINE_FS="$AOK_CONTENT"/Alpine/setup_alpine.sh
 SETUP_ALPINE_FINAL="$AOK_CONTENT"/Alpine/setup_alpine_final_tasks.sh
-SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
+SETUP_DEBIAN_FS="$AOK_CONTENT"/Debian/setup_debian.sh
 SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
 SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
 

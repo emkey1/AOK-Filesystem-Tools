@@ -203,9 +203,9 @@ cache_miniroot_fs() { # Multi OK 1
     cd "$MINIROOT_FS_CACHE_D" || exit 1
 
     # Download the Alpine miniroot if we need to
-    if [ ! -f "$MINIROOT_TARBALL" ]; then
+    if [ ! -f "$ALPINE_SRC_IMG" ]; then
         msg_3 "Caching miniroot tarball"
-        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_TARBALL"
+        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_IMG"
     fi
     # msg_3 "cache_miniroot_fs() done"
 }
@@ -221,7 +221,7 @@ cache_Debian_fs() {
         error_msg "Failed to cd to debian cache"
     }
 
-    if [ ! -f "$DEBIAN_TARBALL" ]; then
+    if [ ! -f "$DEBIAN_SRC_IMG" ]; then
         wget "$DEBIAN_IMAGE"
     fi
     # msg_3 "cache_Debian_fs() done"
@@ -397,7 +397,7 @@ if $build_debian_FS; then
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
     msg_2 "Extracting Debian tarball"
-    if test "${DEBIAN_TARBALL#*tgz}" != "$DEBIAN_TARBALL" ; then
+    if test "${DEBIAN_SRC_IMG#*tgz}" != "$DEBIAN_SRC_IMG" ; then
 	# is tgz
 	filter="z"
     else
@@ -410,11 +410,11 @@ if $build_debian_FS; then
     fi
     #error_msg "tar xf${verb}${filter}"
 
-    tar "xf${verb}${filter}" "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL" || {
+    tar "xf${verb}${filter}" "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_IMG" || {
         echo "ERROR: Failed to untar Debian-fs"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_TARBALL"
+        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_IMG"
         exit 1
     }
     unset filter
@@ -429,11 +429,11 @@ else
     else
         options="xfz"
     fi
-    tar "$options" "$MINIROOT_FS_CACHE_D"/"$MINIROOT_TARBALL" || {
+    tar "$options" "$MINIROOT_FS_CACHE_D"/"$ALPINE_SRC_IMG" || {
         echo "ERROR: Failed to untar root-fs"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$MINIROOT_FS_CACHE_D/$MINIROOT_TARBALL"
+        echo "$MINIROOT_FS_CACHE_D/$ALPINE_SRC_IMG"
         exit 1
     }
 fi
@@ -483,10 +483,10 @@ if $aok_FS_do_compress; then
     #  Set name for tarball
     #
     if $build_debian_FS; then
-        label="$DEBIAN_FS"
+        label="$DEBIAN_IMG"
     elif $distro_select; then
         #  shellcheck disable=SC2154
-        label="$SELECT_DISTRO_FS"
+        label="$SELECT_DISTRO_IMG"
     else
         label="$ALPINE_FS"
     fi
