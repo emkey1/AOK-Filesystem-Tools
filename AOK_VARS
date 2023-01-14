@@ -72,6 +72,18 @@ DEBIAN_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2
 CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
 
 #
+#  Should normally not be changed! Enabling his will create a limited env
+#  missing features and functionality!
+#
+#  Purpose is to speed up the deploy cycle when testing and improving
+#  the build processess on slow devices, by cutting down on deploy heavy
+#  usability features
+#  Enble by setting this to 1
+#  Ideal candidate to modify in .AOK_VARS
+#
+QUICK_DEPLOY=0
+
+#
 #  Additional APK groups managed with /usr/local/bin/aok_groups
 #
 #  Any variable ending with _APKS in this file, will be seen as a package
@@ -98,6 +110,7 @@ DOCS_APKS='openssh-doc openrc-doc tmux-doc mandoc shadow-doc mosh-doc fortune-do
 #  Produciton changes should go here, and such releases should be
 #  built without the asociated dot-files.
 #
+# =====================================================================
 
 ###  override handling  ###
 
