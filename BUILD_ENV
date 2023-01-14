@@ -228,7 +228,7 @@ start_setup() {
 
     msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for $distro_name"
 
-    if is_ish ; then
+    if ! bldstat_get "$STATUS_IS_CHROOTED"; then
         msg_3 "iSH now able to run in the background"
         cat /dev/location > /dev/null &
     fi
