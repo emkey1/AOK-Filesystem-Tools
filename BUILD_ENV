@@ -439,6 +439,9 @@ SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.s
 #  Local overrides, ignored by git. They will be appended to BUILD_ENV
 #  if found. This is intended for debuging and testing, since stuff
 #  found will be appended to this file on the destination.
+#  This way on the deployed platform it will be easy to spot what
+#  settings was used in the build process.
+#
 #  Produciton changes should go here, and such releases should be
 #  built without the asociated dot-files.
 #
