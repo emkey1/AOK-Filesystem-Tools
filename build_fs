@@ -142,7 +142,6 @@ display_build_env() { # Multi OK 1
 
     if ! $pre_build_FS; then
         run_mode="Will not chroot"
-        run_mode="$run_mode, $AOK_CONTENT files will be copied"
     elif [ "$BUILD_ENV" -eq 0 ]; then
         echo "Unfortunately you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
