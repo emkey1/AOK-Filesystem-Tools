@@ -142,7 +142,6 @@ display_build_env() { # Multi OK 1
 
     if ! $pre_build_FS; then
         run_mode="Will not chroot"
-        run_mode="$run_mode, $AOK_CONTENT files will be copied"
     elif [ "$BUILD_ENV" -eq 0 ]; then
         echo "Unfortunately you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
@@ -488,42 +487,27 @@ if $aok_FS_do_compress; then
         #  shellcheck disable=SC2154
         label="$SELECT_DISTRO_IMG"
     else
-        label="$ALPINE_FS"
+        label="$ALPINE_IMG"
     fi
 
     #  shellcheck disable=SC2086,SC2248
     if ! "$AOK_CONTENT"/compress_image -l $label $extra_params; then
         error_msg "detected in compress_image"
     fi
-    unset extra_params
-    unset label
-
-    display_build_time
-else
-    if [ "$BUILD_ENV" -gt 0 ]; then
-        if $pre_build_FS; then
-            set_shell=""
-        else
-            set_shell="/bin/ash"
-        fi
-        echo "You can work on the filesystem by running:"
-        echo "  sudo ./tools/do_chroot.sh $set_shell"
-        echo
-	unset set_shell
-    fi
-
-    echo "Complete the process by running:"
-    echo "  sudo ./compress_image"
-    echo
-    echo "This creates the compressed image that can be imported into AOK/iSH."
-
-    if [ "$BUILD_ENV" -gt 0 ]; then
-        echo "You can revisit the filesystem by doing the above do_chroot and then"
-        echo "compress_image again, in case you need to do further tweaks."
-        echo "Running build again will erase the current iSH filesystem and create"
-        echo "a fresh instance."
-    fi
-    echo
-    display_build_time
-    exit 0
 fi
+
+if [ "$BUILD_ENV" -gt 0 ]; then
+    if $pre_build_FS; then
+        set_shell=""
+    else
+        set_shell="/bin/ash"
+    fi
+    echo
+    echo "You can work on the filesystem by running:"
+    echo "  sudo ./tools/do_chroot.sh $set_shell"
+    echo
+    echo "To simulate a first boot deploy, run:"
+    echo "  sudo ./tools/do_chroot.sh /etc/profilel"
+fi
+
+display_build_time
