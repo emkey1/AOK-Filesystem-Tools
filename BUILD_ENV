@@ -447,7 +447,7 @@ SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.s
 
 ###  override handling  ###
 
-local_overrides="$AOK_CONTENT/.AOK_VARS"
+local_overrides="/opt/AOK/.AOK_VARS"
 
 #  shellcheck disable=SC1090
 [ -f "$local_overrides" ] && . "$local_overrides"
