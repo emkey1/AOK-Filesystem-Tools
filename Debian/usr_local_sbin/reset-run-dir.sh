@@ -17,5 +17,5 @@ echo "[$(date)]  reset-run-dir.sh" >>/var/log/debug.log
 
 rm /run -rf
 mkdir /run
-cd /run
+cd /run || exit
 tar xvfz /etc/opt/openrc_empty_run.tgz
