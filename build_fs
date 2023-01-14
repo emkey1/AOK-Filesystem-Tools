@@ -513,7 +513,7 @@ if [ "$BUILD_ENV" -gt 0 ]; then
     echo "  sudo ./tools/do_chroot.sh $set_shell"
     echo
     echo "To simulate a first boot deploy, run:"
-    echo "  sudo ./tools/do_chroot.sh /etc/profilel"
+    echo "  sudo ./tools/do_chroot.sh /etc/profile"
 fi
 
 display_build_time
