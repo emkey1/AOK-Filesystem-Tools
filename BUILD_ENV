@@ -433,23 +433,21 @@ SETUP_DEBIAN_FS="$AOK_CONTENT"/Debian/setup_debian.sh
 SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
 SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
 
-
 # =====================================================================
 #
 #  Local overrides, ignored by git. They will be appended to BUILD_ENV
-#  if found. This is intended for debuging and testing, since stuff
-#  found will be appended to this file on the destination.
+#  for the deployed image if found. 
+#  This is intended for debuging and testing, and appends the same 
+#  override file as in AOK_VARS, to ensure overrides to settings here
+#  take effect.
 #  This way on the deployed platform it will be easy to spot what
-#  settings was used in the build process.
-#
-#  Produciton changes should go here, and such releases should be
-#  built without the asociated dot-files.
+#  temp/devel settings was used in the build process.
 #
 # =====================================================================
 
 ###  override handling  ###
 
-local_overrides="$AOK_CONTENT/.BUILD_ENV"
+local_overrides="$AOK_CONTENT/.AOK_VARS"
 
 #  shellcheck disable=SC1090
 [ -f "$local_overrides" ] && . "$local_overrides"
