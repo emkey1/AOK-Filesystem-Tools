@@ -65,11 +65,11 @@ fi
 #
 #  Add dcron if not done so already, typically a first boot task
 #
-if ! rc-status | grep -q dcron ; then
-    echo "--  Adding service dcron  --"
-    rc-update add dcron
-    rc-service dcron restart
-fi
+#if ! rc-status | grep -q dcron ; then
+#    echo "--  Adding service dcron  --"
+#    rc-update add dcron
+#    rc-service dcron restart
+#fi
 
 
 #
