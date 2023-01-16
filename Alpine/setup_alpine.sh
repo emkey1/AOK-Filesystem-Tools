@@ -123,11 +123,11 @@ fi
 #
 #  Setup dcron if it was included in CORE_APKS
 #
-if [ -x dcron ]; then
+if apk info -e dcron > /dev/null ; then
     msg_2 "--  Adding service dcron  --"
     rc-update add dcron
     rc-service dcron default
-    msg_3 "Setting cron for checking every 15 mins"
+    msg_3 "Setting dcron for checking every 15 mins"
     cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
 fi
 
