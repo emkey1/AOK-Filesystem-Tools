@@ -22,5 +22,5 @@ msg_2 "Ensuring hostname is in $host_file"
 if ! grep -q "$host_name" "$host_file"; then
     msg_3 "adding hostname: $host_name to $host_file"
 
-    printf "127.0.0.1\t%s" "$host_name" >>"$host_file"
+    printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
 fi
