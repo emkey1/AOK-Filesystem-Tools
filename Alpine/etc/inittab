@@ -3,6 +3,9 @@
 # Ensure all devices  are ok
 ::sysinit:/usr/local/sbin/fix_dev
 
+#  Not used for now
+#::sysinit:/usr/local/sbin/post_boot.sh
+
 #
 #  Update motd (in case iSH has been updated)
 #  On iSH we get console before this is executed despite the fact that
@@ -12,21 +15,20 @@
 #
 ::sysinit:/usr/local/sbin/update_motd
 
-::sysinit:/sbin/openrc default
-::once:/usr/local/sbin/post_boot.sh
+#
+#  iSH typically does no cleanup at shutdown, it just suddenly terminates.
+#  When starting up openrc in default it often finds state of services as
+#  already running thus leaving them as is, ie wont try to start them at all.
+#  One simple workaround is to toggle between runlevels, first set boot
+#  then default. This leads to default services first being stoped and then
+#  started, ensuring they start up regardless of logged runstate at startup.
+#
+::sysinit:/sbin/openrc boot
 ::wait:/sbin/openrc default
 
-# Set up a couple of getty's
-#tty1::respawn:/sbin/getty 38400 tty1
-#tty2::respawn:/sbin/getty 38400 tty2
-#tty3::respawn:/sbin/getty 38400 tty3
-#tty4::respawn:/sbin/getty 38400 tty4
-#tty5::respawn:/sbin/getty 38400 tty5
-#tty6::respawn:/sbin/getty 38400 tty6
-
-# Put a getty on the serial port
-#ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
-
+#
+#  I highly doubt these states can be triggered in iSH
+#
 # Stuff to do for the 3-finger salute
 ::ctrlaltdel:/sbin/reboot
 
