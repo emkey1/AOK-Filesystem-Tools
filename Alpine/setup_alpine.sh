@@ -124,7 +124,7 @@ fi
 #  Setup dcron if it was included in CORE_APKS
 #
 if apk info -e dcron > /dev/null ; then
-    msg_2 "--  Adding service dcron  --"
+    msg_2 "--  Detected dcron, adding service"
     rc-update add dcron
     rc-service dcron default
     msg_3 "Setting dcron for checking every 15 mins"
