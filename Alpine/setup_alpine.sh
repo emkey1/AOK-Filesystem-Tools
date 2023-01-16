@@ -63,21 +63,33 @@ install_apks() {
 replace_key_files() {
     msg_2 "Replacing a few /etc files"
 
-    # Remove extra unused vty's, make OpenRC work
+    msg_3 "Our inittab"
     cp "$AOK_CONTENT"/Alpine/etc/inittab /etc
 
-    # Fake interfaces file
+    msg_3 "iOS interfaces file"
     cp "$AOK_CONTENT"/Alpine/etc/interfaces /etc/network
 
+    msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
     ln /etc/init.d/devfs /etc/init.d/dev
 
     # Networking, hostname and possibly others can't start because of
     # current limitations in iSH So we fake it out
-    rm /etc/init.d/networking
+    # rm /etc/init.d/networking
 
-    # More hackery.  Initial case is the need to make pam_motd.so optional
-    # So that the ish user will work in Alpine 3.14
-    cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
+    case "$ALPINE_RELEASE"  in
+
+      "3.14")
+	  #
+          #  More hackery.  Initial case is the need to make pam_motd.so
+	  #  optional, so that the ish user will work in Alpine 3.14
+	  #
+	  msg_3 "Replacing /etc/pam.d for 3.14"
+	  $cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
+	  ;;
+
+	*) ;;
+
+    esac
 }
 
 #===============================================================
@@ -124,9 +136,9 @@ fi
 #  Setup dcron if it was included in CORE_APKS
 #
 if apk info -e dcron > /dev/null ; then
-    msg_2 "--  Detected dcron, adding service"
-    rc-update add dcron
-    rc-service dcron default
+    msg_2 "Detected dcron, adding service"
+    rc-update add dcron default
+    rc-service dcron start
     msg_3 "Setting dcron for checking every 15 mins"
     cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
 fi
