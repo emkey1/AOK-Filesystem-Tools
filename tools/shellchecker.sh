@@ -68,7 +68,6 @@ checkables=(
     # Weird, if this is used, I get shellcheck issues listed in /etc/bash.bashrc
     # Debian/etc/profile
     Debian/etc/profile.setup_aok
-    Debian/usr_local_sbin/ensure_hostname_in_host_file.sh
     Debian/usr_local_sbin/reset-run-dir.sh
     Debian/setup_debian.sh
 
