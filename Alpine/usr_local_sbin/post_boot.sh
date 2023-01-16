@@ -63,16 +63,6 @@ if [ -z "$1" ]; then
 fi
 
 #
-#  Add dcron if not done so already, typically a first boot task
-#
-#if ! rc-status | grep -q dcron ; then
-#    echo "--  Adding service dcron  --"
-#    rc-update add dcron
-#    rc-service dcron restart
-#fi
-
-
-#
 #  Restart all services not in started state, should not be needed normally
 #  but here we are, and if they are already running, nothing will happen.
 #

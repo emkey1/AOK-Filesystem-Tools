@@ -113,22 +113,6 @@ msg_2 "adding pkg shadow & group sudo"
 apk add shadow
 groupadd sudo
 
-# cron stuff
-msg_2 "Setting cron for polling every 15 mins"
-cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
-
-#
-#  Older Alpines needs a bit of tweaking to get runbg to run
-#
-##case "$ALPINE_RELEASE" in
-#
-#    "3.14" | "3.15" | "3.16") tweaks_for_openrc_older_alpine ;;
-#
-#    *) ;;
-#
-#esac
-
-
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
 #
@@ -136,10 +120,16 @@ if [ ! -x /bin/login ]; then
     error_msg "CRITICAL!! no run-able /bin/login present!"
 fi
 
-# #
-# #  Indicate this has been completed, to prevent future runs by mistake
-# #
-# touch "$has_been_run"
+#
+#  Setup dcron if it was included in CORE_APKS
+#
+if [ -x dcron ]; then
+    msg_2 "--  Adding service dcron  --"
+    rc-update add dcron
+    rc-service dcron default
+    msg_3 "Setting cron for checking every 15 mins"
+    cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
+fi
 
 msg_1 "Running $SETUP_COMMON_AOK"
 "$SETUP_COMMON_AOK"
