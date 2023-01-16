@@ -135,13 +135,12 @@ msg_1 "Running $SETUP_COMMON_AOK"
 if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
-fi
 
-if [ -n "$CORE_DEB_PKGS" ]; then
-    msg_1 "Add core Debian packages"
-    echo "$CORE_DEB_PKGS"
-    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
-
+    if [ -n "$CORE_DEB_PKGS" ]; then
+	msg_1 "Add core Debian packages"
+	echo "$CORE_DEB_PKGS"
+	bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+    fi
     install_sshd
 fi
 
