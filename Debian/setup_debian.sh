@@ -137,7 +137,7 @@ if [ "$QUICK_DEPLOY" -ne 1 ]; then
     apt upgrade -y
 fi
 
-if [ "$QUICK_DEPLOY" -ne 1 ] && [ -n "$CORE_DEB_PKGS" ]; then
+if [ -n "$CORE_DEB_PKGS" ]; then
     msg_1 "Add core Debian packages"
     echo "$CORE_DEB_PKGS"
     bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
