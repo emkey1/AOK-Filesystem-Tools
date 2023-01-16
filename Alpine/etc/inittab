@@ -3,8 +3,11 @@
 # Ensure all devices  are ok
 ::sysinit:/usr/local/sbin/fix_dev
 
-#  Not used for now
-#::sysinit:/usr/local/sbin/post_boot.sh
+#
+#  Not system critical but we might as well do it here
+#  instead of creating a full service for the task
+#
+::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
 
 #
 #  Update motd (in case iSH has been updated)
@@ -18,7 +21,9 @@
 #
 #  iSH typically does no cleanup at shutdown, it just suddenly terminates.
 #  When starting up openrc in default it often finds state of services as
-#  already running thus leaving them as is, ie wont try to start them at all.
+#  already running thus leaving them as is, ie wont try to start them at all
+#  since according to the states openrc finds is that default is already
+#  the current runlevel.
 #  One simple workaround is to toggle between runlevels, first set boot
 #  then default. This leads to default services first being stoped and then
 #  started, ensuring they start up regardless of logged runstate at startup.
