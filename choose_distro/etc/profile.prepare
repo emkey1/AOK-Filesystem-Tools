@@ -16,16 +16,6 @@
 msg_3 "apk update & upgrade"
 apk update && apk upgrade
 
-
-#
-#  Only one of the below is needed, on iSH dialog continues when you hit arrows,
-#  so easy to end up picking the wrong one, whiptail seems the better choice
-#  for now.
-#
-
-# echo "-> installing dialog & wget (needed for Debian download)"
-# apk add dialog wget
-
 msg_3 "Installing newt (whiptail) & wget (needed for Debian download)"
 apk add newt wget
 

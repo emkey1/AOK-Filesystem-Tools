@@ -94,20 +94,20 @@ parse_arguments() { # Multi OK 1
             ;;
 
         "-j" | "--bzip2")
-	    if ! $aok_FS_do_compress; then
-		echo "-j and -N can not be combined!"
-		exit 1
-	    fi
-	    use_bzip2=true
-	    ;;
+            if ! $aok_FS_do_compress; then
+                echo "-j and -N can not be combined!"
+                exit 1
+            fi
+            use_bzip2=true
+            ;;
 
         "-N" | "--no_compress")
-	    if  $use_bzip2; then
-		echo "-j and -N can not be combined!"
-		exit 1
-	    fi
-	    aok_FS_do_compress=false
-	    ;;
+            if $use_bzip2; then
+                echo "-j and -N can not be combined!"
+                exit 1
+            fi
+            aok_FS_do_compress=false
+            ;;
 
         *)
             echo "ERROR: bad param, try -h"
@@ -249,11 +249,11 @@ integrate_overrides() {
     overrides="$AOK_CONTENT"/."$conf_file"
     pattrn="override handling"
     if [ -f "$overrides" ]; then
-	#
-	#  Skip
+        #
+        #  Skip
         msg_3 "adding .$conf_file  into $conf_file on destination"
-	grep -B99999 "$pattrn" "$src_conf" | grep -v "$pattrn"  > "$dst_conf"
-        cat "$overrides" >> "$dst_conf"
+        grep -B99999 "$pattrn" "$src_conf" | grep -v "$pattrn" >"$dst_conf"
+        cat "$overrides" >>"$dst_conf"
     fi
 
     unset conf_file
@@ -307,21 +307,6 @@ add_additional_tasks_if_defined() {
     # msg_3 "add_additional_tasks_if_defined() done"
 }
 
-chroot_if_possible() {
-    action="$1"
-    [ -z "$action" ] && error_msg "chroot_if_possible() no param"
-    if [ "$BUILD_ENV" -gt 0 ]; then
-        msg_3 "chrooting: $action"
-        if ! "$AOK_CONTENT"/tools/do_chroot.sh "$action"; then
-            error_msg "in chroot, aborting build!"
-        fi
-    else
-        msg_2 "Could not chroot, did not run: $action"
-    fi
-
-    unset action
-}
-
 setup_Alpine_in_advance() {
     msg_2 "setup_Alpine_in_advance()"
     mkdir -p /etc/opt
@@ -365,9 +350,19 @@ select_distro_on_1st_boot() {
     #  will be run on 1st boot, a slight delay, but end result is
     #  the same.
     #
-    chroot_if_possible "$SETUP_CHOOSE_DISTRO_PREPARE"
-
-    select_profile "$PROFILE_CHOOSE_DISTRO"
+    [ -z "$PROFILE_DISTRO_SELECT_PREPARE" ] && error_msg "PROFILE_DISTRO_SELECT_PREPARE undefined"
+    if [ "$BUILD_ENV" -gt 0 ]; then
+        msg_3 "chrooting: $PROFILE_DISTRO_SELECT_PREPARE"
+        if ! "$AOK_CONTENT"/tools/do_chroot.sh "$PROFILE_DISTRO_SELECT_PREPARE"; then
+            error_msg "Error in chroot, aborting build!"
+        fi
+        select_profile "$PROFILE_DISTRO_SELECT"
+    else
+        msg_2 "Could not chroot, did not run: $PROFILE_DISTRO_SELECT_PREPARE"
+        msg_3 "This means that this image will have to run the preparatory"
+        msg_3 "step, before displaying the Distro selection dialog"
+        select_profile "$PROFILE_DISTRO_SELECT_PREPARE"
+    fi
     # msg_3 "select_distro_on_1st_boot()  done"
 }
 
@@ -401,11 +396,11 @@ if $build_debian_FS; then
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
     msg_2 "Extracting Debian tarball"
-    if test "${DEBIAN_SRC_IMG#*tgz}" != "$DEBIAN_SRC_IMG" ; then
-	# is tgz
-	filter="z"
+    if test "${DEBIAN_SRC_IMG#*tgz}" != "$DEBIAN_SRC_IMG"; then
+        # is tgz
+        filter="z"
     else
-	filter="j"
+        filter="j"
     fi
     if $verbose; then
         verb="v"

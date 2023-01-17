@@ -146,7 +146,7 @@ bldstat_clear() {
         fname="$BUILD_STATUS/$1"
         rm -f "$fname"
         # msg_3 "Cleared $fname"
-	unset fname
+        unset fname
     fi
     if [ "$(find "$BUILD_STATUS"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$BUILD_STATUS" -rf
@@ -210,8 +210,8 @@ should_icloud_be_mounted() {
         if [ "$exitstatus" -eq 0 ]; then
             mount -t ios x /iCloud
         fi
-	unset text
-	unset exitstatus
+        unset text
+        unset exitstatus
     fi
     # msg_3 "should_icloud_be_mounted()  done"
 }
@@ -219,7 +219,7 @@ should_icloud_be_mounted() {
 start_setup() {
     distro_name="$1"
     if [ -z "$distro_name" ]; then
-	error_msg "call to start_setup() without param!"
+        error_msg "call to start_setup() without param!"
     fi
 
     test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
@@ -228,9 +228,9 @@ start_setup() {
 
     msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for $distro_name"
 
-    if ! bldstat_get "$STATUS_IS_CHROOTED" ; then        
+    if ! bldstat_get "$STATUS_IS_CHROOTED"; then
         msg_3 "iSH now able to run in the background"
-        cat /dev/location > /dev/null &
+        cat /dev/location >/dev/null &
     fi
 
     copy_local_bins "$distro_name"
@@ -240,7 +240,7 @@ start_setup() {
 copy_local_bins() {
     src_dir="$1"
     if [ -z "$src_dir" ]; then
-	error_msg "call to copy_local_bins() without param!"
+        error_msg "call to copy_local_bins() without param!"
     fi
 
     msg_1 "Copying /usr/local stuff for $src_dir"
@@ -260,7 +260,7 @@ copy_local_bins() {
 
 notification_additional_tasks() {
     if [ -f "$ADDITIONAL_TASKS_SCRIPT" ]; then
-	msg_2 "notification_additional_tasks()"
+        msg_2 "notification_additional_tasks()"
         echo "At the end of the install, this will be run:"
         echo "--------------------"
         cat "$ADDITIONAL_TASKS_SCRIPT"
@@ -402,6 +402,7 @@ ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
 #
 PROFILE_ALPINE_PRE_BUILT="$AOK_CONTENT"/Alpine/etc/profile.prebuilt-FS
 PROFILE_ALPINE_SETUP_AOK="$AOK_CONTENT"/Alpine/etc/profile.setup_aok
+PROFILE_DISTRO_SELECT_PREPARE="$AOK_CONTENT"/choose_distro/etc/profile.prepare
 PROFILE_CHOOSE_DISTRO="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
 PROFILE_DEBIAN_SETUP_AOK="$AOK_CONTENT"/Debian/etc/profile.setup_aok
 PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
@@ -436,8 +437,8 @@ SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.s
 # =====================================================================
 #
 #  Local overrides, ignored by git. They will be appended to BUILD_ENV
-#  for the deployed image if found. 
-#  This is intended for debuging and testing, and appends the same 
+#  for the deployed image if found.
+#  This is intended for debuging and testing, and appends the same
 #  override file as in AOK_VARS, to ensure overrides to settings here
 #  take effect.
 #  This way on the deployed platform it will be easy to spot what
