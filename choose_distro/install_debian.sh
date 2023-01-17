@@ -32,8 +32,8 @@ mkdir -p "$debian_download_location"
 
 cd "$debian_download_location" || exit 99
 
-msg_2 "Downloading $DEBIAN_IMAGE"
-wget "$DEBIAN_IMAGE"
+msg_2 "Downloading $DEBIAN_SRC_IMAGE"
+wget "$DEBIAN_SRC_IMAGE"
 
 msg_2 "Extracting Debian (will show unpack time)"
 mkdir -p /Debian

@@ -315,17 +315,17 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 #  Names of the rootfs tarballs used for initial population of FS
 #
 ALPINE_SRC_IMG="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-DEBIAN_SRC_IMG="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
+DEBIAN_SRC_IMG="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Names of the generated distribution tarballs
 #
-ALPINE_IMG="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-SELECT_DISTRO_IMG="SelectDistro-iSH-AOK-$AOK_VERSION"
-DEBIAN_IMG="Debian-iSH-AOK-$AOK_VERSION"
+ALPINE_IMG_FNAME="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
+SELECT_DISTRO_IMG_FNAME="SelectDistro-iSH-AOK-$AOK_VERSION"
+DEBIAN_IMG_FNAME="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
-# DEBIAN_IMG="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
+# DEBIAN_IMG_FNAME="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
 
 #
 #  Statuses are files put in place in /etc/opt/AOK on the destination FS

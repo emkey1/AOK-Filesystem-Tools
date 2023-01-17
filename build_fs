@@ -226,7 +226,7 @@ cache_Debian_fs() {
     }
 
     if [ ! -f "$DEBIAN_SRC_IMG" ]; then
-        wget "$DEBIAN_IMAGE"
+        wget "$DEBIAN_SRC_IMAGE"
     fi
     # msg_3 "cache_Debian_fs() done"
 }
@@ -482,7 +482,7 @@ if $aok_FS_do_compress; then
     #  Set name for tarball
     #
     if $build_debian_FS; then
-        label="$DEBIAN_IMG"
+        label="$DEBIAN_IMG_FNAME"
     elif $distro_select; then
         #  shellcheck disable=SC2154
         label="$SELECT_DISTRO_IMG"
