@@ -145,7 +145,7 @@ display_build_env() { # Multi OK 1
     elif [ "$BUILD_ENV" -eq 0 ]; then
         echo "Unfortunately you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
-        echo "You must build using -m or -M on this platform (try -h for help)"
+        echo "Use another build option (try -h for help)"
         exit 1
     fi
     msg_1 "Run mode: $run_mode"
