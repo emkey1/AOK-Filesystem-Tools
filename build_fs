@@ -276,8 +276,8 @@ integrate_overrides() {
 
     src_conf="$AOK_CONTENT"/"$conf_file"
     dst_conf="$aok_files"/"$conf_file"
-    overrides="$AOK_CONTENT"/."$conf_file"
-    pattrn="override handling"
+    overrides="$AOK_CONTENT"/.AOK_VARS
+    pattrn="###  override handling  ###"
     if [ -f "$overrides" ]; then
         #
         #  Skip
