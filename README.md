@@ -80,6 +80,30 @@ When Alpine login is enabled /etc/motd is not displayed, I have tried to
 figure out a way to display it only on logins, but not come up with
 a good way, when login is disabled, it is displayed.
 
+## Debian
+
+If your iOS device is on the slow end of things, you can avoid the
+setup procedure on it by prepping it on a more capable device like this:
+
+Be aware you can not cut-paste the entire sequence, since the exit needs
+to be given to the chrooted process!
+
+```
+cd /opt/AOK
+sudo ./build_fs -d -N
+sudo ./tools/do_chroot.sh /etc/profile
+exit
+
+cd /tmp/AOK/iSH-AOK-FS
+
+# Saves 50MB download, will be automatically recreated if missing
+sudo rm var/cache/apt var/lib/apt -rf
+
+sudo tar cvfz /tmp/DebPrepared.tgz .
+```
+
+and then import /tmp/DebPrepared.tgz as your FS
+
 ## Known Debian issues
 
 ### Login
@@ -97,7 +121,7 @@ is defined. It will unmount /iCloud. Since there is (as far as I know)
 no way to mount it via /etc/fstab during next startup, thus removing the
 mount permanently, until manually added again.
 
-Therefore /run is restored to a clean state via /etc/inittab during sysinit 
+Therefore /run is restored to a clean state via /etc/inittab during sysinit
 in order to not trick openrc that services are already running.
 
 Further, as of now all default services are initially disabled.
@@ -124,7 +148,7 @@ It can be enabled / disabled by running enable_sshd / disable_sshd
 
 - runbg
 
-I have tried to convert runbg to be a posix script 
+I have tried to convert runbg to be a posix script
 as is normally the case in Debian when using openrc
 using the #!/bin/sh shebang, but so far no success.
 
