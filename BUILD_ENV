@@ -314,6 +314,10 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 ALPINE_SRC_TB="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 DEBIAN_SRC_TB="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
+#
+#  Extract the release/branch/major version, from the requested Alpine,
+#  gives something like 3.14
+ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 ALPINE_SRC_IMAGE="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
 
 #
@@ -417,11 +421,6 @@ LOGIN_ORIGINAL="/bin/login.alpine"
 #
 #  Alpine related build env
 #
-
-#
-#  Extract the release/branch/major version, from the requested Alpine,
-#  gives something like 3.14
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 
 #
 #  Either run this script chrooted if the host OS supports it, or run it

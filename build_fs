@@ -209,7 +209,10 @@ cache_fs_image() {
         error_msg "Failed to cd to $SRC_IMG_CACHE_D"
     }
     if [ ! -f "$SRC_IMG_CACHE_D/$tarball" ]; then
-        wget "$image_name"
+        wget "$image_name" || {
+            echo "ERROR: Failed to download $image_name"
+            exit 1
+        }
     fi
     unset image_name
     unset tarball
@@ -217,14 +220,21 @@ cache_fs_image() {
 }
 
 extract_image() {
-    # msg_2 "extract_image($1)"
-    image_name="$1"
-    [ -z "$image_name" ] && error_msg "extract_image() no image name supplied"
+    # msg_2 "extract_image($1, $2)"
+    p1="$1"
+    p2="$2"
+    [ -z "$p1" ] && error_msg "extract_image() no image name supplied"
+    [ -z "$p2" ] && error_msg "extract_image() no taball name supplied"
+
+    cache_fs_image "$p1" "$p2"
+    # no local variables...
+    image_name="$p1"
+    tarball="$2"
 
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
-    msg_2 "Extracting $image_name tarball"
-    if test "${image_name#*tgz}" != "$image_name" || test "${image_name#*tar.gz}" != "$image_name"; then
+    msg_2 "Extracting $tarball"
+    if test "${tarball#*tgz}" != "$tarball" || test "${tarball#*tar.gz}" != "$tarball"; then
         # is tgz
         filter="z"
     else
@@ -236,13 +246,15 @@ extract_image() {
         verb=""
     fi
 
-    tar "xf${verb}${filter}" "$SRC_IMG_CACHE_D/$image_name" || {
+    tar "xf${verb}${filter}" "$SRC_IMG_CACHE_D/$tarball" || {
         echo "ERROR: Failed to untar image"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$SRC_IMG_CACHE_D/$image_name"
+        echo "$SRC_IMG_CACHE_D/$tarball"
         exit 1
     }
+    unset p1
+    unset p2
     unset image_name
     unset filter
     unset verb
@@ -410,13 +422,9 @@ msg_2 "Preparing build environment"
 clear_build_env
 
 if $build_debian_FS; then
-    msg_2 "Create $BUILD_ROOT_D, copy Debian FS"
-    cache_fs_image "$DEBIAN_SRC_IMAGE" "$DEBIAN_SRC_TB"
-    extract_image "$DEBIAN_SRC_TB"
+    extract_image "$DEBIAN_SRC_IMAGE" "$DEBIAN_SRC_TB"
 else
-    msg_2 "Create $BUILD_ROOT_D, copy minirootfs"
-    cache_fs_image "$ALPINE_SRC_IMAGE" "$ALPINE_SRC_TB"
-    extract_image "$ALPINE_SRC_TB"
+    extract_image "$ALPINE_SRC_IMAGE" "$ALPINE_SRC_TB"
 fi
 unset options
 
