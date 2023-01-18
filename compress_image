@@ -91,10 +91,10 @@ fi
 
 #
 #  Since the general default action is to create
-#  Alpine images, use the ALPINE_IMG name if non is provided
+#  Alpine images, use the ALPINE_TB name if non is provided
 #
 if [ -z "$tar_name" ]; then
-    tarball="$ALPINE_IMG"
+    tarball="$ALPINE_TB"
 else
     tarball="${tar_name}"
 fi

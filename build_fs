@@ -207,9 +207,9 @@ cache_miniroot_fs() { # Multi OK 1
     cd "$MINIROOT_FS_CACHE_D" || exit 1
 
     # Download the Alpine miniroot if we need to
-    if [ ! -f "$ALPINE_SRC_IMG" ]; then
+    if [ ! -f "$ALPINE_SRC_TB" ]; then
         msg_3 "Caching miniroot tarball"
-        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_IMG"
+        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
     fi
     # msg_3 "cache_miniroot_fs() done"
 }
@@ -225,7 +225,7 @@ cache_Debian_fs() {
         error_msg "Failed to cd to debian cache"
     }
 
-    if [ ! -f "$DEBIAN_SRC_IMG" ]; then
+    if [ ! -f "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB" ]; then
         wget "$DEBIAN_IMAGE"
     fi
     # msg_3 "cache_Debian_fs() done"
@@ -396,7 +396,7 @@ if $build_debian_FS; then
     mkdir -p "$BUILD_ROOT_D"
     cd "$BUILD_ROOT_D" || exit 1
     msg_2 "Extracting Debian tarball"
-    if test "${DEBIAN_SRC_IMG#*tgz}" != "$DEBIAN_SRC_IMG"; then
+    if test "${DEBIAN_SRC_TB#*tgz}" != "$DEBIAN_SRC_TB"; then
         # is tgz
         filter="z"
     else
@@ -409,11 +409,11 @@ if $build_debian_FS; then
     fi
     #error_msg "tar xf${verb}${filter}"
 
-    tar "xf${verb}${filter}" "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_IMG" || {
+    tar "xf${verb}${filter}" "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB" || {
         echo "ERROR: Failed to untar Debian-fs"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_IMG"
+        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB"
         exit 1
     }
     unset filter
@@ -428,11 +428,11 @@ else
     else
         options="xfz"
     fi
-    tar "$options" "$MINIROOT_FS_CACHE_D"/"$ALPINE_SRC_IMG" || {
+    tar "$options" "$MINIROOT_FS_CACHE_D"/"$ALPINE_SRC_TB" || {
         echo "ERROR: Failed to untar root-fs"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$MINIROOT_FS_CACHE_D/$ALPINE_SRC_IMG"
+        echo "$MINIROOT_FS_CACHE_D/$ALPINE_SRC_TB"
         exit 1
     }
 fi
@@ -482,12 +482,12 @@ if $aok_FS_do_compress; then
     #  Set name for tarball
     #
     if $build_debian_FS; then
-        label="$DEBIAN_IMG"
+        label="$DEBIAN_TB"
     elif $distro_select; then
         #  shellcheck disable=SC2154
-        label="$SELECT_DISTRO_IMG"
+        label="$SELECT_DISTRO_TB"
     else
-        label="$ALPINE_IMG"
+        label="$ALPINE_TB"
     fi
 
     #  shellcheck disable=SC2086,SC2248
@@ -497,7 +497,7 @@ if $aok_FS_do_compress; then
 fi
 
 if [ "$BUILD_ENV" -gt 0 ]; then
-    if $pre_build_FS; then
+    if $pre_build_FS || $build_debian_FS; then
         set_shell=""
     else
         set_shell="/bin/ash"
@@ -505,9 +505,11 @@ if [ "$BUILD_ENV" -gt 0 ]; then
     echo
     echo "You can work on the filesystem by running:"
     echo "  sudo ./tools/do_chroot.sh $set_shell"
-    echo
-    echo "To simulate a first boot deploy, run:"
-    echo "  sudo ./tools/do_chroot.sh /etc/profile"
+    if ! $pre_build_FS; then
+        echo
+        echo "To simulate a first boot deploy, run:"
+        echo "  sudo ./tools/do_chroot.sh /etc/profile"
+    fi
 fi
 
 display_build_time

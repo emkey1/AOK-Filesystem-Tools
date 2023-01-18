@@ -314,18 +314,18 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-ALPINE_SRC_IMG="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-DEBIAN_SRC_IMG="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
+ALPINE_SRC_TB="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+DEBIAN_SRC_TB="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Names of the generated distribution tarballs
 #
-ALPINE_IMG="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-SELECT_DISTRO_IMG="SelectDistro-iSH-AOK-$AOK_VERSION"
-DEBIAN_IMG="Debian-iSH-AOK-$AOK_VERSION"
+ALPINE_TB="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
+SELECT_DISTRO_TB="SelectDistro-iSH-AOK-$AOK_VERSION"
+DEBIAN_TB="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
-# DEBIAN_IMG="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
+# DEBIAN_TB="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
 
 #
 #  Statuses are files put in place in /etc/opt/AOK on the destination FS
@@ -403,7 +403,7 @@ ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
 PROFILE_ALPINE_PRE_BUILT="$AOK_CONTENT"/Alpine/etc/profile.prebuilt-FS
 PROFILE_ALPINE_SETUP_AOK="$AOK_CONTENT"/Alpine/etc/profile.setup_aok
 PROFILE_DISTRO_SELECT_PREPARE="$AOK_CONTENT"/choose_distro/etc/profile.prepare
-PROFILE_CHOOSE_DISTRO="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
+PROFILE_DISTRO_SELECT="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
 PROFILE_DEBIAN_SETUP_AOK="$AOK_CONTENT"/Debian/etc/profile.setup_aok
 PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
 PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
@@ -430,7 +430,7 @@ ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 #
 SETUP_ALPINE_FS="$AOK_CONTENT"/Alpine/setup_alpine.sh
 SETUP_ALPINE_FINAL="$AOK_CONTENT"/Alpine/setup_alpine_final_tasks.sh
-SETUP_DEBIAN_FS="$AOK_CONTENT"/Debian/setup_debian.sh
+SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
 SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
 SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
 
