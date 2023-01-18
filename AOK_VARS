@@ -19,6 +19,12 @@
 AOK_VERSION="Beta-002"
 
 #
+#  Alternatives are: enable disable once
+#  This is not yet supported on Debian builds, and will be ignored there
+#
+INITIAL_LOGIN_MODE="enable"
+
+#
 #  ALPINE_VERSION defines what Alpine release will be used
 #
 # ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
@@ -27,17 +33,12 @@ ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.1   # End of Alpine support 2024-11-22
 
 #
-# Alternatives are: enable disable once
-#
-INITIAL_LOGIN_MODE="enable"
-
-#
 #  Please never enable this here. If you want to hard-code timezone,
 #  please put this variable with your TZ preference in .AOK_VARS
 #  If not hardcoded, /usr/local/bin/set-timezone will be run during
 #  setup, allowing user to select timezone.
 #
-# AOK_TIMEZONE="Europe/Amsterdam"
+# AOK_TIMEZONE="Europe/Berlin"
 
 #
 #  Use this if you have your own restore procedure.
@@ -62,12 +63,12 @@ CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox
 AOK_APKS="htop procps nload"
 
 #
-#  If a Debian install is selected, this tarball will be used
+#  If a Debian install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/a762e1zr2wkmnmu/Debian10-ish-base-v24.tgz"
 
 #
-#  Additional apts for Debian image
+#  Additional debs for Debian image
 #
 CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
 
