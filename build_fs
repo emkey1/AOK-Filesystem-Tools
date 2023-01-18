@@ -163,7 +163,7 @@ display_build_env() { # Multi OK 1
         error_msg "This must be run as root or using sudo!"
     fi
 
-    if [ -d "$BUILD_ROOT_D/dev" ] && [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+    if [ "$(find "$BUILD_ROOT_D"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
         echo "ERROR: Active chroot session detected!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         sudo ./tools/do_chroot.sh -c"
@@ -238,6 +238,7 @@ extract_image() {
         # is tgz
         filter="z"
     else
+        msg_3 "detected bzip2 format"
         filter="j"
     fi
     if $verbose; then
@@ -281,7 +282,7 @@ integrate_overrides() {
     if [ -f "$overrides" ]; then
         #
         #  Skip
-        msg_3 "adding .$conf_file  into $conf_file on destination"
+        msg_3 "adding .AOK_VARS  into $conf_file on destination"
         grep -B99999 "$pattrn" "$src_conf" | grep -v "$pattrn" >"$dst_conf"
         cat "$overrides" >>"$dst_conf"
     fi
@@ -488,12 +489,12 @@ fi
 
 if [ "$BUILD_ENV" -gt 0 ]; then
     if $pre_build_FS || $build_debian_FS; then
-        set_shell=""
+        set_shell="/bin/sh"
     else
         set_shell="/bin/ash"
     fi
     echo
-    echo "You can work on the filesystem by running:"
+    echo "You can work on the filesystem without triggering deploy by running:"
     echo "  sudo ./tools/do_chroot.sh $set_shell"
     if ! $pre_build_FS; then
         echo
