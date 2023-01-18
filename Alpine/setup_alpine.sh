@@ -76,18 +76,18 @@ replace_key_files() {
     # current limitations in iSH So we fake it out
     # rm /etc/init.d/networking
 
-    case "$ALPINE_RELEASE"  in
+    case "$ALPINE_RELEASE" in
 
-      "3.14")
-	  #
-          #  More hackery.  Initial case is the need to make pam_motd.so
-	  #  optional, so that the ish user will work in Alpine 3.14
-	  #
-	  msg_3 "Replacing /etc/pam.d for 3.14"
-	  $cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
-	  ;;
+    "3.14")
+        #
+        #  More hackery.  Initial case is the need to make pam_motd.so
+        #  optional, so that the ish user will work in Alpine 3.14
+        #
+        msg_3 "Replacing /etc/pam.d for 3.14"
+        $cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
+        ;;
 
-	*) ;;
+    *) ;;
 
     esac
 }
@@ -106,8 +106,8 @@ if [ -z "$ALPINE_RELEASE" ]; then
     error_msg "ALPINE_RELEASE param not supplied"
 fi
 
-msg_2 "Setting $FILE_ALPINE_RELEASE to $ALPINE_RELEASE"
-echo "$ALPINE_RELEASE" >"$FILE_ALPINE_RELEASE"
+msg_2 "Setting $FILE_ALPINE_RELEASE to $ALPINE_VERSION"
+echo "$ALPINE_VERSION" >"$FILE_ALPINE_RELEASE"
 
 msg_2 "apk update"
 apk update
@@ -135,7 +135,7 @@ fi
 #
 #  Setup dcron if it was included in CORE_APKS
 #
-if apk info -e dcron > /dev/null ; then
+if apk info -e dcron >/dev/null; then
     msg_2 "Detected dcron, adding service"
     rc-update add dcron default
     rc-service dcron start
