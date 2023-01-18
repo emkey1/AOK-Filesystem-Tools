@@ -53,31 +53,10 @@ tsd_start="$(date +%s)"
 
 start_setup Debian
 
-#
-#  Ensure hostname is in /etc/hosts
-#  If not there will be various error messages displayed.
-#  This will be run from inittab each time this boots, so if name is
-#  changed in iOS, the new name will be bound to 127.0.0.1
-#  on next restart, or right away if you run this manually
-#
-/usr/local/sbin/ensure_hostname_in_host_file.sh
-
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
     rm -rf /AOK
 fi
-
-#
-#  Since iSH doesn't do any cleanup upon shutdown, services will leave
-#  their previous running state in /run, confusing Debian on next boot.
-#  So far, the simplest way to avoid this is to replace /run early on
-#  bootup with a state of no services running, allowing all intended
-#  services to start in a fresh state.
-#  inittab runs /usr/local/sbin/reset-run-dir.sh before switching to
-#  runlevel default during bootup, using this tarball to reset /run
-#
-msg_2 "Copying bootup run state to /etc/opt/openrc_empty_run.tgz"
-cp "$AOK_CONTENT"/Debian/openrc_empty_run.tgz /etc/opt
 
 msg_2 "Installing custom inittab"
 cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
@@ -128,24 +107,43 @@ msg_1 "Running $SETUP_COMMON_AOK"
 "$SETUP_COMMON_AOK"
 
 #
-#  Do this after all other essential configs, to hopefully still have
+#  This is installed by $SETUP_COMMON_AOK, so must come after that!
+#  Ensure hostname is in /etc/hosts
+#  This will be run from inittab each time this boots, so if name is
+#  changed in iOS, the new name will be bound to 127.0.0.1
+#  on next restart, or right away if you run this manually
+#
+/usr/local/sbin/ensure_hostname_in_host_file.sh
+
+#
+#  Do this after all essential steps, to hopefully still have
 #  a working system if iSH crashes during apt upgrade
-#  or install of CORE_DEB_PKGS
+#  or install of CORE_DEB_PKGS and sshd
 #
 if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
     if [ -n "$CORE_DEB_PKGS" ]; then
-	msg_1 "Add core Debian packages"
-	echo "$CORE_DEB_PKGS"
-	bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+        msg_1 "Add core Debian packages"
+        echo "$CORE_DEB_PKGS"
+        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
     fi
     install_sshd
 fi
 
-#msg_2 "Setting runlevel default"
-#openrc default
+msg_2 "Add boot init.d items suitable for iSH"
+rc-update add urandom boot
+
+msg_2 "Add shutdown init.d items suitable for iSH"
+rc-update add sendsigs off
+rc-update add umountroot off
+rc-update add urandom off
+
+msg_2 "Disable some auto-enabled services that wont make sense in iSH"
+rc-update del dbus default
+rc-update del elogind default
+rc-update del rsync default
 
 msg_1 "Setup complete!"
 echo
@@ -157,7 +155,6 @@ select_profile "$PROFILE_DEBIAN"
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 unset duration
-
 
 run_additional_tasks_if_found
 
