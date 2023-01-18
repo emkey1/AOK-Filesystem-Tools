@@ -299,11 +299,8 @@ fi
 #  Locations for "other" stuff
 #
 
-#  Where Alpine miniroot fs is cached
-MINIROOT_FS_CACHE_D="/tmp/Alpine_miniroot_fs_cache"
-
-#  Where Debian FS is cached
-DEBIAN_FS_CACHE_D="/tmp/Debian_fs_cache"
+#  Location for src images
+SRC_IMG_CACHE_D="/tmp/img_cache_AOK"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
@@ -315,7 +312,9 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 #  Names of the rootfs tarballs used for initial population of FS
 #
 ALPINE_SRC_TB="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-DEBIAN_SRC_TB="$(echo "$DEBIAN_IMAGE" | grep -oE '[^/]+$')"
+DEBIAN_SRC_TB="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
+
+ALPINE_SRC_IMAGE="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
 
 #
 #  Names of the generated distribution tarballs

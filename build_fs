@@ -193,42 +193,57 @@ clear_build_env() { # Multi OK 1
     # msg_3 "clear_build_env() done"
 }
 
-cache_miniroot_fs() { # Multi OK 1
-    msg_2 "cache_miniroot_fs()"
-    #
-    #  Create miniroot fs cache dir if not present, cd to it and if download
-    #  miniroot fs if not cached
-    #
+cache_fs_image() {
+    image_name="$1"
+    tarball="$2"
+    [ -z "$image_name" ] && error_msg "cache_fs_image() no image name supplied"
+    [ -z "$tarball" ] && error_msg "cache_fs_image() no taball name supplied"
+
+    msg_2 "cache_fs_image()"
     ensure_usable_wget
 
-    if [ ! -d "$MINIROOT_FS_CACHE_D" ]; then
-        mkdir -p "$MINIROOT_FS_CACHE_D"
+    if [ ! -d "$SRC_IMG_CACHE_D" ]; then
+        mkdir -p "$SRC_IMG_CACHE_D"
     fi
-    cd "$MINIROOT_FS_CACHE_D" || exit 1
-
-    # Download the Alpine miniroot if we need to
-    if [ ! -f "$ALPINE_SRC_TB" ]; then
-        msg_3 "Caching miniroot tarball"
-        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
+    cd "$SRC_IMG_CACHE_D" || {
+        error_msg "Failed to cd to $SRC_IMG_CACHE_D"
+    }
+    if [ ! -f "$SRC_IMG_CACHE_D/$tarball" ]; then
+        wget "$image_name"
     fi
-    # msg_3 "cache_miniroot_fs() done"
+    unset image_name
+    unset tarball
+    # msg_3 "cache_Debian_image() done"
 }
 
-cache_Debian_fs() {
-    msg_2 "cache_Debian_fs()"
-    ensure_usable_wget
+extract_image() {
+    image_name="$1"
+    [ -z "$image_name" ] && error_msg "extract_image() no image name supplied"
 
-    if [ ! -d "$DEBIAN_FS_CACHE_D" ]; then
-        mkdir -p "$DEBIAN_FS_CACHE_D"
+    mkdir -p "$BUILD_ROOT_D"
+    cd "$BUILD_ROOT_D" || exit 1
+    msg_2 "Extracting $image_name tarball"
+    if test "${image_name#*tgz}" != "$image_name" || test "${image_name#*tar.gz}" != "$image_name"; then
+        # is tgz
+        filter="z"
+    else
+        filter="j"
     fi
-    cd "$DEBIAN_FS_CACHE_D" || {
-        error_msg "Failed to cd to debian cache"
+    if $verbose; then
+        verb="v"
+    else
+        verb=""
+    fi
+
+    tar "xf${verb}${filter}" "$SRC_IMG_CACHE_D/$image_name" || {
+        echo "ERROR: Failed to untar image"
+        echo
+        echo "Try to remove the cached file and run this again"
+        echo "$SRC_IMG_CACHE_D/$image_name"
+        exit 1
     }
-
-    if [ ! -f "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB" ]; then
-        wget "$DEBIAN_SRC_IMAGE"
-    fi
-    # msg_3 "cache_Debian_fs() done"
+    unset filter
+    unset verb
 }
 
 integrate_overrides() {
@@ -393,49 +408,12 @@ clear_build_env
 
 if $build_debian_FS; then
     msg_2 "Create $BUILD_ROOT_D, copy Debian FS"
-    cache_Debian_fs
-    mkdir -p "$BUILD_ROOT_D"
-    cd "$BUILD_ROOT_D" || exit 1
-    msg_2 "Extracting Debian tarball"
-    if test "${DEBIAN_SRC_TB#*tgz}" != "$DEBIAN_SRC_TB"; then
-        # is tgz
-        filter="z"
-    else
-        filter="j"
-    fi
-    if $verbose; then
-        verb="v"
-    else
-        verb=""
-    fi
-    #error_msg "tar xf${verb}${filter}"
-
-    tar "xf${verb}${filter}" "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB" || {
-        echo "ERROR: Failed to untar Debian-fs"
-        echo
-        echo "Try to remove the cached file and run this again"
-        echo "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB"
-        exit 1
-    }
-    unset filter
-    unset verb
+    cache_fs_image "$DEBIAN_SRC_IMAGE" "$DEBIAN_SRC_TB"
+    extract_image "$DEBIAN_SRC_TB"
 else
     msg_2 "Create $BUILD_ROOT_D, copy minirootfs"
-    cache_miniroot_fs
-    mkdir -p "$BUILD_ROOT_D"
-    cd "$BUILD_ROOT_D" || exit 1
-    if $verbose; then
-        options="xfvz"
-    else
-        options="xfz"
-    fi
-    tar "$options" "$MINIROOT_FS_CACHE_D"/"$ALPINE_SRC_TB" || {
-        echo "ERROR: Failed to untar root-fs"
-        echo
-        echo "Try to remove the cached file and run this again"
-        echo "$MINIROOT_FS_CACHE_D/$ALPINE_SRC_TB"
-        exit 1
-    }
+    cache_fs_image "$ALPINE_SRC_IMAGE" "$ALPINE_SRC_TB"
+    extract_image "$ALPINE_SRC_TB"
 fi
 unset options
 
