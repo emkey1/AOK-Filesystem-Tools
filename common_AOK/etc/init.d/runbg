@@ -18,7 +18,6 @@ command_background="YES"
 
 pidfile="/run/runbg.pid"
 
-
 #
 #  The above is all that is needed to have cat /dev/location > /dev/null
 #  run as a simple daemon with pid being monitored.
@@ -34,22 +33,20 @@ pidfile="/run/runbg.pid"
 #
 
 check_for_other_polling() {
-    other_pids="$(ps ax | grep /dev/location | grep -v grep | \
-        awk '{ print $1 }' |  tr '\n' ' ')"
+    other_pids="$(ps ax | grep /dev/location | grep -v grep |
+        awk '{ print $1 }' | tr '\n' ' ')"
 }
-
 
 start_pre() {
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
-	eerror "ERROR: Other processes polling GPS [ $other_pids]"
-   fi
+        eerror "ERROR: Other processes polling GPS [ $other_pids]"
+    fi
 }
-
 
 stop_post() {
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
-	ewarn "WARNING: Other processes polling GPS [ $other_pids]"
-   fi
+        ewarn "WARNING: Other processes polling GPS [ $other_pids]"
+    fi
 }
