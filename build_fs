@@ -194,12 +194,12 @@ clear_build_env() { # Multi OK 1
 }
 
 cache_fs_image() {
+    # msg_2 "cache_fs_image($1, $2)"
     image_name="$1"
     tarball="$2"
     [ -z "$image_name" ] && error_msg "cache_fs_image() no image name supplied"
     [ -z "$tarball" ] && error_msg "cache_fs_image() no taball name supplied"
 
-    msg_2 "cache_fs_image()"
     ensure_usable_wget
 
     if [ ! -d "$SRC_IMG_CACHE_D" ]; then
@@ -213,10 +213,11 @@ cache_fs_image() {
     fi
     unset image_name
     unset tarball
-    # msg_3 "cache_Debian_image() done"
+    # msg_3 "cache_fs_image() done"
 }
 
 extract_image() {
+    # msg_2 "extract_image($1)"
     image_name="$1"
     [ -z "$image_name" ] && error_msg "extract_image() no image name supplied"
 
@@ -242,8 +243,10 @@ extract_image() {
         echo "$SRC_IMG_CACHE_D/$image_name"
         exit 1
     }
+    unset image_name
     unset filter
     unset verb
+    # msg_3 "extract_image() done"
 }
 
 integrate_overrides() {
