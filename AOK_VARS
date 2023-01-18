@@ -23,7 +23,7 @@ AOK_VERSION="Beta-002"
 #
 # ALPINE_VERSION=3.14.8   # End of Alpine support 2023-05-01
 # ALPINE_VERSION=3.15.6   # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.3   # End of Alpine support 2024-05-23
+ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.1   # End of Alpine support 2024-11-22
 
 #
@@ -64,7 +64,7 @@ AOK_APKS="htop procps nload"
 #
 #  If a Debian install is selected, this tarball will be used
 #
-DEBIAN_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/v0810b9q0wab8rl/Debian_10_ish-v7.tar.bz2"
 
 #
 #  Additional apts for Debian image
@@ -105,7 +105,7 @@ DOCS_APKS='openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc mandoc 
 # =====================================================================
 #
 #  Local overrides, ignored by git. They will be appended to AOK_VARS
-#  for the deployed image if found. 
+#  for the deployed image if found.
 #  This is intended for debuging and testing.
 #  This way on the deployed platform it will be easy to spot what
 #  temp/devel settings was used in the build process.

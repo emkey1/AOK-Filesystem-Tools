@@ -226,7 +226,7 @@ cache_Debian_fs() {
     }
 
     if [ ! -f "$DEBIAN_FS_CACHE_D/$DEBIAN_SRC_TB" ]; then
-        wget "$DEBIAN_IMAGE"
+        wget "$DEBIAN_SRC_IMAGE"
     fi
     # msg_3 "cache_Debian_fs() done"
 }
