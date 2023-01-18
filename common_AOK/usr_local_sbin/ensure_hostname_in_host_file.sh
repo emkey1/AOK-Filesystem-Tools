@@ -24,3 +24,6 @@ if ! grep -q "$host_name" "$host_file"; then
 
     printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
 fi
+
+rm /et/hostname
+cat "$host_name" >/etc/hostname
