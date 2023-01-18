@@ -361,6 +361,7 @@ select_distro_on_1st_boot() {
         msg_2 "***  Could not chroot, did not run: $PROFILE_DISTRO_SELECT_PREPARE  ***"
         msg_3 "This means that this image will have to run the preparatory"
         msg_3 "step, before displaying the Distro selection dialog"
+        echo
         select_profile "$PROFILE_DISTRO_SELECT_PREPARE"
     fi
     # msg_3 "select_distro_on_1st_boot()  done"
