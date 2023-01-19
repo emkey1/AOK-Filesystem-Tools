@@ -32,22 +32,27 @@ mkdir -p "$debian_download_location"
 
 cd "$debian_download_location" || exit 99
 
-msg_2 "Downloading $DEBIAN_SRC_IMAGE"
-wget "$DEBIAN_SRC_IMAGE"
+src_image="$DEBIAN_SRC_IMAGE"
+src_tarball="/$debian_download_location/$DEBIAN_SRC_TB"
 
-msg_2 "Extracting Debian (will show unpack time)"
-mkdir -p /Debian
-cd /Debian || exit 98
-time tar xfj "$debian_download_location"/*
+msg_2 "Downloading $src_image"
+wget "$src_image"
+
+t_extract="$(date +%s)"
+msg_1 "Extracting Debian (will show unpack time)"
+create_fs "$src_tarball" "/Debian"
+duration="$(($(date +%s) - t_extract))"
+display_time_elapsed "$duration" "Unpacking Debian"
+unset duration
 
 cd /
 msg_3 "Extracted Debian tarball"
 
 msg_3 "maintaining resolv.conf"
-cp -av /etc/resolv.conf /Debian/etc
+cp -a /etc/resolv.conf /Debian/etc
 
 msg_3 "maintaining /etc/opt"
-cp -av /etc/opt /Debian/etc
+cp -a /etc/opt /Debian/etc
 
 msg_2 "Moving Debian /etc/profile into place"
 cp "$AOK_CONTENT"/Debian/etc/profile /Debian/etc/profile
