@@ -81,7 +81,7 @@ if [ "$QUICK_DEPLOY" -ne 1 ]; then
     cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
     msg_2 "apt update"
-    apt update
+    apt update -y
 fi
 
 #
@@ -97,7 +97,7 @@ fi
 #
 if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_2 "Setup locale"
-    apt install locales
+    apt install -y locales
 fi
 
 #
@@ -158,4 +158,8 @@ unset duration
 
 run_additional_tasks_if_found
 
+if bldstat_get "$STATUS_PREBUILT_FS"; then
+    msg_2 "Clear apt cache on pre-built FS, saves some 50MB on the tarball"
+    rm /var/cache/apt /var/lib/apt -rf
+fi
 msg_1 "Your system is setup! Please reboot / restart app"
