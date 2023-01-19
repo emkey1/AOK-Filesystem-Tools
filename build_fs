@@ -405,6 +405,7 @@ consider_generating_tarball() {
         else
             set_shell="/bin/ash"
         fi
+        msg_1 "How to access the just created FS from this env"
         if $pre_build_FS; then
             echo
             echo "chrooting into the FS:"
