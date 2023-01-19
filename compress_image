@@ -34,8 +34,9 @@ Available options:
 
 -h  --help         Print this help and exit.
 -V  --version      Show version and exit.
--j  --bzip2        Use bzip2 compression
 -l  --label        Provide a name for tarball (without extension)
+                   if not given, Alpine is asumed.
+-j  --bzip2        Use bzip2 compression
 -v  --verbose      Display progrss as FS is being compressed.
 EOF
     exit 0
