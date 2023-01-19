@@ -63,10 +63,10 @@ env_cleanup() {
     umount "$CHROOT_TO"/proc
 
     if [ "$BUILD_ENV" -eq 1 ]; then
-        # msg_3 "Removing the temp /dev entries"
-        rm -f "$CHROOT_TO"/dev/*
+        msg_3 "Removing the temp /dev entries"
+        rm -rf "${CHROOT_TO:?}"/dev/*
     else
-        # msg_3 "Unmounting /sys & /dev"
+        msg_3 "Unmounting /sys & /dev"
         umount "$CHROOT_TO"/sys
         umount "$CHROOT_TO"/dev
     fi
