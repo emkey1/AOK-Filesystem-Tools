@@ -35,10 +35,11 @@ select_profile "$PROFILE_ALPINE"
 
 bldstat_clear "$STATUS_BEING_BUILT"
 
-msg_1 "Your system is pre-built! Please reboot / restart app P"
-
-#
-#  Need to exit running this profile, otherwise control will spill over
-#  into the replaced profile if it has more lines than this one
-#
+msg_1 "This pre-built system has completed the last deploy steps and is ready"
+msg_1 "Please reboot / restart app to start using it!"
+#  In order for this exit not to terminate the session instantly
+#  a shell is started, to give an option to inspect the deploy
+#  outcome.
+#  If this FS is pre-built this should not happen.
+/bin/ash
 exit
