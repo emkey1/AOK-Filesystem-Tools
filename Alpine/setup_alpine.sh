@@ -121,6 +121,9 @@ install_apks
 
 replace_key_files
 
+msg_2 "Copy /etc/motd_template"
+cp -a "$AOK_CONTENT"/Alpine/etc/motd_template /etc
+
 msg_2 "adding pkg shadow & group sudo"
 apk add shadow
 groupadd sudo
