@@ -19,10 +19,10 @@ tcd_start="$(date +%s)"
 dialog_app="whiptail"
 
 if ! bldstat_get "$STATUS_SELECT_DISTRO_PREPARED"; then
-    msg_1 "Need to run $SETUP_CHOOSE_DISTRO_PREPARE"
-    "$SETUP_CHOOSE_DISTRO_PREPARE"
+    msg_1 "Need to run $setup_select_distro_prepare"
+    "$setup_select_distro_prepare"
 else
-    msg_1 "$SETUP_CHOOSE_DISTRO_PREPARE alredy done"
+    msg_1 "$setup_select_distro_prepare alredy done"
 fi
 bldstat_clear "$STATUS_SELECT_DISTRO_PREPARED"
 
@@ -75,8 +75,8 @@ exitstatus=$?
 if [ "$exitstatus" -eq 0 ]; then
     # Alpine selected
     echo
-    msg_1 "running $SETUP_ALPINE_FS"
-    "$SETUP_ALPINE_FS"
+    msg_1 "running $setup_alpine_fs"
+    "$setup_alpine_fs"
 else
     test -f "$additional_tasks_script" && notification_additional_tasks
     "$aok_content"/choose_distro/install_debian.sh

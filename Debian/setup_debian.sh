@@ -103,11 +103,11 @@ fi
 #
 #  Common deploy, used both for Alpine & Debian
 #
-msg_1 "Running $SETUP_COMMON_AOK"
-"$SETUP_COMMON_AOK"
+msg_1 "Running $setup_common_aok"
+"$setup_common_aok"
 
 #
-#  This is installed by $SETUP_COMMON_AOK, so must come after that!
+#  This is installed by $setup_common_aok, so must come after that!
 #  Ensure hostname is in /etc/hosts
 #  This will be run from inittab each time this boots, so if name is
 #  changed in iOS, the new name will be bound to 127.0.0.1
@@ -150,7 +150,7 @@ echo
 
 bldstat_clear "$STATUS_BEING_BUILT"
 
-select_profile "$PROFILE_DEBIAN"
+select_profile "$profile_debian"
 
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"

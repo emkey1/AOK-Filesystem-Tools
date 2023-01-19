@@ -13,7 +13,7 @@ tid_start="$(date +%s)"
 #
 #  Ensure all devs are in a good state.
 #  Since it is not installed yet in /usr/local/sbin, run it from source
-#  It wil be deployed in SETUP_COMMON_AOK
+#  It wil be deployed in setup_common_aok
 #
 if is_ish; then
     # Don't bother if just chrooted
@@ -130,7 +130,7 @@ rm /usr/lib/ld-musl*
 msg_1 "Filesystem is Now Debian, running setup"
 echo
 
-"$SETUP_DEBIAN"
+"$setup_debian_scr"
 
 duration="$(($(date +%s) - tid_start))"
 display_time_elapsed "$duration" "Debian install"

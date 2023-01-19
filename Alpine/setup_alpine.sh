@@ -146,11 +146,11 @@ if apk info -e dcron >/dev/null; then
     cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
 fi
 
-msg_1 "Running $SETUP_COMMON_AOK"
-"$SETUP_COMMON_AOK"
+msg_1 "Running $setup_common_aok"
+"$setup_common_aok"
 
-msg_1 "running $SETUP_ALPINE_FINAL"
-"$SETUP_ALPINE_FINAL"
+msg_1 "running $setup_alpine_final"
+"$setup_alpine_final"
 
 select_profile "$profile_alpine"
 

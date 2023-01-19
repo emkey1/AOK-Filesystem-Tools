@@ -307,11 +307,6 @@ setup_Alpine_on_1st_boot() {
     select_profile "$profile_alpine_setup_aok"
 }
 
-# setup_Debian() {
-#     msg_2 "setup_Debian()"
-#     "$SETUP_DEBIAN"
-# }
-
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
     msg_1 "Preparing for distro selections"
@@ -320,19 +315,19 @@ select_distro_on_1st_boot() {
     #  will be run on 1st boot, a slight delay, but end result is
     #  the same.
     #
-    [ -z "$PROFILE_DISTRO_SELECT_PREPARE" ] && error_msg "PROFILE_DISTRO_SELECT_PREPARE undefined"
+    [ -z "$profile_distro_select_prepare" ] && error_msg "profile_distro_select_prepare undefined"
     if [ "$build_target" -gt 0 ]; then
-        msg_3 "chrooting: $PROFILE_DISTRO_SELECT_PREPARE"
-        if ! "$aok_content"/tools/do_chroot.sh "$PROFILE_DISTRO_SELECT_PREPARE"; then
+        msg_3 "chrooting: $profile_distro_select_prepare"
+        if ! "$aok_content"/tools/do_chroot.sh "$profile_distro_select_prepare"; then
             error_msg "Error in chroot, aborting build!"
         fi
-        select_profile "$PROFILE_DISTRO_SELECT"
+        select_profile "$profile_distro_select"
     else
-        msg_2 "***  Could not chroot, did not run: $PROFILE_DISTRO_SELECT_PREPARE  ***"
+        msg_2 "***  Could not chroot, did not run: $profile_distro_select_prepare  ***"
         msg_2 "This means that this image will have to run the preparatory"
         msg_2 "step, before displaying the Distro selection dialog"
         echo
-        select_profile "$PROFILE_DISTRO_SELECT_PREPARE"
+        select_profile "$profile_distro_select_prepare"
     fi
     # msg_3 "select_distro_on_1st_boot()  done"
 }
@@ -384,7 +379,7 @@ consider_generating_tarball() {
         if [ "$build_target" = "$target_debian" ]; then
             label="$debian_tb"
         elif [ "$build_target" = "$target_select" ]; then
-            label="$SELECT_DISTRO_TB"
+            label="$select_distro_tb"
         else
             label="$alpine_tb"
         fi
@@ -466,7 +461,7 @@ msg_2 "Deployed $aok_content on new filesystem"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-#  Since SETUP_ALPINE_FS will create an AOK relevant motd,
+#  Since setup_alpine_fs will create an AOK relevant motd,
 #  deleting the default one makes sence.
 #
 msg_2 "remove initial /etc/motd from new filesystem"
@@ -477,7 +472,7 @@ msg_2 "create directory /iCloud inside new filesystem"
 mkdir "$build_root_d"/iCloud
 
 if [ "$build_target" = "$target_debian" ]; then
-    select_profile "$PROFILE_DEBIAN_SETUP_AOK"
+    select_profile "$profile_debian_setup_aok"
 elif [ "$build_target" = "$target_select" ]; then
     select_distro_on_1st_boot
 else

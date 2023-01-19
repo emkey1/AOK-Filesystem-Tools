@@ -364,7 +364,7 @@ alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v$alpine_release/release
 #  upon during compression
 #
 alpine_tb="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-SELECT_DISTRO_TB="SelectDistro-iSH-AOK-$AOK_VERSION"
+select_distro_tb="SelectDistro-iSH-AOK-$AOK_VERSION"
 debian_tb="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
@@ -445,11 +445,11 @@ additional_tasks_script="$build_root_d/opt/additional_tasks"
 #
 profile_alpine_pre_built="$aok_content"/Alpine/etc/profile.prebuilt-FS
 profile_alpine_setup_aok="$aok_content"/Alpine/etc/profile.setup_aok
-PROFILE_DISTRO_SELECT_PREPARE="$aok_content"/choose_distro/etc/profile.prepare
-PROFILE_DISTRO_SELECT="$aok_content"/choose_distro/etc/profile.select_distro
-PROFILE_DEBIAN_SETUP_AOK="$aok_content"/Debian/etc/profile.setup_aok
+profile_distro_select_prepare="$aok_content"/choose_distro/etc/profile.prepare
+profile_distro_select="$aok_content"/choose_distro/etc/profile.select_distro
+profile_debian_setup_aok="$aok_content"/Debian/etc/profile.setup_aok
 profile_alpine="$aok_content"/Alpine/etc/profile
-PROFILE_DEBIAN="$aok_content"/Debian/etc/profile
+profile_debian="$aok_content"/Debian/etc/profile
 
 #
 #  After all packages are installed, if /bin/login was something other
@@ -466,11 +466,11 @@ login_original="/bin/login.alpine"
 #  Either run this script chrooted if the host OS supports it, or run it
 #  inside iSH-AOK once it has booted this FS
 #
-SETUP_ALPINE_FS="$aok_content"/Alpine/setup_alpine.sh
-SETUP_ALPINE_FINAL="$aok_content"/Alpine/setup_alpine_final_tasks.sh
-SETUP_DEBIAN="$aok_content"/Debian/setup_debian.sh
-SETUP_COMMON_AOK="$aok_content"/common_AOK/setup_common_env.sh
-SETUP_CHOOSE_DISTRO_PREPARE="$aok_content"/choose_distro/select_distro-prepare.sh
+setup_alpine_fs="$aok_content"/Alpine/setup_alpine.sh
+setup_alpine_final="$aok_content"/Alpine/setup_alpine_final_tasks.sh
+setup_debian_scr="$aok_content"/Debian/setup_debian.sh
+setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
+setup_select_distro_prepare="$aok_content"/choose_distro/select_distro-prepare.sh
 
 # =====================================================================
 #
