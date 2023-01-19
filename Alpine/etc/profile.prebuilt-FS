@@ -20,18 +20,9 @@
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-msg_1 "Running first boot tasks"
+msg_1 "Running first boot tasks on prebuilt Alpine FS"
 
-if is_aok_kernel; then
-    msg_2 "Ensuring apps that depend on the iSH-AOK kernel are installed"
-    #
-    #  If this FS was setup on a regular iSH, the iSH-AOK apps were
-    #  not installed on initial build. If it was this is redundant,
-    #  but harmless, just ensuring expected apks are installed.
-    #
-    # shellcheck disable=SC2086
-    apk add $AOK_APKS
-else
+if ! is_aok_kernel; then
     msg_2 "Removing apps that depend on the iSH-AOK kernel"
     #
     #  aok dependent bins serve no purpose on other platforms, delete
@@ -46,8 +37,15 @@ bldstat_clear "$STATUS_BEING_BUILT"
 
 msg_1 "Your system is setup! Please reboot / restart app"
 
+msg_1 "profile.prebuilt-FS"
+
 #
 #  Need to exit running this profile, otherwise control will spill over
 #  into the replaced profile if it has more lines than this one
 #
+#  In order for this exit not to terminate the session instantly
+#  a shell is started, to give option to inspect the deploy
+#  outcome.
+#
+/bin/ash
 exit

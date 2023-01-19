@@ -23,10 +23,14 @@ msg_1 "Your system is setup! Please reboot / restart app"
 
 #
 #  Need to exit running this profile, otherwise control will spill over
-#  into the replaced profile if it has more lines than this one.
-#  In order for this exit not to terminate the session instantly
-#  a shell is started, in order to be able to inspect the deploy
-#  outcome.
+#  into the replaced profile if it has more lines than this one
 #
-/bin/ash
-exit
+#  In order for this exit not to terminate the session instantly
+#  a shell is started, to give an option to inspect the deploy
+#  outcome.
+#  If this FS is pre-built this should not happen.
+#
+if ! bldstat_get "$STATUS_PREBUILT_FS"; then
+     /bin/ash
+     exit
+fi

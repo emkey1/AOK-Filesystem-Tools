@@ -94,5 +94,5 @@ display_time_elapsed "$duration" "Choose Distro"
 #  a shell is started, in order to be able to inspect the deploy
 #  outcome.
 #
-/bin/ash
+/bin/sh
 exit
