@@ -101,14 +101,14 @@ display_time_elapsed() {
     label="$2"
 
     mins="$((t_in / 60))"
-    rem_mins="$((t_in - mins * 60))"
+    seconds="$((t_in - mins * 60))"
     echo
-    echo "Time elapsed: $mins:$rem_mins - $label"
+    echo "Time elapsed: $mins:$seconds - $label"
     echo
     unset t_in
     unset label
     unset mins
-    unset rem_mins
+    unset seconds
 }
 
 #
@@ -116,18 +116,15 @@ display_time_elapsed() {
 #  the dest FS, indicating things like if this is chrooted and so on
 #
 bldstat_set() {
-    if [ -z "$1" ]; then
-        error_msg "bldstat_set() no param"
-    fi
-    mkdir -p "$BUILD_STATUS"
     # msg_3 "build_staus_set($1)"
+    [ -z "$1" ] && error_msg "bldstat_set() no param"
+    mkdir -p "$BUILD_STATUS"
     touch "$BUILD_STATUS/$1"
 }
 
 bldstat_get() {
-    if [ -z "$1" ]; then
-        error_msg "bldstat_get() no param"
-    fi
+    # msg_3 "build_staus_get($1)"
+    [ -z "$1" ] && error_msg "bldstat_get() no param"
     test -f "$BUILD_STATUS/$1"
     exitstatus="$?"
     case "$exitstatus" in
@@ -150,7 +147,7 @@ bldstat_clear() {
     fi
     if [ "$(find "$BUILD_STATUS"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$BUILD_STATUS" -rf
-        # msg_3 "Cleared entire $BUILD_STATUS"
+        msg_3 "Cleared entire $BUILD_STATUS"
     fi
 }
 
@@ -169,6 +166,42 @@ select_profile() {
     chmod 744 "$BUILD_ROOT_D"/etc/profile
     chown root: "$BUILD_ROOT_D"/etc/profile
     unset replacement_profile
+}
+
+create_fs() {
+    # msg_2 "create_fs()"
+    tarball="$1"
+    [ -z "$tarball" ] && error_msg "cache_fs_image() no taball supplied"
+    fs_location="${2:-$BUILD_ROOT_D}"
+    verb="${3:-false}"
+    if $verb; then # verbose mode
+        verb="v"
+    else
+        verb=""
+    fi
+    [ -z "$fs_location" ] && error_msg "no fs_location detected"
+    mkdir -p "$fs_location"
+    cd "$fs_location" || exit 1
+    msg_2 "Extracting $tarball"
+    if test "${tarball#*tgz}" != "$tarball" || test "${tarball#*tar.gz}" != "$tarball"; then
+        filter="z"
+    else
+        msg_3 "detected bzip2 format"
+        filter="j"
+    fi
+
+    tar "xf${verb}${filter}" "$tarball" || {
+        echo "ERROR: Failed to untar image"
+        echo
+        echo "Try to remove the cached file and run this again"
+        echo "$SRC_IMG_CACHE_D/$src_tarball"
+        exit 1
+    }
+    unset tarball
+    unset fs_location
+    unset verb
+    unset filter
+    # msg_3 "create_fs() done"
 }
 
 iCloud_mount_prompt_notification() {
@@ -321,7 +354,8 @@ ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
 ALPINE_SRC_IMAGE="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
 
 #
-#  Names of the generated distribution tarballs
+#  Names of the generated distribution tarballs, no ext, that is ecided
+#  upon during compression
 #
 ALPINE_TB="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
 SELECT_DISTRO_TB="SelectDistro-iSH-AOK-$AOK_VERSION"
@@ -330,6 +364,9 @@ DEBIAN_TB="Debian-iSH-AOK-$AOK_VERSION"
 #  more informative, but is a bit long to display in iOS
 # DEBIAN_TB="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
 
+target_alpine="Alpine"
+target_debian="Debian"
+target_select="select"
 #
 #  Statuses are files put in place in /etc/opt/AOK on the destination FS
 #  to indicate various states of progress
