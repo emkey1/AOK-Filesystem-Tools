@@ -350,20 +350,20 @@ ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-ALPINE_SRC_TB="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 DEBIAN_SRC_TB="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,
 #  gives something like 3.14
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-ALPINE_SRC_IMAGE="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
+alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v$alpine_release/releases/x86/$alpine_src_tb"
 
 #
 #  Names of the generated distribution tarballs, no ext, that is ecided
 #  upon during compression
 #
-ALPINE_TB="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
+alpine_tb="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
 SELECT_DISTRO_TB="SelectDistro-iSH-AOK-$AOK_VERSION"
 DEBIAN_TB="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix

@@ -386,7 +386,7 @@ consider_generating_tarball() {
         elif [ "$build_env" = "$target_select" ]; then
             label="$SELECT_DISTRO_TB"
         else
-            label="$ALPINE_TB"
+            label="$alpine_tb"
         fi
 
         if $pre_build_FS; then
@@ -455,8 +455,8 @@ if [ "$build_env" = "$target_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
     src_tarball="$DEBIAN_SRC_TB"
 else
-    src_image="$ALPINE_SRC_IMAGE"
-    src_tarball="$ALPINE_SRC_TB"
+    src_image="$alpine_src_image"
+    src_tarball="$alpine_src_tb"
 fi
 
 cache_fs_image

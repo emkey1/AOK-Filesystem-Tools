@@ -2,10 +2,10 @@ GLOBALS
 
 
 additional_tasks_script
-ALPINE_RELEASE
-ALPINE_SRC_IMAGE
-ALPINE_SRC_TB
-ALPINE_TB
+alpine_release
+alpine_src_image
+alpine_src_tb
+alpine_tb
 aok_content
 BUILD_BASE_D
 BUILD_ENV

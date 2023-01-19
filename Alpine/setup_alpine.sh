@@ -27,7 +27,7 @@ install_apks() {
         msg_1 "Install core packages"
 
         #  busybox-extras no longer a package starting with 3.16, so delete if present
-        if [ "$(awk 'BEGIN{print ('"$ALPINE_RELEASE"' > 3.15)}')" -eq 1 ]; then
+        if [ "$(awk 'BEGIN{print ('"$alpine_release"' > 3.15)}')" -eq 1 ]; then
             msg_3 "Removing busybox-extras from core apks, not available past 3.15"
             CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
         fi
@@ -76,7 +76,7 @@ replace_key_files() {
     # current limitations in iSH So we fake it out
     # rm /etc/init.d/networking
 
-    case "$ALPINE_RELEASE" in
+    case "$alpine_release" in
 
     "3.14")
         #
@@ -102,8 +102,8 @@ tsa_start="$(date +%s)"
 
 start_setup Alpine "$ALPINE_VERSION"
 
-if [ -z "$ALPINE_RELEASE" ]; then
-    error_msg "ALPINE_RELEASE param not supplied"
+if [ -z "$alpine_release" ]; then
+    error_msg "alpine_release param not supplied"
 fi
 
 msg_2 "Setting $FILE_ALPINE_RELEASE to $ALPINE_VERSION"
