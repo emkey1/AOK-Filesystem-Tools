@@ -8,7 +8,7 @@ Instructions on how to build an iSH family File system: `./build_fs -h`
 
 The recomended distribution method is to build with -s
 Select between Alpine/Debian on first boot, initial tarball will be
-arround 6MB. Asuming the target device is resonably modern, the
+arround 10MB. Asuming the target device is resonably modern, the
 deploy should not take too long.
 
 ## Prebuilt FS
@@ -18,11 +18,10 @@ to be used right away, drawback is that the FS tarball will be larger.
 
 Especially for slower devices this can be a huge time saver.
 
-In the case of Alpine, the initial FS Installing on first boot is only
+In the case of Alpine, the FS Installing on first boot is only
 arround 6MB, a pre-built AOK Alpine FS is something like 50MB.
 
-With Debian the difference in size will be less noticeable, it goes
-from 125MB to 175MB
+With Debian the difference in size goes from 125MB to 175MB
 
 ## Configuration
 
@@ -30,14 +29,14 @@ Settings are in AOK_VARS
 
 You can override this with local settings in .AOK_VARS, it will be
 ignored by git. Please note that if this file is found,
-it's content will be appended to the destination AOK_VARS/build_env,
+it's content will be appended to the destination AOK_VARS & tools/utils.sh,
 so motly for devel/debug. For production style deploys, it is recomended
 to update AOK_VARS and not have a .AOK_VARS present.
 
 ## Further setup steps
 
 To keep things simple /etc/profile is used to run setup on dest
-platform, since it will be run at bootup on iSH/iSH-AOK
+platform, since it will be run at bootup on iSH/iSH-AOK anyhow.
 Once setup is done /etc/profile will be replaced with the "normal" one.
 
 ## Multi distro
@@ -51,47 +50,21 @@ When testing setups in a chroot env, some extra steps are needed,
 since in chroot /etc/profile is not run
 
 `sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
-deploy directly.
+deploy directly, if any steps remain.
 
 `sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash at
-this point so must use /bin/ash if a shell is wanted, this also avoids
-unintentionally running /etc/profile, if that is not desired, if the
-setup has completed the default shell bash will run profile.
-Using ash/sh as shell avoids this.
+this point, on Alpine /bin/ash is always present, for Debian /bin/sh
+has to be used. This also avoids unintentionally running /etc/profile,
+if that is not desired.
 
-After Alpine / Debian is initially setup, bash will be
-present so chroot can be done as `sudo ./tools/do_chroot.sh` to get a
-normal session.
+After Alpine / Debian setup is completed, bash can be used
+`sudo ./tools/do_chroot.sh` defaults to use bash if no command is specified.
 
 ## Known Alpine issues
 
 When Alpine login is enabled /etc/motd is not displayed, I have tried to
 figure out a way to display it only on logins, but not come up with
 a good way, when login is disabled, it is displayed.
-
-## Debian
-
-If your iOS device is on the slow end of things, you can avoid the
-setup procedure on it by prepping it on a more capable device like this:
-
-Be aware you can't cut-paste the entire sequence, since the exit needs
-to be given to the chrooted process!
-
-```bash
-cd /opt/AOK
-sudo ./build_fs -d -N
-sudo ./tools/do_chroot.sh /etc/profile
-exit
-
-cd /tmp/AOK/iSH-AOK-FS
-
-# Saves 50MB download, will be automatically recreated if missing
-sudo rm var/cache/apt var/lib/apt -rf
-
-sudo tar cvfz /tmp/DebPrepared.tgz .
-```
-
-and then import /tmp/DebPrepared.tgz as your FS
 
 ## Known Debian issues
 
@@ -101,29 +74,19 @@ The AOK alternate logins are not yet used, pending testing
 
 ### Services
 
-Since iSH insta-terminates when you exit the console, this has some
-impact on services:
-
-- It can't be expected that shutdown cleanup will be done from within Debian
-
-Therefore /run/openrc is removed via /etc/inittab during sysinit
-in order to not trick openrc that services are already running.
-
-Services initially active
-
 - runbg
 
 sshd is toggled by running: enable_sshd / disable_sshd
 
 ### Generic Debian Services found to be working inside iSH
 
-- cron
+- cron (dcron)
 - ssh
 
 sshd is setup up by the AOK deploy, but not initially active.
 It can be enabled / disabled by running enable_sshd / disable_sshd
 
-### Specific iSH-AOK services
+#### Specific iSH-AOK services
 
 - runbg
 
