@@ -51,7 +51,7 @@ install_sshd() {
 
 tsd_start="$(date +%s)"
 
-start_setup Debian
+start_setup "Debian: $(cat /etc/debian_version)"
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"

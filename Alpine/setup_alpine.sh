@@ -100,7 +100,7 @@ replace_key_files() {
 
 tsa_start="$(date +%s)"
 
-start_setup Alpine
+start_setup "Alpine: $ALPINE_VERSION"
 
 if [ -z "$ALPINE_RELEASE" ]; then
     error_msg "ALPINE_RELEASE param not supplied"
