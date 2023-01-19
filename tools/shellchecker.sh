@@ -46,7 +46,6 @@ checkables=(
 
     choose_distro/etc/profile.select_distro
     choose_distro/install_debian.sh
-    choose_distro/select_distro-prepare.sh
 
     ## common_AOK/etc/skel/.bash_profile
     common_AOK/usr_local_bin/disable_sshd
