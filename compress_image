@@ -82,11 +82,11 @@ if [ "$(whoami)" != "root" ]; then
     error_msg "This must be run as root or using sudo!"
 fi
 
-if [ ! -d "$BUILD_ROOT_D" ]; then
-    error_msg "No image built yet, [$BUILD_ROOT_D]!"
+if [ ! -d "$build_root_d" ]; then
+    error_msg "No image built yet, [$build_root_d]!"
 fi
 
-if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
     error_msg "Active chroot session detected!"
 fi
 
@@ -104,14 +104,14 @@ fi
 tarball="$BUILD_BASE_D/$tarball"
 
 # echo "removing temp /dev items"
-# rm  -f "$BUILD_ROOT_D"/dev/*
+# rm  -f "$build_root_d"/dev/*
 
 msg_1 "Creating image"
 
 #
 # Tar up and zip the result
 #
-cd "$BUILD_ROOT_D" || exit 99
+cd "$build_root_d" || exit 99
 
 if $use_bzip2; then
     opts="cfj"

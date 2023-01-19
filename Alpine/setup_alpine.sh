@@ -64,10 +64,10 @@ replace_key_files() {
     msg_2 "Replacing a few /etc files"
 
     msg_3 "Our inittab"
-    cp "$AOK_CONTENT"/Alpine/etc/inittab /etc
+    cp "$aok_content"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
-    cp "$AOK_CONTENT"/Alpine/etc/interfaces /etc/network
+    cp "$aok_content"/Alpine/etc/interfaces /etc/network
 
     msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
     ln /etc/init.d/devfs /etc/init.d/dev
@@ -84,7 +84,7 @@ replace_key_files() {
         #  optional, so that the ish user will work in Alpine 3.14
         #
         msg_3 "Replacing /etc/pam.d for 3.14"
-        $cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
+        $cp "$aok_content"/Alpine/etc/pam.d/* /etc/pam.d
         ;;
 
     *) ;;
@@ -100,7 +100,7 @@ replace_key_files() {
 
 tsa_start="$(date +%s)"
 
-start_setup "Alpine: $ALPINE_VERSION"
+start_setup Alpine "$ALPINE_VERSION"
 
 if [ -z "$ALPINE_RELEASE" ]; then
     error_msg "ALPINE_RELEASE param not supplied"
@@ -122,7 +122,7 @@ install_apks
 replace_key_files
 
 msg_2 "Copy /etc/motd_template"
-cp -a "$AOK_CONTENT"/Alpine/etc/motd_template /etc
+cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
 msg_2 "adding pkg shadow & group sudo"
 apk add shadow
@@ -143,7 +143,7 @@ if apk info -e dcron >/dev/null; then
     rc-update add dcron default
     rc-service dcron start
     msg_3 "Setting dcron for checking every 15 mins"
-    cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
+    cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
 fi
 
 msg_1 "Running $SETUP_COMMON_AOK"

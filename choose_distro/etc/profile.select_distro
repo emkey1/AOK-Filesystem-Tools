@@ -78,8 +78,8 @@ if [ "$exitstatus" -eq 0 ]; then
     msg_1 "running $SETUP_ALPINE_FS"
     "$SETUP_ALPINE_FS"
 else
-    test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
-    "$AOK_CONTENT"/choose_distro/install_debian.sh
+    test -f "$additional_tasks_script" && notification_additional_tasks
+    "$aok_content"/choose_distro/install_debian.sh
 fi
 
 bldstat_clear "$STATUS_BEING_BUILT"

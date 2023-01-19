@@ -26,4 +26,4 @@ if ! grep -q "$host_name" "$host_file"; then
 fi
 
 rm -f /etc/hostname
-cat "$host_name" >/etc/hostname
+echo "$host_name" >/etc/hostname

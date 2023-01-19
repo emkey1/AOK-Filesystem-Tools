@@ -24,7 +24,7 @@ cd /opt/AOK || exit 99
 
 prog_name=$(basename "$0")
 
-CHROOT_TO="$BUILD_ROOT_D"
+CHROOT_TO="$build_root_d"
 
 if [ "$(whoami)" != "root" ]; then
     error_msg "This must be run as root or using sudo!"
@@ -83,7 +83,7 @@ Available options:
 -h  --help     Print this help and exit
 -v  --version  Display version and exit
 -c  --cleanup  Cleanup env
--p, --path     What dir to chroot into, defaults to: $BUILD_ROOT_D
+-p, --path     What dir to chroot into, defaults to: $build_root_d
 command        What to run, defaults to "bash -l", command and params must be quoted!
 EOF
 

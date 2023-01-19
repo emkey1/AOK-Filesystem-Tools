@@ -51,7 +51,7 @@ install_sshd() {
 
 tsd_start="$(date +%s)"
 
-start_setup "Debian: $(cat /etc/debian_version)"
+start_setup Debian "$(cat /etc/debian_version)"
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -59,7 +59,7 @@ if test -f /AOK; then
 fi
 
 msg_2 "Installing custom inittab"
-cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
+cp -a "$aok_content"/Debian/etc/inittab /etc
 
 #
 #  Most of the Debian services, mounting fs, setting up networking etc
@@ -71,14 +71,14 @@ rm /etc/runlevels/*/* -f
 
 msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
 mkdir -p /etc/update-motd.d
-cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/* /etc/update-motd.d
+cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
 #
 #  This must run before any task doing apt actions
 #
 if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_2 "Installing sources.list"
-    cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
+    cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
     msg_2 "apt update"
     apt update -y

@@ -17,7 +17,7 @@ tid_start="$(date +%s)"
 #
 if is_ish; then
     # Don't bother if just chrooted
-    "$AOK_CONTENT"/common_AOK/usr_local_sbin/fix_dev
+    "$aok_content"/common_AOK/usr_local_sbin/fix_dev
 fi
 
 msg_1 "Installing Debian"
@@ -55,7 +55,7 @@ msg_3 "maintaining /etc/opt"
 cp -a /etc/opt /Debian/etc
 
 msg_2 "Moving Debian /etc/profile into place"
-cp "$AOK_CONTENT"/Debian/etc/profile /Debian/etc/profile
+cp "$aok_content"/Debian/etc/profile /Debian/etc/profile
 
 rm -rf "$debian_download_location"
 
@@ -115,7 +115,7 @@ msg_3 "Copying Alpine lib (musl) to /usr/lib"
 #  replace /lib with soft-link to /usr/lib
 # /busybox echo "> Replacing /lib with a soft-link to /usr/lib"
 msg_3 "Replacing /lib with a soft-link to /usr/lib"
-"$AOK_CONTENT"/choose_distro/bin/lib_fix
+"$aok_content"/choose_distro/bin/lib_fix
 
 #  From now on Debian should be fully available
 
