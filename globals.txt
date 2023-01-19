@@ -11,7 +11,7 @@ build_base_d
 build_env
 build_root_d
 build_status
-build_status_RAW
+build_status_raw
 debian_src_tb
 debian_tb
 file_aok_release
@@ -33,10 +33,10 @@ setup_select_distro_prepare
 setup_common_aok
 setup_debian_scr
 src_img_cache_d
-STATUS_BEING_BUILT
-STATUS_IS_CHROOTED
-STATUS_PREBUILT_FS
-STATUS_SELECT_DISTRO_PREPARED
+status_being_built
+status_is_chrooted
+status_prebuilt_fs
+status_select_distro_prepared
 target_alpine
 target_debian
 target_select

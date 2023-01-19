@@ -25,7 +25,7 @@
 #  outcome.
 #  If this FS is pre-built this should not happen.
 #
-if bldstat_get "$STATUS_PREBUILT_FS"; then
+if bldstat_get "$status_prebuilt_fs"; then
     exit
 else
     /bin/sh

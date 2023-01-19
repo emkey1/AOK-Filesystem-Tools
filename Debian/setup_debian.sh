@@ -148,7 +148,7 @@ rc-update del rsync default
 msg_1 "Setup complete!"
 echo
 
-bldstat_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$status_being_built"
 
 select_profile "$profile_debian"
 
@@ -158,7 +158,7 @@ unset duration
 
 run_additional_tasks_if_found
 
-if bldstat_get "$STATUS_PREBUILT_FS"; then
+if bldstat_get "$status_prebuilt_fs"; then
     msg_2 "Clear apt cache on pre-built FS, saves some 50MB on the tarball"
     rm /var/cache/apt /var/lib/apt -rf
 fi

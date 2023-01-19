@@ -21,7 +21,7 @@ msg_1 "Final Alpine setup steps"
 #  That happens, it makes sense to run it now
 /usr/local/sbin/fix_dev
 
-if ! bldstat_get "$STATUS_IS_CHROOTED"; then
+if ! bldstat_get "$status_is_chrooted"; then
     #
     #  Run this after services has been activated, so that check they run
     #  is meaningful
@@ -47,4 +47,4 @@ echo
 
 # Not the right place to set profile, since this can be called in different ways
 
-bldstat_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$status_being_built"

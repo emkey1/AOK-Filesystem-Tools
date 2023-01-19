@@ -266,7 +266,7 @@ start_setup() {
         echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
     fi
 
-    if ! bldstat_get "$STATUS_IS_CHROOTED"; then
+    if ! bldstat_get "$status_is_chrooted"; then
         msg_3 "iSH now able to run in the background"
         cat /dev/location >/dev/null &
     fi
@@ -379,21 +379,21 @@ target_select="select"
 #
 
 #  Indicator this is an env being built
-STATUS_BEING_BUILT="env_beeing_built"
+status_being_built="env_beeing_built"
 #
 #  Select distro has been prepared, ie the prepare sterp does not to be
 #  run during deploy
 #
-STATUS_SELECT_DISTRO_PREPARED="select_distro_prepared"
+status_select_distro_prepared="select_distro_prepared"
 #  This is chrooted
-STATUS_IS_CHROOTED="is_chrooted"
+status_is_chrooted="is_chrooted"
 
 #
 #  Hint to /profile that this was a pre-built FS, meaning /etc/profile
 #  should not wait for $FIRST_BOOT_NOT_DONE_HINT to disappear, and
 #  post_boot.sh should not run (from inittab) /etc/profile will
 #
-STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
+status_prebuilt_fs="prebuilt_fs_first_boot"
 
 #  Locations for building File systems
 build_base_d="/tmp/AOK"
@@ -402,19 +402,19 @@ build_base_d="/tmp/AOK"
 #  temp value until we know if this is dest FS, so that build_root_d can
 #  be selected
 #
-build_status_RAW="/etc/opt/AOK"
+build_status_raw="/etc/opt/AOK"
 
 #
-#  STATUS_BEING_BUILT and build_status, used by bldstat_get()
+#  status_being_built and build_status, used by bldstat_get()
 #  must be defined before this
 #
-if bldstat_get "$STATUS_IS_CHROOTED"; then
+if bldstat_get "$status_is_chrooted"; then
     build_root_d=""
     # msg_3 "This is chrooted"
-elif test -f "$build_status_RAW/$STATUS_BEING_BUILT"; then
+elif test -f "$build_status_raw/$status_being_built"; then
     build_root_d=""
     # msg_3 "This is running on dest platform"
-elif test -f "$build_status_RAW/$STATUS_PREBUILT_FS"; then
+elif test -f "$build_status_raw/$status_prebuilt_fs"; then
     build_root_d=""
     # msg_3 "This is running on dest platform"
 else
@@ -423,7 +423,7 @@ else
 fi
 
 #  Now the proper value can be set
-build_status="${build_root_d}${build_status_RAW}"
+build_status="${build_root_d}${build_status_raw}"
 
 #  Where to find native FS version
 file_alpine_release="$build_root_d"/etc/alpine-release

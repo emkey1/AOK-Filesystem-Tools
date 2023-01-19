@@ -146,14 +146,14 @@ fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-bldstat_set "$STATUS_IS_CHROOTED"
+bldstat_set "$status_is_chrooted"
 
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
 exit_code="$?"
 
-bldstat_clear "$STATUS_IS_CHROOTED"
+bldstat_clear "$status_is_chrooted"
 
 env_cleanup
 

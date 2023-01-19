@@ -265,7 +265,7 @@ copy_AOK_to_dest() {
 
     mkdir -p "$aok_files"
     mkdir -p "$build_root_d"/etc/opt
-    bldstat_set "$STATUS_BEING_BUILT"
+    bldstat_set "$status_being_built"
 
     rsync -ah \
         --exclude=.git/ \
@@ -316,7 +316,7 @@ select_distro_on_1st_boot() {
     #  the same.
     #
     [ -z "$profile_distro_select_prepare" ] && error_msg "profile_distro_select_prepare undefined"
-    if [ "$build_target" -gt 0 ]; then
+    if [ "$build_env" -gt 0 ]; then
         msg_3 "chrooting: $profile_distro_select_prepare"
         if ! "$aok_content"/tools/do_chroot.sh "$profile_distro_select_prepare"; then
             error_msg "Error in chroot, aborting build!"
@@ -346,7 +346,7 @@ prebuild_fs() {
     msg_1 "Pre-building FS"
     cd "$aok_content" || exit 17
 
-    bldstat_set "$STATUS_PREBUILT_FS"
+    bldstat_set "$status_prebuilt_fs"
     "$aok_content"/tools/do_chroot.sh /etc/profile
     msg_1 "Returned from prebuild chroot"
 
