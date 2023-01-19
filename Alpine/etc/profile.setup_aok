@@ -15,7 +15,7 @@
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-/opt/AOK/Alpine/setup_alpine.sh
+"$aok_content"/Alpine/setup_alpine.sh
 
 msg_1 "Your system is setup! Please reboot / restart app"
 

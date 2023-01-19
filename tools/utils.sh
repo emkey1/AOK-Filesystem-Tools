@@ -16,6 +16,7 @@
 #  both on build and iSH systems
 #
 aok_content="/opt/AOK"
+aok_content_etc="/etc/$aok_content"
 
 #  shellcheck disable=SC1091
 . "$aok_content"/AOK_VARS || exit 1
@@ -112,7 +113,7 @@ display_time_elapsed() {
 }
 
 #
-#  bldstat_xxx is manipulating state files under /etc/opt/AOK on
+#  bldstat_xxx is manipulating state files under $aok_content_etc on
 #  the dest FS, indicating things like if this is chrooted and so on
 #
 bldstat_set() {
@@ -374,7 +375,7 @@ target_alpine="Alpine"
 target_debian="Debian"
 target_select="select"
 #
-#  Statuses are files put in place in /etc/opt/AOK on the destination FS
+#  Statuses are files put in place in $aok_content_etc on the destination FS
 #  to indicate various states of progress
 #
 
@@ -402,7 +403,7 @@ build_base_d="/tmp/AOK"
 #  temp value until we know if this is dest FS, so that build_root_d can
 #  be selected
 #
-build_status_raw="/etc/opt/AOK"
+build_status_raw="$aok_content_etc"
 
 #
 #  status_being_built and build_status, used by bldstat_get()
@@ -486,7 +487,7 @@ setup_select_distro_prepare="$aok_content"/choose_distro/select_distro-prepare.s
 
 ###  override handling  ###
 
-local_overrides="/opt/AOK/.AOK_VARS"
+local_overrides="${aok_content}/.AOK_VARS"
 
 #  shellcheck disable=SC1090
 [ -f "$local_overrides" ] && . "$local_overrides"

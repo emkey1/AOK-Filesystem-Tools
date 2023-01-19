@@ -18,7 +18,7 @@ if [ "$(uname)" = "Darwin" ]; then
     exit 1
 fi
 
-if [ -e /etc/opt/AOK/is_chrooted ]; then
+if [ -e "$aok_content_etc"/is_chrooted ]; then
     msg_2 "Skipping fix_dev when chrooted"
     exit 0
 fi

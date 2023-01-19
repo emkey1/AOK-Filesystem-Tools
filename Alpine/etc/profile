@@ -10,7 +10,7 @@
 #
 
 # Wait until initial setup is completed
-while [ -e /etc/opt/AOK/env_beeing_built ]; do
+while [ -e "$aok_content_etc"/env_beeing_built ]; do
    echo "Initial setup still in progress..."
    sleep 1
 done

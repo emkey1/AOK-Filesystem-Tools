@@ -134,4 +134,3 @@ echo
 
 duration="$(($(date +%s) - tid_start))"
 display_time_elapsed "$duration" "Debian install"
-unset duration

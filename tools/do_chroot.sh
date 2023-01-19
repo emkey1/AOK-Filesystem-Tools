@@ -13,14 +13,14 @@
 #
 version="1.4.0a"
 
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure build_env can be found
 #
-cd /opt/AOK || exit 99
-
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
+cd "$aok_content" || exit 99
 
 prog_name=$(basename "$0")
 

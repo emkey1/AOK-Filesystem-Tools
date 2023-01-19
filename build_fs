@@ -158,13 +158,12 @@ display_build_target() { # Multi OK 1
         exit 1
     fi
     msg_1 "Run mode: $run_mode"
+    unset run_mode
 
     if [ "$QUICK_DEPLOY" -ne 0 ]; then
         echo
         echo "**  Using QUICK_DEPLOY=$QUICK_DEPLOY  **"
     fi
-
-    unset run_mode
 
     if [ "$(whoami)" != "root" ]; then
         # Must come after help display, to avoid infinite loop
@@ -244,7 +243,8 @@ integrate_overrides() {
 
     if [ -f "$overrides" ]; then
         #
-        #  Skip
+        #  replace include lines with local settings
+        #
         msg_3 "adding .AOK_VARS  into $conf_file on destination"
         grep -B99999 "$pattrn" "$src_conf" | grep -v "$pattrn" >"$dst_conf"
         cat "$overrides" >>"$dst_conf"
@@ -392,6 +392,8 @@ consider_generating_tarball() {
         if ! "$aok_content"/compress_image -l $label $extra_params; then
             error_msg "detected in compress_image"
         fi
+        unset extra_params
+        unset label
     fi
 
     if [ "$build_env" -gt 0 ]; then
@@ -413,6 +415,7 @@ consider_generating_tarball() {
             echo "To trigger a first boot deploy, run:"
             echo "  sudo ./tools/do_chroot.sh /etc/profile"
         fi
+        unset set_shell
     else
         echo
         echo "This platform can not chroot into this FS"
