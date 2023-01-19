@@ -24,10 +24,11 @@
 #  already running thus leaving them as is, ie wont try to start them at all
 #  since according to the states openrc finds is that default is already
 #  the current runlevel.
-#  One simple workaround is to toggle between runlevels, first set boot
-#  then default. This leads to default services first being stoped and then
-#  started, ensuring they start up regardless of logged runstate at startup.
+#  Workaround is to toggle between runlevels.
+#  This leads to services first being stoped and then started, ensuring
+#  they start up regardless of logged runstate at startup.
 #
+::sysinit:/sbin/openrc sysinit
 ::sysinit:/sbin/openrc boot
 ::wait:/sbin/openrc default
 
