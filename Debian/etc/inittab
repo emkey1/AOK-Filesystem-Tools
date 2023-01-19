@@ -21,16 +21,14 @@ fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
 #
 hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
 
-
 #
 # Initialization command
 # Normally this would be sysinit, but when this is choosen
-# on Debian running on iSH-AOK, init & openrc fails 
+# on Debian running on iSH-AOK, init & openrc fails
 # to transition over to the runlevel default.
 # This is solved by using boot as initial runlevel on iSH-AOK
 #
 si::sysinit:/sbin/openrc boot
-
 
 # What to do in single-user mode.
 ~~:S:wait:/sbin/sulogin --force
