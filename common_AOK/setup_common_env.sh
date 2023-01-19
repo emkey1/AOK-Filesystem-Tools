@@ -20,8 +20,8 @@ setup_environment() {
     msg_2 "Set $FILE_AOK_RELEASE to $AOK_VERSION"
     echo "$AOK_VERSION" >"$FILE_AOK_RELEASE"
 
+    msg_2 "copy some /etc files"
     sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue >/etc/issue
-
     msg_2 "Adding runbg service"
     cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/runbg /etc/init.d
     # openrc_might_trigger_errors
@@ -118,6 +118,8 @@ user_root() {
     #
     copy_skel_files /root
     chown -R root: /root
+    msg_3 "clear root history"
+    rm /root/.bash_history -f
 }
 
 user_ish() {
