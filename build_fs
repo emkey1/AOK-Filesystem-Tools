@@ -24,12 +24,11 @@ prog_name=$(basename "$0")
 #  shellcheck disable=SC1007
 cd "$AOK_CONTENT" || exit 1
 
-verbose=false           # true displays tar/untar progress
-use_bzip2=false         # Use tgz when compressing image
-build_debian_FS=false   # true means build Debian FS
-distro_select=false     # true means choose between Alpine and Debian
-pre_build_FS=false      # true meand generat4 pre-built FS
-aok_FS_do_compress=true # compress FS at end of build_fs
+build_env="$target_alpine" # default target
+verbose=false              # true displays tar/untar progress
+use_bzip2=false            # Use tgz when compressing image
+pre_build_FS=false         # true meand generat4 pre-built FS
+aok_FS_do_compress=true    # compress FS at end of build_fs
 
 aok_files="${BUILD_ROOT_D}${AOK_CONTENT}"
 
@@ -75,19 +74,29 @@ parse_arguments() { # Multi OK 1
 
         "-v" | "--verbose") verbose=true ;;
 
-        "-d" | "--debian") build_debian_FS=true ;;
-
-        "-s" | "--select")
-            if $pre_build_FS; then
-                echo "-p and -d can not be combined!"
+        "-d" | "--debian")
+            if [ "$build_env" = "$target_select" ]; then
+                echo "-d and -s can not be combined!"
                 exit 1
             fi
-            distro_select=true
+            build_env="$target_debian"
+            ;;
+
+        "-s" | "--select")
+            if [ "$build_env" = "$target_debian" ]; then
+                echo "-d and -s can not be combined!"
+                exit 1
+            fi
+            if $pre_build_FS; then
+                echo "-p and -s can not be combined!"
+                exit 1
+            fi
+            build_env="$target_select"
             ;;
 
         "-p" | "--prebuilt")
-            if $distro_select; then
-                echo "-p and -d can not be combined!"
+            if [ "$build_env" = "$target_select" ]; then
+                echo "-p and -s can not be combined!"
                 exit 1
             fi
             pre_build_FS=true
@@ -194,11 +203,9 @@ clear_build_env() { # Multi OK 1
 }
 
 cache_fs_image() {
-    # msg_2 "cache_fs_image($1, $2)"
-    image_name="$1"
-    tarball="$2"
-    [ -z "$image_name" ] && error_msg "cache_fs_image() no image name supplied"
-    [ -z "$tarball" ] && error_msg "cache_fs_image() no taball name supplied"
+    # msg_2 "cache_fs_image()"
+    [ -z "$src_image" ] && error_msg "cache_fs_image() no src_image supplied"
+    [ -z "$src_tarball" ] && error_msg "cache_fs_image() no src_taball supplied"
 
     ensure_usable_wget
 
@@ -208,58 +215,13 @@ cache_fs_image() {
     cd "$SRC_IMG_CACHE_D" || {
         error_msg "Failed to cd to $SRC_IMG_CACHE_D"
     }
-    if [ ! -f "$SRC_IMG_CACHE_D/$tarball" ]; then
-        wget "$image_name" || {
-            echo "ERROR: Failed to download $image_name"
+    if [ ! -f "$SRC_IMG_CACHE_D/$src_tarball" ]; then
+        wget "$src_image" || {
+            echo "ERROR: Failed to download $src_image"
             exit 1
         }
     fi
-    unset image_name
-    unset tarball
     # msg_3 "cache_fs_image() done"
-}
-
-extract_image() {
-    # msg_2 "extract_image($1, $2)"
-    p1="$1"
-    p2="$2"
-    [ -z "$p1" ] && error_msg "extract_image() no image name supplied"
-    [ -z "$p2" ] && error_msg "extract_image() no taball name supplied"
-
-    cache_fs_image "$p1" "$p2"
-    # no local variables...
-    image_name="$p1"
-    tarball="$2"
-
-    mkdir -p "$BUILD_ROOT_D"
-    cd "$BUILD_ROOT_D" || exit 1
-    msg_2 "Extracting $tarball"
-    if test "${tarball#*tgz}" != "$tarball" || test "${tarball#*tar.gz}" != "$tarball"; then
-        # is tgz
-        filter="z"
-    else
-        msg_3 "detected bzip2 format"
-        filter="j"
-    fi
-    if $verbose; then
-        verb="v"
-    else
-        verb=""
-    fi
-
-    tar "xf${verb}${filter}" "$SRC_IMG_CACHE_D/$tarball" || {
-        echo "ERROR: Failed to untar image"
-        echo
-        echo "Try to remove the cached file and run this again"
-        echo "$SRC_IMG_CACHE_D/$tarball"
-        exit 1
-    }
-    unset p1
-    unset p2
-    unset image_name
-    unset filter
-    unset verb
-    # msg_3 "extract_image() done"
 }
 
 integrate_overrides() {
@@ -338,29 +300,6 @@ add_additional_tasks_if_defined() {
     # msg_3 "add_additional_tasks_if_defined() done"
 }
 
-setup_Alpine_in_advance() {
-    msg_2 "setup_Alpine_in_advance()"
-    mkdir -p /etc/opt
-
-    #  Indicate this FS is pre-built
-    bldstat_set "$STATUS_PREBUILT_FS"
-
-    #
-    # chrooting and doing setup
-    #
-    msg_1 "Pre-building FS"
-    if ! "$AOK_CONTENT"/tools/do_chroot.sh "$SETUP_ALPINE_FS"; then
-        error_msg "in chroot, aborting build!"
-    fi
-    select_profile "$PROFILE_ALPINE_PRE_BUILT"
-
-    #
-    #  Since some final steps need to run by the above profile
-    #  mark the FS as in build state
-    #
-    bldstat_set "$STATUS_BEING_BUILT"
-}
-
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
     # by setting this as the first of two, this will become the default profile
@@ -368,10 +307,10 @@ setup_Alpine_on_1st_boot() {
     select_profile "$PROFILE_ALPINE_SETUP_AOK"
 }
 
-setup_Debian() {
-    msg_2 "setup_Debian()"
-    "$SETUP_DEBIAN"
-}
+# setup_Debian() {
+#     msg_2 "setup_Debian()"
+#     "$SETUP_DEBIAN"
+# }
 
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
@@ -398,10 +337,99 @@ select_distro_on_1st_boot() {
     # msg_3 "select_distro_on_1st_boot()  done"
 }
 
+prebuild_fs() {
+    msg_2 "prebuild_fs()"
+
+    if [ "$BUILD_ENV" -eq 0 ]; then
+        msg_1 "Not possible to pre-build on this environment!"
+        return
+    fi
+
+    #
+    # chrooting and doing setup
+    #
+    msg_1 "Pre-building FS"
+    cd "$AOK_CONTENT" || exit 17
+
+    bldstat_set "$STATUS_PREBUILT_FS"
+    "$AOK_CONTENT"/tools/do_chroot.sh /etc/profile
+    msg_1 "Returned from prebuild chroot"
+
+    if [ "$build_env" = "$target_alpine" ]; then
+        msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
+        select_profile "$PROFILE_ALPINE_PRE_BUILT"
+        #
+        #  Since some final steps need to run by the above profile
+        #  mark the FS as in build state
+        #
+    fi
+}
+
+consider_generating_tarball() {
+    #
+    #  Consider to generate a tarball
+    #
+    if $aok_FS_do_compress; then
+        extra_params=""
+        if $verbose; then
+            extra_params="-v"
+        fi
+        if $use_bzip2; then
+            extra_params="$extra_params -j"
+        fi
+
+        #
+        #  Set name for tarball
+        #
+        if [ "$build_env" = "$target_debian" ]; then
+            label="$DEBIAN_TB"
+        elif [ "$build_env" = "$target_select" ]; then
+            label="$SELECT_DISTRO_TB"
+        else
+            label="$ALPINE_TB"
+        fi
+
+        if $pre_build_FS; then
+            #  give a hint this was pre-built
+            label="${label}-pb"
+        fi
+        #  shellcheck disable=SC2086,SC2248
+        if ! "$AOK_CONTENT"/compress_image -l $label $extra_params; then
+            error_msg "detected in compress_image"
+        fi
+    fi
+
+    if [ "$BUILD_ENV" -gt 0 ]; then
+        if [ "$build_env" = "$target_debian" ]; then
+            set_shell="/bin/sh"
+        else
+            set_shell="/bin/ash"
+        fi
+        if $pre_build_FS; then
+            echo
+            echo "chrooting into the FS:"
+            echo "  sudo ./tools/do_chroot.sh"
+        else
+            echo
+            echo "You can work on the filesystem without triggering deploy by running:"
+            echo "  sudo ./tools/do_chroot.sh $set_shell"
+            echo
+            echo "To trigger a first boot deploy, run:"
+            echo "  sudo ./tools/do_chroot.sh /etc/profile"
+        fi
+    fi
+}
+
 display_build_time() {
     duration="$(($(date +%s) - t_start))"
-    display_time_elapsed "$duration" "Build FS"
+    if $pre_build_FS; then
+        lbl="Create and setup FS"
+    else
+        lbl="Create FS"
+    fi
+    display_time_elapsed "$duration" "$lbl"
     unset duration
+    unset lbl
 }
 
 #===============================================================
@@ -422,27 +450,19 @@ msg_2 "Preparing build environment"
 
 clear_build_env
 
-if $build_debian_FS; then
-    extract_image "$DEBIAN_SRC_IMAGE" "$DEBIAN_SRC_TB"
+if [ "$build_env" = "$target_debian" ]; then
+    src_image="$DEBIAN_SRC_IMAGE"
+    src_tarball="$DEBIAN_SRC_TB"
 else
-    extract_image "$ALPINE_SRC_IMAGE" "$ALPINE_SRC_TB"
+    src_image="$ALPINE_SRC_IMAGE"
+    src_tarball="$ALPINE_SRC_TB"
 fi
-unset options
 
+cache_fs_image
+create_fs "${SRC_IMG_CACHE_D}/$src_tarball" "$BUILD_ROOT_D" "$verbose"
 copy_AOK_to_dest
 msg_2 "Deployed $AOK_CONTENT on new filesystem"
 
-add_additional_tasks_if_defined
-
-if $pre_build_FS; then
-    setup_Alpine_in_advance
-elif $build_debian_FS; then
-    select_profile "$PROFILE_DEBIAN_SETUP_AOK"
-elif $distro_select; then
-    select_distro_on_1st_boot
-else
-    setup_Alpine_on_1st_boot
-fi
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
 #  Since SETUP_ALPINE_FS will create an AOK relevant motd,
@@ -455,52 +475,22 @@ rm "$BUILD_ROOT_D"/etc/motd
 msg_2 "create directory /iCloud inside new filesystem"
 mkdir "$BUILD_ROOT_D"/iCloud
 
+if [ "$build_env" = "$target_debian" ]; then
+    select_profile "$PROFILE_DEBIAN_SETUP_AOK"
+elif [ "$build_env" = "$target_select" ]; then
+    select_distro_on_1st_boot
+else
+    setup_Alpine_on_1st_boot
+fi
+
+add_additional_tasks_if_defined
+
+if $pre_build_FS; then
+    prebuild_fs
+fi
+
 msg_1 "The filesystem is ready!"
 
-#
-#  Consider to generate a tarball
-#
-if $aok_FS_do_compress; then
-    extra_params=""
-    if $verbose; then
-        extra_params="-v"
-    fi
-    if $use_bzip2; then
-        extra_params="$extra_params -j"
-    fi
-
-    #
-    #  Set name for tarball
-    #
-    if $build_debian_FS; then
-        label="$DEBIAN_TB"
-    elif $distro_select; then
-        #  shellcheck disable=SC2154
-        label="$SELECT_DISTRO_TB"
-    else
-        label="$ALPINE_TB"
-    fi
-
-    #  shellcheck disable=SC2086,SC2248
-    if ! "$AOK_CONTENT"/compress_image -l $label $extra_params; then
-        error_msg "detected in compress_image"
-    fi
-fi
-
-if [ "$BUILD_ENV" -gt 0 ]; then
-    if $pre_build_FS || $build_debian_FS; then
-        set_shell="/bin/sh"
-    else
-        set_shell="/bin/ash"
-    fi
-    echo
-    echo "You can work on the filesystem without triggering deploy by running:"
-    echo "  sudo ./tools/do_chroot.sh $set_shell"
-    if ! $pre_build_FS; then
-        echo
-        echo "To simulate a first boot deploy, run:"
-        echo "  sudo ./tools/do_chroot.sh /etc/profile"
-    fi
-fi
+consider_generating_tarball
 
 display_build_time
