@@ -17,7 +17,7 @@ prog_name=$(basename "$0")
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
 #
 #  shellcheck disable=SC1091
-. /opt/AOK/utils.sh
+. /opt/AOK/tools/utils.sh
 
 use_bzip2=false
 verbose=false

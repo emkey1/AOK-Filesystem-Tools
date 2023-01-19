@@ -20,7 +20,7 @@ version="1.4.0a"
 cd /opt/AOK || exit 99
 
 # shellcheck disable=SC1091
-. /opt/AOK/utils.sh
+. /opt/AOK/tools/utils.sh
 
 prog_name=$(basename "$0")
 

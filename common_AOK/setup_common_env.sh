@@ -12,7 +12,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/utils.sh
+. /opt/AOK/tools/utils.sh
 
 setup_environment() {
 

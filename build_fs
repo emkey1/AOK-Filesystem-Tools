@@ -16,7 +16,7 @@ version="2.0.3"
 prog_name=$(basename "$0")
 
 #  shellcheck disable=SC1091
-. /opt/AOK/utils.sh
+. /opt/AOK/tools/utils.sh
 
 #
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
@@ -228,7 +228,7 @@ integrate_overrides() {
     conf_file="$1"
     case "$conf_file" in
 
-    AOK_VARS | utils.sh) ;;
+    AOK_VARS | tools/utils.sh) ;;
 
     *)
         echo "ERROR: integrate_overrides($conf_file) - bad param"
@@ -276,7 +276,7 @@ copy_AOK_to_dest() {
         "$aok_content" "$build_root_d"/opt
 
     integrate_overrides AOK_VARS
-    integrate_overrides utils.sh
+    integrate_overrides tools/utils.sh
 
     chown -R root: "$aok_files"
     # msg_3 "copy_AOK_to_dest() done"
@@ -413,6 +413,9 @@ consider_generating_tarball() {
             echo "To trigger a first boot deploy, run:"
             echo "  sudo ./tools/do_chroot.sh /etc/profile"
         fi
+    else
+        echo
+        echo "This platform can not chroot into this FS"
     fi
 }
 

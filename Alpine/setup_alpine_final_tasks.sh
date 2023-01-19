@@ -13,7 +13,7 @@
 
 # Set some variables
 # shellcheck disable=SC1091
-. /opt/AOK/utils.sh
+. /opt/AOK/tools/utils.sh
 
 msg_1 "Final Alpine setup steps"
 

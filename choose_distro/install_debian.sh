@@ -6,7 +6,7 @@
 #  shellcheck disable=SC2114,SC2154
 
 #  shellcheck disable=SC1091
-. /opt/AOK/utils.sh
+. /opt/AOK/tools/utils.sh
 
 tid_start="$(date +%s)"
 
