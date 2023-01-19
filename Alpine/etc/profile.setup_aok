@@ -15,8 +15,6 @@
 # shellcheck disable=SC1091
 . /opt/AOK/BUILD_ENV
 
-echo "====  Installing  iSH-AOK FS: $AOK_VERSION onto Alpine: $ALPINE_VERSION  ===="
-
 /opt/AOK/Alpine/setup_alpine.sh
 
 msg_1 "Your system is setup! Please reboot / restart app"

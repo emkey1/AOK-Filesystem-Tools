@@ -261,6 +261,11 @@ start_setup() {
 
     msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for $distro_name"
 
+    if [ "$QUICK_DEPLOY" -ne 0 ]; then
+        echo
+        echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
+    fi
+
     if ! bldstat_get "$STATUS_IS_CHROOTED"; then
         msg_3 "iSH now able to run in the background"
         cat /dev/location >/dev/null &
@@ -333,7 +338,7 @@ fi
 #
 
 #  Location for src images
-SRC_IMG_CACHE_D="/tmp/img_cache_AOK"
+SRC_IMG_CACHE_D="/tmp/cache_AOK_images"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
@@ -406,6 +411,9 @@ if bldstat_get "$STATUS_IS_CHROOTED"; then
     BUILD_ROOT_D=""
     # msg_3 "This is chrooted"
 elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT"; then
+    BUILD_ROOT_D=""
+    # msg_3 "This is running on dest platform"
+elif test -f "$BUILD_STATUS_RAW/$STATUS_PREBUILT_FS"; then
     BUILD_ROOT_D=""
     # msg_3 "This is running on dest platform"
 else
