@@ -17,7 +17,7 @@ prog_name=$(basename "$0")
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
 #
 #  shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 use_bzip2=false
 verbose=false
@@ -101,7 +101,7 @@ else
 fi
 
 # set location
-tarball="$BUILD_BASE_D/$tarball"
+tarball="$build_base_d/$tarball"
 
 # echo "removing temp /dev items"
 # rm  -f "$build_root_d"/dev/*
@@ -131,9 +131,9 @@ tar "$opts" "$tarball" .
 # copy it to /iCloud if this runs on iSH
 #
 if is_ish; then
-    msg_2 "Copying image into $ICLOUD_ARCHIVE_D"
-    mkdir -p "$ICLOUD_ARCHIVE_D"
-    cp "$tarball" "$ICLOUD_ARCHIVE_D"
+    msg_2 "Copying image into $icloud_archive_d"
+    mkdir -p "$icloud_archive_d"
+    cp "$tarball" "$icloud_archive_d"
 fi
 
 msg_1 "Image is ready: $tarball"

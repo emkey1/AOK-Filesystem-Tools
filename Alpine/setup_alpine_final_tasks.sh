@@ -11,22 +11,17 @@
 #  platform
 #
 
-
 # Set some variables
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
-
+. /opt/AOK/utils.sh
 
 msg_1 "Final Alpine setup steps"
-
 
 #  Will be run again in post_boot.sh, but since some tasks are done before
 #  That happens, it makes sense to run it now
 /usr/local/sbin/fix_dev
 
-
-
-if ! bldstat_get "$STATUS_IS_CHROOTED" ; then
+if ! bldstat_get "$STATUS_IS_CHROOTED"; then
     #
     #  Run this after services has been activated, so that check they run
     #  is meaningful

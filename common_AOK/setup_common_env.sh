@@ -12,13 +12,13 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 setup_environment() {
 
     #  Announce what AOK release this is
-    msg_2 "Set $FILE_AOK_RELEASE to $AOK_VERSION"
-    echo "$AOK_VERSION" >"$FILE_AOK_RELEASE"
+    msg_2 "Set $file_aok_release to $AOK_VERSION"
+    echo "$AOK_VERSION" >"$file_aok_release"
 
     msg_2 "copy some /etc files"
     sed "s/AOK_VERSION/$AOK_VERSION/" "$aok_content"/common_AOK/etc/issue >/etc/issue
@@ -64,7 +64,7 @@ setup_environment() {
 }
 
 setup_login() {
-    if [ -f "$FILE_DEBIAN_VERSION" ]; then
+    if [ -f "$file_debian_version" ]; then
         # -> For now Debian login is not altered
         return
     fi
@@ -85,7 +85,7 @@ setup_login() {
     if [ -x /bin/login ] && [ ! -L /bin/login ]; then
         #  If it is a file, assume it to be the shadow login binary, save it
         #  so that it can be selected later
-        mv /bin/login "$LOGIN_ORIGINAL"
+        mv /bin/login "$login_original"
     fi
 
     #  For now use a safe method, if supported the requested method will be

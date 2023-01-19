@@ -20,7 +20,7 @@ if [ ! -d "/opt/AOK" ]; then
 fi
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 install_apks() {
     if [ -n "$CORE_APKS" ]; then
@@ -47,7 +47,7 @@ install_apks() {
         fi
     fi
 
-    if [ "$BUILD_ENV" -eq 1 ] && ! is_aok_kernel; then
+    if [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
         msg_2 "Skipping AOK only packages on non AOK kernels"
     elif [ -n "$AOK_APKS" ]; then
         #  Only deploy on aok kernels and if any are defined
@@ -106,8 +106,8 @@ if [ -z "$alpine_release" ]; then
     error_msg "alpine_release param not supplied"
 fi
 
-msg_2 "Setting $FILE_ALPINE_RELEASE to $ALPINE_VERSION"
-echo "$ALPINE_VERSION" >"$FILE_ALPINE_RELEASE"
+msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
+echo "$ALPINE_VERSION" >"$file_alpine_release"
 
 msg_2 "apk update"
 apk update
@@ -152,7 +152,7 @@ msg_1 "Running $SETUP_COMMON_AOK"
 msg_1 "running $SETUP_ALPINE_FINAL"
 "$SETUP_ALPINE_FINAL"
 
-select_profile "$PROFILE_ALPINE"
+select_profile "$profile_alpine"
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"

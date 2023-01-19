@@ -13,7 +13,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 /opt/AOK/Alpine/setup_alpine.sh
 

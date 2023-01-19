@@ -16,7 +16,7 @@ version="2.0.3"
 prog_name=$(basename "$0")
 
 #  shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 #
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
@@ -24,11 +24,11 @@ prog_name=$(basename "$0")
 #  shellcheck disable=SC1007
 cd "$aok_content" || exit 1
 
-build_env="$target_alpine" # default target
-verbose=false              # true displays tar/untar progress
-use_bzip2=false            # Use tgz when compressing image
-pre_build_FS=false         # true meand generat4 pre-built FS
-aok_FS_do_compress=true    # compress FS at end of build_fs
+build_target="$target_alpine" # default target
+verbose=false                 # true displays tar/untar progress
+use_bzip2=false               # Use tgz when compressing image
+pre_build_FS=false            # true meand generat4 pre-built FS
+aok_FS_do_compress=true       # compress FS at end of build_fs
 
 aok_files="${build_root_d}${aok_content}"
 
@@ -75,15 +75,15 @@ parse_arguments() { # Multi OK 1
         "-v" | "--verbose") verbose=true ;;
 
         "-d" | "--debian")
-            if [ "$build_env" = "$target_select" ]; then
+            if [ "$build_target" = "$target_select" ]; then
                 echo "-d and -s can not be combined!"
                 exit 1
             fi
-            build_env="$target_debian"
+            build_target="$target_debian"
             ;;
 
         "-s" | "--select")
-            if [ "$build_env" = "$target_debian" ]; then
+            if [ "$build_target" = "$target_debian" ]; then
                 echo "-d and -s can not be combined!"
                 exit 1
             fi
@@ -91,11 +91,11 @@ parse_arguments() { # Multi OK 1
                 echo "-p and -s can not be combined!"
                 exit 1
             fi
-            build_env="$target_select"
+            build_target="$target_select"
             ;;
 
         "-p" | "--prebuilt")
-            if [ "$build_env" = "$target_select" ]; then
+            if [ "$build_target" = "$target_select" ]; then
                 echo "-p and -s can not be combined!"
                 exit 1
             fi
@@ -142,16 +142,16 @@ ensure_usable_wget() {
     # msg_3 "ensure_usable_wget()  done"
 }
 
-display_build_env() { # Multi OK 1
+display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
     #
-    [ "$BUILD_ENV" -eq 1 ] && run_mode="Building on iSH"
-    [ "$BUILD_ENV" -eq 2 ] && run_mode="Building on x86 Linux"
+    [ "$build_env" -eq 1 ] && run_mode="Building on iSH"
+    [ "$build_env" -eq 2 ] && run_mode="Building on x86 Linux"
 
     if ! $pre_build_FS; then
         run_mode="Will not chroot"
-    elif [ "$BUILD_ENV" -eq 0 ]; then
+    elif [ "$build_env" -eq 0 ]; then
         echo "Unfortunately you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
         echo "Use another build option (try -h for help)"
@@ -188,18 +188,18 @@ display_build_env() { # Multi OK 1
     echo
 }
 
-clear_build_env() { # Multi OK 1
-    msg_2 "clear_build_env()"
+clear_build_target() { # Multi OK 1
+    msg_2 "clear_build_target()"
     #
     # Clear build env
     #
-    if ! rm -rf "$BUILD_BASE_D"; then
+    if ! rm -rf "$build_base_d"; then
         echo
-        echo "ERROR: Could not clear $BUILD_BASE_D"
+        echo "ERROR: Could not clear $build_base_d"
         echo
         exit 1
     fi
-    # msg_3 "clear_build_env() done"
+    # msg_3 "clear_build_target() done"
 }
 
 cache_fs_image() {
@@ -228,7 +228,7 @@ integrate_overrides() {
     conf_file="$1"
     case "$conf_file" in
 
-    AOK_VARS | BUILD_ENV) ;;
+    AOK_VARS | utils.sh) ;;
 
     *)
         echo "ERROR: integrate_overrides($conf_file) - bad param"
@@ -241,6 +241,7 @@ integrate_overrides() {
     dst_conf="$aok_files"/"$conf_file"
     overrides="$aok_content"/.AOK_VARS
     pattrn="###  override handling  ###"
+
     if [ -f "$overrides" ]; then
         #
         #  Skip
@@ -272,11 +273,10 @@ copy_AOK_to_dest() {
         --exclude=.gitmodules \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        --exclude=.BUILD_ENV \
         "$aok_content" "$build_root_d"/opt
 
     integrate_overrides AOK_VARS
-    integrate_overrides BUILD_ENV
+    integrate_overrides utils.sh
 
     chown -R root: "$aok_files"
     # msg_3 "copy_AOK_to_dest() done"
@@ -304,7 +304,7 @@ setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
     # by setting this as the first of two, this will become the default profile
     # when install is completed
-    select_profile "$PROFILE_ALPINE_SETUP_AOK"
+    select_profile "$profile_alpine_setup_aok"
 }
 
 # setup_Debian() {
@@ -321,7 +321,7 @@ select_distro_on_1st_boot() {
     #  the same.
     #
     [ -z "$PROFILE_DISTRO_SELECT_PREPARE" ] && error_msg "PROFILE_DISTRO_SELECT_PREPARE undefined"
-    if [ "$BUILD_ENV" -gt 0 ]; then
+    if [ "$build_target" -gt 0 ]; then
         msg_3 "chrooting: $PROFILE_DISTRO_SELECT_PREPARE"
         if ! "$aok_content"/tools/do_chroot.sh "$PROFILE_DISTRO_SELECT_PREPARE"; then
             error_msg "Error in chroot, aborting build!"
@@ -340,7 +340,7 @@ select_distro_on_1st_boot() {
 prebuild_fs() {
     msg_2 "prebuild_fs()"
 
-    if [ "$BUILD_ENV" -eq 0 ]; then
+    if [ "$build_env" -eq 0 ]; then
         msg_1 "Not possible to pre-build on this environment!"
         return
     fi
@@ -355,9 +355,9 @@ prebuild_fs() {
     "$aok_content"/tools/do_chroot.sh /etc/profile
     msg_1 "Returned from prebuild chroot"
 
-    if [ "$build_env" = "$target_alpine" ]; then
+    if [ "$build_target" = "$target_alpine" ]; then
         msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-        select_profile "$PROFILE_ALPINE_PRE_BUILT"
+        select_profile "$profile_alpine_pre_built"
         #
         #  Since some final steps need to run by the above profile
         #  mark the FS as in build state
@@ -381,9 +381,9 @@ consider_generating_tarball() {
         #
         #  Set name for tarball
         #
-        if [ "$build_env" = "$target_debian" ]; then
-            label="$DEBIAN_TB"
-        elif [ "$build_env" = "$target_select" ]; then
+        if [ "$build_target" = "$target_debian" ]; then
+            label="$debian_tb"
+        elif [ "$build_target" = "$target_select" ]; then
             label="$SELECT_DISTRO_TB"
         else
             label="$alpine_tb"
@@ -399,8 +399,8 @@ consider_generating_tarball() {
         fi
     fi
 
-    if [ "$BUILD_ENV" -gt 0 ]; then
-        if [ "$build_env" = "$target_debian" ]; then
+    if [ "$build_env" -gt 0 ]; then
+        if [ "$build_target" = "$target_debian" ]; then
             set_shell="/bin/sh"
         else
             set_shell="/bin/ash"
@@ -443,17 +443,17 @@ t_start="$(date +%s)"
 
 parse_arguments "$@"
 
-display_build_env
+display_build_target
 
 test -f "$additional_tasks_script" && notification_additional_tasks
 
 msg_2 "Preparing build environment"
 
-clear_build_env
+clear_build_target
 
-if [ "$build_env" = "$target_debian" ]; then
+if [ "$build_target" = "$target_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
-    src_tarball="$DEBIAN_SRC_TB"
+    src_tarball="$debian_src_tb"
 else
     src_image="$alpine_src_image"
     src_tarball="$alpine_src_tb"
@@ -476,9 +476,9 @@ rm "$build_root_d"/etc/motd
 msg_2 "create directory /iCloud inside new filesystem"
 mkdir "$build_root_d"/iCloud
 
-if [ "$build_env" = "$target_debian" ]; then
+if [ "$build_target" = "$target_debian" ]; then
     select_profile "$PROFILE_DEBIAN_SETUP_AOK"
-elif [ "$build_env" = "$target_select" ]; then
+elif [ "$build_target" = "$target_select" ]; then
     select_distro_on_1st_boot
 else
     setup_Alpine_on_1st_boot

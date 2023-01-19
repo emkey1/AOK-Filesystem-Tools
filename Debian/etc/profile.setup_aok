@@ -12,7 +12,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 "$aok_content"/Debian/setup_debian.sh
 

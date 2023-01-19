@@ -15,12 +15,12 @@ version="1.4.0a"
 
 #
 #  Ensure this is run in the intended location in case this was launched from
-#  somewhere else, this to ensure BUILD_ENV can be found
+#  somewhere else, this to ensure build_env can be found
 #
 cd /opt/AOK || exit 99
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 prog_name=$(basename "$0")
 
@@ -37,7 +37,7 @@ env_prepare() {
 
     mount -t proc proc "$CHROOT_TO"/proc
 
-    if [ "$BUILD_ENV" -eq 1 ]; then
+    if [ "$build_env" -eq 1 ]; then
         # msg_3 "Setting up needed /dev items"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
@@ -62,7 +62,7 @@ env_cleanup() {
     # msg_3 "Un-mounting system resources"
     umount "$CHROOT_TO"/proc
 
-    if [ "$BUILD_ENV" -eq 1 ]; then
+    if [ "$build_env" -eq 1 ]; then
         msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else

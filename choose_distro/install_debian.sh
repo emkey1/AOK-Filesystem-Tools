@@ -6,7 +6,7 @@
 #  shellcheck disable=SC2114,SC2154
 
 #  shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 tid_start="$(date +%s)"
 
@@ -33,7 +33,7 @@ mkdir -p "$debian_download_location"
 cd "$debian_download_location" || exit 99
 
 src_image="$DEBIAN_SRC_IMAGE"
-src_tarball="/$debian_download_location/$DEBIAN_SRC_TB"
+src_tarball="/$debian_download_location/$debian_src_tb"
 
 msg_2 "Downloading $src_image"
 wget "$src_image"

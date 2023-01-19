@@ -11,7 +11,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 make_cmd="$(command -v make)"
 if [ -x "$make_cmd" ]; then

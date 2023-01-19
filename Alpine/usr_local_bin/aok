@@ -10,12 +10,10 @@
 #
 version="0.2.3  2022-12-18"
 
-
 is_aok_kernel() {
-    grep -qi aok /proc/ish/version 2> /dev/null
+    grep -qi aok /proc/ish/version 2>/dev/null
     return $?
 }
-
 
 show_help() {
     cat <<EOF
@@ -34,7 +32,6 @@ Available options:
 EOF
     exit 0
 }
-
 
 sanity_check() {
     #
@@ -66,71 +63,65 @@ sanity_check() {
     unset login_busybox
 }
 
-
 change_login_procedure() {
     requested_method="$1"
 
     case "$requested_method" in
 
-        "once")
-            sanity_check
-            echo "Enabling login prompt, but only for initial login."
-            echo "  AOK app will exit when you logout"
-            ln -sf /bin/login.once /bin/login
-            exit 0
-            ;;
+    "once")
+        sanity_check
+        echo "Enabling login prompt, but only for initial login."
+        echo "  AOK app will exit when you logout"
+        ln -sf /bin/login.once /bin/login
+        exit 0
+        ;;
 
-        "enable")
-            sanity_check
-            echo "Enabling login prompt."
-            echo "  You will be prompted for your login name and password"
-            echo "  if one has been set when launching AOK"
-            ln -sf /bin/login.loop /bin/login
-            exit 0
-            ;;
+    "enable")
+        sanity_check
+        echo "Enabling login prompt."
+        echo "  You will be prompted for your login name and password"
+        echo "  if one has been set when launching AOK"
+        ln -sf /bin/login.loop /bin/login
+        exit 0
+        ;;
 
-        "disable")
-            #
-            #  Since we are choosing the safe option, no need for sanity check
-            #  That means in this case we should remove the previous login
-            #
-            echo "Disabling login prompt on startup. You will start at root prompt"
-            echo "  when launching AOK"
-            # shellcheck disable=SC2154
-            if [ -x "$LOGIN_ORIGINAL" ]; then
-                login_bin="$LOGIN_ORIGINAL"
-            else
-                login_bin="$login_busybox"
-            fi
-            rm -f /bin/login
-            ln -sf "$login_bin" /bin/login
-            exit 0
-            ;;
+    "disable")
+        #
+        #  Since we are choosing the safe option, no need for sanity check
+        #  That means in this case we should remove the previous login
+        #
+        echo "Disabling login prompt on startup. You will start at root prompt"
+        echo "  when launching AOK"
+        # shellcheck disable=SC2154
+        if [ -x "$login_original" ]; then
+            login_bin="$login_original"
+        else
+            login_bin="$login_busybox"
+        fi
+        rm -f /bin/login
+        ln -sf "$login_bin" /bin/login
+        exit 0
+        ;;
 
-        "")
-            echo
-            echo "ERROR: Missing param indicating new login procedure"
-            exit 1
-            ;;
+    "")
+        echo
+        echo "ERROR: Missing param indicating new login procedure"
+        exit 1
+        ;;
 
-        *)
-            echo
-            echo "ERROR: Bad param to change login procedure: $1"
-            exit 1
-            ;;
+    *)
+        echo
+        echo "ERROR: Bad param to change login procedure: $1"
+        exit 1
+        ;;
 
     esac
 }
 
-
 verbose=0
 prog_name=$(basename "$0")
 
-
 login_busybox="/bin/busybox"
-
-
-
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
@@ -143,16 +134,16 @@ fi
 while true; do
     case "$1" in
 
-    "" | "-h" | "--help" )
+    "" | "-h" | "--help")
         show_help
         ;;
 
-    "-V"  | "--version" )
+    "-V" | "--version")
         echo "$prog_name  $version"
         exit 0
         ;;
 
-    "-v" | "--verbose" )
+    "-v" | "--verbose")
         if [ "$verbose" -eq 0 ]; then
             echo "===  Enabling verbose mode  ==="
             verbose=1
@@ -163,7 +154,7 @@ while true; do
         fi
         ;;
 
-    "-l" | "--login" )
+    "-l" | "--login")
         change_login_procedure "$2"
         ;;
 
@@ -176,5 +167,5 @@ while true; do
 
     esac
     shift
-    [ -z "$1" ] && break  # no more options
+    [ -z "$1" ] && break # no more options
 done

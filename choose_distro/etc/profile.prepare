@@ -8,7 +8,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 #
 #  Needed in order to find dialog/newt in case they have been updated

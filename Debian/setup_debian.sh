@@ -23,7 +23,7 @@ if [ ! -d "/opt/AOK" ]; then
 fi
 
 #  shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 install_sshd() {
     #

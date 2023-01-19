@@ -224,9 +224,9 @@ should_icloud_be_mounted() {
     msg_2 "should_icloud_be_mounted()"
     if ! is_iCloud_mounted; then
         if [ -z "$(command -v whiptail)" ]; then
-            if [ -f "$FILE_ALPINE_RELEASE" ]; then
+            if [ -f "$file_alpine_release" ]; then
                 apk add newt # contains whiptail
-            elif [ -f "$FILE_DEBIAN_VERSION" ]; then
+            elif [ -f "$file_debian_version" ]; then
                 apt install whiptail
             else
                 error_msg "Unrecognized distro, aborting"
@@ -327,11 +327,11 @@ run_additional_tasks_if_found() {
 #  2 = Linux (x86)
 #
 if is_ish; then
-    BUILD_ENV=1
+    build_env=1
 elif uname -a | grep -qi linux && uname -a | grep -q x86; then
-    BUILD_ENV=2
+    build_env=2
 else
-    BUILD_ENV=0 # chroot not possible
+    build_env=0 # chroot not possible
 fi
 
 #
@@ -345,13 +345,13 @@ src_img_cache_d="/tmp/cache_AOK_images"
 #  If this is built on an iSH node, and iCloud is mounted, the image is
 #  copied to this location
 #
-ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
+icloud_archive_d="/iCloud/AOK_Archive"
 
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
 alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-DEBIAN_SRC_TB="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
+debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,
@@ -365,10 +365,10 @@ alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v$alpine_release/release
 #
 alpine_tb="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
 SELECT_DISTRO_TB="SelectDistro-iSH-AOK-$AOK_VERSION"
-DEBIAN_TB="Debian-iSH-AOK-$AOK_VERSION"
+debian_tb="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
-# DEBIAN_TB="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
+# debian_tb="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
 
 target_alpine="Alpine"
 target_debian="Debian"
@@ -396,7 +396,7 @@ STATUS_IS_CHROOTED="is_chrooted"
 STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
 
 #  Locations for building File systems
-BUILD_BASE_D="/tmp/AOK"
+build_base_d="/tmp/AOK"
 
 #
 #  temp value until we know if this is dest FS, so that build_root_d can
@@ -419,24 +419,18 @@ elif test -f "$build_status_RAW/$STATUS_PREBUILT_FS"; then
     # msg_3 "This is running on dest platform"
 else
     # msg_3 "Not chrooted, not dest platform"
-    build_root_d="$BUILD_BASE_D/iSH-AOK-FS"
+    build_root_d="$build_base_d/iSH-AOK-FS"
 fi
 
 #  Now the proper value can be set
 build_status="${build_root_d}${build_status_RAW}"
 
 #  Where to find native FS version
-FILE_ALPINE_RELEASE="$build_root_d"/etc/alpine-release
-FILE_DEBIAN_VERSION="$build_root_d"/etc/debian_version
+file_alpine_release="$build_root_d"/etc/alpine-release
+file_debian_version="$build_root_d"/etc/debian_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
-FILE_AOK_RELEASE="$build_root_d"/etc/aok-release
-
-#
-#  How long the introduction should be displayed when the system is setup
-#  during first boot
-#
-FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=15
+file_aok_release="$build_root_d"/etc/aok-release
 
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
@@ -449,12 +443,12 @@ additional_tasks_script="$build_root_d/opt/additional_tasks"
 #  Lastly the final profiles, depending on Distribution
 #  Using variables in order to only have to assign filenames in one place
 #
-PROFILE_ALPINE_PRE_BUILT="$aok_content"/Alpine/etc/profile.prebuilt-FS
-PROFILE_ALPINE_SETUP_AOK="$aok_content"/Alpine/etc/profile.setup_aok
+profile_alpine_pre_built="$aok_content"/Alpine/etc/profile.prebuilt-FS
+profile_alpine_setup_aok="$aok_content"/Alpine/etc/profile.setup_aok
 PROFILE_DISTRO_SELECT_PREPARE="$aok_content"/choose_distro/etc/profile.prepare
 PROFILE_DISTRO_SELECT="$aok_content"/choose_distro/etc/profile.select_distro
 PROFILE_DEBIAN_SETUP_AOK="$aok_content"/Debian/etc/profile.setup_aok
-PROFILE_ALPINE="$aok_content"/Alpine/etc/profile
+profile_alpine="$aok_content"/Alpine/etc/profile
 PROFILE_DEBIAN="$aok_content"/Debian/etc/profile
 
 #
@@ -462,7 +456,7 @@ PROFILE_DEBIAN="$aok_content"/Debian/etc/profile
 #  than a soft-link to /bin/busybox, it will be renamed to this,
 #  so it can be selected later.
 #
-LOGIN_ORIGINAL="/bin/login.alpine"
+login_original="/bin/login.alpine"
 
 #
 #  Alpine related build env
@@ -480,7 +474,7 @@ SETUP_CHOOSE_DISTRO_PREPARE="$aok_content"/choose_distro/select_distro-prepare.s
 
 # =====================================================================
 #
-#  Local overrides, ignored by git. They will be appended to BUILD_ENV
+#  Local overrides, ignored by git. They will be appended to build_env
 #  for the deployed image if found.
 #  This is intended for debuging and testing, and appends the same
 #  override file as in AOK_VARS, to ensure overrides to settings here

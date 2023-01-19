@@ -71,7 +71,7 @@ checkables=(
     Debian/setup_debian.sh
 
     AOK_VARS
-    BUILD_ENV
+    build_env
     build_fs
     compress_image
 )
@@ -91,7 +91,7 @@ fi
 if [[ -n "${do_checkbashisms}" ]]; then
     printf "%s " "checkbashisms"
     #  shellcheck disable=SC2154
-    if [[ "$BUILD_ENV" -eq 1 ]]; then
+    if [[ "$build_env" -eq 1 ]]; then
         if checkbashisms --version | grep -q 2.21; then
             echo
             echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
