@@ -23,33 +23,21 @@
 
 post_boot_log=/var/log/post_boot.log
 
-# aok_content="/opt/AOK"
-# if [ -f "$aok_content"/BUILD_ENV ]; then
-#     # shellcheck disable=SC1091
-#     . "$aok_content"/BUILD_ENV
-# else
-#     echo
-#     echo "ERROR: /usr/local/sbin/post_boot.sh Could not find $aok_content/BUILD_ENV"
-#     echo "       This should never happen..."
-#     echo
-# fi
-
 respawn_it() {
     tmp_log_file="/tmp/post_boot-$$"
 
-    $0 will_run > "$tmp_log_file" 2>&1
+    $0 will_run >"$tmp_log_file" 2>&1
 
     # only keep tmp log if not empty
     log_size="$(/bin/ls -s "$tmp_log_file" | awk '{ print $1 }')"
     if [ "$log_size" -ne 0 ]; then
-        echo "---  $(date) ($$)  ---" >> "$post_boot_log"
-        cat "$tmp_log_file" >> "$post_boot_log"
+        echo "---  $(date) ($$)  ---" >>"$post_boot_log"
+        cat "$tmp_log_file" >>"$post_boot_log"
     fi
     rm "$tmp_log_file"
     # shellcheck disable=SC2317
     exit 0
 }
-
 
 #
 #  If run with no parameters, respawn with output going to $post_boot_log,

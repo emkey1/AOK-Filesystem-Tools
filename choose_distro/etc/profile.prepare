@@ -8,7 +8,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 #
 #  Needed in order to find dialog/newt in case they have been updated
@@ -20,4 +20,4 @@ msg_3 "Installing newt (whiptail) & wget (needed for Debian download)"
 apk add newt wget
 
 # shellcheck disable=SC2154
-bldstat_set "$STATUS_SELECT_DISTRO_PREPARED"
+bldstat_set "$status_select_distro_prepared"

@@ -12,23 +12,23 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 setup_environment() {
 
     #  Announce what AOK release this is
-    msg_2 "Set $FILE_AOK_RELEASE to $AOK_VERSION"
-    echo "$AOK_VERSION" >"$FILE_AOK_RELEASE"
+    msg_2 "Set $file_aok_release to $AOK_VERSION"
+    echo "$AOK_VERSION" >"$file_aok_release"
 
     msg_2 "copy some /etc files"
-    sed "s/AOK_VERSION/$AOK_VERSION/" "$AOK_CONTENT"/common_AOK/etc/issue >/etc/issue
+    sed "s/AOK_VERSION/$AOK_VERSION/" "$aok_content"/common_AOK/etc/issue >/etc/issue
     msg_2 "Adding runbg service"
-    cp -a "$AOK_CONTENT"/common_AOK/etc/init.d/runbg /etc/init.d
+    cp -a "$aok_content"/common_AOK/etc/init.d/runbg /etc/init.d
     # openrc_might_trigger_errors
     rc-update add runbg default
 
     msg_2 "Populate /etc/skel"
-    cp -a "$AOK_CONTENT"/common_AOK/etc/skel /etc
+    cp -a "$aok_content"/common_AOK/etc/skel /etc
 
     # Move sshd to port 1022 to avoid issues
     sshd_port=1022
@@ -40,7 +40,7 @@ setup_environment() {
     copy_local_bins common_AOK
 
     msg_2 "Activating group sudo for no passwd sudo"
-    cp "$AOK_CONTENT"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
+    cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
     chmod 440 /etc/sudoers.d/sudo_no_passwd
 
     #
@@ -64,7 +64,7 @@ setup_environment() {
 }
 
 setup_login() {
-    if [ -f "$FILE_DEBIAN_VERSION" ]; then
+    if [ -f "$file_debian_version" ]; then
         # -> For now Debian login is not altered
         return
     fi
@@ -74,9 +74,9 @@ setup_login() {
     #  will use the default loging that should work on all platforms.
     #
     msg_2 "Install AOK login methods"
-    cp "$AOK_CONTENT"/Alpine/bin/login.loop /bin
+    cp "$aok_content"/Alpine/bin/login.loop /bin
     chmod +x /bin/login.loop
-    cp "$AOK_CONTENT"/Alpine/bin/login.once /bin
+    cp "$aok_content"/Alpine/bin/login.once /bin
     chmod +x /bin/login.once
 
     #
@@ -85,7 +85,7 @@ setup_login() {
     if [ -x /bin/login ] && [ ! -L /bin/login ]; then
         #  If it is a file, assume it to be the shadow login binary, save it
         #  so that it can be selected later
-        mv /bin/login "$LOGIN_ORIGINAL"
+        mv /bin/login "$login_original"
     fi
 
     #  For now use a safe method, if supported the requested method will be
@@ -139,7 +139,7 @@ user_ish() {
     copy_skel_files ~ish
 
     mkdir ~ish/Docs
-    cp -r "$AOK_CONTENT"/Docs/* ~ish/Docs
+    cp -r "$aok_content"/Docs/* ~ish/Docs
 
     # set ownership
     chown -R ish: ~ish

@@ -17,7 +17,7 @@ prog_name=$(basename "$0")
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
 #
 #  shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 use_bzip2=false
 verbose=false
@@ -82,36 +82,36 @@ if [ "$(whoami)" != "root" ]; then
     error_msg "This must be run as root or using sudo!"
 fi
 
-if [ ! -d "$BUILD_ROOT_D" ]; then
-    error_msg "No image built yet, [$BUILD_ROOT_D]!"
+if [ ! -d "$build_root_d" ]; then
+    error_msg "No image built yet, [$build_root_d]!"
 fi
 
-if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
     error_msg "Active chroot session detected!"
 fi
 
 #
 #  Since the general default action is to create
-#  Alpine images, use the ALPINE_TB name if non is provided
+#  Alpine images, use the alpine_tb name if non is provided
 #
 if [ -z "$tar_name" ]; then
-    tarball="$ALPINE_TB"
+    tarball="$alpine_tb"
 else
     tarball="${tar_name}"
 fi
 
 # set location
-tarball="$BUILD_BASE_D/$tarball"
+tarball="$build_base_d/$tarball"
 
 # echo "removing temp /dev items"
-# rm  -f "$BUILD_ROOT_D"/dev/*
+# rm  -f "$build_root_d"/dev/*
 
 msg_1 "Creating image"
 
 #
 # Tar up and zip the result
 #
-cd "$BUILD_ROOT_D" || exit 99
+cd "$build_root_d" || exit 99
 
 if $use_bzip2; then
     opts="cfj"
@@ -131,9 +131,9 @@ tar "$opts" "$tarball" .
 # copy it to /iCloud if this runs on iSH
 #
 if is_ish; then
-    msg_2 "Copying image into $ICLOUD_ARCHIVE_D"
-    mkdir -p "$ICLOUD_ARCHIVE_D"
-    cp "$tarball" "$ICLOUD_ARCHIVE_D"
+    msg_2 "Copying image into $icloud_archive_d"
+    mkdir -p "$icloud_archive_d"
+    cp "$tarball" "$icloud_archive_d"
 fi
 
 msg_1 "Image is ready: $tarball"

@@ -23,7 +23,7 @@ if [ ! -d "/opt/AOK" ]; then
 fi
 
 #  shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 install_sshd() {
     #
@@ -51,7 +51,7 @@ install_sshd() {
 
 tsd_start="$(date +%s)"
 
-start_setup "Debian: $(cat /etc/debian_version)"
+start_setup Debian "$(cat /etc/debian_version)"
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -59,7 +59,7 @@ if test -f /AOK; then
 fi
 
 msg_2 "Installing custom inittab"
-cp -a "$AOK_CONTENT"/Debian/etc/inittab /etc
+cp -a "$aok_content"/Debian/etc/inittab /etc
 
 #
 #  Most of the Debian services, mounting fs, setting up networking etc
@@ -71,14 +71,14 @@ rm /etc/runlevels/*/* -f
 
 msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
 mkdir -p /etc/update-motd.d
-cp -a "$AOK_CONTENT"/Debian/etc/update-motd.d/* /etc/update-motd.d
+cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
 #
 #  This must run before any task doing apt actions
 #
 if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_2 "Installing sources.list"
-    cp "$AOK_CONTENT"/Debian/etc/apt_sources.list /etc/apt/sources.list
+    cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
     msg_2 "apt update"
     apt update -y
@@ -103,11 +103,11 @@ fi
 #
 #  Common deploy, used both for Alpine & Debian
 #
-msg_1 "Running $SETUP_COMMON_AOK"
-"$SETUP_COMMON_AOK"
+msg_1 "Running $setup_common_aok"
+"$setup_common_aok"
 
 #
-#  This is installed by $SETUP_COMMON_AOK, so must come after that!
+#  This is installed by $setup_common_aok, so must come after that!
 #  Ensure hostname is in /etc/hosts
 #  This will be run from inittab each time this boots, so if name is
 #  changed in iOS, the new name will be bound to 127.0.0.1
@@ -148,9 +148,9 @@ rc-update del rsync default
 msg_1 "Setup complete!"
 echo
 
-bldstat_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$status_being_built"
 
-select_profile "$PROFILE_DEBIAN"
+select_profile "$profile_debian"
 
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
@@ -158,7 +158,7 @@ unset duration
 
 run_additional_tasks_if_found
 
-if bldstat_get "$STATUS_PREBUILT_FS"; then
+if bldstat_get "$status_prebuilt_fs"; then
     msg_2 "Clear apt cache on pre-built FS, saves some 50MB on the tarball"
     rm /var/cache/apt /var/lib/apt -rf
 fi

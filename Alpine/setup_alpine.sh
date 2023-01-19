@@ -20,14 +20,14 @@ if [ ! -d "/opt/AOK" ]; then
 fi
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 install_apks() {
     if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
 
         #  busybox-extras no longer a package starting with 3.16, so delete if present
-        if [ "$(awk 'BEGIN{print ('"$ALPINE_RELEASE"' > 3.15)}')" -eq 1 ]; then
+        if [ "$(awk 'BEGIN{print ('"$alpine_release"' > 3.15)}')" -eq 1 ]; then
             msg_3 "Removing busybox-extras from core apks, not available past 3.15"
             CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
         fi
@@ -47,7 +47,7 @@ install_apks() {
         fi
     fi
 
-    if [ "$BUILD_ENV" -eq 1 ] && ! is_aok_kernel; then
+    if [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
         msg_2 "Skipping AOK only packages on non AOK kernels"
     elif [ -n "$AOK_APKS" ]; then
         #  Only deploy on aok kernels and if any are defined
@@ -64,10 +64,10 @@ replace_key_files() {
     msg_2 "Replacing a few /etc files"
 
     msg_3 "Our inittab"
-    cp "$AOK_CONTENT"/Alpine/etc/inittab /etc
+    cp "$aok_content"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
-    cp "$AOK_CONTENT"/Alpine/etc/interfaces /etc/network
+    cp "$aok_content"/Alpine/etc/interfaces /etc/network
 
     msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
     ln /etc/init.d/devfs /etc/init.d/dev
@@ -76,7 +76,7 @@ replace_key_files() {
     # current limitations in iSH So we fake it out
     # rm /etc/init.d/networking
 
-    case "$ALPINE_RELEASE" in
+    case "$alpine_release" in
 
     "3.14")
         #
@@ -84,7 +84,7 @@ replace_key_files() {
         #  optional, so that the ish user will work in Alpine 3.14
         #
         msg_3 "Replacing /etc/pam.d for 3.14"
-        $cp "$AOK_CONTENT"/Alpine/etc/pam.d/* /etc/pam.d
+        $cp "$aok_content"/Alpine/etc/pam.d/* /etc/pam.d
         ;;
 
     *) ;;
@@ -100,14 +100,14 @@ replace_key_files() {
 
 tsa_start="$(date +%s)"
 
-start_setup "Alpine: $ALPINE_VERSION"
+start_setup Alpine "$ALPINE_VERSION"
 
-if [ -z "$ALPINE_RELEASE" ]; then
-    error_msg "ALPINE_RELEASE param not supplied"
+if [ -z "$alpine_release" ]; then
+    error_msg "alpine_release param not supplied"
 fi
 
-msg_2 "Setting $FILE_ALPINE_RELEASE to $ALPINE_VERSION"
-echo "$ALPINE_VERSION" >"$FILE_ALPINE_RELEASE"
+msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
+echo "$ALPINE_VERSION" >"$file_alpine_release"
 
 msg_2 "apk update"
 apk update
@@ -122,7 +122,7 @@ install_apks
 replace_key_files
 
 msg_2 "Copy /etc/motd_template"
-cp -a "$AOK_CONTENT"/Alpine/etc/motd_template /etc
+cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
 msg_2 "adding pkg shadow & group sudo"
 apk add shadow
@@ -143,16 +143,16 @@ if apk info -e dcron >/dev/null; then
     rc-update add dcron default
     rc-service dcron start
     msg_3 "Setting dcron for checking every 15 mins"
-    cp "$AOK_CONTENT"/Alpine/cron/15min/* /etc/periodic/15min
+    cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
 fi
 
-msg_1 "Running $SETUP_COMMON_AOK"
-"$SETUP_COMMON_AOK"
+msg_1 "Running $setup_common_aok"
+"$setup_common_aok"
 
-msg_1 "running $SETUP_ALPINE_FINAL"
-"$SETUP_ALPINE_FINAL"
+msg_1 "running $setup_alpine_final"
+"$setup_alpine_final"
 
-select_profile "$PROFILE_ALPINE"
+select_profile "$profile_alpine"
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"

@@ -11,20 +11,20 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 tcd_start="$(date +%s)"
 
 # dialog_app="dialog --erase-on-exit"
 dialog_app="whiptail"
 
-if ! bldstat_get "$STATUS_SELECT_DISTRO_PREPARED"; then
-    msg_1 "Need to run $SETUP_CHOOSE_DISTRO_PREPARE"
-    "$SETUP_CHOOSE_DISTRO_PREPARE"
+if ! bldstat_get "$status_select_distro_prepared"; then
+    msg_1 "Need to run $setup_select_distro_prepare"
+    "$setup_select_distro_prepare"
 else
-    msg_1 "$SETUP_CHOOSE_DISTRO_PREPARE alredy done"
+    msg_1 "$setup_select_distro_prepare alredy done"
 fi
-bldstat_clear "$STATUS_SELECT_DISTRO_PREPARED"
+bldstat_clear "$status_select_distro_prepared"
 
 #
 #  Ensure TERM is sensible, tmux and ch-rooting tends to leave it in a state
@@ -54,7 +54,7 @@ fi
 
 text="Alpine is the regular AOK FS,
 fully stable. This will install
-Alpine $ALPINE_RELEASE
+Alpine $alpine_release
 
 Debian is experimental, not yet stable,
 this is version 10 (Buster).
@@ -75,14 +75,14 @@ exitstatus=$?
 if [ "$exitstatus" -eq 0 ]; then
     # Alpine selected
     echo
-    msg_1 "running $SETUP_ALPINE_FS"
-    "$SETUP_ALPINE_FS"
+    msg_1 "running $setup_alpine_fs"
+    "$setup_alpine_fs"
 else
-    test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
-    "$AOK_CONTENT"/choose_distro/install_debian.sh
+    test -f "$additional_tasks_script" && notification_additional_tasks
+    "$aok_content"/choose_distro/install_debian.sh
 fi
 
-bldstat_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$status_being_built"
 
 duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"

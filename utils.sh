@@ -15,10 +15,10 @@
 #  To make things simple, this is the expected location for AOK-Filesystem-tools
 #  both on build and iSH systems
 #
-AOK_CONTENT="/opt/AOK"
+aok_content="/opt/AOK"
 
 #  shellcheck disable=SC1091
-. "$AOK_CONTENT"/AOK_VARS || exit 1
+. "$aok_content"/AOK_VARS || exit 1
 
 #
 #  Display an error message, second optional param is exit code,
@@ -118,14 +118,14 @@ display_time_elapsed() {
 bldstat_set() {
     # msg_3 "build_staus_set($1)"
     [ -z "$1" ] && error_msg "bldstat_set() no param"
-    mkdir -p "$BUILD_STATUS"
-    touch "$BUILD_STATUS/$1"
+    mkdir -p "$build_status"
+    touch "$build_status/$1"
 }
 
 bldstat_get() {
     # msg_3 "build_staus_get($1)"
     [ -z "$1" ] && error_msg "bldstat_get() no param"
-    test -f "$BUILD_STATUS/$1"
+    test -f "$build_status/$1"
     exitstatus="$?"
     case "$exitstatus" in
 
@@ -140,14 +140,14 @@ bldstat_get() {
 bldstat_clear() {
     # msg_3 "bldstat_clear($1)"
     if [ -n "$1" ]; then
-        fname="$BUILD_STATUS/$1"
+        fname="$build_status/$1"
         rm -f "$fname"
         # msg_3 "Cleared $fname"
         unset fname
     fi
-    if [ "$(find "$BUILD_STATUS"/ 2>/dev/null | wc -l)" -le 1 ]; then
-        rm "$BUILD_STATUS" -rf
-        msg_3 "Cleared entire $BUILD_STATUS"
+    if [ "$(find "$build_status"/ 2>/dev/null | wc -l)" -le 1 ]; then
+        rm "$build_status" -rf
+        msg_3 "Cleared entire $build_status"
     fi
 }
 
@@ -158,13 +158,13 @@ select_profile() {
         error_msg "select_profile() - no param"
     fi
     msg_3 "Selecting profile: $replacement_profile"
-    cp -a "$replacement_profile" "$BUILD_ROOT_D"/etc/profile
+    cp -a "$replacement_profile" "$build_root_d"/etc/profile
     #
     #  Normaly profile is sourced, but in order to be able to directly
     #  run it if manually triggering a deploy, make it executable
     #
-    chmod 744 "$BUILD_ROOT_D"/etc/profile
-    chown root: "$BUILD_ROOT_D"/etc/profile
+    chmod 744 "$build_root_d"/etc/profile
+    chown root: "$build_root_d"/etc/profile
     unset replacement_profile
 }
 
@@ -172,7 +172,7 @@ create_fs() {
     # msg_2 "create_fs()"
     tarball="$1"
     [ -z "$tarball" ] && error_msg "cache_fs_image() no taball supplied"
-    fs_location="${2:-$BUILD_ROOT_D}"
+    fs_location="${2:-$build_root_d}"
     verb="${3:-false}"
     if $verb; then # verbose mode
         verb="v"
@@ -194,7 +194,7 @@ create_fs() {
         echo "ERROR: Failed to untar image"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$SRC_IMG_CACHE_D/$src_tarball"
+        echo "$src_img_cache_d/$src_tarball"
         exit 1
     }
     unset tarball
@@ -224,9 +224,9 @@ should_icloud_be_mounted() {
     msg_2 "should_icloud_be_mounted()"
     if ! is_iCloud_mounted; then
         if [ -z "$(command -v whiptail)" ]; then
-            if [ -f "$FILE_ALPINE_RELEASE" ]; then
+            if [ -f "$file_alpine_release" ]; then
                 apk add newt # contains whiptail
-            elif [ -f "$FILE_DEBIAN_VERSION" ]; then
+            elif [ -f "$file_debian_version" ]; then
                 apt install whiptail
             else
                 error_msg "Unrecognized distro, aborting"
@@ -251,28 +251,29 @@ should_icloud_be_mounted() {
 
 start_setup() {
     distro_name="$1"
-    if [ -z "$distro_name" ]; then
-        error_msg "call to start_setup() without param!"
-    fi
+    [ -z "$distro_name" ] && error_msg "start_setup() no distro_name provided"
+    vers_info="$2"
+    [ -z "$vers_info" ] && error_msg "start_setup() no vers_info provided"
 
-    test -f "$ADDITIONAL_TASKS_SCRIPT" && notification_additional_tasks
+    test -f "$additional_tasks_script" && notification_additional_tasks
 
     ! is_iCloud_mounted && iCloud_mount_prompt_notification
 
-    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for $distro_name"
+    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${distro_name}: $vers_info"
 
     if [ "$QUICK_DEPLOY" -ne 0 ]; then
         echo
         echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
     fi
 
-    if ! bldstat_get "$STATUS_IS_CHROOTED"; then
+    if ! bldstat_get "$status_is_chrooted"; then
         msg_3 "iSH now able to run in the background"
         cat /dev/location >/dev/null &
     fi
 
     copy_local_bins "$distro_name"
     unset distro_name
+    unset vers_info
 }
 
 copy_local_bins() {
@@ -285,23 +286,23 @@ copy_local_bins() {
 
     msg_3 "Add $src_dir AOK-FS stuff to /usr/local/bin"
     mkdir -p /usr/local/bin
-    cp "$AOK_CONTENT"/"$src_dir"/usr_local_bin/* /usr/local/bin
+    cp "$aok_content"/"$src_dir"/usr_local_bin/* /usr/local/bin
     chmod +x /usr/local/bin/*
 
     msg_3 "Add $src_dir AOK-FS stuff to /usr/local/sbin"
     mkdir -p /usr/local/sbin
-    cp "$AOK_CONTENT"/"$src_dir"/usr_local_sbin/* /usr/local/sbin
+    cp "$aok_content"/"$src_dir"/usr_local_sbin/* /usr/local/sbin
     chmod +x /usr/local/sbin/*
     echo
     unset src_dir
 }
 
 notification_additional_tasks() {
-    if [ -f "$ADDITIONAL_TASKS_SCRIPT" ]; then
+    if [ -f "$additional_tasks_script" ]; then
         msg_2 "notification_additional_tasks()"
         echo "At the end of the install, this will be run:"
         echo "--------------------"
-        cat "$ADDITIONAL_TASKS_SCRIPT"
+        cat "$additional_tasks_script"
         echo "--------------------"
         echo
     fi
@@ -310,10 +311,10 @@ notification_additional_tasks() {
 
 run_additional_tasks_if_found() {
     # msg_2 "run_additional_tasks_if_found()"
-    if [ -x "$ADDITIONAL_TASKS_SCRIPT" ]; then
+    if [ -x "$additional_tasks_script" ]; then
         msg_1 "Running additional setup tasks"
         echo
-        "$ADDITIONAL_TASKS_SCRIPT" && rm "$ADDITIONAL_TASKS_SCRIPT"
+        "$additional_tasks_script" && rm "$additional_tasks_script"
         echo
     fi
     # msg_2 "run_additional_tasks_if_found()  done"
@@ -326,11 +327,11 @@ run_additional_tasks_if_found() {
 #  2 = Linux (x86)
 #
 if is_ish; then
-    BUILD_ENV=1
+    build_env=1
 elif uname -a | grep -qi linux && uname -a | grep -q x86; then
-    BUILD_ENV=2
+    build_env=2
 else
-    BUILD_ENV=0 # chroot not possible
+    build_env=0 # chroot not possible
 fi
 
 #
@@ -338,36 +339,36 @@ fi
 #
 
 #  Location for src images
-SRC_IMG_CACHE_D="/tmp/cache_AOK_images"
+src_img_cache_d="/tmp/cache_AOK_images"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
 #  copied to this location
 #
-ICLOUD_ARCHIVE_D="/iCloud/AOK_Archive"
+icloud_archive_d="/iCloud/AOK_Archive"
 
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-ALPINE_SRC_TB="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
-DEBIAN_SRC_TB="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
+alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,
 #  gives something like 3.14
-ALPINE_RELEASE="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-ALPINE_SRC_IMAGE="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$ALPINE_SRC_TB"
+alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v$alpine_release/releases/x86/$alpine_src_tb"
 
 #
 #  Names of the generated distribution tarballs, no ext, that is ecided
 #  upon during compression
 #
-ALPINE_TB="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-SELECT_DISTRO_TB="SelectDistro-iSH-AOK-$AOK_VERSION"
-DEBIAN_TB="Debian-iSH-AOK-$AOK_VERSION"
+alpine_tb="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
+select_distro_tb="SelectDistro-iSH-AOK-$AOK_VERSION"
+debian_tb="Debian-iSH-AOK-$AOK_VERSION"
 #  alternate name, using the name of the tarball as prefix
 #  more informative, but is a bit long to display in iOS
-# DEBIAN_TB="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
+# debian_tb="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
 
 target_alpine="Alpine"
 target_debian="Debian"
@@ -378,90 +379,84 @@ target_select="select"
 #
 
 #  Indicator this is an env being built
-STATUS_BEING_BUILT="env_beeing_built"
+status_being_built="env_beeing_built"
 #
 #  Select distro has been prepared, ie the prepare sterp does not to be
 #  run during deploy
 #
-STATUS_SELECT_DISTRO_PREPARED="select_distro_prepared"
+status_select_distro_prepared="select_distro_prepared"
 #  This is chrooted
-STATUS_IS_CHROOTED="is_chrooted"
+status_is_chrooted="is_chrooted"
 
 #
 #  Hint to /profile that this was a pre-built FS, meaning /etc/profile
 #  should not wait for $FIRST_BOOT_NOT_DONE_HINT to disappear, and
 #  post_boot.sh should not run (from inittab) /etc/profile will
 #
-STATUS_PREBUILT_FS="prebuilt_fs_first_boot"
+status_prebuilt_fs="prebuilt_fs_first_boot"
 
 #  Locations for building File systems
-BUILD_BASE_D="/tmp/AOK"
+build_base_d="/tmp/AOK"
 
 #
-#  temp value until we know if this is dest FS, so that BUILD_ROOT_D can
+#  temp value until we know if this is dest FS, so that build_root_d can
 #  be selected
 #
-BUILD_STATUS_RAW="/etc/opt/AOK"
+build_status_raw="/etc/opt/AOK"
 
 #
-#  STATUS_BEING_BUILT and BUILD_STATUS, used by bldstat_get()
+#  status_being_built and build_status, used by bldstat_get()
 #  must be defined before this
 #
-if bldstat_get "$STATUS_IS_CHROOTED"; then
-    BUILD_ROOT_D=""
+if bldstat_get "$status_is_chrooted"; then
+    build_root_d=""
     # msg_3 "This is chrooted"
-elif test -f "$BUILD_STATUS_RAW/$STATUS_BEING_BUILT"; then
-    BUILD_ROOT_D=""
+elif test -f "$build_status_raw/$status_being_built"; then
+    build_root_d=""
     # msg_3 "This is running on dest platform"
-elif test -f "$BUILD_STATUS_RAW/$STATUS_PREBUILT_FS"; then
-    BUILD_ROOT_D=""
+elif test -f "$build_status_raw/$status_prebuilt_fs"; then
+    build_root_d=""
     # msg_3 "This is running on dest platform"
 else
     # msg_3 "Not chrooted, not dest platform"
-    BUILD_ROOT_D="$BUILD_BASE_D/iSH-AOK-FS"
+    build_root_d="$build_base_d/iSH-AOK-FS"
 fi
 
 #  Now the proper value can be set
-BUILD_STATUS="${BUILD_ROOT_D}${BUILD_STATUS_RAW}"
+build_status="${build_root_d}${build_status_raw}"
 
 #  Where to find native FS version
-FILE_ALPINE_RELEASE="$BUILD_ROOT_D"/etc/alpine-release
-FILE_DEBIAN_VERSION="$BUILD_ROOT_D"/etc/debian_version
+file_alpine_release="$build_root_d"/etc/alpine-release
+file_debian_version="$build_root_d"/etc/debian_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
-FILE_AOK_RELEASE="$BUILD_ROOT_D"/etc/aok-release
-
-#
-#  How long the introduction should be displayed when the system is setup
-#  during first boot
-#
-FIRST_BOOT_INTRODUCTION_DISPLAY_TIME=15
+file_aok_release="$build_root_d"/etc/aok-release
 
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
 #  FIRST_BOOT_ADDITIONAL_TASKS
 #
-ADDITIONAL_TASKS_SCRIPT="$BUILD_ROOT_D/opt/additional_tasks"
+additional_tasks_script="$build_root_d/opt/additional_tasks"
 
 #
 #  First profiles used during boot to finalize setup
 #  Lastly the final profiles, depending on Distribution
 #  Using variables in order to only have to assign filenames in one place
 #
-PROFILE_ALPINE_PRE_BUILT="$AOK_CONTENT"/Alpine/etc/profile.prebuilt-FS
-PROFILE_ALPINE_SETUP_AOK="$AOK_CONTENT"/Alpine/etc/profile.setup_aok
-PROFILE_DISTRO_SELECT_PREPARE="$AOK_CONTENT"/choose_distro/etc/profile.prepare
-PROFILE_DISTRO_SELECT="$AOK_CONTENT"/choose_distro/etc/profile.select_distro
-PROFILE_DEBIAN_SETUP_AOK="$AOK_CONTENT"/Debian/etc/profile.setup_aok
-PROFILE_ALPINE="$AOK_CONTENT"/Alpine/etc/profile
-PROFILE_DEBIAN="$AOK_CONTENT"/Debian/etc/profile
+profile_alpine_pre_built="$aok_content"/Alpine/etc/profile.prebuilt-FS
+profile_alpine_setup_aok="$aok_content"/Alpine/etc/profile.setup_aok
+profile_distro_select_prepare="$aok_content"/choose_distro/etc/profile.prepare
+profile_distro_select="$aok_content"/choose_distro/etc/profile.select_distro
+profile_debian_setup_aok="$aok_content"/Debian/etc/profile.setup_aok
+profile_alpine="$aok_content"/Alpine/etc/profile
+profile_debian="$aok_content"/Debian/etc/profile
 
 #
 #  After all packages are installed, if /bin/login was something other
 #  than a soft-link to /bin/busybox, it will be renamed to this,
 #  so it can be selected later.
 #
-LOGIN_ORIGINAL="/bin/login.alpine"
+login_original="/bin/login.alpine"
 
 #
 #  Alpine related build env
@@ -471,15 +466,15 @@ LOGIN_ORIGINAL="/bin/login.alpine"
 #  Either run this script chrooted if the host OS supports it, or run it
 #  inside iSH-AOK once it has booted this FS
 #
-SETUP_ALPINE_FS="$AOK_CONTENT"/Alpine/setup_alpine.sh
-SETUP_ALPINE_FINAL="$AOK_CONTENT"/Alpine/setup_alpine_final_tasks.sh
-SETUP_DEBIAN="$AOK_CONTENT"/Debian/setup_debian.sh
-SETUP_COMMON_AOK="$AOK_CONTENT"/common_AOK/setup_common_env.sh
-SETUP_CHOOSE_DISTRO_PREPARE="$AOK_CONTENT"/choose_distro/select_distro-prepare.sh
+setup_alpine_fs="$aok_content"/Alpine/setup_alpine.sh
+setup_alpine_final="$aok_content"/Alpine/setup_alpine_final_tasks.sh
+setup_debian_scr="$aok_content"/Debian/setup_debian.sh
+setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
+setup_select_distro_prepare="$aok_content"/choose_distro/select_distro-prepare.sh
 
 # =====================================================================
 #
-#  Local overrides, ignored by git. They will be appended to BUILD_ENV
+#  Local overrides, ignored by git. They will be appended to build_env
 #  for the deployed image if found.
 #  This is intended for debuging and testing, and appends the same
 #  override file as in AOK_VARS, to ensure overrides to settings here

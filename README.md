@@ -24,14 +24,13 @@ arround 6MB, a pre-built AOK Alpine FS is something like 50MB.
 With Debian the difference in size will be less noticeable, it goes
 from 125MB to 175MB
 
-
 ## Configuration
 
 Settings are in AOK_VARS
 
 You can override this with local settings in .AOK_VARS, it will be
 ignored by git. Please note that if this file is found,
-it's content will be appended to the destination AOK_VARS/BUILD_ENV,
+it's content will be appended to the destination AOK_VARS/build_env,
 so motly for devel/debug. For production style deploys, it is recomended
 to update AOK_VARS and not have a .AOK_VARS present.
 
@@ -78,7 +77,7 @@ setup procedure on it by prepping it on a more capable device like this:
 Be aware you can't cut-paste the entire sequence, since the exit needs
 to be given to the chrooted process!
 
-```
+```bash
 cd /opt/AOK
 sudo ./build_fs -d -N
 sudo ./tools/do_chroot.sh /etc/profile
@@ -111,7 +110,9 @@ Therefore /run/openrc is removed via /etc/inittab during sysinit
 in order to not trick openrc that services are already running.
 
 Services initially active
+
 - runbg
+
 sshd is toggled by running: enable_sshd / disable_sshd
 
 ### Generic Debian Services found to be working inside iSH

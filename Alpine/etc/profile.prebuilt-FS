@@ -18,7 +18,7 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 msg_1 "Running first boot tasks on prebuilt Alpine FS"
 
@@ -31,9 +31,9 @@ if ! is_aok_kernel; then
     apk del $AOK_APKS
 fi
 
-select_profile "$PROFILE_ALPINE"
+select_profile "$profile_alpine"
 
-bldstat_clear "$STATUS_BEING_BUILT"
+bldstat_clear "$status_being_built"
 
 msg_1 "This pre-built system has completed the last deploy steps and is ready"
 msg_1 "Please reboot / restart app to start using it!"

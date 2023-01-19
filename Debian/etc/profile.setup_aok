@@ -12,9 +12,9 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
-"$AOK_CONTENT"/Debian/setup_debian.sh
+"$aok_content"/Debian/setup_debian.sh
 
 #
 #  Need to exit running this profile, otherwise control will spill over
@@ -25,7 +25,7 @@
 #  outcome.
 #  If this FS is pre-built this should not happen.
 #
-if bldstat_get "$STATUS_PREBUILT_FS"; then
+if bldstat_get "$status_prebuilt_fs"; then
     exit
 else
     /bin/sh

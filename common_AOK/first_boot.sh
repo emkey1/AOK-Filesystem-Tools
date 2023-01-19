@@ -11,14 +11,14 @@
 #
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 make_cmd="$(command -v make)"
 if [ -x "$make_cmd" ]; then
     # shellcheck disable=SC2154
-    if ! bldstat_get "$STATUS_IS_CHROOTED" ; then
+    if ! bldstat_get "$status_is_chrooted"; then
         msg_1 "Building and installing idev_ip"
-        cd "$AOK_CONTENT"/common_AOK/src || exit 99
+        cd "$aok_content"/common_AOK/src || exit 99
         make install
     else
         msg_1 "Will not build idev_ip in chrooted env"

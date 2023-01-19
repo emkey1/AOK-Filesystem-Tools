@@ -15,16 +15,16 @@ version="1.4.0a"
 
 #
 #  Ensure this is run in the intended location in case this was launched from
-#  somewhere else, this to ensure BUILD_ENV can be found
+#  somewhere else, this to ensure build_env can be found
 #
 cd /opt/AOK || exit 99
 
 # shellcheck disable=SC1091
-. /opt/AOK/BUILD_ENV
+. /opt/AOK/utils.sh
 
 prog_name=$(basename "$0")
 
-CHROOT_TO="$BUILD_ROOT_D"
+CHROOT_TO="$build_root_d"
 
 if [ "$(whoami)" != "root" ]; then
     error_msg "This must be run as root or using sudo!"
@@ -37,7 +37,7 @@ env_prepare() {
 
     mount -t proc proc "$CHROOT_TO"/proc
 
-    if [ "$BUILD_ENV" -eq 1 ]; then
+    if [ "$build_env" -eq 1 ]; then
         # msg_3 "Setting up needed /dev items"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
@@ -62,7 +62,7 @@ env_cleanup() {
     # msg_3 "Un-mounting system resources"
     umount "$CHROOT_TO"/proc
 
-    if [ "$BUILD_ENV" -eq 1 ]; then
+    if [ "$build_env" -eq 1 ]; then
         msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else
@@ -83,7 +83,7 @@ Available options:
 -h  --help     Print this help and exit
 -v  --version  Display version and exit
 -c  --cleanup  Cleanup env
--p, --path     What dir to chroot into, defaults to: $BUILD_ROOT_D
+-p, --path     What dir to chroot into, defaults to: $build_root_d
 command        What to run, defaults to "bash -l", command and params must be quoted!
 EOF
 
@@ -146,14 +146,14 @@ fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-bldstat_set "$STATUS_IS_CHROOTED"
+bldstat_set "$status_is_chrooted"
 
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
 exit_code="$?"
 
-bldstat_clear "$STATUS_IS_CHROOTED"
+bldstat_clear "$status_is_chrooted"
 
 env_cleanup
 
