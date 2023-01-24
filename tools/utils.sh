@@ -14,9 +14,22 @@
 #
 #  To make things simple, this is the expected location for AOK-Filesystem-tools
 #  both on build and iSH systems
+#  Due to necesity, this file needs to be sourced as: . /opt/AOK/toold/utils.sh
+#  Please do not use the abs path /opt/AOK for anything else, in all other
+#  references, use $aok_content
+#  If this location is ever changed, this will keep the changes in the
+#  code to a minimum.
 #
 aok_content="/opt/AOK"
-aok_content_etc="/etc/$aok_content"
+
+#
+#  Used for keeping track of deploy / chroot status
+#
+aok_content_etc="/etc$aok_content"
+
+#
+#  Import settings
+#
 
 #  shellcheck disable=SC1091
 . "$aok_content"/AOK_VARS || exit 1
@@ -27,19 +40,19 @@ aok_content_etc="/etc/$aok_content"
 #  the error message, then continue.
 #
 error_msg() {
-    msg="$1"
-    exit_code="${2:-1}"
-    if [ -z "$msg" ]; then
+    em_msg="$1"
+    em_exit_code="${2:-1}"
+    if [ -z "$em_msg" ]; then
         echo
         echo "error_msg() no param"
         exit 9
     fi
     echo
-    echo "ERROR: $msg"
+    echo "ERROR: $em_msg"
     echo
-    [ "$exit_code" -ne 0 ] && exit "$exit_code"
-    unset msg
-    unset exit_code
+    [ "$em_exit_code" -ne 0 ] && exit "$em_exit_code"
+    unset em_msg
+    unset em_exit_code
 }
 
 #
@@ -86,9 +99,9 @@ is_iCloud_mounted() {
 }
 
 #
-#  Warning message displayed, indicating errors during openrc actions
-#  can be ignored, and are not to be read as failures in the deploy
-#  procedure
+#  Displat warning message indicating that errors displayed during
+#  openrc actions can be ignored, and are not to be read as failures in
+#  the deploy procedure.
 #
 openrc_might_trigger_errors() {
     echo
@@ -98,18 +111,18 @@ openrc_might_trigger_errors() {
 }
 
 display_time_elapsed() {
-    t_in="$1"
-    label="$2"
+    dte_t_in="$1"
+    dte_label="$2"
 
-    mins="$((t_in / 60))"
-    seconds="$((t_in - mins * 60))"
+    dte_mins="$((dte_t_in / 60))"
+    dte_seconds="$((dte_t_in - dte_mins * 60))"
     echo
-    echo "Time elapsed: $mins:$seconds - $label"
+    echo "Time elapsed: $dte_mins:$dte_seconds - $dte_label"
     echo
-    unset t_in
-    unset label
-    unset mins
-    unset seconds
+    unset dte_t_in
+    unset dte_label
+    unset dte_mins
+    unset dte_seconds
 }
 
 #
@@ -120,19 +133,25 @@ bldstat_set() {
     # msg_3 "build_staus_set($1)"
     [ -z "$1" ] && error_msg "bldstat_set() no param"
     mkdir -p "$build_status"
-    touch "$build_status/$1"
+    touch "${build_status}/$1"
 }
 
 bldstat_get() {
     # msg_3 "build_staus_get($1)"
     [ -z "$1" ] && error_msg "bldstat_get() no param"
     test -f "$build_status/$1"
-    exitstatus="$?"
-    case "$exitstatus" in
+    bg_exitstatus="$?"
+    case "$bg_exitstatus" in
 
-    0) return 0 ;;
+    0)
+        unset bg_exitstatus
+        return 0
+        ;;
 
-    *) return 1 ;;
+    *)
+        unset bg_exitstatus
+        return 1
+        ;;
 
     esac
 }
@@ -141,10 +160,10 @@ bldstat_get() {
 bldstat_clear() {
     # msg_3 "bldstat_clear($1)"
     if [ -n "$1" ]; then
-        fname="$build_status/$1"
-        rm -f "$fname"
-        # msg_3 "Cleared $fname"
-        unset fname
+        bc_fname="$build_status/$1"
+        rm -f "$bc_fname"
+        # msg_3 "Cleared $bc_fname"
+        unset bc_fname
     fi
     if [ "$(find "$build_status"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$build_status" -rf
@@ -152,60 +171,83 @@ bldstat_clear() {
     fi
 }
 
+copy_profile() {
+    cp_src="$1"
+    [ -z "$cp_src" ] && error_msg "copy_profile() no param"
+    [ ! -f "$cp_src" ] && error_msg "copy_profile() src not found:$cp_src"
+    cp_profile="$build_root_d"/etc/profile
+    msg_3 "copying profile: $cp_src to: $cp_profile"
+    cp "$cp_src" "$cp_profile"
+    chmod 755 "$cp_profile"
+    unset cp_src
+    unset cp_profile
+    # msg_3 "copy_profile() done"
+}
+
 #  shellcheck disable=SC2120
-select_profile() {
-    replacement_profile="$1"
-    if [ -z "$replacement_profile" ]; then
-        error_msg "select_profile() - no param"
+select_task() {
+    msg_2 "select_task($1)"
+    sp_next_task="$1"
+    if [ -z "$sp_next_task" ]; then
+        error_msg "select_task() - no param"
     fi
-    msg_3 "Selecting profile: $replacement_profile"
-    cp -a "$replacement_profile" "$build_root_d"/etc/profile
+    cp -a "$sp_next_task" "$aok_post_boot_task"
+
     #
     #  Normaly profile is sourced, but in order to be able to directly
     #  run it if manually triggering a deploy, make it executable
     #
-    chmod 744 "$build_root_d"/etc/profile
-    chown root: "$build_root_d"/etc/profile
-    unset replacement_profile
+    chmod 744 "$aok_post_boot_task"
+    chown root: "$aok_post_boot_task"
+    unset sp_next_task
+    # msg_3 "select_task() done"
+}
+
+clear_task() {
+    msg_2 "clear_task()"
+    [ -z "$aok_post_boot_task" ] && error_msg "clear_task() aok_post_boot_task undefined"
+    [ -f "$aok_post_boot_task" ] && rm "$aok_post_boot_task"
+    # msg_3 "clear_task() done"
 }
 
 create_fs() {
-    # msg_2 "create_fs()"
-    tarball="$1"
-    [ -z "$tarball" ] && error_msg "cache_fs_image() no taball supplied"
-    fs_location="${2:-$build_root_d}"
-    verb="${3:-false}"
-    if $verb; then # verbose mode
-        verb="v"
+    msg_2 "create_fs($1)"
+    cf_tarball="$1"
+    [ -z "$cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
+    cf_fs_location="${2:-$build_root_d}"
+    cf_verbose="${3:-false}"
+    if $cf_verbose; then # verbose mode
+        cf_verbose="v"
     else
-        verb=""
+        cf_verbose=""
     fi
-    [ -z "$fs_location" ] && error_msg "no fs_location detected"
-    mkdir -p "$fs_location"
-    cd "$fs_location" || exit 1
-    msg_2 "Extracting $tarball"
-    if test "${tarball#*tgz}" != "$tarball" || test "${tarball#*tar.gz}" != "$tarball"; then
-        filter="z"
+    [ -z "$cf_fs_location" ] && error_msg "no cf_fs_location detected"
+    mkdir -p "$cf_fs_location"
+    cd "$cf_fs_location" || exit 1
+    msg_2 "Extracting $cf_tarball"
+    if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
+        cf_filter="z"
     else
         msg_3 "detected bzip2 format"
-        filter="j"
+        cf_filter="j"
     fi
 
-    tar "xf${verb}${filter}" "$tarball" || {
+    tar "xf${cf_verbose}${cf_filter}" "$cf_tarball" || {
         echo "ERROR: Failed to untar image"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$src_img_cache_d/$src_tarball"
+        echo "$src_img_cache_d/$src_cf_tarball"
         exit 1
     }
-    unset tarball
-    unset fs_location
-    unset verb
-    unset filter
+    unset cf_tarball
+    unset cf_fs_location
+    unset cf_verbose
+    unset cf_filter
     # msg_3 "create_fs() done"
 }
 
 iCloud_mount_prompt_notification() {
+    msg_2 "iCloud_mount_prompt_notification()"
     # abort if not running on iSH
     ! test -d /proc/ish && return
 
@@ -216,6 +258,7 @@ iCloud_mount_prompt_notification() {
  | After that, the rest of the install |
  | runs without need for interactions. |
 "
+    # msg_3 "iCloud_mount_prompt_notification() done"
 }
 
 should_icloud_be_mounted() {
@@ -233,34 +276,35 @@ should_icloud_be_mounted() {
                 error_msg "Unrecognized distro, aborting"
             fi
         fi
-        text="Do you want to mount iCloud now?"
+        sibm_text="Do you want to mount iCloud now?"
         whiptail \
             --topleft \
             --title "Mount iCloud" \
-            --yesno "$text" 0 0
+            --yesno "$sibm_text" 0 0
 
-        exitstatus=$?
+        sibm_exitstatus=$?
 
-        if [ "$exitstatus" -eq 0 ]; then
+        if [ "$sibm_exitstatus" -eq 0 ]; then
             mount -t ios x /iCloud
         fi
-        unset text
-        unset exitstatus
+        unset sibm_text
+        unset sibm_exitstatus
     fi
     # msg_3 "should_icloud_be_mounted()  done"
 }
 
 start_setup() {
-    distro_name="$1"
-    [ -z "$distro_name" ] && error_msg "start_setup() no distro_name provided"
-    vers_info="$2"
-    [ -z "$vers_info" ] && error_msg "start_setup() no vers_info provided"
+    msg_2 "start_setup()"
+    ss_distro_name="$1"
+    [ -z "$ss_distro_name" ] && error_msg "start_setup() no ss_distro_name provided"
+    ss_vers_info="$2"
+    [ -z "$ss_vers_info" ] && error_msg "start_setup() no ss_vers_info provided"
 
     test -f "$additional_tasks_script" && notification_additional_tasks
 
     ! is_iCloud_mounted && iCloud_mount_prompt_notification
 
-    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${distro_name}: $vers_info"
+    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${ss_distro_name}: $ss_vers_info"
 
     if [ "$QUICK_DEPLOY" -ne 0 ]; then
         echo
@@ -272,33 +316,37 @@ start_setup() {
         cat /dev/location >/dev/null &
     fi
 
-    copy_local_bins "$distro_name"
-    unset distro_name
-    unset vers_info
+    copy_local_bins "$ss_distro_name"
+    unset ss_distro_name
+    unset ss_vers_info
+    # msg_3 "start_setup() done"
 }
 
 copy_local_bins() {
-    src_dir="$1"
-    if [ -z "$src_dir" ]; then
+    msg_2 "copy_local_bins($1)"
+    clb_src_dir="$1"
+    if [ -z "$clb_src_dir" ]; then
         error_msg "call to copy_local_bins() without param!"
     fi
 
-    msg_1 "Copying /usr/local stuff for $src_dir"
+    msg_1 "Copying /usr/local stuff for $clb_src_dir"
 
-    msg_3 "Add $src_dir AOK-FS stuff to /usr/local/bin"
+    msg_3 "Add $clb_src_dir AOK-FS stuff to /usr/local/bin"
     mkdir -p /usr/local/bin
-    cp "$aok_content"/"$src_dir"/usr_local_bin/* /usr/local/bin
+    cp "$aok_content"/"$clb_src_dir"/usr_local_bin/* /usr/local/bin
     chmod +x /usr/local/bin/*
 
-    msg_3 "Add $src_dir AOK-FS stuff to /usr/local/sbin"
+    msg_3 "Add $clb_src_dir AOK-FS stuff to /usr/local/sbin"
     mkdir -p /usr/local/sbin
-    cp "$aok_content"/"$src_dir"/usr_local_sbin/* /usr/local/sbin
+    cp "$aok_content"/"$clb_src_dir"/usr_local_sbin/* /usr/local/sbin
     chmod +x /usr/local/sbin/*
     echo
-    unset src_dir
+    unset clb_src_dir
+    # msg_3 "copy_local_bins() done"
 }
 
 notification_additional_tasks() {
+    msg_2 "notification_additional_tasks()"
     if [ -f "$additional_tasks_script" ]; then
         msg_2 "notification_additional_tasks()"
         echo "At the end of the install, this will be run:"
@@ -311,14 +359,14 @@ notification_additional_tasks() {
 }
 
 run_additional_tasks_if_found() {
-    # msg_2 "run_additional_tasks_if_found()"
+    msg_2 "run_additional_tasks_if_found()"
     if [ -x "$additional_tasks_script" ]; then
         msg_1 "Running additional setup tasks"
         echo
         "$additional_tasks_script" && rm "$additional_tasks_script"
         echo
     fi
-    # msg_2 "run_additional_tasks_if_found()  done"
+    # msg_3 "run_additional_tasks_if_found()  done"
 }
 
 #
@@ -351,14 +399,24 @@ icloud_archive_d="/iCloud/AOK_Archive"
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
 debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,
 #  gives something like 3.14
-alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v$alpine_release/releases/x86/$alpine_src_tb"
+if [ "$ALPINE_VERSION" = "edge" ]; then
+    alpine_src_tb="alpine-minirootfs-20221110-x86.tar.gz"
+    alpine_release="$ALPINE_VERSION"
+    _vers="$ALPINE_VERSION"
+    # https://dl-cdn.alpinelinux.org/alpine/edge/releases/x86/alpine-minirootfs-20190227-x86.tar.gz
+
+else
+    alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+    alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+    _vers="v$alpine_release"
+fi
+alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/$_vers/releases/x86/$alpine_src_tb"
+unset _vers
 
 #
 #  Names of the generated distribution tarballs, no ext, that is ecided
@@ -406,6 +464,11 @@ build_base_d="/tmp/AOK"
 build_status_raw="$aok_content_etc"
 
 #
+#  if it works, describe me!
+#
+aok_post_boot_task="/opt/aok_post_boot_task"
+
+#
 #  status_being_built and build_status, used by bldstat_get()
 #  must be defined before this
 #
@@ -426,6 +489,8 @@ fi
 #  Now the proper value can be set
 build_status="${build_root_d}${build_status_raw}"
 
+aok_post_boot_task="${build_root_d}/opt/aok_post_boot_task"
+
 #  Where to find native FS version
 file_alpine_release="$build_root_d"/etc/alpine-release
 file_debian_version="$build_root_d"/etc/debian_version
@@ -444,12 +509,9 @@ additional_tasks_script="$build_root_d/opt/additional_tasks"
 #  Lastly the final profiles, depending on Distribution
 #  Using variables in order to only have to assign filenames in one place
 #
-profile_alpine_pre_built="$aok_content"/Alpine/etc/profile.prebuilt-FS
-profile_alpine_setup_aok="$aok_content"/Alpine/etc/profile.setup_aok
 profile_distro_select_prepare="$aok_content"/choose_distro/etc/profile.prepare
 profile_distro_select="$aok_content"/choose_distro/etc/profile.select_distro
 profile_debian_setup_aok="$aok_content"/Debian/etc/profile.setup_aok
-profile_alpine="$aok_content"/Alpine/etc/profile
 profile_debian="$aok_content"/Debian/etc/profile
 
 #
@@ -467,11 +529,12 @@ login_original="/bin/login.alpine"
 #  Either run this script chrooted if the host OS supports it, or run it
 #  inside iSH-AOK once it has booted this FS
 #
-setup_alpine_fs="$aok_content"/Alpine/setup_alpine.sh
+setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
+setup_alpine_scr="$aok_content"/Alpine/setup_alpine.sh
 setup_alpine_final="$aok_content"/Alpine/setup_alpine_final_tasks.sh
 setup_debian_scr="$aok_content"/Debian/setup_debian.sh
-setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
-setup_select_distro_prepare="$aok_content"/choose_distro/select_distro-prepare.sh
+setup_select_distro_prepare="$aok_content"/choose_distro/prepare_distro_select.sh
+setup_select_distro="$aok_content"/choose_distro/select_distro.sh
 
 # =====================================================================
 #

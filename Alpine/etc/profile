@@ -9,14 +9,49 @@
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 
-# Wait until initial setup is completed
-while [ -e "$aok_content_etc"/env_beeing_built ]; do
-   echo "Initial setup still in progress..."
-   sleep 1
-done
-
 # Let's set the path here since that covers both zsh and bash
 export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
+
+#
+#  This is used to run post-boot single tasks, normally related to
+#  installation of the system, but could be used for other things.
+#  If one task wants to run an additional task, just replace the script
+#  with the next one. However the last task in the sequence must delete
+#  itself, since this will loop and run this script as long as it is found.
+#
+
+aok_post_boot_task="/opt/aok_post_boot_task"
+if [ -x "$aok_post_boot_task" ]; then
+   #
+   #  When some post-boot task needs to happen after a reboot
+   #  touch /opt/post_boot_done
+   #  If this file is pressent, no more post-boot tasks will be done now
+   #  and system will be rebooted.
+   #  This is used for Alpine pre-builds, when the last step of removing
+   #  apks only usable on iSH-AOK kernels should not be done during
+   #  the pre-build. It should happen at the target device.
+   #
+   rm -f /opt/post_boot_done
+
+   #
+   #  Don't know why but without this delay, the below wont execute
+   #  under iSH. Just a guess, but could be if profile is run before
+   #  everything is ready?
+   #
+   sleep 1
+
+   while [ -x "$aok_post_boot_task" ] && [ ! -f /opt/post_boot_done ]; do
+      echo "*** will run: $aok_post_boot_task"
+      "$aok_post_boot_task"
+   done
+   #
+   #  This will typically trigger an instant reboot, so normally the message
+   #  wont
+
+   echo "***  /etc/profile completed post-boot tasks, rebooting in 3s"
+   sleep 3
+   exit
+fi
 
 ID="$(id -u)"
 CHECK="$(/bin/rc-status 2>/dev/null | grep -c sshd)"

@@ -150,7 +150,7 @@ echo
 
 bldstat_clear "$status_being_built"
 
-select_profile "$profile_debian"
+select_task "$profile_debian"
 
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
@@ -163,3 +163,5 @@ if bldstat_get "$status_prebuilt_fs"; then
     rm /var/cache/apt /var/lib/apt -rf
 fi
 msg_1 "Your system is setup! Please reboot / restart app"
+
+clear_task

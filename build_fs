@@ -146,19 +146,19 @@ display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
     #
-    [ "$build_env" -eq 1 ] && run_mode="Building on iSH"
-    [ "$build_env" -eq 2 ] && run_mode="Building on x86 Linux"
+    [ "$build_env" -eq 1 ] && dbt_run_mode="Building on iSH"
+    [ "$build_env" -eq 2 ] && dbt_run_mode="Building on x86 Linux"
 
     if ! $pre_build_FS; then
-        run_mode="Will not chroot"
+        dbt_run_mode="Will not chroot"
     elif [ "$build_env" -eq 0 ]; then
         echo "Unfortunately you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
         echo "Use another build option (try -h for help)"
         exit 1
     fi
-    msg_1 "Run mode: $run_mode"
-    unset run_mode
+    msg_1 "Run mode: $dbt_run_mode"
+    unset dbt_run_mode
 
     if [ "$QUICK_DEPLOY" -ne 0 ]; then
         echo
@@ -202,7 +202,7 @@ clear_build_target() { # Multi OK 1
 }
 
 cache_fs_image() {
-    # msg_2 "cache_fs_image()"
+    msg_2 "cache_fs_image()"
     [ -z "$src_image" ] && error_msg "cache_fs_image() no src_image supplied"
     [ -z "$src_tarball" ] && error_msg "cache_fs_image() no src_taball supplied"
 
@@ -224,37 +224,39 @@ cache_fs_image() {
 }
 
 integrate_overrides() {
-    conf_file="$1"
-    case "$conf_file" in
+    msg_2 "integrate_overrides($1)"
+    io_conf_file="$1"
+    case "$io_conf_file" in
 
     AOK_VARS | tools/utils.sh) ;;
 
     *)
-        echo "ERROR: integrate_overrides($conf_file) - bad param"
+        echo "ERROR: integrate_overrides($io_conf_file) - bad param"
         exit 1
         ;;
 
     esac
 
-    src_conf="$aok_content"/"$conf_file"
-    dst_conf="$aok_files"/"$conf_file"
-    overrides="$aok_content"/.AOK_VARS
-    pattrn="###  override handling  ###"
+    io_src_conf="$aok_content"/"$io_conf_file"
+    io_dst_conf="$aok_files"/"$io_conf_file"
+    io_overrides="$aok_content"/.AOK_VARS
+    io_pattrn="###  override handling  ###"
 
-    if [ -f "$overrides" ]; then
+    if [ -f "$io_overrides" ]; then
         #
         #  replace include lines with local settings
         #
-        msg_3 "adding .AOK_VARS  into $conf_file on destination"
-        grep -B99999 "$pattrn" "$src_conf" | grep -v "$pattrn" >"$dst_conf"
-        cat "$overrides" >>"$dst_conf"
+        msg_3 "adding .AOK_VARS  into $io_conf_file on destination"
+        grep -B99999 "$io_pattrn" "$io_src_conf" | grep -v "$io_pattrn" >"$io_dst_conf"
+        cat "$io_overrides" >>"$io_dst_conf"
     fi
 
-    unset conf_file
-    unset src_conf
-    unset dst_conf
-    unset overrides
-    unset pattrn
+    unset io_conf_file
+    unset io_src_conf
+    unset io_dst_conf
+    unset io_overrides
+    unset io_pattrn
+    # msg_3 "integrate_overrides()  done"
 }
 
 copy_AOK_to_dest() {
@@ -302,14 +304,31 @@ add_additional_tasks_if_defined() {
 
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
+
+    copy_profile "$aok_content"/Alpine/etc/profile
     # by setting this as the first of two, this will become the default profile
     # when install is completed
-    select_profile "$profile_alpine_setup_aok"
+    select_task "$setup_alpine_scr"
+    # msg_3 "setup_Alpine_on_1st_boot() done"
+}
+
+setup_Debian_on_1st_boot() {
+    msg_2 "setup_Debian_on_1st_boot()"
+
+    copy_profile "$aok_content"/Debian/etc/profile
+    # by setting this as the first of two, this will become the default profile
+    # when install is completed
+    select_task "$setup_debian_scr"
+    # msg_3 "setup_Debian_on_1st_boot() done"
 }
 
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
-    msg_1 "Preparing for distro selections"
+
+    copy_profile "$aok_content"/Alpine/etc/profile
+
+    select_task "$setup_select_distro_prepare"
+
     #
     #  If this build platform cant chroot, then the preparational steps
     #  will be run on 1st boot, a slight delay, but end result is
@@ -318,16 +337,14 @@ select_distro_on_1st_boot() {
     [ -z "$profile_distro_select_prepare" ] && error_msg "profile_distro_select_prepare undefined"
     if [ "$build_env" -gt 0 ]; then
         msg_3 "chrooting: $profile_distro_select_prepare"
-        if ! "$aok_content"/tools/do_chroot.sh "$profile_distro_select_prepare"; then
+        if ! "$aok_content"/tools/do_chroot.sh /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
-        select_profile "$profile_distro_select"
     else
-        msg_2 "***  Could not chroot, did not run: $profile_distro_select_prepare  ***"
+        msg_2 "***  Could not chroot, did not run: $setup_select_distro_prepare  ***"
         msg_2 "This means that this image will have to run the preparatory"
         msg_2 "step, before displaying the Distro selection dialog"
         echo
-        select_profile "$profile_distro_select_prepare"
     fi
     # msg_3 "select_distro_on_1st_boot()  done"
 }
@@ -347,53 +364,56 @@ prebuild_fs() {
     cd "$aok_content" || exit 17
 
     bldstat_set "$status_prebuilt_fs"
+
     "$aok_content"/tools/do_chroot.sh /etc/profile
     msg_1 "Returned from prebuild chroot"
 
     if [ "$build_target" = "$target_alpine" ]; then
         msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-        select_profile "$profile_alpine_pre_built"
+        select_task "-$setup_alpine_final"
         #
         #  Since some final steps need to run by the above profile
         #  mark the FS as in build state
         #
     fi
+    # msg_3 "prebuild_fs() done"
 }
 
 consider_generating_tarball() {
+    msg_2 "consider_generating_tarball()"
     #
     #  Consider to generate a tarball
     #
     if $aok_FS_do_compress; then
-        extra_params=""
+        cgt_extra_params=""
         if $verbose; then
-            extra_params="-v"
+            cgt_extra_params="-v"
         fi
         if $use_bzip2; then
-            extra_params="$extra_params -j"
+            cgt_extra_params="$cgt_extra_params -j"
         fi
 
         #
         #  Set name for tarball
         #
         if [ "$build_target" = "$target_debian" ]; then
-            label="$debian_tb"
+            cgt_label="$debian_tb"
         elif [ "$build_target" = "$target_select" ]; then
-            label="$select_distro_tb"
+            cgt_label="$select_distro_tb"
         else
-            label="$alpine_tb"
+            cgt_label="$alpine_tb"
         fi
 
         if $pre_build_FS; then
             #  give a hint this was pre-built
-            label="${label}-pb"
+            cgt_label="${cgt_label}-pb"
         fi
         #  shellcheck disable=SC2086,SC2248
-        if ! "$aok_content"/compress_image -l $label $extra_params; then
+        if ! "$aok_content"/compress_image -l $cgt_label $cgt_extra_params; then
             error_msg "detected in compress_image"
         fi
-        unset extra_params
-        unset label
+        unset cgt_extra_params
+        unset cgt_label
     fi
 
     if [ "$build_env" -gt 0 ]; then
@@ -420,18 +440,21 @@ consider_generating_tarball() {
         echo
         echo "This platform can not chroot into this FS"
     fi
+    # msg_3 "consider_generating_tarball() done"
 }
 
 display_build_time() {
-    duration="$(($(date +%s) - t_start))"
+    msg_2 "display_build_time()"
+    dbt_duration="$(($(date +%s) - t_start))"
     if $pre_build_FS; then
-        lbl="Create and setup FS"
+        dbt_lbl="Create and setup FS"
     else
-        lbl="Create FS"
+        dbt_lbl="Create FS"
     fi
-    display_time_elapsed "$duration" "$lbl"
-    unset duration
-    unset lbl
+    display_time_elapsed "$dbt_duration" "$dbt_lbl"
+    unset dbt_duration
+    unset dbt_lbl
+    # msg_3 "display_build_time() done"
 }
 
 #===============================================================
@@ -467,7 +490,7 @@ msg_2 "Deployed $aok_content on new filesystem"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-#  Since setup_alpine_fs will create an AOK relevant motd,
+#  Since setup_alpine_scr will create an AOK relevant motd,
 #  deleting the default one makes sence.
 #
 msg_2 "remove initial /etc/motd from new filesystem"
@@ -478,7 +501,7 @@ msg_2 "create directory /iCloud inside new filesystem"
 mkdir "$build_root_d"/iCloud
 
 if [ "$build_target" = "$target_debian" ]; then
-    select_profile "$profile_debian_setup_aok"
+    setup_Debian_on_1st_boot
 elif [ "$build_target" = "$target_select" ]; then
     select_distro_on_1st_boot
 else

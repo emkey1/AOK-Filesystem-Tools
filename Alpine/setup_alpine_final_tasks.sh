@@ -1,50 +1,47 @@
 #!/bin/sh
+# this is sourced, shebang just to hint editors since no extension
 # shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  Final steps of Alpine setup, things that needs to run on the destination
-#  platform
+#  This profile will be used as first boot on regular builds, to complete the AOK
+#  setup
+#
+#  AOK_COMPLETION_ON_TARGET
+#  If this is present in /etc/profile, we can assume we are running on the
+#  target system during first boot, and this is not a chrooted pre-build,
+#  the detected env is what will be used.
 #
 
-# Set some variables
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-msg_1 "Final Alpine setup steps"
+msg_1 "Running first boot tasks on prebuilt Alpine FS"
 
-#  Will be run again in post_boot.sh, but since some tasks are done before
-#  That happens, it makes sense to run it now
-/usr/local/sbin/fix_dev
-
-if ! bldstat_get "$status_is_chrooted"; then
+if ! is_aok_kernel; then
+    msg_2 "Removing apps that depend on the iSH-AOK kernel"
     #
-    #  Run this after services has been activated, so that check they run
-    #  is meaningful
+    #  aok dependent bins serve no purpose on other platforms, delete
     #
-    openrc_might_trigger_errors
-    /usr/local/sbin/post_boot.sh foreground
-else
-    msg_2 "Skipping post_boot.sh when chrooted"
+    # shellcheck disable=SC2086
+    apk del $AOK_APKS
 fi
 
-#
-#  Setup Initial login mode
-#
-msg_2 "Setting defined login mode: $INITIAL_LOGIN_MODE"
-#  shellcheck disable=SC2154
-/usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
-
-msg_2 "Preparing initial motd"
-/usr/local/sbin/update_motd
-
-msg_1 "Setup complete!"
-echo
-
-# Not the right place to set profile, since this can be called in different ways
-
 bldstat_clear "$status_being_built"
+
+clear_task
+
+run_additional_tasks_if_found
+
+msg_1 "This system has completed the last deploy steps and is ready"
+msg_1 "Please reboot / restart app to start using it!"
+#  In order for this exit not to terminate the session instantly
+#  a shell is started, to give an option to inspect the deploy
+#  outcome.
+#  If this FS is pre-built this should not happen.
+/bin/ash
+exit
