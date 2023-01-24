@@ -10,11 +10,6 @@
 #
 #  This modifies a Debian Linux FS with the AOK changes
 #
-#  On compatible platforms, Linux (x86) and iSH this can be run chrooted
-#  before compressing the file system, to deliver a ready to be used file system.
-#  When the FS is prepared on other platforms,
-#  this file has to be run inside iSH once the file system has been mounted.
-#
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"

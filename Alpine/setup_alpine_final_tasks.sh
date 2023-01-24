@@ -8,13 +8,7 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  This profile will be used as first boot on regular builds, to complete the AOK
-#  setup
-#
-#  AOK_COMPLETION_ON_TARGET
-#  If this is present in /etc/profile, we can assume we are running on the
-#  target system during first boot, and this is not a chrooted pre-build,
-#  the detected env is what will be used.
+#  Completes the setup of Alpine
 #
 
 # shellcheck disable=SC1091
