@@ -438,7 +438,7 @@ consider_generating_tarball() {
         unset set_shell
     else
         echo
-        echo "This platform can not chroot into this FS"
+        echo "This platform can not chroot into the FS"
     fi
     # msg_3 "consider_generating_tarball() done"
 }
