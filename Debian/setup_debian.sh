@@ -145,8 +145,6 @@ echo
 
 bldstat_clear "$status_being_built"
 
-select_task "$profile_debian"
-
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 unset duration

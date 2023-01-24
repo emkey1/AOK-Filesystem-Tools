@@ -334,9 +334,7 @@ select_distro_on_1st_boot() {
     #  will be run on 1st boot, a slight delay, but end result is
     #  the same.
     #
-    [ -z "$profile_distro_select_prepare" ] && error_msg "profile_distro_select_prepare undefined"
     if [ "$build_env" -gt 0 ]; then
-        msg_3 "chrooting: $profile_distro_select_prepare"
         if ! "$aok_content"/tools/do_chroot.sh /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi

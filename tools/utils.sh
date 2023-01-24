@@ -505,25 +505,11 @@ file_aok_release="$build_root_d"/etc/aok-release
 additional_tasks_script="$build_root_d/opt/additional_tasks"
 
 #
-#  First profiles used during boot to finalize setup
-#  Lastly the final profiles, depending on Distribution
-#  Using variables in order to only have to assign filenames in one place
-#
-profile_distro_select_prepare="$aok_content"/choose_distro/etc/profile.prepare
-profile_distro_select="$aok_content"/choose_distro/etc/profile.select_distro
-profile_debian_setup_aok="$aok_content"/Debian/etc/profile.setup_aok
-profile_debian="$aok_content"/Debian/etc/profile
-
-#
 #  After all packages are installed, if /bin/login was something other
 #  than a soft-link to /bin/busybox, it will be renamed to this,
 #  so it can be selected later.
 #
 login_original="/bin/login.alpine"
-
-#
-#  Alpine related build env
-#
 
 #
 #  Either run this script chrooted if the host OS supports it, or run it
