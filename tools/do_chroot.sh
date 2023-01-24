@@ -16,6 +16,13 @@ version="1.4.0a"
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
+if [ "$build_env" -eq 0 ]; then
+    echo
+    echo "AOK can only be chrooted on iSH or Linux (x86)"
+    echo
+    exit 1
+fi
+
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure build_env can be found
