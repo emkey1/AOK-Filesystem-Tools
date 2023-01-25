@@ -102,6 +102,7 @@ fi
 #  Common deploy, used both for Alpine & Debian
 #
 msg_1 "Running $setup_common_aok"
+
 "$setup_common_aok"
 
 #
@@ -139,6 +140,8 @@ rc-update add umountroot off
 rc-update add urandom off
 
 msg_2 "Disable some auto-enabled services that wont make sense in iSH"
+openrc_might_trigger_errors
+
 rc-update del dbus default
 rc-update del elogind default
 rc-update del rsync default
