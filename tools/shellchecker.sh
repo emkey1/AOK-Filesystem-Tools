@@ -30,7 +30,6 @@ checkables=(
     Alpine/usr_local_bin/aok
     Alpine/usr_local_bin/aok_groups
     Alpine/usr_local_bin/apt
-    Alpine/usr_local_bin/clear_flushable_files
     Alpine/usr_local_bin/disable_vnc
     Alpine/usr_local_bin/do_fix_services
     Alpine/usr_local_bin/enable_vnc
@@ -39,7 +38,6 @@ checkables=(
     Alpine/usr_local_bin/what_owns
     ## Alpine/usr_local_bin/Xdummy
     Alpine/usr_local_sbin/update_motd
-    Alpine/setup_alpine_final_tasks.sh
     Alpine/setup_alpine_final_tasks.sh
     Alpine/setup_alpine.sh
 
