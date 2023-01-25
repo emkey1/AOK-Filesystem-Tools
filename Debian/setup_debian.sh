@@ -48,6 +48,9 @@ tsd_start="$(date +%s)"
 
 start_setup Debian "$(cat /etc/debian_version)"
 
+msg_2 "Running fix_dev"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
     rm -rf /AOK

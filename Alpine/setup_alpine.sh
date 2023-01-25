@@ -64,7 +64,7 @@ replace_key_files() {
     msg_2 "replace_key_files()"
     msg_2 "Replacing a few /etc files"
 
-    msg_1 "Our inittab"
+    msg_3 "Our inittab"
     cp "$aok_content"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
@@ -104,9 +104,8 @@ tsa_start="$(date +%s)"
 
 start_setup Alpine "$ALPINE_VERSION"
 
-copy_local_bins common_AOK
-
-/usr/local/sbin/fix_dev
+msg_2 "Running fix_dev"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 if [ -z "$alpine_release" ]; then
     error_msg "alpine_release param not supplied"
@@ -167,8 +166,6 @@ msg_2 "Preparing initial motd"
 
 msg_1 "Setup complete!"
 echo
-
-bldstat_clear "$status_being_built"
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
