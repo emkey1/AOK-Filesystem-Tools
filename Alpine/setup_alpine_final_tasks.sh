@@ -14,7 +14,7 @@
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-msg_1 "Running first boot tasks on prebuilt Alpine FS"
+msg_1 "Running final part of Alpine FS setup"
 
 if ! is_aok_kernel; then
     msg_2 "Removing apps that depend on the iSH-AOK kernel"
@@ -26,6 +26,7 @@ if ! is_aok_kernel; then
 fi
 
 bldstat_clear "$status_being_built"
+bldstat_clear "$status_prebuilt_fs"
 
 clear_task
 
