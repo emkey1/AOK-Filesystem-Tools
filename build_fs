@@ -368,7 +368,7 @@ prebuild_fs() {
 
     if [ "$build_target" = "$target_alpine" ]; then
         msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-        select_task "-$setup_alpine_final"
+        select_task "$setup_alpine_final"
         #
         #  Since some final steps need to run by the above profile
         #  mark the FS as in build state
@@ -423,16 +423,18 @@ consider_generating_tarball() {
         msg_1 "How to access the just created FS from this env"
         if $pre_build_FS; then
             echo
-            echo "chrooting into the FS:"
-            echo "  sudo ./tools/do_chroot.sh"
+            echo "   chrooting into the FS:"
+            echo "     sudo ./tools/do_chroot.sh"
         else
             echo
-            echo "You can work on the filesystem without triggering deploy by running:"
-            echo "  sudo ./tools/do_chroot.sh $set_shell"
+            echo "   You can work on the filesystem without triggering deploy by running:"
+            echo "     sudo ./tools/do_chroot.sh $set_shell"
             echo
-            echo "To trigger a first boot deploy, run:"
-            echo "  sudo ./tools/do_chroot.sh /etc/profile"
+            echo "   To trigger a first boot deploy, run:"
+            echo "     sudo ./tools/do_chroot.sh /etc/profile"
         fi
+        echo
+
         unset set_shell
     else
         echo
