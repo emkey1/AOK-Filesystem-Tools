@@ -64,6 +64,7 @@ msg_title() {
     echo
 
 }
+
 #
 #  The msg_ functions are ordered, lower number infers more important updates
 #  so they should stand out more
@@ -261,13 +262,14 @@ iCloud_mount_prompt_notification() {
     ! test -d /proc/ish && return
 
     echo "
- | There is one more prompt            |
- | about mounting /iCloud,             |
- | right after the package update.     |
- | After that, the rest of the install |
- | runs without need for interactions. |
-"
-    # msg_3 "iCloud_mount_prompt_notification() done"
+ |  There is a prompt about mounting   |
+ |  /iCloud, right after the package   |
+ |  update.                            |"
+
+    if [ -n "$AOK_TIMEZONE" ]; then
+        echo " | After that, the rest of the install |"
+        echo " | runs without need for interactions. |"
+    fi
 }
 
 should_icloud_be_mounted() {
