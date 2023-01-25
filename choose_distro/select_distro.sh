@@ -54,7 +54,7 @@ fi
 
 text="Alpine is the regular AOK FS,
 fully stable. This will install
-Alpine $alpine_release
+Alpine $ALPINE_VERSION
 
 Debian is experimental, not yet stable,
 this is version 10 (Buster).
@@ -75,8 +75,8 @@ exitstatus=$?
 if [ "$exitstatus" -eq 0 ]; then
     # Alpine selected
     echo
-    msg_1 "running $setup_alpine_fs"
-    "$setup_alpine_fs"
+    msg_1 "running $setup_alpine_scr"
+    "$setup_alpine_scr"
 else
     test -f "$additional_tasks_script" && notification_additional_tasks
     "$aok_content"/choose_distro/install_debian.sh

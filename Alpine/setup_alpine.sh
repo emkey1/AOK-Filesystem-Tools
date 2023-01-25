@@ -61,6 +61,7 @@ install_apks() {
 }
 
 replace_key_files() {
+    msg_2 "replace_key_files()"
     msg_2 "Replacing a few /etc files"
 
     msg_3 "Our inittab"
@@ -90,6 +91,7 @@ replace_key_files() {
     *) ;;
 
     esac
+    msg_3 "replace_key_files() done"
 }
 
 #===============================================================
@@ -101,6 +103,9 @@ replace_key_files() {
 tsa_start="$(date +%s)"
 
 start_setup Alpine "$ALPINE_VERSION"
+
+msg_2 "Running fix_dev"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 if [ -z "$alpine_release" ]; then
     error_msg "alpine_release param not supplied"
@@ -149,12 +154,25 @@ fi
 msg_1 "Running $setup_common_aok"
 "$setup_common_aok"
 
-msg_1 "running $setup_alpine_final"
-"$setup_alpine_final"
+#
+#  Setup Initial login mode
+#
+msg_2 "Setting defined login mode: $INITIAL_LOGIN_MODE"
+#  shellcheck disable=SC2154
+/usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 
-select_profile "$profile_alpine"
+msg_2 "Preparing initial motd"
+/usr/local/sbin/update_motd
+
+msg_1 "Setup complete!"
+echo
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
 
-run_additional_tasks_if_found
+select_task "$setup_alpine_final"
+
+if bldstat_get "$status_is_chrooted"; then
+    echo "This is chrooted, delaying final steps"
+    touch /opt/post_boot_done
+fi

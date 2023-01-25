@@ -10,11 +10,6 @@
 #
 #  This modifies a Debian Linux FS with the AOK changes
 #
-#  On compatible platforms, Linux (x86) and iSH this can be run chrooted
-#  before compressing the file system, to deliver a ready to be used file system.
-#  When the FS is prepared on other platforms,
-#  this file has to be run inside iSH once the file system has been mounted.
-#
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
@@ -52,6 +47,9 @@ install_sshd() {
 tsd_start="$(date +%s)"
 
 start_setup Debian "$(cat /etc/debian_version)"
+
+msg_2 "Running fix_dev"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -150,8 +148,6 @@ echo
 
 bldstat_clear "$status_being_built"
 
-select_profile "$profile_debian"
-
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 unset duration
@@ -163,3 +159,5 @@ if bldstat_get "$status_prebuilt_fs"; then
     rm /var/cache/apt /var/lib/apt -rf
 fi
 msg_1 "Your system is setup! Please reboot / restart app"
+
+clear_task

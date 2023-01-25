@@ -21,3 +21,10 @@ apk add newt wget
 
 # shellcheck disable=SC2154
 bldstat_set "$status_select_distro_prepared"
+
+select_task "$setup_select_distro"
+
+if bldstat_get "$status_is_chrooted"; then
+    echo "This is chrooted, doesn't make sense to select Distro"
+    touch /opt/post_boot_done
+fi

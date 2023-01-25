@@ -1,8 +1,22 @@
 #!/bin/sh
 # Fake bangpath to trick linters and editors
-
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+#
+#  Don't know why but without this delay, profile occationally fails
+#  to complete under iSH, leaving just a blank screen. Just a guess,
+#  but could be that the Launch cmd (triggering /etc/profile) is run
+#  before the OS is ready?
+#
+sleep 1
 
 if [ "$(id -u)" -eq 0 ]; then
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -10,6 +24,28 @@ else
     PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
 fi
 export PATH
+
+#
+#  This is used to run post-boot single tasks, normally related to
+#  installation of the system, but could be used for other things.
+#  If one task wants to run an additional task, just replace the script
+#  with the next one. However the last task in the sequence must delete
+#  itself, since this will loop and run this script as long as it is found.
+#
+aok_post_boot_task="/opt/aok_post_boot_task"
+if [ -x "$aok_post_boot_task" ]; then
+    while [ -x "$aok_post_boot_task" ]; do
+        echo "*** will run: $aok_post_boot_task"
+        "$aok_post_boot_task"
+    done
+    #
+    #  This will typically trigger an instant reboot, so normally the message
+    #  wont
+
+    echo "***  /etc/profile completed post-boot tasks, rebooting in 3s"
+    sleep 3
+    exit
+fi
 
 #
 #  Only show motd on login screens is the intent, not sure if this is

@@ -23,11 +23,10 @@ cd /opt/AOK || exit 1
 checkables=(
     tools/do_chroot.sh
     tools/shellchecker.sh # obviously self-check :)
+    tools/utils.sh
 
     # Alpine/cron/15min/dmesg_save
     Alpine/etc/profile
-    Alpine/etc/profile.setup_aok
-    Alpine/etc/profile.prebuilt-FS
     Alpine/usr_local_bin/aok
     Alpine/usr_local_bin/aok_groups
     Alpine/usr_local_bin/apt
@@ -39,13 +38,15 @@ checkables=(
     Alpine/usr_local_bin/vnc_start
     Alpine/usr_local_bin/what_owns
     ## Alpine/usr_local_bin/Xdummy
-    Alpine/usr_local_sbin/post_boot.sh
     Alpine/usr_local_sbin/update_motd
+    Alpine/setup_alpine_final_tasks.sh
     Alpine/setup_alpine_final_tasks.sh
     Alpine/setup_alpine.sh
 
-    choose_distro/etc/profile.select_distro
+    \
     choose_distro/install_debian.sh
+    choose_distro/prepare_distro_select.sh
+    choose_distro/select_distro.sh
 
     ## common_AOK/etc/skel/.bash_profile
     common_AOK/usr_local_bin/disable_sshd
@@ -66,12 +67,10 @@ checkables=(
 
     # Weird, if this is used, I get shellcheck issues listed in /etc/bash.bashrc
     # Debian/etc/profile
-    Debian/etc/profile.setup_aok
     Debian/usr_local_sbin/reset-run-dir.sh
     Debian/setup_debian.sh
 
     AOK_VARS
-    build_env
     build_fs
     compress_image
 )

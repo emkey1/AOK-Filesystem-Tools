@@ -7,8 +7,7 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#
-#  This should be run inside the env, either chrooted or during deploy
+#  Common setup tasks for both Alpine & Debian
 #
 
 # shellcheck disable=SC1091
