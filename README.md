@@ -33,12 +33,6 @@ it's content will be appended to the destination AOK_VARS & tools/utils.sh,
 so motly for devel/debug. For production style deploys, it is recomended
 to update AOK_VARS and not have a .AOK_VARS present.
 
-## Further setup steps
-
-To keep things simple /etc/profile is used to run setup on dest
-platform, since it will be run at bootup on iSH/iSH-AOK anyhow.
-Once setup is done /etc/profile will be replaced with the "normal" one.
-
 ## Multi distro
 
 run build_fs -s to create a Distro asking if you want to use Alpine or
@@ -47,13 +41,13 @@ Debian
 ### Running chrooted
 
 When testing setups in a chroot env, some extra steps are needed,
-since in chroot /etc/profile is not run
+since in chroot /etc/profile might not run, depending on shell use.
 
 `sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
 deploy directly, if any steps remain.
 
-`sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash at
-this point, on Alpine /bin/ash is always present, for Debian /bin/sh
+`sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash available
+at this point, on Alpine /bin/ash is always present, for Debian /bin/sh
 has to be used. This also avoids unintentionally running /etc/profile,
 if that is not desired.
 
@@ -71,20 +65,6 @@ a good way, when login is disabled, it is displayed.
 ### Login
 
 The AOK alternate logins are not yet used, pending testing
-
-### Services
-
-- runbg
-
-sshd is toggled by running: enable_sshd / disable_sshd
-
-### Generic Debian Services found to be working inside iSH
-
-- cron (dcron)
-- ssh
-
-sshd is setup up by the AOK deploy, but not initially active.
-It can be enabled / disabled by running enable_sshd / disable_sshd
 
 #### Specific iSH-AOK services
 
