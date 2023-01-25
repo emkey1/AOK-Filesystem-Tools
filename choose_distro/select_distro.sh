@@ -54,7 +54,7 @@ fi
 
 text="Alpine is the regular AOK FS,
 fully stable. This will install
-Alpine $alpine_release
+Alpine $ALPINE_VERSION
 
 Debian is experimental, not yet stable,
 this is version 10 (Buster).
