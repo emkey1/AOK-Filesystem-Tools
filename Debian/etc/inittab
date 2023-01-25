@@ -12,7 +12,7 @@ id:2:initdefault:
 # Ensure devs are ok
 fx1::sysinit:/usr/local/sbin/fix_dev
 
-# Reset /run dir to an initial state with no services running
+# Clear /run/openrc to an initial state with no services running
 fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
 
 #
