@@ -145,6 +145,7 @@ fi
 #
 if apk info -e dcron >/dev/null; then
     msg_2 "Detected dcron, adding service"
+    openrc_might_trigger_errors
     rc-update add dcron default
     rc-service dcron start
     msg_3 "Setting dcron for checking every 15 mins"
