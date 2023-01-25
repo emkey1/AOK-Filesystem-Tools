@@ -5,6 +5,11 @@
 #  License: MIT
 #
 
+if [ -f /etc/opt/AOK/is_chrooted ]; then
+    echo "This can't be run when chrooted!"
+    exit 1
+fi
+
 if [ -f /etc/alpine-release ]; then
     srvc_name="sshd"
 elif [ -f /etc/debian_version ]; then

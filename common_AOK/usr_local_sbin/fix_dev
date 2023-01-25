@@ -15,9 +15,18 @@ msg_1() {
     echo "===  $1  ==="
 }
 
+is_ish() {
+    test -d /proc/ish
+}
+
 if [ "$(uname)" = "Darwin" ]; then
     echo "Don't run this on MacOS!!"
     exit 1
+fi
+
+if ! is_ish; then
+    msg_1 "Not iSH kernel, skipping fix_dev"
+    exit 0
 fi
 
 #  shellcheck disable=SC2154

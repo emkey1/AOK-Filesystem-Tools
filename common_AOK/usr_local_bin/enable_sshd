@@ -7,6 +7,11 @@
 # Enable sshd to run automatically
 #
 
+if [ -f /etc/opt/AOK/is_chrooted ]; then
+    echo "This can't be run when chrooted!"
+    exit 1
+fi
+
 if [ -f /etc/alpine-release ]; then
     srvc_name="sshd"
 elif [ -f /etc/debian_version ]; then
@@ -16,7 +21,7 @@ else
     exit 1
 fi
 
-sudo rc-update add "$srvc_name"
+sudo rc-update add "$srvc_name" default
 
 sudo rc-service "$srvc_name" start
 
