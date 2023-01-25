@@ -102,6 +102,8 @@ replace_key_files() {
 
 tsa_start="$(date +%s)"
 
+msg_title "setup_alpine.sh - Setup Alpine"
+
 start_setup Alpine "$ALPINE_VERSION"
 
 msg_2 "Running fix_dev"

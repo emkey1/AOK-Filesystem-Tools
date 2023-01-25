@@ -14,7 +14,7 @@
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-msg_1 "Running final part of Alpine FS setup"
+msg_title "setup_alpine_final_tasks.sh - Final part of setup"
 
 if ! is_aok_kernel; then
     msg_2 "Removing apps that depend on the iSH-AOK kernel"
@@ -33,7 +33,7 @@ clear_task
 run_additional_tasks_if_found
 
 msg_1 "This system has completed the last deploy steps and is ready"
-msg_1 "Please reboot / restart app to start using it!"
+msg_1 "Please reboot/restart app!"
 #  In order for this exit not to terminate the session instantly
 #  a shell is started, to give an option to inspect the deploy
 #  outcome.

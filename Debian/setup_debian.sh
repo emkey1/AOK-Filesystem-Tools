@@ -46,6 +46,8 @@ install_sshd() {
 
 tsd_start="$(date +%s)"
 
+msg_title "setup_debian.sh  Debian specific AOK env"
+
 start_setup Debian "$(cat /etc/debian_version)"
 
 msg_2 "Running fix_dev"
@@ -101,8 +103,6 @@ fi
 #
 #  Common deploy, used both for Alpine & Debian
 #
-msg_1 "Running $setup_common_aok"
-
 "$setup_common_aok"
 
 #
@@ -145,6 +145,7 @@ openrc_might_trigger_errors
 rc-update del dbus default
 rc-update del elogind default
 rc-update del rsync default
+rc-update del sudo default
 
 msg_1 "Setup complete!"
 echo

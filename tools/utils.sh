@@ -55,6 +55,15 @@ error_msg() {
     unset em_exit_code
 }
 
+msg_title() {
+    [ -z "$1" ] && error_msg "msg_title() no param"
+    echo
+    echo "***"
+    echo "***  $1"
+    echo "***"
+    echo
+
+}
 #
 #  The msg_ functions are ordered, lower number infers more important updates
 #  so they should stand out more
@@ -516,7 +525,7 @@ setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
 setup_alpine_scr="$aok_content"/Alpine/setup_alpine.sh
 setup_alpine_final="$aok_content"/Alpine/setup_alpine_final_tasks.sh
 setup_debian_scr="$aok_content"/Debian/setup_debian.sh
-setup_select_distro_prepare="$aok_content"/choose_distro/prepare_distro_select.sh
+setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
 
 # =====================================================================

@@ -10,17 +10,7 @@
 
 tid_start="$(date +%s)"
 
-#
-#  Ensure all devs are in a good state.
-#  Since it is not installed yet in /usr/local/sbin, run it from source
-#  It wil be deployed in setup_common_aok
-#
-if is_ish; then
-    # Don't bother if just chrooted
-    "$aok_content"/common_AOK/usr_local_sbin/fix_dev
-fi
-
-msg_1 "Installing Debian"
+msg_title "install_debian.sh  Downloading & Installing Debian"
 
 #
 #  Step 1  Download and upack Debian
@@ -126,9 +116,6 @@ msg_2 "Removing last traces of Alpine - busybox"
 rm /busybox
 rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
-
-msg_1 "Filesystem is Now Debian, running setup"
-echo
 
 "$setup_debian_scr"
 

@@ -15,6 +15,11 @@
 
 tcd_start="$(date +%s)"
 
+msg_title "select_distro.sh  Select to install Alpine / Debian"
+
+msg_2 "Running fix_dev"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 # dialog_app="dialog --erase-on-exit"
 dialog_app="whiptail"
 

@@ -144,7 +144,12 @@ user_ish() {
     chown -R ish: ~ish
 }
 
+msg_title "setup_common_env.sh  Common AOK setup steps"
+
 setup_environment
 setup_login
 user_root
 user_ish
+
+msg_1 "^^^  setup_common_env.sh done  ^^^"
+echo

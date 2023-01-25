@@ -10,6 +10,8 @@
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
+msg_title "select_distro_prepare.sh  Prep for distro select"
+
 #
 #  Needed in order to find dialog/newt in case they have been updated
 #
