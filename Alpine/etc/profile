@@ -8,6 +8,16 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+#
+#  Don't know why but without this delay, profile occationally fails
+#  to complete under iSH, leaving just a blank screen. Just a guess,
+#  but could be that the Launch cmd (triggering /etc/profile) is run
+#  before the OS is ready?
+#
+sleep 1
 
 # Let's set the path here since that covers both zsh and bash
 export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
@@ -32,13 +42,6 @@ if [ -x "$aok_post_boot_task" ]; then
    #  the pre-build. It should happen at the target device.
    #
    rm -f /opt/post_boot_done
-
-   #
-   #  Don't know why but without this delay, the below wont execute
-   #  under iSH. Just a guess, but could be if profile is run before
-   #  everything is ready?
-   #
-   sleep 1
 
    while [ -x "$aok_post_boot_task" ] && [ ! -f /opt/post_boot_done ]; do
       echo "*** will run: $aok_post_boot_task"

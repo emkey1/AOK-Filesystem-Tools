@@ -1,8 +1,22 @@
 #!/bin/sh
 # Fake bangpath to trick linters and editors
-
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+#
+#  Don't know why but without this delay, profile occationally fails
+#  to complete under iSH, leaving just a blank screen. Just a guess,
+#  but could be that the Launch cmd (triggering /etc/profile) is run
+#  before the OS is ready?
+#
+sleep 1
 
 if [ "$(id -u)" -eq 0 ]; then
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -20,13 +34,6 @@ export PATH
 #
 aok_post_boot_task="/opt/aok_post_boot_task"
 if [ -x "$aok_post_boot_task" ]; then
-    #
-    #  Don't know why but without this delay, the below wont execute
-    #  under iSH. Just a guess, but could be if profile is run before
-    #  everything is ready?
-    #
-    sleep 2
-
     while [ -x "$aok_post_boot_task" ]; do
         echo "*** will run: $aok_post_boot_task"
         "$aok_post_boot_task"
