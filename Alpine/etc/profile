@@ -32,28 +32,34 @@ export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
 
 aok_post_boot_task="/opt/aok_post_boot_task"
 if [ -x "$aok_post_boot_task" ]; then
-   #
-   #  When some post-boot task needs to happen after a reboot
-   #  touch /opt/post_boot_done
-   #  If this file is pressent, no more post-boot tasks will be done now
-   #  and system will be rebooted.
-   #  This is used for Alpine pre-builds, when the last step of removing
-   #  apks only usable on iSH-AOK kernels should not be done during
-   #  the pre-build. It should happen at the target device.
-   #
-   rm -f /opt/post_boot_done
+    #
+    #  When some post-boot task needs to happen after a reboot
+    #  touch /opt/post_boot_done
+    #  If this file is pressent, no more post-boot tasks will be done now
+    #  and system will be rebooted.
+    #  This is used for Alpine pre-builds, when the last step of removing
+    #  apks only usable on iSH-AOK kernels should not be done during
+    #  the pre-build. It should happen at the target device.
+    #
+    rm -f /opt/post_boot_done
 
-   while [ -x "$aok_post_boot_task" ] && [ ! -f /opt/post_boot_done ]; do
-      echo "*** will run: $aok_post_boot_task"
-      "$aok_post_boot_task"
-   done
-   #
-   #  This will typically trigger an instant reboot, so normally the message
-   #  wont
-
-   echo "***  /etc/profile completed post-boot tasks, rebooting in 3s"
-   sleep 3
-   exit
+    while [ -x "$aok_post_boot_task" ] && [ ! -f /opt/post_boot_done ]; do
+        echo "*** will run: $aok_post_boot_task"
+        "$aok_post_boot_task"
+    done
+    #
+    #  exit will typically trigger an instant reboot, this gives a
+    #  moment to Ctrl-C if one wants to read
+    #
+    if [ -f /etc/opt/AOK/is_chrooted ]; then
+        echo "***  processing $aok_post_boot_task completed, exiting chroot"
+        echo
+    else
+        echo "***  /etc/profile completed post-boot tasks, rebooting in 5s"
+        echo "***  Press Ctrl-C if you want more time to read above"
+        sleep 5
+    fi
+    exit
 fi
 
 ID="$(id -u)"
@@ -61,39 +67,39 @@ CHECK="$(/bin/rc-status 2>/dev/null | grep -c sshd)"
 VERBOSE=0
 
 if [ "$CHECK" -eq 0 ] || [ "$ID" -ne 0 ]; then
-   VERBOSE=1
+    VERBOSE=1
 fi
 
 # echo $CHECK $ID $VERBOSE
 
 if [ "$VERBOSE" -eq 1 ]; then
-   echo
-   echo "------------------------------------------"
-   echo
+    echo
+    echo "------------------------------------------"
+    echo
 fi
 
 if [ "$CHECK" -eq 0 ]; then
-   echo "Enable sshd on port 1022: [31menable_sshd[0m"
-   echo
+    echo "Enable sshd on port 1022: [31menable_sshd[0m"
+    echo
 fi
 
 if [ "$ID" -ne 0 ]; then
-   echo "Use [31msudo[0m to run commands as root"
-   echo
+    echo "Use [31msudo[0m to run commands as root"
+    echo
 fi
 
 if [ "$VERBOSE" -eq 1 ]; then
-   echo "------------------------------------------"
-   echo
+    echo "------------------------------------------"
+    echo
 fi
 
 if grep -qi aok /proc/ish/version 2>/dev/null; then
-   #  Only run this on AOK kernels
-   CPU_STATE="$(/usr/local/bin/toggle_multicore status)"
-   echo "Multicore State=$CPU_STATE"
+    #  Only run this on AOK kernels
+    CPU_STATE="$(/usr/local/bin/toggle_multicore status)"
+    echo "Multicore State=$CPU_STATE"
 
-   LOCK_STATE="$(/usr/local/bin/elock status)"
-   echo "Extra Locking State=$LOCK_STATE"
+    LOCK_STATE="$(/usr/local/bin/elock status)"
+    echo "Extra Locking State=$LOCK_STATE"
 fi
 
 echo ""

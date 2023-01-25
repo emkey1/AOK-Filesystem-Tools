@@ -42,8 +42,14 @@ if [ -x "$aok_post_boot_task" ]; then
     #  This will typically trigger an instant reboot, so normally the message
     #  wont
 
-    echo "***  /etc/profile completed post-boot tasks, rebooting in 3s"
-    sleep 3
+    if [ -f /etc/opt/AOK/is_chrooted ]; then
+        echo "***  processing $aok_post_boot_task completed, exiting chroot"
+        echo
+    else
+        echo "***  /etc/profile completed post-boot tasks, rebooting in 5s"
+        echo "***  Press Ctrl-C if you want more time to read above"
+        sleep 5
+    fi
     exit
 fi
 
