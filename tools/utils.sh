@@ -478,9 +478,6 @@ if bldstat_get "$status_is_chrooted"; then
 elif test -f "$build_status_raw/$status_being_built"; then
     build_root_d=""
     # msg_3 "This is running on dest platform"
-elif test -f "$build_status_raw/$status_prebuilt_fs"; then
-    build_root_d=""
-    # msg_3 "This is running on dest platform"
 else
     # msg_3 "Not chrooted, not dest platform"
     build_root_d="$build_base_d/iSH-AOK-FS"
