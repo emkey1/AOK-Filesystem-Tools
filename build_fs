@@ -338,6 +338,7 @@ select_distro_on_1st_boot() {
             error_msg "Error in chroot, aborting build!"
         fi
     else
+        echo
         msg_2 "***  Could not chroot, did not run: $setup_select_distro_prepare  ***"
         msg_2 "This means that this image will have to run the preparatory"
         msg_2 "step, before displaying the Distro selection dialog"
