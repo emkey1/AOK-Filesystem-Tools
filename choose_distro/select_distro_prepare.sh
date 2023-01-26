@@ -48,5 +48,6 @@ if is_chrooted; then
     echo "It doesn't make sense to select Distro at this time"
     exit
 else
+    msg_2 "System is prepared, now run distro selection"
     "$setup_select_distro"
 fi
