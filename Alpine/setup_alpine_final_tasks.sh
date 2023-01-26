@@ -11,6 +11,19 @@
 #  Completes the setup of Alpine
 #
 
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
+
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 1
+
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
@@ -25,18 +38,13 @@ if ! is_aok_kernel; then
     apk del $AOK_APKS
 fi
 
-bldstat_clear "$status_being_built"
-bldstat_clear "$status_prebuilt_fs"
+#  Clear up build env
+bldstat_clear_all
 
-clear_task
+select_profile "$aok_content"/Alpine/etc/profile
 
 run_additional_tasks_if_found
 
 msg_1 "This system has completed the last deploy steps and is ready"
-msg_1 "Please reboot/restart app!"
-#  In order for this exit not to terminate the session instantly
-#  a shell is started, to give an option to inspect the deploy
-#  outcome.
-#  If this FS is pre-built this should not happen.
-/bin/ash
-exit
+msg_2 "Please reboot/restart the app!"
+echo

@@ -25,43 +25,6 @@ else
 fi
 export PATH
 
-#
-#  This is used to run post-boot single tasks, normally related to
-#  installation of the system, but could be used for other things.
-#  If one task wants to run an additional task, just replace the script
-#  with the next one. However the last task in the sequence must delete
-#  itself, since this will loop and run this script as long as it is found.
-#
-aok_post_boot_task="/opt/aok_post_boot_task"
-if [ -x "$aok_post_boot_task" ]; then
-    while [ -x "$aok_post_boot_task" ]; do
-        echo "*** will run: $aok_post_boot_task"
-        "$aok_post_boot_task"
-    done
-    #
-    #  This will typically trigger an instant reboot, so normally the message
-    #  wont
-
-    if [ -f /etc/opt/AOK/is_chrooted ]; then
-        echo "***  processing $aok_post_boot_task completed, exiting chroot"
-        echo
-    else
-        echo "***  /etc/profile completed post-boot tasks, rebooting in 5s"
-        echo "***  Press Ctrl-C if you want more time to read above"
-        sleep 5
-    fi
-    exit
-fi
-
-#
-#  Only show motd on login screens is the intent, not sure if this is
-#  a good way...
-#
-if [ "$PPID" -lt 2 ]; then
-    echo
-    cat /etc/motd
-fi
-
 if [ -n "${PS1-}" ]; then
     if [ -n "${BASH-}" ] && [ "$BASH" != "/bin/sh" ]; then
         # The file bash.bashrc already sets the default PS1.

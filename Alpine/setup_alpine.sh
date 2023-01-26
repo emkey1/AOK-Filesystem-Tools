@@ -7,17 +7,19 @@
 #
 #  This modifies an Alpine Linux FS with the AOK changes
 #
-#  On compatible platforms, Linux (x86) and iSH this can be run chrooted
-#  before compressing the file system, to deliver a ready to be used file system.
-#  When the FS is prepared on other platforms,
-#  this file has to be run inside iSH once the file system has been mounted.
-#
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
+
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 1
 
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -173,9 +175,11 @@ echo
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
 
-select_task "$setup_alpine_final"
-
-if bldstat_get "$status_is_chrooted"; then
-    echo "This is chrooted, delaying final steps"
-    touch /opt/post_boot_done
+#
+#  This should run on destination platform
+#
+if is_chrooted; then
+    select_profile "$setup_alpine_final"
+else
+    "$setup_alpine_final"
 fi

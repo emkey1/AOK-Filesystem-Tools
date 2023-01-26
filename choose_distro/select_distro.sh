@@ -10,6 +10,19 @@
 #  Setup Distro choice
 #
 
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
+
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 1
+
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
@@ -87,17 +100,5 @@ else
     "$aok_content"/choose_distro/install_debian.sh
 fi
 
-bldstat_clear "$status_being_built"
-
 duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
-
-#
-#  Need to exit running this profile, otherwise control will spill over
-#  into the replaced profile if it has more lines than this one.
-#  In order for this exit not to terminate the session instantly
-#  a shell is started, in order to be able to inspect the deploy
-#  outcome.
-#
-/bin/sh
-exit

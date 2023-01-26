@@ -108,6 +108,10 @@ is_iCloud_mounted() {
     mount | grep -wq iCloud
 }
 
+is_chrooted() {
+    bldstat_get "$status_is_chrooted"
+}
+
 #
 #  Displat warning message indicating that errors displayed during
 #  openrc actions can be ignored, and are not to be read as failures in
@@ -181,6 +185,14 @@ bldstat_clear() {
     fi
 }
 
+bldstat_clear_all() {
+    #
+    #  Build is done, ensure no leftovers
+    #
+    rm "$build_status"/*
+    bldstat_clear
+}
+
 copy_profile() {
     cp_src="$1"
     [ -z "$cp_src" ] && error_msg "copy_profile() no param"
@@ -195,29 +207,28 @@ copy_profile() {
 }
 
 #  shellcheck disable=SC2120
-select_task() {
-    msg_2 "select_task($1)"
-    sp_next_task="$1"
-    if [ -z "$sp_next_task" ]; then
-        error_msg "select_task() - no param"
+select_profile() {
+    msg_2 "select_profile($1)"
+    sp_new_profile="$1"
+    if [ -z "$sp_new_profile" ]; then
+        error_msg "select_profile() - no param"
     fi
-    cp -a "$sp_next_task" "$aok_post_boot_task"
+
+    #
+    #  Avoid file replacement whilst running doesnt overwrite the
+    #  previous script without first removing it, leaving a garbled file
+    #
+    rm "$build_root_d"/etc/profile
+
+    cp -a "$sp_new_profile" "$build_root_d"/etc/profile
 
     #
     #  Normaly profile is sourced, but in order to be able to directly
     #  run it if manually triggering a deploy, make it executable
     #
-    chmod 744 "$aok_post_boot_task"
-    chown root: "$aok_post_boot_task"
-    unset sp_next_task
-    # msg_3 "select_task() done"
-}
-
-clear_task() {
-    msg_2 "clear_task()"
-    [ -z "$aok_post_boot_task" ] && error_msg "clear_task() aok_post_boot_task undefined"
-    [ -f "$aok_post_boot_task" ] && rm "$aok_post_boot_task"
-    # msg_3 "clear_task() done"
+    chmod 744 "$build_root_d"/etc/profile
+    unset sp_new_profile
+    msg_3 "select_profile() done"
 }
 
 create_fs() {
@@ -322,7 +333,7 @@ start_setup() {
         echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
     fi
 
-    if ! bldstat_get "$status_is_chrooted"; then
+    if ! is_chrooted; then
         msg_3 "iSH now able to run in the background"
         cat /dev/location >/dev/null &
     fi
@@ -443,10 +454,14 @@ debian_tb="Debian-iSH-AOK-$AOK_VERSION"
 target_alpine="Alpine"
 target_debian="Debian"
 target_select="select"
+
 #
 #  Statuses are files put in place in $aok_content_etc on the destination FS
 #  to indicate various states of progress
 #
+
+#  This is chrooted
+status_is_chrooted="is_chrooted"
 
 #  Indicator this is an env being built
 status_being_built="env_beeing_built"
@@ -455,13 +470,10 @@ status_being_built="env_beeing_built"
 #  run during deploy
 #
 status_select_distro_prepared="select_distro_prepared"
-#  This is chrooted
-status_is_chrooted="is_chrooted"
 
 #
-#  Hint to /profile that this was a pre-built FS, meaning /etc/profile
-#  should not wait for $FIRST_BOOT_NOT_DONE_HINT to disappear, and
-#  post_boot.sh should not run (from inittab) /etc/profile will
+#  Hint to Debian to clear out the arround 50MB of apt cache
+#  in order for the FS to be smaller when it is compressed
 #
 status_prebuilt_fs="prebuilt_fs_first_boot"
 
@@ -475,15 +487,10 @@ build_base_d="/tmp/AOK"
 build_status_raw="$aok_content_etc"
 
 #
-#  if it works, describe me!
-#
-aok_post_boot_task="/opt/aok_post_boot_task"
-
-#
 #  status_being_built and build_status, used by bldstat_get()
 #  must be defined before this
 #
-if bldstat_get "$status_is_chrooted"; then
+if is_chrooted; then
     build_root_d=""
     # msg_3 "This is chrooted"
 elif test -f "$build_status_raw/$status_being_built"; then
@@ -496,8 +503,6 @@ fi
 
 #  Now the proper value can be set
 build_status="${build_root_d}${build_status_raw}"
-
-aok_post_boot_task="${build_root_d}/opt/aok_post_boot_task"
 
 #  Where to find native FS version
 file_alpine_release="$build_root_d"/etc/alpine-release

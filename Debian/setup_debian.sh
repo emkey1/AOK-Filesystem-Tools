@@ -17,6 +17,13 @@ if [ ! -d "/opt/AOK" ]; then
     exit 1
 fi
 
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 1
+
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
@@ -156,12 +163,18 @@ duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 unset duration
 
-run_additional_tasks_if_found
-
 if bldstat_get "$status_prebuilt_fs"; then
     msg_2 "Clear apt cache on pre-built FS, saves some 50MB on the tarball"
     rm /var/cache/apt /var/lib/apt -rf
 fi
-msg_1 "Your system is setup! Please reboot / restart app"
 
-clear_task
+#  Clear up build env
+bldstat_clear_all
+
+select_profile "$aok_content"/Debian/etc/profile
+
+run_additional_tasks_if_found
+
+msg_1 "This system has completed the last deploy steps and is ready"
+msg_2 "Please reboot/restart the app!"
+echo
