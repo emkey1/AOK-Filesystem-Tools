@@ -9,18 +9,18 @@
 #  Prepares the Alpine image to show Distribution selection dialog
 #
 
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
 #
 #  Since this is run as /etc/profile during deploy, and this wait is
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
 sleep 1
+
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
 
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh

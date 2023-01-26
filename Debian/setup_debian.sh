@@ -11,18 +11,18 @@
 #  This modifies a Debian Linux FS with the AOK changes
 #
 
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
 #
 #  Since this is run as /etc/profile during deploy, and this wait is
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
 sleep 1
+
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -55,10 +55,11 @@ tsd_start="$(date +%s)"
 
 msg_title "setup_debian.sh  Debian specific AOK env"
 
-start_setup Debian "$(cat /etc/debian_version)"
-
+#  Ensure important devices are present
 msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
+start_setup Debian "$(cat /etc/debian_version)"
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -104,6 +105,7 @@ fi
 #
 if [ "$QUICK_DEPLOY" -ne 1 ]; then
     msg_2 "Setup locale"
+    msg_3 "locale warnings during this process can be ignored"
     apt install -y locales
 fi
 
