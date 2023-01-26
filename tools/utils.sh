@@ -189,7 +189,7 @@ bldstat_clear_all() {
     #
     #  Build is done, ensure no leftovers
     #
-    rm "$build_status"/*
+    rm "$build_status"/* 2>/dev/null
     bldstat_clear
 }
 
