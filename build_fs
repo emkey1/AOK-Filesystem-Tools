@@ -51,14 +51,13 @@ Available options:
 -v  --verbose      Displays extra info, like untaring/taring progress
 -s  --select       Offer selection between Alpine & Debian on first boot.
 -d  --debian       Build a Debian FS.
--p  --prebuilt     Build the entire FS on the running platform, making for quicker
-                   imports on target device, but 10 times larger image files.
+-p  --prebuilt     Build the entire FS on the running platform, making
+                   for quicker imports on target device, but up to 10
+                   times larger image file.
                    This can only be done on iSH or Linux (x86)!
 -j  --bzip2        Use bzip2 compression for distribution
--N  --no_compress  Terminates when FS is prepared, giving you the opportunity to
-                   chroot into it and do your personal adaptations.
-                   Instructions about this procedure and howto then complete
-                   the build once done will be displayed at the end of the build.
+-N  --no_compress  Terminates when FS is prepared, without generating
+                   a FS tarball.
 EOF
     exit 0
 }
@@ -308,7 +307,7 @@ setup_Alpine_on_1st_boot() {
     copy_profile "$aok_content"/Alpine/etc/profile
     # by setting this as the first of two, this will become the default profile
     # when install is completed
-    select_task "$setup_alpine_scr"
+    select_profile "$setup_alpine_scr"
     # msg_3 "setup_Alpine_on_1st_boot() done"
 }
 
@@ -318,7 +317,7 @@ setup_Debian_on_1st_boot() {
     copy_profile "$aok_content"/Debian/etc/profile
     # by setting this as the first of two, this will become the default profile
     # when install is completed
-    select_task "$setup_debian_scr"
+    select_profile "$setup_debian_scr"
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
 
@@ -327,7 +326,7 @@ select_distro_on_1st_boot() {
 
     copy_profile "$aok_content"/Alpine/etc/profile
 
-    select_task "$setup_select_distro_prepare"
+    select_profile "$setup_select_distro_prepare"
 
     #
     #  If this build platform cant chroot, then the preparational steps
@@ -368,7 +367,7 @@ prebuild_fs() {
 
     if [ "$build_target" = "$target_alpine" ]; then
         msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-        select_task "$setup_alpine_final"
+        select_profile "$setup_alpine_final"
         #
         #  Since some final steps need to run by the above profile
         #  mark the FS as in build state
