@@ -44,6 +44,9 @@ select_profile "$setup_select_distro"
 
 # shellcheck disable=SC2154
 if is_chrooted; then
-    echo "This is chrooted, doesn't make sense to select Distro"
+    msg_1 "This is chrooted"
+    echo "It doesn't make sense to select Distro at this time"
     exit
+else
+    "$setup_select_distro"
 fi
