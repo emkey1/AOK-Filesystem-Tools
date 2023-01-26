@@ -3,7 +3,7 @@
 #
 all: login.loop login.once idev_ip
 
-clean: 
+clean:
 	rm login.loop login.once idev_ip
 
 login.loop:  login.loop.c
