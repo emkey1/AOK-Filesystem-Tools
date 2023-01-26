@@ -34,6 +34,9 @@ msg_title "select_distro.sh  Select to install Alpine / Debian"
 msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
+msg_3 "apk update & upgrade"
+apk update && apk upgrade
+
 # dialog_app="dialog --erase-on-exit"
 dialog_app="whiptail"
 
