@@ -14,7 +14,7 @@
 dialog_app="dialog --erase-on-exit"
 # dialog_app="whiptail"
 
-if [ -f /etc/debian_version ]; then
+if [[ -f /etc/debian_version ]]; then
     # older Debians use a dialog versioon not compatible with this
     # so enforce whiptail
     dialog_app="whiptail"
