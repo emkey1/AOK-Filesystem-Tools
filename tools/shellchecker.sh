@@ -33,24 +33,25 @@ checkables=(
     Alpine/usr_local_bin/disable_vnc
     Alpine/usr_local_bin/do_fix_services
     Alpine/usr_local_bin/enable_vnc
+    # Alpine/usr_local_bin/idev_ip  binary
     Alpine/usr_local_bin/update
     Alpine/usr_local_bin/vnc_start
     Alpine/usr_local_bin/what_owns
-    ## Alpine/usr_local_bin/Xdummy
     Alpine/usr_local_sbin/update_motd
     Alpine/setup_alpine_final_tasks.sh
     Alpine/setup_alpine.sh
 
     \
     choose_distro/install_debian.sh
-    choose_distro/prepare_distro_select.sh
+    choose_distro/select_distro_prepare.sh
     choose_distro/select_distro.sh
 
     ## common_AOK/etc/skel/.bash_profile
     common_AOK/usr_local_bin/disable_sshd
+    # common_AOK/usr_local_bin/dmesg  perl
     common_AOK/usr_local_bin/elock
     common_AOK/usr_local_bin/enable_sshd
-    common_AOK/usr_local_sbin/fix_dev
+    # common_AOK/usr_local_bin/finger  perl
     common_AOK/usr_local_bin/fix_services
     common_AOK/usr_local_bin/iCloud
     common_AOK/usr_local_bin/installed
@@ -58,13 +59,21 @@ checkables=(
     common_AOK/usr_local_bin/iphone_tmux
     common_AOK/usr_local_bin/myip
     common_AOK/usr_local_bin/pbcopy
+    common_AOK/usr_local_bin/set-timezone
+    common_AOK/usr_local_bin/showip
     common_AOK/usr_local_bin/toggle_multicore
     common_AOK/usr_local_bin/version
+    common_AOK/usr_local_sbin/ensure_hostname_in_host_file.sh
+    common_AOK/usr_local_sbin/fix_dev
     common_AOK/first_boot.sh
     common_AOK/setup_common_env.sh
 
     # Weird, if this is used, I get shellcheck issues listed in /etc/bash.bashrc
     # Debian/etc/profile
+    Debian/etc/update-motd.d/11-aok-a-deb-vers
+    Debian/etc/update-motd.d/11-aok-b-aok-release
+    Debian/etc/update-motd.d/11-aok-c-ish-release
+    Debian/etc/update-motd.d/11-aok-d-aok-logo
     Debian/usr_local_sbin/reset-run-dir.sh
     Debian/setup_debian.sh
 
