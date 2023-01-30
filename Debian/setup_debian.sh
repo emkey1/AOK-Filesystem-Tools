@@ -51,6 +51,13 @@ install_sshd() {
 #
 #===============================================================
 
+if [ "$build_env" -eq 0 ]; then
+    echo
+    echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
+    echo "##           You have been warned"
+    echo
+fi
+
 tsd_start="$(date +%s)"
 
 msg_title "setup_debian.sh  Debian specific AOK env"
