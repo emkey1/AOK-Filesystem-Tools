@@ -77,8 +77,8 @@ The AOK alternate logins are not yet used, pending testing
 
 I have tried to convert runbg to be a posix script
 as is normally the case in Debian when using openrc
-using the #!/bin/sh shebang, but so far no success.
+using the `#!/bin/sh` shebang, but so far no success.
 
 So as of now I use the same here as for Alpine,
-using a #!/sbin/openrc-run style script.
+using a `#!/sbin/openrc-run` style script.
 It seems to work fine, so there is that.
