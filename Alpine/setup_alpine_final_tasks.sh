@@ -16,7 +16,7 @@
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 1
+sleep 2
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
@@ -29,13 +29,17 @@ fi
 
 msg_title "setup_alpine_final_tasks.sh - Final part of setup"
 
-if ! is_aok_kernel; then
-    msg_2 "Removing apps that depend on the iSH-AOK kernel"
-    #
-    #  aok dependent bins serve no purpose on other platforms, delete
-    #
-    # shellcheck disable=SC2086
-    apk del $AOK_APKS
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
+    if ! is_aok_kernel; then
+        msg_2 "Removing apps that depend on the iSH-AOK kernel"
+        #
+        #  aok dependent bins serve no purpose on other platforms, delete
+        #
+        # shellcheck disable=SC2086
+        apk del $AOK_APKS
+    fi
+else
+    msg_2 "QUICK_DEPLOY - skipping removal of AOK kernel packages"
 fi
 
 #  Clear up build env

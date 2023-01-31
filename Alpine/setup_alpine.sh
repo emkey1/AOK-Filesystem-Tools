@@ -13,7 +13,7 @@
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 1
+sleep 2
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
@@ -28,10 +28,17 @@ install_apks() {
     if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
 
-        #  busybox-extras no longer a package starting with 3.16, so delete if present
-        if [ "$(awk 'BEGIN{print ('"$alpine_release"' > 3.15)}')" -eq 1 ]; then
-            msg_3 "Removing busybox-extras from core apks, not available past 3.15"
-            CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
+        if [ "$QUICK_DEPLOY" -eq 0 ]; then
+            #  busybox-extras no longer a package starting with 3.16, so delete if present
+            if [ "$(awk 'BEGIN{print ('"$alpine_release"' > 3.15)}')" -eq 1 ]; then
+                msg_3 "Removing busybox-extras from core apks, not available past 3.15"
+                CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
+            fi
+        else
+            msg_2 "QUICK_DEPLOY - doing minimal package install"
+            #  probably absolute minimal without build errors
+            # CORE_APKS="openssh bash openrc sudo dcron dcron-openrc"
+            CORE_APKS="bash openrc"
         fi
 
         # In this case we want the variable to expand into its components
@@ -44,8 +51,12 @@ install_apks() {
         #  is present, if found install it.
         #
         if [ -n "$(apk search shadow-login)" ]; then
-            msg_3 "Installing shadow-login"
-            apk add shadow-login
+            if [ "$QUICK_DEPLOY" -eq 0 ]; then
+                msg_3 "Installing shadow-login"
+                apk add shadow-login
+            else
+                msg_3 "QUICK_DEPLOY - skipping shadow-login"
+            fi
         fi
     fi
 
@@ -55,10 +66,14 @@ install_apks() {
         #  Only deploy on aok kernels and if any are defined
         #  This might not be deployed on a system with the AOK kernel, but we cant
         #  know at this point in time, so play it safe and install them
-        msg_2 "Add packages only for AOK kernel"
-        # In this case we want the variable to expand into its components
-        # shellcheck disable=SC2086
-        apk add $AOK_APKS
+        if [ "$QUICK_DEPLOY" -eq 0 ]; then
+            msg_2 "Add packages only for AOK kernel"
+            # In this case we want the variable to expand into its components
+            # shellcheck disable=SC2086
+            apk add $AOK_APKS
+        else
+            msg_2 "QUICK_DEPLOY - skipping AOK kernel packages"
+        fi
     fi
 }
 
@@ -77,15 +92,19 @@ replace_key_files() {
         ln /etc/init.d/devfs /etc/init.d/dev
     fi
 
-    if [ "$ALPINE_VERSION" = "edge" ]; then
-        msg_3 "Adding apk repositories containing testing"
-        cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        if [ "$ALPINE_VERSION" = "edge" ]; then
+            msg_3 "Adding apk repositories containing testing"
+            cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+        else
+            msg_3 "Adding edge/testing as a restricted repo"
+            msg_3 " in order to install testing apks do apk add foo@testing"
+            msg_3 " in case of incompatible dependencies an error will be displayed"
+            msg_3 " and nothing bad will happen."
+            echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+        fi
     else
-        msg_3 "Adding edge/testing as a restricted repo"
-        msg_3 " in order to install testing apks do apk add foo@testing"
-        msg_3 " in case of incompatible dependencies an error will be displayed"
-        msg_3 " and nothing bad will happen."
-        echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+        msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
 
     # Networking, hostname and possibly others can't start because of
@@ -147,9 +166,13 @@ install_apks
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
-msg_2 "adding pkg shadow & group sudo"
-apk add shadow
-groupadd sudo
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
+    msg_2 "adding pkg shadow & group sudo"
+    apk add shadow
+    groupadd sudo
+else
+    msg_3 "QUICK_DEPLOY - skipping shadow & group sudo"
+fi
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
@@ -172,6 +195,11 @@ fi
 
 msg_1 "Running $setup_common_aok"
 "$setup_common_aok"
+
+if [ "$QUICK_DEPLOY" -ne 0 ]; then
+    msg_2 "QUICK_DEPLOY - disabling custom login"
+    INITIAL_LOGIN_MODE="disable"
+fi
 
 #
 #  Setup Initial login mode

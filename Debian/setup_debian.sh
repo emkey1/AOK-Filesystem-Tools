@@ -91,12 +91,14 @@ cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
 #
 #  This must run before any task doing apt actions
 #
-if [ "$QUICK_DEPLOY" -ne 1 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "Installing sources.list"
     cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
     msg_2 "apt update"
     apt update -y
+else
+    msg_2 "QUICK_DEPLOY - skipping apt update"
 fi
 
 #
@@ -110,10 +112,12 @@ fi
 #  Should be run before installing CORE_DEB_PKGS to minimize amount of
 #  warnings displayed due to no locale being set
 #
-if [ "$QUICK_DEPLOY" -ne 1 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "Setup locale"
     msg_3 "locale warnings during this process can be ignored"
     apt install -y locales
+else
+    msg_2 "QUICK_DEPLOY - skipping locales"
 fi
 
 #
@@ -135,7 +139,7 @@ fi
 #  a working system if iSH crashes during apt upgrade
 #  or install of CORE_DEB_PKGS and sshd
 #
-if [ "$QUICK_DEPLOY" -ne 1 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
@@ -145,6 +149,8 @@ if [ "$QUICK_DEPLOY" -ne 1 ]; then
         bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
     fi
     install_sshd
+else
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and sshd"
 fi
 
 msg_2 "Add boot init.d items suitable for iSH"
@@ -155,13 +161,17 @@ rc-update add sendsigs off
 rc-update add umountroot off
 rc-update add urandom off
 
-msg_2 "Disable some auto-enabled services that wont make sense in iSH"
-openrc_might_trigger_errors
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
+    msg_2 "Disable some auto-enabled services that wont make sense in iSH"
+    openrc_might_trigger_errors
 
-rc-update del dbus default
-rc-update del elogind default
-rc-update del rsync default
-rc-update del sudo default
+    rc-update del dbus default
+    rc-update del elogind default
+    rc-update del rsync default
+    rc-update del sudo default
+else
+    msg_2 "QUICK_DEPLOY - did not remove default services"
+fi
 
 msg_1 "Setup complete!"
 echo

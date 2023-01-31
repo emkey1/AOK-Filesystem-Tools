@@ -369,14 +369,19 @@ prebuild_fs() {
     "$aok_content"/tools/do_chroot.sh /etc/profile
     msg_1 "Returned from prebuild chroot"
 
-    if [ "$build_target" = "$target_alpine" ]; then
-        msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-        select_profile "$setup_alpine_final"
-        #
-        #  Since some final steps need to run by the above profile
-        #  mark the FS as in build state
-        #
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        if [ "$build_target" = "$target_alpine" ]; then
+            msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
+            select_profile "$setup_alpine_final"
+            #
+            #  Since some final steps need to run by the above profile
+            #  mark the FS as in build state
+            #
+        fi
+    else
+        msg_3 "QUICK_DEPLOY - skipping removal of AOK kernel packages"
     fi
+
     # msg_3 "prebuild_fs() done"
 }
 

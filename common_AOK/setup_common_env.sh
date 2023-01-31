@@ -29,18 +29,26 @@ setup_environment() {
     msg_2 "Populate /etc/skel"
     cp -a "$aok_content"/common_AOK/etc/skel /etc
 
-    # Move sshd to port 1022 to avoid issues
-    sshd_port=1022
-    msg_2 "sshd will use port: $sshd_port"
-    sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
-    #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
-    unset sshd_port
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        # Move sshd to port 1022 to avoid issues
+        sshd_port=1022
+        msg_2 "sshd will use port: $sshd_port"
+        sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
+        #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
+        unset sshd_port
+    else
+        msg_2 "QUICK_DEPLOY - skipping changing sshd port"
+    fi
 
     copy_local_bins common_AOK
 
-    msg_2 "Activating group sudo for no passwd sudo"
-    cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
-    chmod 440 /etc/sudoers.d/sudo_no_passwd
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        msg_2 "Activating group sudo for no passwd sudo"
+        cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
+        chmod 440 /etc/sudoers.d/sudo_no_passwd
+    else
+        msg_2 "QUICK_DEPLOY - skipping no passwd sudo"
+    fi
 
     #
     #  If chrooted inside tmux TERM causes whiptail to fail, set it to something
@@ -149,7 +157,11 @@ msg_title "setup_common_env.sh  Common AOK setup steps"
 setup_environment
 setup_login
 user_root
-user_ish
+if [ "$QUICK_DEPLOY" -eq 0 ]; then
+    user_ish
+else
+    msg_2 "QUICK_DEPLOY - skipping user ish"
+fi
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
 echo
