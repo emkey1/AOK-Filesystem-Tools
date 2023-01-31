@@ -7,9 +7,6 @@
 #
 #  Creates a FS image suitable for mounting on iSH
 #
-#  Primary purpose is to create iSH-AOK file systems, but can also be used
-#  to create bare-bones Alpine-Linux file systems.
-#
 version="2.0.3"
 
 #  shellcheck disable=SC1007
