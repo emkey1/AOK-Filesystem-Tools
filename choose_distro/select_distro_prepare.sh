@@ -14,7 +14,7 @@
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 1
+sleep 2
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"

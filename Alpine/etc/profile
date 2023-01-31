@@ -17,7 +17,7 @@
 #  but could be that the Launch cmd (triggering /etc/profile) is run
 #  before the OS is ready?
 #
-sleep 1
+sleep 2
 
 # Let's set the path here since that covers both zsh and bash
 export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
