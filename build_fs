@@ -5,7 +5,7 @@
 #
 #  License: MIT
 #
-#  Creates a Linux FS image suitable for mounting on iSH
+#  Creates a FS image suitable for mounting on iSH
 #
 #  Primary purpose is to create iSH-AOK file systems, but can also be used
 #  to create bare-bones Alpine-Linux file systems.
