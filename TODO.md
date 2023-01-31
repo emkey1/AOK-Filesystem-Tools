@@ -13,3 +13,16 @@ Cant find the src code
 56 kb in Alpine
 
 Room for optimizing the Debian compile?
+
+
+## Suggested additions to CORE_APKS
+
+mdcat - Markdown reader for the command line that works fine in iSH, unlike glow, which constantly crashes on iSH. Once installed it can be run as mdless, then it uses paging
+
+Only installable in 3.17/edge, on older releases lib dependencies collide
+
+if [ "$ALPINE_VERSION" = "edge" ]; then
+    CORE_APKS="$CORE_APKS mdcat"
+elif [ "$ALPINE_VERSION" = "3.17.1" ]; then
+    CORE_APKS="$CORE_APKS mdcat@testing"
+fi
