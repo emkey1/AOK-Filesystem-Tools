@@ -21,6 +21,8 @@ mdcat - Markdown reader for the command line that works fine in iSH, unlike glow
 
 Only installable in 3.17/edge, on older releases lib dependencies collide
 
+what I use in my .AOK_VARS atm
+
 if [ "$ALPINE_VERSION" = "edge" ]; then
     CORE_APKS="$CORE_APKS mdcat"
 elif [ "$ALPINE_VERSION" = "3.17.1" ]; then
