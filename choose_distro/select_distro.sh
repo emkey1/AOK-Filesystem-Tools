@@ -28,7 +28,7 @@ fi
 
 tcd_start="$(date +%s)"
 
-msg_title "select_distro.sh  Select to install Alpine / Debian"
+msg_script_title "select_distro.sh  Select to install Alpine / Debian"
 
 #  Ensure important devices are present
 msg_2 "Running fix_dev"

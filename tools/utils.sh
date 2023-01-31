@@ -55,8 +55,8 @@ error_msg() {
     unset em_exit_code
 }
 
-msg_title() {
-    [ -z "$1" ] && error_msg "msg_title() no param"
+msg_script_title() {
+    [ -z "$1" ] && error_msg "msg_script_title() no param"
     echo
     echo "***"
     echo "***  $1"
@@ -113,7 +113,7 @@ is_chrooted() {
 }
 
 #
-#  Displat warning message indicating that errors displayed during
+#  Display warning message indicating that errors displayed during
 #  openrc actions can be ignored, and are not to be read as failures in
 #  the deploy procedure.
 #
@@ -334,8 +334,8 @@ start_setup() {
     fi
 
     if ! is_chrooted; then
-        msg_3 "iSH now able to run in the background"
         cat /dev/location >/dev/null &
+        msg_3 "iSH now able to run in the background"
     fi
 
     copy_local_bins "$ss_distro_name"

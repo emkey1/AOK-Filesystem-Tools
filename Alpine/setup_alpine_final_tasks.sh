@@ -27,7 +27,7 @@ fi
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-msg_title "setup_alpine_final_tasks.sh - Final part of setup"
+msg_script_title "setup_alpine_final_tasks.sh - Final part of setup"
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     if ! is_aok_kernel; then

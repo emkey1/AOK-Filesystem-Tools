@@ -60,7 +60,7 @@ fi
 
 tsd_start="$(date +%s)"
 
-msg_title "setup_debian.sh  Debian specific AOK env"
+msg_script_title "setup_debian.sh  Debian specific AOK env"
 
 #  Ensure important devices are present
 msg_2 "Running fix_dev"

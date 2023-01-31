@@ -136,7 +136,7 @@ replace_key_files() {
 
 tsa_start="$(date +%s)"
 
-msg_title "setup_alpine.sh - Setup Alpine"
+msg_script_title "setup_alpine.sh - Setup Alpine"
 
 #  Ensure important devices are present
 msg_2 "Running fix_dev"

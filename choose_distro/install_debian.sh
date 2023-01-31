@@ -10,7 +10,7 @@
 
 tid_start="$(date +%s)"
 
-msg_title "install_debian.sh  Downloading & Installing Debian"
+msg_script_title "install_debian.sh  Downloading & Installing Debian"
 
 #
 #  Step 1  Download and upack Debian

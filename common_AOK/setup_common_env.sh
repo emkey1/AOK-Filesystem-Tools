@@ -152,7 +152,7 @@ user_ish() {
     chown -R ish: ~ish
 }
 
-msg_title "setup_common_env.sh  Common AOK setup steps"
+msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
 setup_login
