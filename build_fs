@@ -5,9 +5,12 @@
 #
 #  License: MIT
 #
-#  Creates a FS image suitable for mounting on iSH
+#  Creates a FS image suitable for mounting on iSH, the build should
+#  be able to complete on any platform.
+#  Some options needs chrooting, those steps can only be done when
+#  running iSH or Linux(x86)
 #
-version="2.0.3"
+version="2.1.0"
 
 #  shellcheck disable=SC1007
 prog_name=$(basename "$0")
@@ -17,10 +20,14 @@ prog_name=$(basename "$0")
 
 #
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
+#  to keep things relative and simple
 #
 #  shellcheck disable=SC1007
 cd "$aok_content" || exit 1
 
+#
+#  Default for options
+#
 build_target="$target_alpine" # default target
 verbose=false                 # true displays tar/untar progress
 use_bzip2=false               # Use tgz when compressing image
@@ -130,7 +137,7 @@ show_version() { # Multi OK 1
 }
 
 ensure_usable_wget() {
-    # msg_2 "ensure_usable_wget()"
+    msg_2 "ensure_usable_wget()"
     #  shellcheck disable=SC2010
     if ls -l "$(command -v wget)" | grep -q busybox; then
         error_msg "You need to install a real wget, busybox does not handle redirects"
@@ -498,8 +505,8 @@ msg_2 "Deployed $aok_content on new filesystem"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-#  Since setup_alpine_scr will create an AOK relevant motd,
-#  deleting the default one makes sence.
+#  Since setup_alpine.sh will create an AOK relevant motd,
+#  deleting the default one both on Alpine & Debian makes sence.
 #
 msg_2 "remove initial /etc/motd from new filesystem"
 rm "$build_root_d"/etc/motd
