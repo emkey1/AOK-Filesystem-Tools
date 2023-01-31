@@ -72,8 +72,21 @@ replace_key_files() {
     msg_3 "iOS interfaces file"
     cp "$aok_content"/Alpine/etc/interfaces /etc/network
 
-    msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
-    ln /etc/init.d/devfs /etc/init.d/dev
+    if [ -f /etc/init.d/devfs ]; then
+        msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
+        ln /etc/init.d/devfs /etc/init.d/dev
+    fi
+
+    if [ "$ALPINE_VERSION" = "edge" ]; then
+        msg_3 "Adding apk repositories containing testing"
+        cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+    else
+        msg_3 "Adding edge/testing as a restricted repo"
+        msg_3 " in order to install testing apks do apk add foo@testing"
+        msg_3 " in case of incompatible dependencies an error will be displayed"
+        msg_3 " and nothing bad will happen."
+        echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+    fi
 
     # Networking, hostname and possibly others can't start because of
     # current limitations in iSH So we fake it out
@@ -119,6 +132,8 @@ fi
 msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
 echo "$ALPINE_VERSION" >"$file_alpine_release"
 
+replace_key_files
+
 msg_2 "apk update"
 apk update
 
@@ -128,8 +143,6 @@ msg_2 "apk upgrade"
 apk upgrade
 
 install_apks
-
-replace_key_files
 
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
