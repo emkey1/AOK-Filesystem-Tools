@@ -175,7 +175,13 @@ display_build_target() { # Multi OK 1
         exit 1
     fi
 
-    msg_1 "Building an iSH-AOK: $AOK_VERSION filesystem"
+    if [ "$build_target" = "$target_debian" ]; then
+        release_msg="Debian"
+    else
+        release_msg="Alpine: $ALPINE_VERSION"
+    fi
+    msg_1 "Building $release_msg iSH-AOK: $AOK_VERSION filesystem"
+    unset release_msg
 
     if ! $aok_FS_do_compress; then
         msg_2 "*** Will not create the compressed image! ***"
