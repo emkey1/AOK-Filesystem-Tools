@@ -4,7 +4,7 @@ It is assumed this is cloned into /opt/AOK
 
 ## Compatability
 
-You can build the FS on any platform, but for chrooting (Prebuilding FS, or testing) you need to use iOS/iPadOS or Linux(x86). 
+You can build the FS on any platform, but for chrooting (Prebuilding FS, or testing) you need to use iSH or Linux(x86). 
 Reportedly deploying the resulting FS does NOT work on Arm based MacBooks.
 
 ## Build process
