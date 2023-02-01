@@ -172,7 +172,7 @@ bldstat_get() {
 
 #  shellcheck disable=SC2120
 bldstat_clear() {
-    # msg_3 "bldstat_clear($1)"
+    # msg_2 "bldstat_clear($1)"
     if [ -n "$1" ]; then
         bc_fname="$build_status/$1"
         rm -f "$bc_fname"
@@ -181,7 +181,7 @@ bldstat_clear() {
     fi
     if [ "$(find "$build_status"/ 2>/dev/null | wc -l)" -le 1 ]; then
         rm "$build_status" -rf
-        msg_3 "Cleared entire $build_status"
+        msg_2 "Cleared entire $build_status"
     fi
 }
 
@@ -191,19 +191,6 @@ bldstat_clear_all() {
     #
     rm "$build_status"/* 2>/dev/null
     bldstat_clear
-}
-
-copy_profile() {
-    cp_src="$1"
-    [ -z "$cp_src" ] && error_msg "copy_profile() no param"
-    [ ! -f "$cp_src" ] && error_msg "copy_profile() src not found:$cp_src"
-    cp_profile="$build_root_d"/etc/profile
-    msg_3 "copying profile: $cp_src to: $cp_profile"
-    cp "$cp_src" "$cp_profile"
-    chmod 755 "$cp_profile"
-    unset cp_src
-    unset cp_profile
-    # msg_3 "copy_profile() done"
 }
 
 #  shellcheck disable=SC2120
@@ -365,6 +352,18 @@ copy_local_bins() {
     echo
     unset clb_src_dir
     # msg_3 "copy_local_bins() done"
+}
+
+copy_skel_files() {
+    csf_dest="$1"
+    if [ -z "$csf_dest" ]; then
+        error_msg "copy_skel_files() needs a destination param"
+    fi
+    cp -r /etc/skel/. "$csf_dest"
+    cd "$csf_dest" || exit 99
+    ln -sf .bash_profile .bashrc
+
+    unset csf_dest
 }
 
 notification_additional_tasks() {
