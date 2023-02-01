@@ -123,7 +123,9 @@ fi
 #
 #  Common deploy, used both for Alpine & Debian
 #
-"$setup_common_aok"
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
 
 #
 #  This is installed by $setup_common_aok, so must come after that!
