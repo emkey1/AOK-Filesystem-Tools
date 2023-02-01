@@ -74,6 +74,11 @@ DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/a762e1zr2wkmnmu/Debian10-ish-base-v2
 CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
 
 #
+#  If defined this user will be created
+#
+USER_NAME="ish"
+
+#
 #  Should normally not be changed! Enabling his will create a limited env
 #  missing features and functionality!
 #
