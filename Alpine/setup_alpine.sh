@@ -167,11 +167,11 @@ msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "adding pkg shadow & group sudo"
-    apk add shadow
+    msg_2 "adding group sudo"
+    # apk add shadow
     groupadd sudo
 else
-    msg_3 "QUICK_DEPLOY - skipping shadow & group sudo"
+    msg_3 "QUICK_DEPLOY - skipping group sudo"
 fi
 
 #
@@ -193,8 +193,9 @@ if apk info -e dcron >/dev/null; then
     cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
 fi
 
-msg_1 "Running $setup_common_aok"
-"$setup_common_aok"
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
 
 if [ "$QUICK_DEPLOY" -ne 0 ]; then
     msg_2 "QUICK_DEPLOY - disabling custom login"
