@@ -101,15 +101,15 @@ setup_login() {
 }
 
 copy_skel_files() {
-    dest="$1"
-    if [ -z "$dest" ]; then
+    csf_dest="$1"
+    if [ -z "$csf_dest" ]; then
         error_msg "copy_skel_files() needs a destination param"
     fi
-    cp -r /etc/skel/. "$dest"
-    cd "$dest" || exit 99
+    cp -r /etc/skel/. "$csf_dest"
+    cd "$csf_dest" || exit 99
     ln -sf .bash_profile .bashrc
 
-    unset dest
+    unset csf_dest
 }
 
 user_root() {
@@ -129,27 +129,34 @@ user_root() {
     rm /root/.bash_history -f
 }
 
-user_ish() {
-    msg_2 "Creating the ish user and group"
+create_user() {
+    msg_2 "Creating additional user and group $USER_NAME"
+    if [ -z "$USER_NAME" ]; then
+        msg_3 "No user requested"
+        return
+    fi
 
-    groupadd -g 501 ish
+    cu_home_dir="/home/$USER_NAME"
+    groupadd -g 501 "$USER_NAME"
 
     # temp changing UID_MIN is to silence the warning:
     # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
     #  add additional groups with -G
-    useradd -m -s /bin/bash -u 501 -g 501 -G sudo,root,adm ish --key UID_MIN=501
+    useradd -m -s /bin/bash -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
 
     # shadow with blank ish password
-    sed -i "s/ish:\!:/ish::/" /etc/shadow
+    sed -i "s/${USER_NAME}:\!:/${USER_NAME}::/" /etc/shadow
 
     # Add dot files for ish
-    copy_skel_files ~ish
+    copy_skel_files "$cu_home_dir"
 
-    mkdir ~ish/Docs
-    cp -r "$aok_content"/Docs/* ~ish/Docs
+    msg_3 "Adding documentation to userdir"
+    cp -a "$aok_content"/Docs "$cu_home_dir"
 
     # set ownership
-    chown -R ish: ~ish
+    chown -R "$USER_NAME": "$cu_home_dir"
+
+    unset cu_home_dir
 }
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
@@ -158,9 +165,9 @@ setup_environment
 setup_login
 user_root
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    user_ish
+    [ -n "$USER_NAME" ] && create_user
 else
-    msg_2 "QUICK_DEPLOY - skipping user ish"
+    msg_2 "QUICK_DEPLOY - skipping additional user:"
 fi
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
