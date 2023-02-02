@@ -389,8 +389,16 @@ prebuild_fs() {
 
     if [ "$QUICK_DEPLOY" -eq 0 ]; then
         if [ "$build_target" = "$target_alpine" ]; then
-            msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-            select_profile "$setup_alpine_final"
+            if [ -n "$AOK_APKS" ]; then
+                msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
+            fi
+            if [ -n "$AOK_APKS" ]; then
+                select_profile "$setup_alpine_final"
+            else
+                #  Clear up build env
+                bldstat_clear_all
+                select_profile "$aok_content"/Alpine/etc/profile
+            fi
             #
             #  Since some final steps need to run by the above profile
             #  mark the FS as in build state
