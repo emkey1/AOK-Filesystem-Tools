@@ -8,7 +8,7 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  This modifies a Debian Linux FS with the AOK changes
+#  This modifies a Devuan Linux FS with the AOK changes
 #
 
 #
@@ -37,12 +37,13 @@ install_sshd() {
     msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
     rm /etc/ssh/ssh_host*key*
 
-    openrc_might_trigger_errors
+    # # skipping openrc
+    # openrc_might_trigger_errors
 
-    apt install -y openssh-server
+    # apt install -y openssh-server
 
-    msg_3 "Disable sshd for now, enable it with: enable_sshd"
-    rc-update del ssh default
+    # msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    # rc-update del ssh default
 }
 
 #===============================================================
@@ -51,22 +52,15 @@ install_sshd() {
 #
 #===============================================================
 
-if [ "$build_env" -eq 0 ]; then
-    echo
-    echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
-    echo "##           You have been warned"
-    echo
-fi
-
 tsd_start="$(date +%s)"
 
-msg_script_title "setup_debian.sh  Debian specific AOK env"
+msg_script_title "setup_devuan.sh  Devuan specific AOK env"
 
 #  Ensure important devices are present
 msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
-start_setup Debian "$(cat /etc/debian_version)"
+start_setup Devuan "$(cat /etc/debian_version)"
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -74,26 +68,27 @@ if test -f /AOK; then
 fi
 
 msg_2 "Installing custom inittab"
-cp -a "$aok_content"/Debian/etc/inittab /etc
+cp -a "$aok_content"/Devuan/etc/inittab /etc
 
 #
 #  Most of the Debian services, mounting fs, setting up networking etc
 #  serve no purpose in iSH, since all this is either handled by iOS
 #  or done by the app before bootup
 #
-msg_2 "Disabling previous openrc runlevel tasks"
-rm /etc/runlevels/*/* -f
+# # skipping openrc
+# msg_2 "Disabling previous openrc runlevel tasks"
+# rm /etc/runlevels/*/* -f
 
 msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
 mkdir -p /etc/update-motd.d
-cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
+cp -a "$aok_content"/Devuan/etc/update-motd.d/* /etc/update-motd.d
 
 #
 #  This must run before any task doing apt actions
 #
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "Installing sources.list"
-    cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
+    cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
 
     msg_2 "apt update"
     apt update -y
@@ -107,18 +102,6 @@ fi
 #  After this the setup can run on its own.
 #
 ! is_iCloud_mounted && should_icloud_be_mounted
-
-#
-#  Should be run before installing CORE_DEB_PKGS to minimize amount of
-#  warnings displayed due to no locale being set
-#
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "Setup locale"
-    msg_3 "locale warnings during this process can be ignored"
-    apt install -y locales
-else
-    msg_2 "QUICK_DEPLOY - skipping locales"
-fi
 
 #
 #  Common deploy, used both for Alpine & Debian
@@ -142,39 +125,39 @@ fi
 #  or install of CORE_DEB_PKGS and sshd
 #
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    openrc_might_trigger_errors
     msg_1 "apt upgrade"
     apt upgrade -y
 
-    if [ -n "$CORE_DEB_PKGS" ]; then
-        msg_1 "Add core Debian packages"
-        echo "$CORE_DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
-    fi
-    install_sshd
+    # if [ -n "$CORE_DEB_PKGS" ]; then
+    #     msg_1 "Add core Devuan packages"
+    #     echo "$CORE_DEB_PKGS"
+    #     bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+    # fi
+    # install_sshd
 else
     msg_1 "QUICK_DEPLOY - skipping apt upgrade and sshd"
 fi
 
-msg_2 "Add boot init.d items suitable for iSH"
-rc-update add urandom boot
+# msg_2 "Add boot init.d items suitable for iSH"
+# rc-update add urandom boot
 
-msg_2 "Add shutdown init.d items suitable for iSH"
-rc-update add sendsigs off
-rc-update add umountroot off
-rc-update add urandom off
+# msg_2 "Add shutdown init.d items suitable for iSH"
+# rc-update add sendsigs off
+# rc-update add umountroot off
+# rc-update add urandom off
 
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "Disable some auto-enabled services that wont make sense in iSH"
-    openrc_might_trigger_errors
+# # skipping openrc
+# if [ "$QUICK_DEPLOY" -eq 0 ]; then
+#     msg_2 "Disable some auto-enabled services that wont make sense in iSH"
+#     openrc_might_trigger_errors
 
-    rc-update del dbus default
-    rc-update del elogind default
-    rc-update del rsync default
-    rc-update del sudo default
-else
-    msg_2 "QUICK_DEPLOY - did not remove default services"
-fi
+#     rc-update del dbus default
+#     rc-update del elogind default
+#     rc-update del rsync default
+#     rc-update del sudo default
+# else
+#     msg_2 "QUICK_DEPLOY - did not remove default services"
+# fi
 
 msg_1 "Setup complete!"
 echo
@@ -182,7 +165,7 @@ echo
 bldstat_clear "$status_being_built"
 
 duration="$(($(date +%s) - tsd_start))"
-display_time_elapsed "$duration" "Setup Debian"
+display_time_elapsed "$duration" "Setup Devuan"
 unset duration
 
 if bldstat_get "$status_prebuilt_fs"; then
@@ -193,7 +176,7 @@ fi
 #  Clear up build env
 bldstat_clear_all
 
-select_profile "$aok_content"/Debian/etc/profile
+select_profile "$aok_content"/Devuan/etc/profile
 
 run_additional_tasks_if_found
 

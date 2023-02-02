@@ -65,7 +65,6 @@ checkables=(
     common_AOK/usr_local_bin/version
     common_AOK/usr_local_sbin/ensure_hostname_in_host_file.sh
     common_AOK/usr_local_sbin/fix_dev
-    common_AOK/first_boot.sh
     common_AOK/setup_common_env.sh
 
     # Weird, if this is used, I get shellcheck issues listed in /etc/bash.bashrc
@@ -76,6 +75,12 @@ checkables=(
     Debian/etc/update-motd.d/11-aok-d-aok-logo
     Debian/usr_local_sbin/reset-run-dir.sh
     Debian/setup_debian.sh
+
+    Devuan/etc/update-motd.d/11-aok-a-deb-vers
+    Devuan/etc/update-motd.d/11-aok-b-aok-release
+    Devuan/etc/update-motd.d/11-aok-c-ish-release
+    Devuan/etc/update-motd.d/11-aok-d-aok-logo
+    Devuan/setup_devuan.sh
 
     AOK_VARS
     build_fs

@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Displays AOK release info
+#
+aok_release="/etc/aok-release"
+
+if [ -e "$aok_release" ]; then
+    echo "[36mAOK-FS release:  $(cat "$aok_release")[0m"
+fi

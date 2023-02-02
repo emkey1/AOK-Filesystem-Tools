@@ -55,6 +55,7 @@ Available options:
 -v  --verbose      Displays extra info, like untaring/taring progress
 -s  --select       Offer selection between Alpine & Debian on first boot.
 -d  --debian       Build a Debian FS.
+-D  --devuan       Build a Devuan FS.
 -p  --prebuilt     Build the entire FS on the running platform, making
                    for quicker imports on target device, but up to 10
                    times larger image file.
@@ -85,9 +86,18 @@ parse_arguments() { # Multi OK 1
             build_target="$target_debian"
             ;;
 
+        "-D" | "--devuan")
+            if [ "$build_target" = "$target_select" ]; then
+                echo "-D and -s can not be combined!"
+                exit 1
+            fi
+            build_target="$target_devuan"
+            ;;
+
         "-s" | "--select")
-            if [ "$build_target" = "$target_debian" ]; then
-                echo "-d and -s can not be combined!"
+            if [ "$build_target" = "$target_debian" ] ||
+                [ "$build_target" = "$target_devuan" ]; then
+                echo "-d/-D and -s can not be combined!"
                 exit 1
             fi
             if $pre_build_FS; then
@@ -184,6 +194,8 @@ display_build_target() { # Multi OK 1
 
     if [ "$build_target" = "$target_debian" ]; then
         release_msg="Debian"
+    elif [ "$build_target" = "$target_devuan" ]; then
+        release_msg="Devuan"
     else
         release_msg="Alpine: $ALPINE_VERSION"
     fi
@@ -314,9 +326,6 @@ add_additional_tasks_if_defined() {
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
 
-    copy_profile "$aok_content"/Alpine/etc/profile
-    # by setting this as the first of two, this will become the default profile
-    # when install is completed
     select_profile "$setup_alpine_scr"
     # msg_3 "setup_Alpine_on_1st_boot() done"
 }
@@ -324,17 +333,19 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
-    copy_profile "$aok_content"/Debian/etc/profile
-    # by setting this as the first of two, this will become the default profile
-    # when install is completed
     select_profile "$setup_debian_scr"
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
 
+setup_Devuan_on_1st_boot() {
+    msg_2 "setup_Devuan_on_1st_boot()"
+
+    select_profile "$setup_devuan_scr"
+    # msg_3 "setup_Devuan_on_1st_boot() done"
+}
+
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
-
-    copy_profile "$aok_content"/Alpine/etc/profile
 
     select_profile "$setup_select_distro_prepare"
 
@@ -411,6 +422,8 @@ consider_generating_tarball() {
         #
         if [ "$build_target" = "$target_debian" ]; then
             cgt_label="$debian_tb"
+        elif [ "$build_target" = "$target_devuan" ]; then
+            cgt_label="$devuan_tb"
         elif [ "$build_target" = "$target_select" ]; then
             cgt_label="$select_distro_tb"
         else
@@ -493,6 +506,9 @@ clear_build_target
 if [ "$build_target" = "$target_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
     src_tarball="$debian_src_tb"
+elif [ "$build_target" = "$target_devuan" ]; then
+    src_image="$DEVUAN_SRC_IMAGE"
+    src_tarball="$devuan_src_tb"
 else
     src_image="$alpine_src_image"
     src_tarball="$alpine_src_tb"
@@ -517,6 +533,8 @@ mkdir "$build_root_d"/iCloud
 
 if [ "$build_target" = "$target_debian" ]; then
     setup_Debian_on_1st_boot
+elif [ "$build_target" = "$target_devuan" ]; then
+    setup_Devuan_on_1st_boot
 elif [ "$build_target" = "$target_select" ]; then
     select_distro_on_1st_boot
 else

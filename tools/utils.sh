@@ -119,7 +119,7 @@ is_chrooted() {
 #
 openrc_might_trigger_errors() {
     echo
-    echo "You might see a few errors printed as services are activated."
+    echo "You might see a few errors printed as services are toggled."
     echo "The iSH family doesn't fully support openrc yet, but the important parts work!"
     echo
 }
@@ -333,23 +333,29 @@ start_setup() {
 
 copy_local_bins() {
     msg_2 "copy_local_bins($1)"
-    clb_src_dir="$1"
-    if [ -z "$clb_src_dir" ]; then
+    clb_base_dir="$1"
+    if [ -z "$clb_base_dir" ]; then
         error_msg "call to copy_local_bins() without param!"
     fi
 
-    msg_1 "Copying /usr/local stuff for $clb_src_dir"
+    # msg_1 "Copying /usr/local stuff from $clb_base_dir"
 
-    msg_3 "Add $clb_src_dir AOK-FS stuff to /usr/local/bin"
-    mkdir -p /usr/local/bin
-    cp "$aok_content"/"$clb_src_dir"/usr_local_bin/* /usr/local/bin
-    chmod +x /usr/local/bin/*
+    clb_src_dir="${aok_content}/${clb_base_dir}/usr_local_bin"
+    if [ -z "$(find "$clb_src_dir" -type d -empty)" ]; then
+        msg_3 "Add $clb_base_dir AOK-FS stuff to /usr/local/bin"
+        mkdir -p /usr/local/bin
+        cp "$clb_src_dir"/* /usr/local/bin
+        chmod +x /usr/local/bin/*
+    fi
 
-    msg_3 "Add $clb_src_dir AOK-FS stuff to /usr/local/sbin"
-    mkdir -p /usr/local/sbin
-    cp "$aok_content"/"$clb_src_dir"/usr_local_sbin/* /usr/local/sbin
-    chmod +x /usr/local/sbin/*
-    echo
+    clb_src_dir="${aok_content}/${clb_base_dir}/usr_local_sbin"
+    if [ -z "$(find "$clb_src_dir" -type d -empty)" ]; then
+        msg_3 "Add $clb_base_dir AOK-FS stuff to /usr/local/sbin"
+        mkdir -p /usr/local/sbin
+        cp "$clb_src_dir"/* /usr/local/sbin
+        chmod +x /usr/local/sbin/*
+    fi
+    unset clb_base_dir
     unset clb_src_dir
     # msg_3 "copy_local_bins() done"
 }
@@ -421,6 +427,7 @@ icloud_archive_d="/iCloud/AOK_Archive"
 #  Names of the rootfs tarballs used for initial population of FS
 #
 debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
+devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,
@@ -446,12 +453,11 @@ unset _vers
 alpine_tb="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
 select_distro_tb="SelectDistro-iSH-AOK-$AOK_VERSION"
 debian_tb="Debian-iSH-AOK-$AOK_VERSION"
-#  alternate name, using the name of the tarball as prefix
-#  more informative, but is a bit long to display in iOS
-# debian_tb="$(echo "$DEBIAN_SRC_IMG" | cut -d. -f1)-iSH-AOK-$AOK_VERSION"
+devuan_tb="Devuan-iSH-AOK-$AOK_VERSION"
 
 target_alpine="Alpine"
 target_debian="Debian"
+target_devuan="Devuan"
 target_select="select"
 
 #
@@ -531,6 +537,7 @@ setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
 setup_alpine_scr="$aok_content"/Alpine/setup_alpine.sh
 setup_alpine_final="$aok_content"/Alpine/setup_alpine_final_tasks.sh
 setup_debian_scr="$aok_content"/Debian/setup_debian.sh
+setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
 setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
 

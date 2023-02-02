@@ -21,23 +21,32 @@ setup_environment() {
 
     msg_2 "copy some /etc files"
     sed "s/AOK_VERSION/$AOK_VERSION/" "$aok_content"/common_AOK/etc/issue >/etc/issue
-    msg_2 "Adding runbg service"
-    cp -a "$aok_content"/common_AOK/etc/init.d/runbg /etc/init.d
-    # openrc_might_trigger_errors
-    rc-update add runbg default
+
+    if command -v openrc >/dev/null; then
+        msg_2 "Adding runbg service"
+        cp -a "$aok_content"/common_AOK/etc/init.d/runbg /etc/init.d
+        # openrc_might_trigger_errors
+        rc-update add runbg default
+    else
+        msg_2 "openrc not available - runbg not activated"
+    fi
 
     msg_2 "Populate /etc/skel"
     cp -a "$aok_content"/common_AOK/etc/skel /etc
 
-    if [ "$QUICK_DEPLOY" -eq 0 ]; then
-        # Move sshd to port 1022 to avoid issues
-        sshd_port=1022
-        msg_2 "sshd will use port: $sshd_port"
-        sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
-        #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
-        unset sshd_port
+    if [ -f /etc/ssh/sshd_config ]; then
+        if [ "$QUICK_DEPLOY" -eq 0 ]; then
+            # Move sshd to port 1022 to avoid issues
+            sshd_port=1022
+            msg_2 "sshd will use port: $sshd_port"
+            sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
+            #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
+            unset sshd_port
+        else
+            msg_2 "QUICK_DEPLOY - skipping changing sshd port"
+        fi
     else
-        msg_2 "QUICK_DEPLOY - skipping changing sshd port"
+        msg_2 "sshd not installed - port not changed"
     fi
 
     copy_local_bins common_AOK
