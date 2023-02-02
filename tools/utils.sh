@@ -436,8 +436,7 @@ if [ "$ALPINE_VERSION" = "edge" ]; then
     alpine_src_tb="alpine-minirootfs-20221110-x86.tar.gz"
     alpine_release="$ALPINE_VERSION"
     _vers="$ALPINE_VERSION"
-    # https://dl-cdn.alpinelinux.org/alpine/edge/releases/x86/alpine-minirootfs-20190227-x86.tar.gz
-
+    # https://dl-cdn.alpinelinux.org/alpine/edge/releases/x86/alpine-minirootfs-20221110-x86.tar.gz
 else
     alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
     alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
