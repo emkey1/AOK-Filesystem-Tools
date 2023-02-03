@@ -1,31 +1,26 @@
 #!/bin/sh
+# shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  Compresses a FS into a tar file that can be mounted by iSH
 #
-version="1.3.4"
+version="1.3.7"
 
-#  shellcheck disable=SC1007
-fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 prog_name=$(basename "$0")
 
 #
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
+#  Point to AOK-Filesystem-Tools dir, in case this was run with a path
 #
-cd "$fs_build_d" || exit 1
+#  shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
 
-
-# Read in vars
-# shellcheck disable=SC1091
-. ./BUILD_ENV
-
-
-FS_compress_verbose=false
+use_bzip2=false
+verbose=false
 
 show_help() {
     cat <<EOF
@@ -38,124 +33,109 @@ This creates a compressed tar file. that iSH can mount as a file syste,
 Available options:
 
 -h  --help         Print this help and exit.
--v  --version      Show version and exit.
--z  --zip-progress Display progrss as FS is being compressed.
+-V  --version      Show version and exit.
+-l  --label        Provide a name for tarball (without extension)
+                   if not given, Alpine is asumed.
+-j  --bzip2        Use bzip2 compression
+-v  --verbose      Display progrss as FS is being compressed.
 EOF
     exit 0
 }
 
 show_version() {
     echo "$prog_name $version"
+    exit 0
 }
-
 
 while [ -n "$1" ]; do
 
     case "$1" in
 
-        "-h" | "--help" ) show_help ;;
+    "-h" | "--help") show_help ;;
 
-        "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
+    "-V" | "--version") show_version ;;
 
-        "-z" | "--zip-progress" )
-            FS_compress_verbose=true
-            shift
-            ;;
+    "-j" | "--bzip2") use_bzip2=true ;;
 
-        *)
-            echo "ERROR: bad param, try -h"
+    "-l" | "--label")
+        shift
+        tar_name="$1"
+        if [ -z "$tar_name" ]; then
+            echo "ERROR: label needs name as additional param!"
             exit 1
-            ;;
+        fi
+        ;;
+
+    "-v" | "--verbose") verbose=true ;;
+
+    *)
+        error_msg "bad param, try -h"
+        ;;
     esac
-
+    shift
 done
-
-
 
 if [ "$(whoami)" != "root" ]; then
     # Must come after help display, to avoid infinite loop
     "$0" -h
-    echo
-    echo "ERROR: This must be run as root or using sudo!"
-    exit 1
+
+    error_msg "This must be run as root or using sudo!"
 fi
 
-if [ ! -d "$BUILD_ROOT_D" ]; then
-    echo "ERROR: No image built yet, [$BUILD_ROOT_D]!"
-    exit 1
+if [ ! -d "$build_root_d" ]; then
+    error_msg "No image built yet, [$build_root_d]!"
 fi
 
-if [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
-    echo "ERROR: Active chroot session detected!"
-    exit 1
+if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
+    error_msg "Active chroot session detected!"
 fi
 
-if [ -d "$BUILD_ROOT_D"/AOK ]; then
-    tgz_file="$AOK_FS"
-    uses_aok=true
+#
+#  Since the general default action is to create
+#  Alpine images, use the alpine_tb name if non is provided
+#
+if [ -z "$tar_name" ]; then
+    tarball="$alpine_tb"
 else
-    tgz_file="$BASIC_FS"
-    uses_aok=false
+    tarball="${tar_name}"
 fi
 
-if $uses_aok; then
-    hint_first_boot="$BUILD_ROOT_D/$FIRST_BOOT_NOT_DONE_HINT"
-    if [ -d "$BUILD_ROOT_D/$AOK_CONTENT" ]; then
-        #
-        #  Tell iSH to run first boot tasks
-        #
-        touch "$hint_first_boot"
-    fi
-fi
-
+# set location
+tarball="$build_base_d/$tarball"
 
 # echo "removing temp /dev items"
-# rm  -f "$BUILD_ROOT_D"/dev/*
+# rm  -f "$build_root_d"/dev/*
 
-echo "=====  Creating image  ====="
-echo
+msg_1 "Creating image"
 
 #
 # Tar up and zip the result
 #
-cd "$BUILD_ROOT_D" || exit 1
+cd "$build_root_d" || exit 99
 
-if $FS_compress_verbose ; then
-    opts='cvf'
+if $use_bzip2; then
+    opts="cfj"
+    tarball="${tarball}.tar.bz2"
 else
-    opts='cf'
-
-    echo "Compressing the image on an iSH node will take around 12 minutes to complete"
-    echo "The same done even on a modest Linux node will take around 30 seconds"
-    echo
-    echo "In order not to have to wait so long without any indication anything is"
-    echo "happening,  you can use the option -z when running build_fs or compress_image."
-    echo "This will give a detailed progress report as each file is packed."
+    opts="cfz"
+    tarball="${tarball}.tgz"
 fi
 
+if $verbose; then
+    opts="v$opts"
+fi
 
-tar "$opts" - . | gzip -9 > "../$tgz_file"
+tar "$opts" "$tarball" .
 
 #
 # copy it to /iCloud if this runs on iSH
 #
-if [ "$build_env" -eq 1 ]; then
-    echo "---  Copying image into $ICLOUD_ARCHIVE_D  ---"
-    mkdir -p "$ICLOUD_ARCHIVE_D"
-    cp "$BUILD_BASE_D/$tgz_file" "$ICLOUD_ARCHIVE_D"
+if is_ish; then
+    msg_2 "Copying image into $icloud_archive_d"
+    mkdir -p "$icloud_archive_d"
+    cp "$tarball" "$icloud_archive_d"
 fi
-echo
 
-
-echo "=====  Image is ready: $BUILD_BASE_D/$tgz_file  ====="
-echo
-
-
-if $uses_aok; then
-    #
-    #  Remove first boot hint, in order to make chroot bash -l possible
-    #
-    [ -e "$hint_first_boot" ] && rm "$hint_first_boot"
-fi
+msg_1 "Image is ready: $tarball"
 
 exit 0 #  Avoid exiting with error if above file did not exist

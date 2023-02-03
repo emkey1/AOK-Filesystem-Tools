@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+
+if [ -f /etc/opt/AOK/is_chrooted ]; then
+    echo "This can't be run when chrooted!"
+    exit 1
+fi
+
+if [ -f /etc/alpine-release ]; then
+    srvc_name="sshd"
+elif [ -f /etc/debian_version ]; then
+    srvc_name="ssh"
+else
+    echo "Unknown distro, aborting"
+    exit 1
+fi
+
+sudo rc-service "$srvc_name" stop
+
+sudo rc-update del "$srvc_name"
+
+echo "sshd has been stopped and will not run automatically"

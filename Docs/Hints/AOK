@@ -1,13 +1,12 @@
 Building
 
 Everything used to create this root fs originally can be found in
-/AOK.  
+/opt/AOK.
 
 To generate a fresh root filesystem identical to what you started with...
 
-   sudo su -
-   cd /AOK
-   ./chroot_build_image
+   cd /opt/AOK
+   sudo ./build_fs
 
 The root fs will then be available in /tmp/AOK
 

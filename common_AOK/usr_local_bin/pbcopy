@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+# Simple script to put text into the cut and paste buffer.
+# Example:  dmesg | pbcopy
+# Based on a script posted by Ian Edington on the ish Discord server
+cat - > /dev/clipboard

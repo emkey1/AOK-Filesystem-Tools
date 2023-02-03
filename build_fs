@@ -1,41 +1,42 @@
 #!/bin/sh
+#  shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
-#  Creates a Linux FS image suitable for mounting on iSH
+#  Creates a FS image suitable for mounting on iSH, the build should
+#  be able to complete on any platform.
+#  Some options needs chrooting, those steps can only be done when
+#  running iSH or Linux(x86)
 #
-#  Primary purpose is to create iSH-AOK file systems, but can also be used
-#  to create bare-bones Alpine-Linux file systems.
-#
-version="1.3.5"
-
+version="2.1.0"
 
 #  shellcheck disable=SC1007
-fs_build_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 prog_name=$(basename "$0")
 
+#  shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
 
 #
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
+#  Point to AOK-Filesystem-Tools dir, in case this was run with a path
+#  to keep things relative and simple
 #
-cd "$fs_build_d" || exit 1
+#  shellcheck disable=SC1007
+cd "$aok_content" || exit 1
 
-# Read in vars
-# shellcheck disable=SC1091
-. ./BUILD_ENV
+#
+#  Default for options
+#
+build_target="$target_alpine" # default target
+verbose=false                 # true displays tar/untar progress
+use_bzip2=false               # Use tgz when compressing image
+pre_build_FS=false            # true meand generat4 pre-built FS
+aok_FS_do_compress=true       # compress FS at end of build_fs
 
-aok_FS_mods=false
-skip_AOK_Files=false
-aok_FS_do_compress=true
-FS_compress_verbose=false
+aok_files="${build_root_d}${aok_content}"
 
-aok_files="$BUILD_ROOT_D/$AOK_CONTENT"
-
-
-show_help() {
+show_help() { # Multi OK 1
     cat <<EOF
 $prog_name, version $version
 
@@ -49,98 +50,141 @@ on the device upon first boot.
 
 Available options:
 
--h  --help         Print this help and exit.
--v  --version      Show version and exit.
--p  --prebuilt     Build the entire FS on the running platform, making for quicker
-                   imports on target device, but 10 times larger image files.
+-h  --help         Print this help and exit
+-V  --version      Show version and exit
+-v  --verbose      Displays extra info, like untaring/taring progress
+-s  --select       Offer selection between Alpine & Debian on first boot.
+-d  --debian       Build a Debian FS.
+-D  --devuan       Build a Devuan FS.
+-p  --prebuilt     Build the entire FS on the running platform, making
+                   for quicker imports on target device, but up to 10
+                   times larger image file.
                    This can only be done on iSH or Linux (x86)!
--c  --no_compress  Terminates when FS is prepared, giving you the opportunity to
-                   chroot into it and do your personal adaptations.
-                   Instructions about this procedure and howto then complete
-                   the build once done will be displayed at the end of the build.
--z  --zip-progress Display progrss as FS is being compressed.
--u                 Create an unmodified FS, don't even copy $AOK_CONTENT
+-j  --bzip2        Use bzip2 compression for distribution
+-N  --no_compress  Terminates when FS is prepared, without generating
+                   a FS tarball.
 EOF
     exit 0
 }
 
-show_version() {
-    echo "$prog_name $version"
-}
-
-parse_arguments() {
+parse_arguments() { # Multi OK 1
     while [ -n "$1" ]; do
 
         case "$1" in
 
-            "-h" | "--help" ) show_help ;;
+        "-h" | "--help") show_help ;;
 
-            "-v" | "-V" | "--version" ) show_version ; exit 0 ;;
+        "-V" | "--version") show_version ;;
 
-            "-c" |  "--no_compress" )
-                aok_FS_do_compress=false
-                shift
-                ;;
+        "-v" | "--verbose") verbose=true ;;
 
-            "-z" | "--zip-progress" )
-                FS_compress_verbose=true
-                shift
-                ;;
-
-            "-p" | "--prebuilt" )
-                aok_FS_mods=true
-                shift
-                ;;
-
-            "-u" )
-                skip_AOK_Files=true
-                aok_FS_mods=false
-                shift
-                ;;
-
-            *)
-                echo "ERROR: bad param, try -h"
+        "-d" | "--debian")
+            if [ "$build_target" = "$target_select" ]; then
+                echo "-d and -s can not be combined!"
                 exit 1
-                ;;
-        esac
+            fi
+            build_target="$target_debian"
+            ;;
 
+        "-D" | "--devuan")
+            if [ "$build_target" = "$target_select" ]; then
+                echo "-D and -s can not be combined!"
+                exit 1
+            fi
+            build_target="$target_devuan"
+            ;;
+
+        "-s" | "--select")
+            if [ "$build_target" = "$target_debian" ] ||
+                [ "$build_target" = "$target_devuan" ]; then
+                echo "-d/-D and -s can not be combined!"
+                exit 1
+            fi
+            if $pre_build_FS; then
+                echo "-p and -s can not be combined!"
+                exit 1
+            fi
+            build_target="$target_select"
+            ;;
+
+        "-p" | "--prebuilt")
+            if [ "$build_target" = "$target_select" ]; then
+                echo "-p and -s can not be combined!"
+                exit 1
+            fi
+            pre_build_FS=true
+            ;;
+
+        "-j" | "--bzip2")
+            if ! $aok_FS_do_compress; then
+                echo "-j and -N can not be combined!"
+                exit 1
+            fi
+            use_bzip2=true
+            ;;
+
+        "-N" | "--no_compress")
+            if $use_bzip2; then
+                echo "-j and -N can not be combined!"
+                exit 1
+            fi
+            aok_FS_do_compress=false
+            ;;
+
+        *)
+            echo "ERROR: bad param, try -h"
+            exit 1
+            ;;
+
+        esac
+        shift
     done
 }
 
-display_build_env() {
+show_version() { # Multi OK 1
+    echo "$prog_name $version"
+    exit 0
+}
+
+ensure_usable_wget() {
+    msg_2 "ensure_usable_wget()"
+    #  shellcheck disable=SC2010
+    if ls -l "$(command -v wget)" | grep -q busybox; then
+        error_msg "You need to install a real wget, busybox does not handle redirects"
+    fi
+    # msg_3 "ensure_usable_wget()  done"
+}
+
+display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
     #
-    [ "$build_env" -eq 1 ] && run_mode="Building on iSH"
-    [ "$build_env" -eq 2 ] && run_mode="Building on x86 Linux"
+    [ "$build_env" -eq 1 ] && dbt_run_mode="Building on iSH"
+    [ "$build_env" -eq 2 ] && dbt_run_mode="Building on x86 Linux"
 
-    if ! $aok_FS_mods ; then
-        run_mode="Will not chroot"
-        if $skip_AOK_Files; then
-            run_mode="$run_mode, will not copy $AOK_CONTENT files"
-        else
-            run_mode="$run_mode, $AOK_CONTENT files will be copied"
-        fi
+    if ! $pre_build_FS; then
+        dbt_run_mode="Will not chroot"
     elif [ "$build_env" -eq 0 ]; then
         echo "Unfortunately you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
-        echo "You must build using -m or -M on this platform (try -h for help)"
+        echo "Use another build option (try -h for help)"
         exit 1
     fi
-    echo "=====  Run mode: $run_mode  ====="
+    msg_1 "Run mode: $dbt_run_mode"
+    unset dbt_run_mode
 
+    if [ "$QUICK_DEPLOY" -ne 0 ]; then
+        echo
+        echo "**  Using QUICK_DEPLOY=$QUICK_DEPLOY  **"
+    fi
 
     if [ "$(whoami)" != "root" ]; then
         # Must come after help display, to avoid infinite loop
         "$0" -h
-        echo
-        echo "ERROR: This must be run as root or using sudo!"
-        exit 1
+        error_msg "This must be run as root or using sudo!"
     fi
 
-
-    if      mount | grep -q "$BUILD_ROOT_D" || \
-            [ "$(find "$BUILD_ROOT_D"/dev | wc -l)" -gt 1 ]; then
+    if [ "$(find "$build_root_d"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
         echo "ERROR: Active chroot session detected!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         sudo ./tools/do_chroot.sh -c"
@@ -148,117 +192,306 @@ display_build_env() {
         exit 1
     fi
 
-
-    echo
-    echo "=====  Building a $ALPINE_RELEASE  filesystem  ====="
-
-    if ! $aok_FS_do_compress ; then
-        echo "*** Will not create the compressed image! ***"
+    if [ "$build_target" = "$target_debian" ]; then
+        release_msg="Debian"
+    elif [ "$build_target" = "$target_devuan" ]; then
+        release_msg="Devuan"
+    else
+        release_msg="Alpine: $ALPINE_VERSION"
     fi
+    msg_1 "Building $release_msg iSH-AOK: $AOK_VERSION filesystem"
+    unset release_msg
+
+    if ! $aok_FS_do_compress; then
+        msg_2 "*** Will not create the compressed image! ***"
+    fi
+    echo
 }
 
-clear_build_env() {
+clear_build_target() { # Multi OK 1
+    msg_2 "clear_build_target()"
     #
     # Clear build env
     #
-    if ! rm -rf "$BUILD_BASE_D"; then
+    if ! rm -rf "$build_base_d"; then
         echo
-        echo "ERROR: Could not clear $BUILD_BASE_D"
+        echo "ERROR: Could not clear $build_base_d"
         echo
         exit 1
     fi
+    # msg_3 "clear_build_target() done"
 }
 
-cache_miniroot_fs() {
-    #
-    #  Create miniroot fs cache dir if not present, cd to it and if download
-    #  miniroot fs if not cached
-    #
-    if [ ! -d "$MINIROOT_FS_CACHE_D" ]; then
-        mkdir -p "$MINIROOT_FS_CACHE_D"
-    fi
-    cd "$MINIROOT_FS_CACHE_D" || exit 1
+cache_fs_image() {
+    msg_2 "cache_fs_image()"
+    [ -z "$src_image" ] && error_msg "cache_fs_image() no src_image supplied"
+    [ -z "$src_tarball" ] && error_msg "cache_fs_image() no src_taball supplied"
 
-    # Download the Alpine miniroot if we need to
-    if [ ! -f "$MINIROOT_FS" ]; then
-        echo "Caching miniroot"
-        wget "https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_RELEASE/releases/x86/$MINIROOT_FS"
+    ensure_usable_wget
+
+    if [ ! -d "$src_img_cache_d" ]; then
+        mkdir -p "$src_img_cache_d"
     fi
+    cd "$src_img_cache_d" || {
+        error_msg "Failed to cd to $src_img_cache_d"
+    }
+    if [ ! -f "$src_img_cache_d/$src_tarball" ]; then
+        wget "$src_image" || {
+            echo "ERROR: Failed to download $src_image"
+            exit 1
+        }
+    fi
+    # msg_3 "cache_fs_image() done"
 }
 
-copy_AOK_to_fs() {
+integrate_overrides() {
+    msg_2 "integrate_overrides($1)"
+    io_conf_file="$1"
+    case "$io_conf_file" in
+
+    AOK_VARS | tools/utils.sh) ;;
+
+    *)
+        echo "ERROR: integrate_overrides($io_conf_file) - bad param"
+        exit 1
+        ;;
+
+    esac
+
+    io_src_conf="$aok_content"/"$io_conf_file"
+    io_dst_conf="$aok_files"/"$io_conf_file"
+    io_overrides="$aok_content"/.AOK_VARS
+    io_pattrn="###  override handling  ###"
+
+    if [ -f "$io_overrides" ]; then
+        #
+        #  replace include lines with local settings
+        #
+        msg_3 "adding .AOK_VARS  into $io_conf_file on destination"
+        grep -B99999 "$io_pattrn" "$io_src_conf" | grep -v "$io_pattrn" >"$io_dst_conf"
+        cat "$io_overrides" >>"$io_dst_conf"
+    fi
+
+    unset io_conf_file
+    unset io_src_conf
+    unset io_dst_conf
+    unset io_overrides
+    unset io_pattrn
+    # msg_3 "integrate_overrides()  done"
+}
+
+copy_AOK_to_dest() {
     #
     #  Copy AOK content to destination
     #
+    msg_2 "copy_AOK_to_dest()"
 
-    cp -pR "$fs_build_d"/ "$aok_files"
-    #
-    #  Remove stuff that should not be there
-    #
-    rm -f  "$aok_files"/README.md
-    rm -f  "$aok_files"/TODO.md
-    rm -rf "$aok_files"/.git*
+    mkdir -p "$aok_files"
+    mkdir -p "$build_root_d"/etc/opt
+    bldstat_set "$status_being_built"
 
-    # #
-    # #  Move the AOK stuff into /AOK
-    # #
-    # aok_files="$BUILD_ROOT_D/$AOK_CONTENT"
+    rsync -ah \
+        --exclude=.git/ \
+        --exclude=.gitignore \
+        --exclude=.gitmodules \
+        --exclude=.vscode/ \
+        --exclude=.AOK_VARS \
+        "$aok_content" "$build_root_d"/opt
 
-    # mkdir "$aok_files"
-
-    # mv "$BUILD_ROOT_D"/BUILD_ENV         "$aok_files"
-    # mv "$BUILD_ROOT_D"/AOK_VARS          "$aok_files"
-
-    # mv "$BUILD_ROOT_D"/build_fs          "$aok_files"
-    # mv "$BUILD_ROOT_D"/aok_setup_fs      "$aok_files"
-    # mv "$BUILD_ROOT_D"/compress_image    "$aok_files"
-    # mv "$BUILD_ROOT_D"/LICENSE           "$aok_files"
-    # mv "$BUILD_ROOT_D"/Files             "$aok_files"
-    # mv "$BUILD_ROOT_D"/Docs              "$aok_files"
-    # mv "$BUILD_ROOT_D"/tools             "$aok_files"
+    integrate_overrides AOK_VARS
+    integrate_overrides tools/utils.sh
 
     chown -R root: "$aok_files"
-
-    unset d_aok
+    # msg_3 "copy_AOK_to_dest() done"
 }
 
 add_additional_tasks_if_defined() {
     #
     #  If defined, append additional tasks
     #
-    mkdir -p "$BUILD_ROOT_D/etc/opt"
+    msg_2 "add_additional_tasks_if_defined($FIRST_BOOT_ADDITIONAL_TASKS)"
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+        msg_3 "Creating additional tasks script"
+        mkdir -p "$build_root_d"/opt
         {
             echo "#!/bin/sh"
             echo "$FIRST_BOOT_ADDITIONAL_TASKS"
-        }  > "$BUILD_ROOT_D/$ADDITIONAL_TASKS_SCRIPT"
-        chmod 755 "$BUILD_ROOT_D/$ADDITIONAL_TASKS_SCRIPT"
-        echo "---  setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $ADDITIONAL_TASKS_SCRIPT  ---"
+        } >"$additional_tasks_script"
+        chmod 755 "$additional_tasks_script"
+        msg_2 "setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $additional_tasks_script"
     fi
+    # msg_3 "add_additional_tasks_if_defined() done"
 }
 
-first_boot_fbat() {
-    echo "---  first_boot_fbat()   ---"
-    [ -z "$FIRST_BOOT_ADDITIONAL_TASKS" ] && return
+setup_Alpine_on_1st_boot() {
+    msg_2 "setup_Alpine_on_1st_boot()"
+
+    select_profile "$setup_alpine_scr"
+    # msg_3 "setup_Alpine_on_1st_boot() done"
+}
+
+setup_Debian_on_1st_boot() {
+    msg_2 "setup_Debian_on_1st_boot()"
+
+    select_profile "$setup_debian_scr"
+    # msg_3 "setup_Debian_on_1st_boot() done"
+}
+
+setup_Devuan_on_1st_boot() {
+    msg_2 "setup_Devuan_on_1st_boot()"
+
+    select_profile "$setup_devuan_scr"
+    # msg_3 "setup_Devuan_on_1st_boot() done"
+}
+
+select_distro_on_1st_boot() {
+    msg_2 "select_distro_on_1st_boot()"
+
+    select_profile "$setup_select_distro_prepare"
+
     #
-    #  Only set up a custom first boot handler, if there were user defined
-    #  tasks to be run.
+    #  If this build platform cant chroot, then the preparational steps
+    #  will be run on 1st boot, a slight delay, but end result is
+    #  the same.
     #
-
-    #  /etc/profile will be restored just before the additional tasks
-    #  are run, this saves it to a in this context known name
-    mv "$BUILD_ROOT_D"/etc/profile "$BUILD_ROOT_D"/etc/profile.real
-
-    cp "$fs_build_d"/Files/profile.fbat "$BUILD_ROOT_D"/etc/profile
+    if [ "$build_env" -gt 0 ]; then
+        if ! "$aok_content"/tools/do_chroot.sh /etc/profile; then
+            error_msg "Error in chroot, aborting build!"
+        fi
+    else
+        echo
+        msg_2 "***  Could not chroot, did not run: $setup_select_distro_prepare  ***"
+        msg_2 "This means that this image will have to run the preparatory"
+        msg_2 "step, before displaying the Distro selection dialog"
+        echo
+    fi
+    # msg_3 "select_distro_on_1st_boot()  done"
 }
 
-first_boot_aok_complete() {
-    echo "---  first_boot_aok_complete()   ---"
-    cp "$aok_files"/Files/profile.aok-complete "$BUILD_ROOT_D"/etc/profile
-    echo "---  custom /etc/profile forcing aok_setup_fs to be run on first boot  ---"
+prebuild_fs() {
+    msg_2 "prebuild_fs()"
+
+    if [ "$build_env" -eq 0 ]; then
+        msg_1 "Not possible to pre-build on this environment!"
+        return
+    fi
+
+    #
+    # chrooting and doing setup
+    #
+    msg_1 "Pre-building FS"
+    cd "$aok_content" || exit 17
+
+    bldstat_set "$status_prebuilt_fs"
+
+    "$aok_content"/tools/do_chroot.sh /etc/profile
+    msg_1 "Returned from prebuild chroot"
+
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        if [ "$build_target" = "$target_alpine" ]; then
+            if [ -n "$AOK_APKS" ]; then
+                msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
+            fi
+            if [ -n "$AOK_APKS" ]; then
+                select_profile "$setup_alpine_final"
+            else
+                #  Clear up build env
+                bldstat_clear_all
+                select_profile "$aok_content"/Alpine/etc/profile
+            fi
+            #
+            #  Since some final steps need to run by the above profile
+            #  mark the FS as in build state
+            #
+        fi
+    else
+        msg_3 "QUICK_DEPLOY - skipping removal of AOK kernel packages"
+    fi
+
+    # msg_3 "prebuild_fs() done"
 }
 
+consider_generating_tarball() {
+    msg_2 "consider_generating_tarball()"
+    #
+    #  Consider to generate a tarball
+    #
+    if $aok_FS_do_compress; then
+        cgt_extra_params=""
+        if $verbose; then
+            cgt_extra_params="-v"
+        fi
+        if $use_bzip2; then
+            cgt_extra_params="$cgt_extra_params -j"
+        fi
 
+        #
+        #  Set name for tarball
+        #
+        if [ "$build_target" = "$target_debian" ]; then
+            cgt_label="$debian_tb"
+        elif [ "$build_target" = "$target_devuan" ]; then
+            cgt_label="$devuan_tb"
+        elif [ "$build_target" = "$target_select" ]; then
+            cgt_label="$select_distro_tb"
+        else
+            cgt_label="$alpine_tb"
+        fi
+
+        if $pre_build_FS; then
+            #  give a hint this was pre-built
+            cgt_label="${cgt_label}-pb"
+        fi
+        #  shellcheck disable=SC2086,SC2248
+        if ! "$aok_content"/compress_image -l $cgt_label $cgt_extra_params; then
+            error_msg "detected in compress_image"
+        fi
+        unset cgt_extra_params
+        unset cgt_label
+    fi
+
+    if [ "$build_env" -gt 0 ]; then
+        if [ "$build_target" = "$target_debian" ]; then
+            set_shell="/bin/sh"
+        else
+            set_shell="/bin/ash"
+        fi
+        msg_1 "How to access the just created FS from this env"
+        if $pre_build_FS; then
+            echo
+            echo "   chrooting into the FS:"
+            echo "     sudo ./tools/do_chroot.sh"
+        else
+            echo
+            echo "   You can work on the filesystem without triggering deploy by running:"
+            echo "     sudo ./tools/do_chroot.sh $set_shell"
+            echo
+            echo "   To trigger a first boot deploy, run:"
+            echo "     sudo ./tools/do_chroot.sh /etc/profile"
+        fi
+        echo
+
+        unset set_shell
+    else
+        echo
+        echo "This platform can not chroot into the FS"
+    fi
+    # msg_3 "consider_generating_tarball() done"
+}
+
+display_build_time() {
+    msg_2 "display_build_time()"
+    dbt_duration="$(($(date +%s) - t_start))"
+    if $pre_build_FS; then
+        dbt_lbl="Create and setup FS"
+    else
+        dbt_lbl="Create FS"
+    fi
+    display_time_elapsed "$dbt_duration" "$dbt_lbl"
+    unset dbt_duration
+    unset dbt_lbl
+    # msg_3 "display_build_time() done"
+}
 
 #===============================================================
 #
@@ -266,105 +499,64 @@ first_boot_aok_complete() {
 #
 #===============================================================
 
+t_start="$(date +%s)"
+
 parse_arguments "$@"
 
-display_build_env
+display_build_target
 
-echo
-echo "---  Preparing build environment  ---"
+test -f "$additional_tasks_script" && notification_additional_tasks
 
-clear_build_env
-cache_miniroot_fs
+msg_2 "Preparing build environment"
 
-echo "---  Create $BUILD_ROOT_D, copy minirootfs  ---"
-mkdir -p "$BUILD_ROOT_D"
+clear_build_target
 
-cd "$BUILD_ROOT_D" || exit 1
-tar xfz "$MINIROOT_FS_CACHE_D"/"$MINIROOT_FS"
-
-if $skip_AOK_Files ; then
-    echo "---  Purging all $AOK_CONTENT content from the new filesystem  ---"
-    first_boot_fbat
+if [ "$build_target" = "$target_debian" ]; then
+    src_image="$DEBIAN_SRC_IMAGE"
+    src_tarball="$debian_src_tb"
+elif [ "$build_target" = "$target_devuan" ]; then
+    src_image="$DEVUAN_SRC_IMAGE"
+    src_tarball="$devuan_src_tb"
 else
-    copy_AOK_to_fs
-    echo "---  Stored $AOK_CONTENT on new filesystem  ---"
-
-    if ! $aok_FS_mods ; then
-        first_boot_aok_complete
-    fi
+    src_image="$alpine_src_image"
+    src_tarball="$alpine_src_tb"
 fi
 
+cache_fs_image
+create_fs "${src_img_cache_d}/$src_tarball" "$build_root_d" "$verbose"
+copy_AOK_to_dest
+msg_2 "Deployed $aok_content on new filesystem"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
-#  Since aok_setup_fs will create an AOK relevant motd, deleting the default
-#  one makes sence.
+#  Since setup_alpine.sh will create an AOK relevant motd,
+#  deleting the default one both on Alpine & Debian makes sence.
 #
-rm "$BUILD_ROOT_D"/etc/motd
-echo "---  removed initial /etc/motd from new filesystem  ---"
-
+msg_2 "remove initial /etc/motd from new filesystem"
+rm "$build_root_d"/etc/motd
 
 # Should always happen
-echo "---  created directory /iCloud inside new filesystem   ---"
-mkdir "$BUILD_ROOT_D"/iCloud
+msg_2 "create directory /iCloud inside new filesystem"
+mkdir "$build_root_d"/iCloud
 
+if [ "$build_target" = "$target_debian" ]; then
+    setup_Debian_on_1st_boot
+elif [ "$build_target" = "$target_devuan" ]; then
+    setup_Devuan_on_1st_boot
+elif [ "$build_target" = "$target_select" ]; then
+    select_distro_on_1st_boot
+else
+    setup_Alpine_on_1st_boot
+fi
 
 add_additional_tasks_if_defined
 
-if $aok_FS_mods ; then
-    #
-    # chrooting and doing setup
-    #
-    # We need a valid resolv.conf for the chrooted env to be able to do networking
-    cp /etc/resolv.conf "$BUILD_ROOT_D/etc"
-    echo "---  copied host /etc/resolve.conf to new filesystem  ---"
-
-    # dedicated chroot app
-    #if ! "$fs_build_d"/tools/do_chroot.sh "$SETUP_AOK_FS"; then
-    if ! "$fs_build_d"/tools/do_chroot.sh "$SETUP_AOK_FS"; then
-        echo "ERROR in chroot, aborting build!"
-        exit 1
-    fi
+if $pre_build_FS; then
+    prebuild_fs
 fi
 
+msg_1 "The filesystem is ready!"
 
-echo
-echo "=====  The filesystem is ready!  ====="
-echo
+consider_generating_tarball
 
-if $aok_FS_do_compress ; then
-    if $FS_compress_verbose ; then
-        verbose="-z"
-    else
-        verbose=""
-    fi
-    if ! "$fs_build_d"/compress_image "$verbose"; then
-        echo "ERROR detected in compress_image"
-        exit 1
-    fi
-else
-    if [ "$build_env" -gt 0 ]; then
-        if $aok_FS_mods ; then
-            set_shell=""
-        else
-            set_shell="/bin/ash"
-        fi
-        echo "You can work on the filesystem by running:"
-        echo "  sudo tools/do_chroot.sh $set_shell"
-        echo
-    fi
-
-    echo "Complete the process by running:"
-    echo "  sudo ./compress_image"
-    echo
-    echo "This creates the compressed image that can be imported into AOK/iSH."
-
-    if [ "$build_env" -gt 0 ]; then
-        echo "You can revisit the filesystem by doing the above do_chroot and then"
-        echo "compress_image again, in case you need to do further tweaks."
-        echo "Running build again will erase the current iSH filesystem and create"
-        echo "a fresh instance."
-    fi
-    echo
-    exit 0
-fi
+display_build_time

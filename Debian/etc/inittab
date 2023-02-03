@@ -1,0 +1,58 @@
+# /etc/inittab: init(8) configuration.
+# Based on: v 1.91 2002/01/25 13:35:21 miquels Exp $
+# Modified by: Jacob.Lundqvist@gmail.com 2023
+#
+# The default runlevel.
+id:2:initdefault:
+
+#
+#  These two items should be the very first sysinit entries
+#  to ensure iSH is in a usable state for openrc!
+#
+# Ensure devs are ok
+fx1::sysinit:/usr/local/sbin/fix_dev
+
+# Clear /run/openrc to an initial state with no services running
+fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
+
+#
+#  Not system critical but we might as well do it here
+#  instead of creating a full service for the task
+#
+hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
+
+#
+# Initialization command
+# Normally this would be sysinit, but when this is choosen
+# on Debian running on iSH-AOK, init & openrc fails
+# to transition over to the runlevel default.
+# This is solved by using boot as initial runlevel on iSH-AOK
+#
+si::sysinit:/sbin/openrc boot
+
+# What to do in single-user mode.
+~~:S:wait:/sbin/sulogin --force
+
+# /etc/init.d executes the S and K scripts upon change
+# of runlevel.
+#
+# Runlevel 0 is halt.
+# Runlevel 1 is single-user.
+# Runlevels 2-5 are multi-user.
+# Runlevel 6 is reboot.
+
+l0:0:wait:/etc/init.d/rc 0
+l1:1:wait:/etc/init.d/rc 1
+l2:2:wait:/etc/init.d/rc 2
+l3:3:wait:/etc/init.d/rc 3
+l4:4:wait:/etc/init.d/rc 4
+l5:5:wait:/etc/init.d/rc 5
+l6:6:wait:/etc/init.d/rc 6
+# Normally not reached, but fallthrough in case of emergency.
+z6:6:respawn:/sbin/sulogin --force
+
+#
+#  Ctrl-Alt-Del, powerfails, additional consoles and serial ports
+#  are skipped in this inittab, since none of it is supported
+#  in iSH as of yet
+#

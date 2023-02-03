@@ -1,1 +1,22 @@
-/alpine-minirootfs*
+# vscode
+*.code-workspace
+
+### VisualStudioCode ###
+.vscode/* # Maybe .vscode/**/* instead - see comments
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# editor tmp files
+*~
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+**/.history
+
+# local overrides, dont put in git
+.AOK_VARS
+
+# I use it as a reminder so I dont override anything locally
+globals.txt

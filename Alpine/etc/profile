@@ -1,0 +1,65 @@
+#!/bin/sh
+# this is sourced, shebang just to hint editors since no extension
+#  shellcheck disable=SC2154
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+#
+#  Don't know why but without this delay, profile occationally fails
+#  to complete under iSH, leaving just a blank screen. Just a guess,
+#  but could be that the Launch cmd (triggering /etc/profile) is run
+#  before the OS is ready?
+#
+sleep 2
+
+# Let's set the path here since that covers both zsh and bash
+export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
+
+ID="$(id -u)"
+CHECK="$(/bin/rc-status 2>/dev/null | grep -c sshd)"
+VERBOSE=0
+
+if [ "$CHECK" -eq 0 ] || [ "$ID" -ne 0 ]; then
+    VERBOSE=1
+fi
+
+# echo $CHECK $ID $VERBOSE
+
+if [ "$VERBOSE" -eq 1 ]; then
+    echo
+    echo "------------------------------------------"
+    echo
+fi
+
+if [ "$CHECK" -eq 0 ]; then
+    echo "Enable sshd on port 1022: [31menable_sshd[0m"
+    echo
+fi
+
+if [ "$ID" -ne 0 ]; then
+    echo "Use [31msudo[0m to run commands as root"
+    echo
+fi
+
+if [ "$VERBOSE" -eq 1 ]; then
+    echo "------------------------------------------"
+    echo
+fi
+
+if grep -qi aok /proc/ish/version 2>/dev/null; then
+    #  Only run this on AOK kernels
+    CPU_STATE="$(/usr/local/bin/toggle_multicore status)"
+    echo "Multicore State=$CPU_STATE"
+
+    LOCK_STATE="$(/usr/local/bin/elock status)"
+    echo "Extra Locking State=$LOCK_STATE"
+fi
+
+echo ""

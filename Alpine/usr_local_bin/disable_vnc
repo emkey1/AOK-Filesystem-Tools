@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+
+# Important stuff needs to be read...
+# shellcheck disable=SC1091
+. /opt/AOK/AOK_VARS
+
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    echo "Executing as root"
+    # using $0 instead of full path makes location not hardcoded
+    sudo "$0"
+    exit 0
+fi
+
+echo "Removing VNC/X11 packages"
+# In this case we want the variable to split up into separate params...
+# shellcheck disable=SC2154,SC2086
+apk del $VNC_APKS
+
+
+if [ -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
+    echo "Removing X11 headless config file"
+    rm /etc/X11/xorg.conf.d/10-headless.conf
+fi
+
+echo "Leaving /etc/X11/Xwrapper.config.  You can delete it manually by typing 'sudo rm /etc/X11/Xwrapper.config' if so desired."

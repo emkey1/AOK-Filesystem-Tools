@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+# Enable sshd to run automatically
+#
+
+if [ -f /etc/opt/AOK/is_chrooted ]; then
+    echo "This can't be run when chrooted!"
+    exit 1
+fi
+
+if [ -f /etc/alpine-release ]; then
+    srvc_name="sshd"
+elif [ -f /etc/debian_version ]; then
+    srvc_name="ssh"
+else
+    echo "Unknown distro, aborting"
+    exit 1
+fi
+
+sudo rc-update add "$srvc_name" default
+
+sudo rc-service "$srvc_name" start
+
+echo
+echo "Remember to set a password for the ish user if you haven't already"
+echo "Do this by typing 'passwd' and following the prompts"
+echo

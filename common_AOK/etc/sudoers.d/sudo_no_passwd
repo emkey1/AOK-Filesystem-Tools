@@ -1,0 +1,3 @@
+# sudo group has passwordless sudo
+
+%sudo ALL=(ALL) NOPASSWD: ALL

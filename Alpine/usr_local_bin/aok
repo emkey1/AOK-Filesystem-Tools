@@ -1,0 +1,171 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#
+#  Script to do various things related to the configuration of ish
+#
+version="0.2.3  2022-12-18"
+
+is_aok_kernel() {
+    grep -qi aok /proc/ish/version 2>/dev/null
+    return $?
+}
+
+show_help() {
+    cat <<EOF
+Usage: $prog_name [-h] [-v] [-l login procedure]
+
+An AOK-only script that manages iSH/AOK specific things.
+
+Currently only login procedure can be altered.
+
+Available options:
+
+-h, --help      Print this help and exit
+-V, --version   Display version and exit
+-v, --verbose   Be verbose
+-l, --login     Decides login procedure [once|disable|enable]
+EOF
+    exit 0
+}
+
+sanity_check() {
+    #
+    #  If /bin/login is not a soft-link, change it to a safe initial method
+    #  that will work also on non-AOK kernels
+    #
+    if [ ! -L "/bin/login" ]; then
+        if [ -x "$login_busybox" ]; then
+            rm -f /bin/login
+            ln -sf "$login_busybox" /bin/login
+        else
+            echo
+            echo "ERROR: Expected /bin/login to be a soft-link,"
+            echo "       It was not, and failed to find: $login_busybox"
+            echo "       the assumed default candidate to link to."
+            exit 1
+        fi
+    fi
+
+    if ! is_aok_kernel && [ "$requested_method" != "disable" ]; then
+        echo
+        echo "WARNING: non-AOK kernels can only use: disable"
+        echo "       Reverting to this method."
+        echo
+        "$0" -l disable
+        exit 1
+    fi
+
+    unset login_busybox
+}
+
+change_login_procedure() {
+    requested_method="$1"
+
+    case "$requested_method" in
+
+    "once")
+        sanity_check
+        echo "Enabling login prompt, but only for initial login."
+        echo "  AOK app will exit when you logout"
+        ln -sf /bin/login.once /bin/login
+        exit 0
+        ;;
+
+    "enable")
+        sanity_check
+        echo "Enabling login prompt."
+        echo "  You will be prompted for your login name and password"
+        echo "  if one has been set when launching AOK"
+        ln -sf /bin/login.loop /bin/login
+        exit 0
+        ;;
+
+    "disable")
+        #
+        #  Since we are choosing the safe option, no need for sanity check
+        #  That means in this case we should remove the previous login
+        #
+        echo "Disabling login prompt on startup. You will start at root prompt"
+        echo "  when launching AOK"
+        # shellcheck disable=SC2154
+        if [ -x "$login_original" ]; then
+            login_bin="$login_original"
+        else
+            login_bin="$login_busybox"
+        fi
+        rm -f /bin/login
+        ln -sf "$login_bin" /bin/login
+        exit 0
+        ;;
+
+    "")
+        echo
+        echo "ERROR: Missing param indicating new login procedure"
+        exit 1
+        ;;
+
+    *)
+        echo
+        echo "ERROR: Bad param to change login procedure: $1"
+        exit 1
+        ;;
+
+    esac
+}
+
+verbose=0
+prog_name=$(basename "$0")
+
+login_busybox="/bin/busybox"
+
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    echo "Executing as root"
+    # using $0 instead of full path makes location not hardcoded
+    sudo "$0" "$@"
+    exit 0
+fi
+
+while true; do
+    case "$1" in
+
+    "" | "-h" | "--help")
+        show_help
+        ;;
+
+    "-V" | "--version")
+        echo "$prog_name  $version"
+        exit 0
+        ;;
+
+    "-v" | "--verbose")
+        if [ "$verbose" -eq 0 ]; then
+            echo "===  Enabling verbose mode  ==="
+            verbose=1
+            set -x
+        else
+            echo
+            echo "WARNING: Multiple verbose options are ignored"
+        fi
+        ;;
+
+    "-l" | "--login")
+        change_login_procedure "$2"
+        ;;
+
+    *)
+        echo
+        echo "ERROR: Bad option: $1"
+        echo
+        show_help
+        ;;
+
+    esac
+    shift
+    [ -z "$1" ] && break # no more options
+done

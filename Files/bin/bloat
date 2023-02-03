@@ -1,5 +1,0 @@
-#!/bin/ash
-echo "bloat has been deprecated"
-echo
-echo "Please run: aok_groups"
-echo
