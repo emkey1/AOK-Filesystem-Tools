@@ -43,7 +43,7 @@ It seems to work fine, so there is that.
 
 ### Devuan
 
-DNS resolving doesn't work, so whilst you can use Deuvan,
+DNS resolving doesn't work, so whilst you can use Devuan,
 without DNS it is not that usefull beyond testing ATM.
 
 ## Build process
@@ -63,7 +63,7 @@ resonably modern, the deploy should not take too long.
 
 Especially for slower devices this can be a huge time saver, if you build
 the FS on a Linux (x86) with -p for prebuild, it takes only seconds, on a
-iPad 5th Alpine takes 6-7 mins, Debian and Deuvan takes a lot longer.
+iPad 5th Alpine takes 6-7 mins, Debian and Devuan takes a lot longer.
 
 All provided distros can be prebuilt. Advantage is that FS is ready
 to be used right away, drawback is that in most cases the FS tarball
