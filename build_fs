@@ -266,11 +266,13 @@ copy_AOK_to_dest() {
     io_conf_overrides="$aok_content"/.AOK_VARS
     if [ -f "$io_conf_overrides" ]; then
         msg_2 "Appending .AOK_CONF on dest FS"
-        echo >>"$io_dst_conf"
-        echo >>"$io_dst_conf"
-        echo "##########   Config overrides   ##########" >>"$io_dst_conf"
-        echo >>"$io_dst_conf"
-        cat "$io_conf_overrides" >>"$io_dst_conf"
+        (
+            echo
+            echo
+            echo "##########   Config overrides   ##########"
+            echo
+            cat "$io_conf_overrides"
+        ) >>"$io_dst_conf"
     fi
     unset io_dst_conf
     unset io_conf_overrides
