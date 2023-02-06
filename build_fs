@@ -244,42 +244,6 @@ cache_fs_image() {
     # msg_3 "cache_fs_image() done"
 }
 
-integrate_overrides() {
-    msg_2 "integrate_overrides($1)"
-    io_conf_file="$1"
-    case "$io_conf_file" in
-
-    AOK_VARS | tools/utils.sh) ;;
-
-    *)
-        echo "ERROR: integrate_overrides($io_conf_file) - bad param"
-        exit 1
-        ;;
-
-    esac
-
-    io_src_conf="$aok_content"/"$io_conf_file"
-    io_dst_conf="$aok_files"/"$io_conf_file"
-    io_overrides="$aok_content"/.AOK_VARS
-    io_pattrn="###  override handling  ###"
-
-    if [ -f "$io_overrides" ]; then
-        #
-        #  replace include lines with local settings
-        #
-        msg_3 "adding .AOK_VARS  into $io_conf_file on destination"
-        grep -B99999 "$io_pattrn" "$io_src_conf" | grep -v "$io_pattrn" >"$io_dst_conf"
-        cat "$io_overrides" >>"$io_dst_conf"
-    fi
-
-    unset io_conf_file
-    unset io_src_conf
-    unset io_dst_conf
-    unset io_overrides
-    unset io_pattrn
-    # msg_3 "integrate_overrides()  done"
-}
-
 copy_AOK_to_dest() {
     #
     #  Copy AOK content to destination
@@ -298,8 +262,20 @@ copy_AOK_to_dest() {
         --exclude=.AOK_VARS \
         "$aok_content" "$build_root_d"/opt
 
-    integrate_overrides AOK_VARS
-    integrate_overrides tools/utils.sh
+    io_dst_conf="$aok_files"/AOK_VARS
+    io_conf_overrides="$aok_content"/.AOK_VARS
+    if [ -f "$io_conf_overrides" ]; then
+        msg_2 "Appending .AOK_CONF on dest FS"
+        (
+            echo
+            echo
+            echo "##########   Config overrides   ##########"
+            echo
+            cat "$io_conf_overrides"
+        ) >>"$io_dst_conf"
+    fi
+    unset io_dst_conf
+    unset io_conf_overrides
 
     chown -R root: "$aok_files"
     # msg_3 "copy_AOK_to_dest() done"

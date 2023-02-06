@@ -28,13 +28,6 @@ aok_content="/opt/AOK"
 aok_content_etc="/etc$aok_content"
 
 #
-#  Import settings
-#
-
-#  shellcheck disable=SC1091
-. "$aok_content"/AOK_VARS || exit 1
-
-#
 #  Display an error message, second optional param is exit code,
 #  defaulting to 1. If exit code is 0 this will not exit, just display
 #  the error message, then continue.
@@ -396,6 +389,31 @@ run_additional_tasks_if_found() {
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+#
+#  Import settings
+#
+#  shellcheck disable=SC1091
+. "$aok_content"/AOK_VARS || exit 1
+
+#
+#  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
+#
+if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
+    conf_overrides="${aok_content}/.AOK_VARS"
+    if [ -f "$conf_overrides" ]; then
+        msg_1 "Found .AOK_VARS"
+        #  shellcheck disable=SC1090
+        . "$conf_overrides"
+    fi
+    unset conf_overrides
+fi
+
 #
 #  Detecting build environments
 #  0 = other, not able to chroot to complete image
@@ -539,23 +557,3 @@ setup_debian_scr="$aok_content"/Debian/setup_debian.sh
 setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
 setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
-
-# =====================================================================
-#
-#  Local overrides, ignored by git. They will be appended to build_env
-#  for the deployed image if found.
-#  This is intended for debuging and testing, and appends the same
-#  override file as in AOK_VARS, to ensure overrides to settings here
-#  take effect.
-#  This way on the deployed platform it will be easy to spot what
-#  temp/devel settings was used in the build process.
-#
-# =====================================================================
-
-###  override handling  ###
-
-local_overrides="${aok_content}/.AOK_VARS"
-
-#  shellcheck disable=SC1090
-[ -f "$local_overrides" ] && . "$local_overrides"
-unset local_overrides
