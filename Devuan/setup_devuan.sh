@@ -46,6 +46,17 @@ install_sshd() {
     # rc-update del ssh default
 }
 
+replace_key_files() {
+    msg_2 "replace_key_files()"
+
+    msg_2 "Installing custom inittab"
+    cp -a "$aok_content"/Devuan/etc/inittab /etc
+
+    msg_3 "hosts file helping apt tools"
+    cp -a "$aok_content"/Devuan/etc/hosts /etc
+    msg_3 "replace_key_files() done"
+}
+
 #===============================================================
 #
 #   Main
@@ -67,8 +78,7 @@ if test -f /AOK; then
     rm -rf /AOK
 fi
 
-msg_2 "Installing custom inittab"
-cp -a "$aok_content"/Devuan/etc/inittab /etc
+replace_key_files
 
 #
 #  Most of the Debian services, mounting fs, setting up networking etc
