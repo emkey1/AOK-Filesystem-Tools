@@ -128,6 +128,13 @@ if ! "$setup_common_aok"; then
 fi
 
 #
+#  Overriding common runbg with Debian specific, work in progress...
+#
+msg_2 "Adding runbg service"
+cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
+ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
+
+#
 #  This is installed by $setup_common_aok, so must come after that!
 #  Ensure hostname is in /etc/hosts
 #  This will be run from inittab each time this boots, so if name is
