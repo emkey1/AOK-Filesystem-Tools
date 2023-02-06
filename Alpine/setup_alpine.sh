@@ -34,7 +34,11 @@ install_apks() {
                 msg_3 "Removing busybox-extras from core apks, not available past 3.15"
                 CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
             fi
-        else
+        elif [ "$QUICK_DEPLOY" -eq 1 ]; then
+            #
+            #  If you want to override CORE_APKS in a quick deploy
+            #  set it to a value higher than 1
+            #
             msg_2 "QUICK_DEPLOY - doing minimal package install"
             #  probably absolute minimal without build errors
             # CORE_APKS="openssh bash openrc sudo dcron dcron-openrc"
@@ -165,6 +169,9 @@ install_apks
 
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
+
+msg_2 "Copy iSH compatible pam base-session"
+cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "adding group sudo"
