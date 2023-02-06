@@ -28,13 +28,6 @@ aok_content="/opt/AOK"
 aok_content_etc="/etc$aok_content"
 
 #
-#  Import settings
-#
-
-#  shellcheck disable=SC1091
-. "$aok_content"/AOK_VARS || exit 1
-
-#
 #  Display an error message, second optional param is exit code,
 #  defaulting to 1. If exit code is 0 this will not exit, just display
 #  the error message, then continue.
@@ -395,6 +388,31 @@ run_additional_tasks_if_found() {
     fi
     # msg_3 "run_additional_tasks_if_found()  done"
 }
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+#
+#  Import settings
+#
+#  shellcheck disable=SC1091
+. "$aok_content"/AOK_VARS || exit 1
+
+#
+#  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
+#
+if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
+    conf_overrides="${aok_content}/.AOK_VARS"
+    if [ -f "$conf_overrides" ]; then
+        msg_1 "Found .AOK_VARS"
+        #  shellcheck disable=SC1090
+        . "$conf_overrides"
+    fi
+    unset conf_overrides
+fi
 
 #
 #  Detecting build environments
