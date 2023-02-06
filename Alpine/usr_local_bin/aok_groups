@@ -74,6 +74,7 @@ use_aok_groups() {
     #  Convert $var_file to my notation, so that it can be used without
     #  changing the rest of the code.
     #
+    # shellcheck disable=SC1090
     . "$conf_file"
     package_groups="$(
         set |
