@@ -539,23 +539,3 @@ setup_debian_scr="$aok_content"/Debian/setup_debian.sh
 setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
 setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
-
-# =====================================================================
-#
-#  Local overrides, ignored by git. They will be appended to build_env
-#  for the deployed image if found.
-#  This is intended for debuging and testing, and appends the same
-#  override file as in AOK_VARS, to ensure overrides to settings here
-#  take effect.
-#  This way on the deployed platform it will be easy to spot what
-#  temp/devel settings was used in the build process.
-#
-# =====================================================================
-
-###  override handling  ###
-
-local_overrides="${aok_content}/.AOK_VARS"
-
-#  shellcheck disable=SC1090
-[ -f "$local_overrides" ] && . "$local_overrides"
-unset local_overrides
