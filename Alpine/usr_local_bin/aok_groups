@@ -124,7 +124,7 @@ process_items() {
         name="$(echo "$section" | cut -d'|' -f 1 | awk '{$1=$1};1' | tr '[:upper:]' '[:lower:]')"
         packages="$(echo "$section" | cut -d'|' -f 2 | awk '{$1=$1};1')"
 
-        [ -z "$name" ] && continue # skip blank lines
+        [ -z "$packages" ] && continue # skip empty groups
 
         case "$task" in
 
