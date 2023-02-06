@@ -52,6 +52,18 @@ ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
 
 #
+#  Should normally not be changed! Enabling his will create a limited env
+#  missing features and functionality!
+#
+#  Purpose is to speed up the deploy cycle when testing and improving
+#  the build processess on slow devices, by cutting down on deploy heavy
+#  usability features
+#  Enble by setting this to 1
+#  Ideal candidate to modify in .AOK_VARS
+#
+QUICK_DEPLOY=0
+
+#
 #  Always installed packages
 #
 CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync"
@@ -78,18 +90,6 @@ CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk r
 #  If defined this user will be created
 #
 USER_NAME="ish"
-
-#
-#  Should normally not be changed! Enabling his will create a limited env
-#  missing features and functionality!
-#
-#  Purpose is to speed up the deploy cycle when testing and improving
-#  the build processess on slow devices, by cutting down on deploy heavy
-#  usability features
-#  Enble by setting this to 1
-#  Ideal candidate to modify in .AOK_VARS
-#
-QUICK_DEPLOY=0
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
