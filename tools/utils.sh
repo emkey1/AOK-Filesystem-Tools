@@ -211,6 +211,15 @@ select_profile() {
     msg_3 "select_profile() done"
 }
 
+ensure_usable_wget() {
+    msg_2 "ensure_usable_wget()"
+    #  shellcheck disable=SC2010
+    if ls -l "$(command -v wget)" | grep -q busybox; then
+        error_msg "You need to install a real wget, busybox does not handle redirects"
+    fi
+    # msg_3 "ensure_usable_wget()  done"
+}
+
 create_fs() {
     msg_2 "create_fs($1)"
     cf_tarball="$1"
