@@ -34,7 +34,8 @@ msg_3 "apk update & upgrade"
 apk update && apk upgrade
 
 msg_3 "Installing newt (whiptail) & wget (needed for Debian download)"
-apk add newt wget
+# apk add newt wget
+apk add dialog wget
 
 # shellcheck disable=SC2154
 bldstat_set "$status_select_distro_prepared"
