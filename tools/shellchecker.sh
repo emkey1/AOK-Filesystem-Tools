@@ -18,7 +18,9 @@ echo
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
 #
-cd /opt/AOK || exit 1
+cd /opt/AOK || {
+    error_msg "Failed to cd into: /opt/AOK"
+}
 
 checkables=(
     tools/do_chroot.sh

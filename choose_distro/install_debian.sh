@@ -17,14 +17,15 @@ msg_script_title "install_debian.sh  Downloading & Installing Debian"
 #
 
 debian_download_location="/tmp/debian_fs"
-
-mkdir -p "$debian_download_location"
-
-cd "$debian_download_location" || exit 99
-
 src_image="$DEBIAN_SRC_IMAGE"
 src_tarball="/$debian_download_location/$debian_src_tb"
 
+mkdir -p "$debian_download_location"
+cd "$debian_download_location" || {
+    error_msg "Failed to cd into: $debian_download_location"
+}
+
+ensure_usable_wget
 msg_2 "Downloading $src_image"
 wget "$src_image"
 
@@ -109,8 +110,10 @@ msg_3 "Replacing /lib with a soft-link to /usr/lib"
 
 #  From now on Debian should be fully available
 
-msg_3 "Removing tmp area /Debian"
-rm /Debian -rf
+msg_3 "Removing tmp area $distro_tmp_dir"
+rm "$distro_tmp_dir" -rf || {
+    error_msg "Failed to clear: $distro_tmp_dir"
+}
 
 msg_2 "Removing last traces of Alpine - busybox"
 rm /busybox
