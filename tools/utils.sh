@@ -28,13 +28,6 @@ aok_content="/opt/AOK"
 aok_content_etc="/etc$aok_content"
 
 #
-#  Import settings
-#
-
-#  shellcheck disable=SC1091
-. "$aok_content"/AOK_VARS || exit 1
-
-#
 #  Display an error message, second optional param is exit code,
 #  defaulting to 1. If exit code is 0 this will not exit, just display
 #  the error message, then continue.
@@ -218,6 +211,15 @@ select_profile() {
     msg_3 "select_profile() done"
 }
 
+ensure_usable_wget() {
+    msg_2 "ensure_usable_wget()"
+    #  shellcheck disable=SC2010
+    if ls -l "$(command -v wget)" | grep -q busybox; then
+        error_msg "You need to install a real wget, busybox does not handle redirects"
+    fi
+    # msg_3 "ensure_usable_wget()  done"
+}
+
 create_fs() {
     msg_2 "create_fs($1)"
     cf_tarball="$1"
@@ -231,7 +233,10 @@ create_fs() {
     fi
     [ -z "$cf_fs_location" ] && error_msg "no cf_fs_location detected"
     mkdir -p "$cf_fs_location"
-    cd "$cf_fs_location" || exit 1
+    cd "$cf_fs_location" || {
+        error_msg "Failed to cd into: $cf_fs_location"
+    }
+
     msg_2 "Extracting $cf_tarball"
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
         cf_filter="z"
@@ -366,7 +371,10 @@ copy_skel_files() {
         error_msg "copy_skel_files() needs a destination param"
     fi
     cp -r /etc/skel/. "$csf_dest"
-    cd "$csf_dest" || exit 99
+    cd "$csf_dest" || {
+        error_msg "Failed to cd into: $csf_dest"
+    }
+
     ln -sf .bash_profile .bashrc
 
     unset csf_dest
@@ -395,6 +403,31 @@ run_additional_tasks_if_found() {
     fi
     # msg_3 "run_additional_tasks_if_found()  done"
 }
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+#
+#  Import settings
+#
+#  shellcheck disable=SC1091
+. "$aok_content"/AOK_VARS || exit 1
+
+#
+#  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
+#
+if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
+    conf_overrides="${aok_content}/.AOK_VARS"
+    if [ -f "$conf_overrides" ]; then
+        msg_1 "Found .AOK_VARS"
+        #  shellcheck disable=SC1090
+        . "$conf_overrides"
+    fi
+    unset conf_overrides
+fi
 
 #
 #  Detecting build environments
@@ -539,23 +572,3 @@ setup_debian_scr="$aok_content"/Debian/setup_debian.sh
 setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
 setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
-
-# =====================================================================
-#
-#  Local overrides, ignored by git. They will be appended to build_env
-#  for the deployed image if found.
-#  This is intended for debuging and testing, and appends the same
-#  override file as in AOK_VARS, to ensure overrides to settings here
-#  take effect.
-#  This way on the deployed platform it will be easy to spot what
-#  temp/devel settings was used in the build process.
-#
-# =====================================================================
-
-###  override handling  ###
-
-local_overrides="${aok_content}/.AOK_VARS"
-
-#  shellcheck disable=SC1090
-[ -f "$local_overrides" ] && . "$local_overrides"
-unset local_overrides

@@ -45,6 +45,9 @@ It seems to work fine, so there is that.
 
 DNS resolving doesn't work, so whilst you can use Devuan,
 without DNS it is not that usefull beyond testing ATM.
+`/etc/hosts` can be used, and the hostnames needed for apt handling are
+included, but this obviously is a rather limited solution to the DNS
+issue, just a stopgap.
 
 ## Build process
 
@@ -85,6 +88,9 @@ ignored by git. Please note that if this file is found,
 it's content will be appended to the destination AOK_VARS & tools/utils.sh,
 so motly for devel/debug. For production style deploys, it is recomended
 to update AOK_VARS and not have a .AOK_VARS present.
+
+Simplest way to start using this overide file is to just copy AOK_VARS
+into .AOK_VARS and then edit .AOK_VARS to match your needs.
 
 ### Running chrooted
 

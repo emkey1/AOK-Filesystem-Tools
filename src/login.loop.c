@@ -16,7 +16,7 @@ int mylogin(void)
 {
 
    char *argv[2] = {"", NULL};           // You could try specifying a login here but it won't work
-   char filename[] = "/etc/aok_release"; // Let's get the version of AOK we're running
+   char filename[] = "/etc/aok-release"; // Let's get the version of AOK we're running
    char version[MAXVERSIZE];
    FILE *file = fopen(filename, "r");
 

@@ -27,7 +27,9 @@ fi
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure build_env can be found
 #
-cd "$aok_content" || exit 99
+cd "$aok_content" || {
+    error_msg "Failed to cd into: $aok_content"
+}
 
 prog_name=$(basename "$0")
 
