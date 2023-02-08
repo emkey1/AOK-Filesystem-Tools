@@ -3,9 +3,12 @@
 - Generating bzip2 images only results in very moderate size reductions
 should be investigated to hopefully generate smaller images.
 
-## login_single
+## /etc/motd
 
-Cant find the src code
+check pam settings to see if ithelps
+
+## runbg
+use posix script for debian
 
 ## idev_ip
 
