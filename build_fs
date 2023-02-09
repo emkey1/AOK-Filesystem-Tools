@@ -262,7 +262,11 @@ copy_AOK_to_dest() {
         (
             echo
             echo
-            echo "##########   Config overrides   ##########"
+            echo "########################################################################"
+            echo "#"
+            echo "#                   Config overrides"
+            echo "#"
+            echo "########################################################################"
             echo
             cat "$io_conf_overrides"
         ) >>"$io_dst_conf"
