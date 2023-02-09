@@ -3,12 +3,14 @@
 - Generating bzip2 images only results in very moderate size reductions
 should be investigated to hopefully generate smaller images.
 
+## On prebuilds, ask if /iCloud should be mounted in final step
+
 ## /etc/motd
 
 check pam settings to see if ithelps
 
 ## runbg
-use posix script for debian
+use posix script for Debian/Devuan
 
 ## idev_ip
 
