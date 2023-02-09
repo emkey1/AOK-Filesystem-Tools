@@ -10,34 +10,36 @@
 #
 
 #
-# A list of variables used during build and for /usr/local/bin stuff
+#  Variables used during build.
+#  Recomended is to copy this file to .AOK_VARS and make changes there.
+#  This file will be ignored by git, and overrides this file. It also
+#  minimizes risk of temp changes to become unintentionally permanent.
+#  Only when you think a change should be saved into git, put it here!
 #
 
 #
-#  Label for AOK builds
+#  Label for AOK builds, is also displayed by motd to indicate what
+#  AOK FS release is being used
 #
 AOK_VERSION="Beta-002"
 
 #
+#  If defined this user will be created
+#
+USER_NAME="ish"
+
+#
 #  Alternatives are: enable disable once
-#  This is not yet supported on Debian builds, and will be ignored there
+#  This is not yet supported on Debian/Devuan builds,
+#  and will be ignored there
 #
 INITIAL_LOGIN_MODE="enable"
 
 #
-#  ALPINE_VERSION defines what Alpine release will be used
-#
-# ALPINE_VERSION=3.14.8  # End of Alpine support 2023-05-01
-# ALPINE_VERSION=3.15.6  # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.1  # End of Alpine support 2024-11-22
-# ALPINE_VERSION=edge    # Current development tree
-
-#
-#  Please never enable this here. If you want to hard-code timezone,
-#  please put this variable with your TZ preference in .AOK_VARS
-#  If not hardcoded, /usr/local/bin/set-timezone will be run during
-#  setup, allowing user to select timezone.
+#  Should normally not be set! If you want to hard-code timezone,
+#  The FS will be setup without giving the option to select time-zone.
+#  During testing its a convenient thing to set, not having to select a TZ
+#  for every install.
 #
 # AOK_TIMEZONE="Europe/Berlin"
 
@@ -57,11 +59,37 @@ ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
 #
 #  Purpose is to speed up the deploy cycle when testing and improving
 #  the build processess on slow devices, by cutting down on deploy heavy
-#  usability features
-#  Enble by setting this to 1
-#  Ideal candidate to modify in .AOK_VARS
+#  usability features.
+#
+#  Valid settings
+#  --------------
+#  0 - Disabled, full deploy will happen
+#  1 - all quick deploy options are active
+#  2 - CORE_APKS will be installed, all other QUICK_DEPLOY conditions will
+#      be followed. Handle this in your .AOK_VARS something like this:
+#
+#      QUICK_DEPLOY=2
+#      if [ "$QUICK_DEPLOY" -gt 1 ]; then
+#          # Minimal list that will pass a QUICK_DEPLOY
+#          CORE_APKS="openssh bash openrc shadow sudo dcron dcron-openrc"
+#      fi
 #
 QUICK_DEPLOY=0
+
+########################################################################
+#
+#                   Alpine Specific
+#
+########################################################################
+
+#
+#  ALPINE_VERSION defines what Alpine release will be used
+#
+# ALPINE_VERSION=3.14.8  # End of Alpine support 2023-05-01
+# ALPINE_VERSION=3.15.6  # End of Alpine support 2023-11-01
+ALPINE_VERSION=3.16.3 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.1  # End of Alpine support 2024-11-22
+# ALPINE_VERSION=edge    # Current development tree
 
 #
 #  Always installed packages
@@ -69,27 +97,11 @@ QUICK_DEPLOY=0
 CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync"
 
 #
-#  Additional packages.  These don't work with stock iSH but work with
+#  Additional packages. These don't work with stock iSH but work with
 #  iSH-AOK and will probably work with the Linux Kernel iSH
 #  Will only be installed if the kernel is identified as iSH-AOK
 #
 AOK_APKS="htop procps nload"
-
-#
-#  If a Debian install is selected, this tarball will be used as base image
-#
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/a762e1zr2wkmnmu/Debian10-ish-base-v24.tgz"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/ut2e54u2kcrtz88/Devuan_4-ish-base-v5.tgz"
-
-#
-#  Additional debs for Debian image
-#
-CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
-
-#
-#  If defined this user will be created
-#
-USER_NAME="ish"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
@@ -109,3 +121,20 @@ NODEJS_APKS='nodejs nodejs-dev'
 BLOAT3_APKS='emacs neofetch'
 
 DOCS_APKS='openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc'
+
+########################################################################
+#
+#                   Debian/Devuan Specific
+#
+########################################################################
+
+#
+#  If a Debian install is selected, this tarball will be used as base image
+#
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/a762e1zr2wkmnmu/Debian10-ish-base-v24.tgz"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/ut2e54u2kcrtz88/Devuan_4-ish-base-v5.tgz"
+
+#
+#  Additional debs for Debian image
+#
+CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
