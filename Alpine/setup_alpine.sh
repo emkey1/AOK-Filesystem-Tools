@@ -25,7 +25,7 @@ fi
 . /opt/AOK/tools/utils.sh
 
 install_apks() {
-    if [ -n "$CORE_APKS" ]; then
+    if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
         msg_1 "Install core packages"
 
         if [ "$QUICK_DEPLOY" -eq 0 ]; then
@@ -55,16 +55,18 @@ install_apks() {
         #  is present, if found install it.
         #
         if [ -n "$(apk search shadow-login)" ]; then
-            if [ "$QUICK_DEPLOY" -eq 0 ]; then
-                msg_3 "Installing shadow-login"
-                apk add shadow-login
-            else
-                msg_3 "QUICK_DEPLOY - skipping shadow-login"
-            fi
+            msg_3 "Installing shadow-login"
+            apk add shadow-login
         fi
+    elif [ "$QUICK_DEPLOY" -eq 1 ]; then
+        msg_1 "QUICK_DEPLOY - skipping CORE_APKS"
+    else
+        msg_1 "No CORE_APKS defined"
     fi
 
-    if [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
+    if [ "$QUICK_DEPLOY" -ne 0 ]; then
+        msg_2 "QUICK_DEPLOY - skipping AOK_APKS"
+    elif [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
         msg_2 "Skipping AOK only packages on non AOK kernels"
     elif [ -n "$AOK_APKS" ]; then
         #  Only deploy on aok kernels and if any are defined
@@ -78,6 +80,8 @@ install_apks() {
         else
             msg_2 "QUICK_DEPLOY - skipping AOK kernel packages"
         fi
+    else
+        msg_1 "No AOK_APKS defined"
     fi
 }
 
