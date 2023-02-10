@@ -1,19 +1,22 @@
-#!/usr/bin/env bash
-#
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
-#
-#  License: MIT
-#
+#!/bin/bash
 
 INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
-echo "Internet IP: $INT_IP"
+echo "Internet IP:  $INT_IP"
 
-if [ -f "/proc/ish/ips" ];
-then 
-    LOCAL_IP="$(cat /proc/ish/ips | grep en0 | grep -v INET6 | tr -s ' ' | cut -d ' ' -f 2)"
+if [ -f "/proc/ish/ips" ]; then
+    OUTPUT=$(cat /proc/ish/ips | grep ^en | grep -v INET6)
+    OUTPUT_ARRAY=($OUTPUT)
+    LOCAL_IP=${OUTPUT_ARRAY[1]}
 else
     LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
 fi
 
-echo "Local IP: $LOCAL_IP"
+echo "Local IP(V4): $LOCAL_IP"
+
+if [ -f "/proc/ish/ips" ]; then
+    OUTPUT=$(cat /proc/ish/ips | grep ^en | grep INET6)
+    OUTPUT_ARRAY=($OUTPUT)
+    LOCAL_IP=${OUTPUT_ARRAY[1]}
+    echo "Local IP(V6): $LOCAL_IP"
+fi
