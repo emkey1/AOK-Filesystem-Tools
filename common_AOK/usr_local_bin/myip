@@ -4,7 +4,7 @@ INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
 echo "Internet IP:  $INT_IP"
 
-if [ -f "/proc/ish/ips" ]; then
+if [[ -f "/proc/ish/ips" ]]; then
     OUTPUT=$(grep ^en /proc/ish/ips | grep -v INET6)
     # shellcheck disable=SC2206
     OUTPUT_ARRAY=($OUTPUT)
@@ -15,7 +15,7 @@ fi
 
 echo "Local IP(V4): $LOCAL_IP"
 
-if [ -f "/proc/ish/ips" ]; then
+if [[ -f "/proc/ish/ips" ]]; then
     OUTPUT=$(grep ^en /proc/ish/ips | grep INET6)
     # shellcheck disable=SC2206
     OUTPUT_ARRAY=($OUTPUT)

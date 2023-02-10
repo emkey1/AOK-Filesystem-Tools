@@ -29,8 +29,7 @@ Select distro:
 "
     echo
     echo "$text"
-    distro=""
-    read selection
+    read -r selection
     case "$selection" in
 
     1)
