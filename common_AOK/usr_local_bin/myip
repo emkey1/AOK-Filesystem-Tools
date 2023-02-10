@@ -11,7 +11,7 @@ echo "Internet IP: $INT_IP"
 
 if [ -f "/proc/ish/ips" ];
 then 
-    LOCAL_IP="$(cat /proc/ish/ips | grep en0 | grep -v INET6 | tr -s ' ' | cut -d ' ' -f 2)"
+    LOCAL_IP="$(cat /proc/ish/ips | grep ^en | grep -v INET6 | tr -s ' ' | cut -d ' ' -f 2)"
 else
     LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
 fi
