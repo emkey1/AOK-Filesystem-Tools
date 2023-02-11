@@ -2,21 +2,30 @@
 
 INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
-echo "Internet IP:  $INT_IP"
-
-if [ -f "/proc/ish/ips" ]; then
-    OUTPUT=$(cat /proc/ish/ips | grep ^en | grep -v INET6)
-    OUTPUT_ARRAY=($OUTPUT)
-    LOCAL_IP=${OUTPUT_ARRAY[1]}
-else
-    LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
+if [ -n "$INT_IP" ]; then
+    echo "Internet IP: $INT_IP"
+else 
+    echo "Unable to determine Internet IP"
 fi
 
-echo "Local IP(V4): $LOCAL_IP"
+if [ -f "/proc/ish/ips" ]; then
+   OUTPUT=$(cat /proc/ish/ips | grep ^en | grep -v INET6)
+   if [ -n "$OUTPUT" ]; then
+      OUTPUT_ARRAY=($OUTPUT)
+      LOCAL_IP=${OUTPUT_ARRAY[1]}
+      echo "Local IP(V4): $LOCAL_IP"
+   fi
+   else
+      LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
+
+   echo "Local IP(V4): $LOCAL_IP"
+fi
 
 if [ -f "/proc/ish/ips" ]; then
-    OUTPUT=$(cat /proc/ish/ips | grep ^en | grep INET6)
-    OUTPUT_ARRAY=($OUTPUT)
-    LOCAL_IP=${OUTPUT_ARRAY[1]}
-    echo "Local IP(V6): $LOCAL_IP"
+   OUTPUT=$(cat /proc/ish/ips | grep ^en | grep INET6)
+   if [ -n "$OUTPUT" ]; then
+      OUTPUT_ARRAY=($OUTPUT)
+      LOCAL_IP=${OUTPUT_ARRAY[1]}
+   echo "Local IP(V6): $LOCAL_IP"
+   fi
 fi
