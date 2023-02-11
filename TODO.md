@@ -10,6 +10,7 @@ should be investigated to hopefully generate smaller images.
 check pam settings to see if ithelps
 
 ## runbg
+
 use posix script for Debian/Devuan
 
 ## idev_ip
@@ -18,7 +19,6 @@ use posix script for Debian/Devuan
 56 kb in Alpine
 
 Room for optimizing the Debian compile?
-
 
 ## Suggested additions to CORE_APKS
 
