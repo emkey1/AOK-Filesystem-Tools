@@ -9,20 +9,24 @@ else
 fi
 
 if [ -f "/proc/ish/ips" ]; then
-   OUTPUT=$(cat /proc/ish/ips | grep ^en | grep -v INET6)
+   OUTPUT=$(grep ^en  /proc/ish/ips | grep -v INET6)
    if [ -n "$OUTPUT" ]; then
       OUTPUT_ARRAY=($OUTPUT)
       LOCAL_IP=${OUTPUT_ARRAY[1]}
       echo "Local IP(V4): $LOCAL_IP"
    fi
    else
-      LOCAL_IP="$(/usr/local/bin/idev_ip | cut -d: -f 2)"
+      LOCAL_IP="$(/usr/local/bin/idev_ip |& cut -d: -f 2)"
 
-   echo "Local IP(V4): $LOCAL_IP"
+      if [[ "$LOCAL_IP" =~ "Invalid" ]]; then
+          echo "Local IP(V4): Unknown"
+      else
+          echo "Local IP(V4): $LOCAL_IP"
+      fi
 fi
 
 if [ -f "/proc/ish/ips" ]; then
-   OUTPUT=$(cat /proc/ish/ips | grep ^en | grep INET6)
+   OUTPUT=$(grep ^en /proc/ish/ips | grep INET6)
    if [ -n "$OUTPUT" ]; then
       OUTPUT_ARRAY=($OUTPUT)
       LOCAL_IP=${OUTPUT_ARRAY[1]}
