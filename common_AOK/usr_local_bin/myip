@@ -1,35 +1,36 @@
 #!/bin/bash
 
-INT_IP="$(curl http://ifconfig.me 2>/dev/null)"
+INT_IP=$(curl -s http://ifconfig.me)
 
-if [ -n "$INT_IP" ]; then
-    echo "Internet IP:  $INT_IP"
-else 
+if [ $? -ne 0 ]; then
     echo "Unable to determine Internet IP"
+else 
+    echo "Internet IP: $INT_IP"
 fi
 
 if [ -f "/proc/ish/ips" ]; then
-   OUTPUT=$(grep ^en  /proc/ish/ips | grep -v INET6)
-   if [ -n "$OUTPUT" ]; then
-      OUTPUT_ARRAY=($OUTPUT)
-      LOCAL_IP=${OUTPUT_ARRAY[1]}
-      echo "Local IP(V4): $LOCAL_IP"
-   fi
-   else
-      LOCAL_IP="$(/usr/local/bin/idev_ip |& cut -d: -f 2)"
-
-      if [[ "$LOCAL_IP" =~ "Invalid" ]]; then
-          echo "Local IP(V4): Unknown"
-      else
-          echo "Local IP(V4): $LOCAL_IP"
+   declare -A OUTPUT_ARRAY
+   while read -r line; do
+      if [[ $line =~ ^en.*INET6 ]]; then
+         OUTPUT_ARRAY["v6"]=$(echo "$line" | awk '{print $2}')
+      elif [[ $line =~ ^en.*INET ]]; then
+         OUTPUT_ARRAY["v4"]=$(echo "$line" | awk '{print $2}')
       fi
-fi
+   done < "/proc/ish/ips"
 
-if [ -f "/proc/ish/ips" ]; then
-   OUTPUT=$(grep ^en /proc/ish/ips | grep INET6)
-   if [ -n "$OUTPUT" ]; then
-      OUTPUT_ARRAY=($OUTPUT)
-      LOCAL_IP=${OUTPUT_ARRAY[1]}
-   echo "Local IP(V6): $LOCAL_IP"
+   if [ -n "${OUTPUT_ARRAY[v4]}" ]; then
+      echo "Local IP(V4): ${OUTPUT_ARRAY[v4]}"
+   fi
+
+   if [ -n "${OUTPUT_ARRAY[v6]}" ]; then
+      echo "Local IP(V6): ${OUTPUT_ARRAY[v6]}"
+   fi
+else
+   LOCAL_IP=$(ip addr | awk '/inet / {print $2}' | cut -d/ -f1)
+
+   if [ -n "$LOCAL_IP" ]; then
+      echo "Local IP(V4): $LOCAL_IP"
+   else
+      echo "Local IP(V4): Unknown"
    fi
 fi
