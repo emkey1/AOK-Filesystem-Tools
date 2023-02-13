@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INT_IP="$(curl ifconfig.me 2>/dev/null)"
+INT_IP="$(curl http://ifconfig.me 2>/dev/null)"
 
 if [ -n "$INT_IP" ]; then
     echo "Internet IP:  $INT_IP"
