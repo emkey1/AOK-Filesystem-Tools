@@ -180,6 +180,12 @@ create_user() {
     unset cu_home_dir
 }
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
