@@ -3,9 +3,13 @@
 - Generating bzip2 images only results in very moderate size reductions
 should be investigated to hopefully generate smaller images.
 
-## login_single
+## /etc/motd
 
-Cant find the src code
+check pam settings to see if ithelps
+
+## runbg
+
+use posix script for Debian/Devuan
 
 ## idev_ip
 
@@ -13,7 +17,6 @@ Cant find the src code
 56 kb in Alpine
 
 Room for optimizing the Debian compile?
-
 
 ## Suggested additions to CORE_APKS
 
