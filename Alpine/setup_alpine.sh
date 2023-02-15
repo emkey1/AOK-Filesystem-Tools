@@ -160,6 +160,13 @@ apk update
 
 ! is_iCloud_mounted && should_icloud_be_mounted
 
+msg_2 "Installing dependencies for common setup"
+apk add sudo openrc bash openssh-server
+
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
+
 msg_2 "apk upgrade"
 apk upgrade
 
@@ -168,8 +175,8 @@ install_apks
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
-msg_2 "Copy iSH compatible pam base-session"
-cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
+# msg_2 "Copy iSH compatible pam base-session"
+# cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "adding group sudo"
@@ -196,10 +203,6 @@ if apk info -e dcron >/dev/null; then
     rc-service dcron start
     msg_3 "Setting dcron for checking every 15 mins"
     cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
-fi
-
-if ! "$setup_common_aok"; then
-    error_msg "$setup_common_aok reported error"
 fi
 
 if [ "$QUICK_DEPLOY" -ne 0 ]; then

@@ -265,45 +265,77 @@ iCloud_mount_prompt_notification() {
     ! test -d /proc/ish && return
 
     echo "
- |  There is a prompt about mounting   |
- |  /iCloud, right after the package   |
- |  update.                            |"
-
-    if [ -n "$AOK_TIMEZONE" ]; then
-        echo " | After that, the rest of the install |"
-        echo " | runs without need for interactions. |"
-    fi
+ |  There is a prompt about mounting  |
+ |  /iCloud, right after package      |
+ |  updates.                          |"
 }
 
 should_icloud_be_mounted() {
-    # abort if not running on iSH
-    ! test -d /proc/ish && return
-
     msg_2 "should_icloud_be_mounted()"
-    if ! is_iCloud_mounted; then
-        if [ -z "$(command -v whiptail)" ]; then
-            if [ -f "$file_alpine_release" ]; then
-                apk add newt # contains whiptail
-            elif [ -f "$file_debian_version" ]; then
-                apt install whiptail
-            else
-                error_msg "Unrecognized distro, aborting"
-            fi
-        fi
-        sibm_text="Do you want to mount iCloud now?"
-        whiptail \
-            --topleft \
-            --title "Mount iCloud" \
-            --yesno "$sibm_text" 0 0
 
-        sibm_exitstatus=$?
-
-        if [ "$sibm_exitstatus" -eq 0 ]; then
-            mount -t ios x /iCloud
-        fi
-        unset sibm_text
-        unset sibm_exitstatus
+    if is_iCloud_mounted; then
+        msg_3 "was already mounted, returning"
+        return
     fi
+
+    # sibm_dlg_app="dialog"
+    sibm_dlg_app="whiptail"
+
+    # if [ -d /etc/apt ] || [ -f /etc/alpine-release ] &&
+    #     [ "$(sed 's/\./ /g' /etc/alpine-release | awk '{print $1"."$2 }')" = "3.14" ] \
+    #     ; then
+    #     #
+    #     #  Older Alpines and supported Debians use a dialog version not able
+    #     #  to handle arrows,so whiptail is enforced
+    #     #
+    #     sibm_dlg_app="whiptail"
+    # fi
+
+    if [ -z "$(command -v "$sibm_dlg_app")" ]; then
+        sibm_dependency="$sibm_dlg_app"
+        msg_3 "Installing dependency: $sibm_dependency"
+
+        if [ "$sibm_dependency" = "whiptail" ]; then
+            # whiptail is in package newt
+            sibm_dependency="newt"
+        fi
+
+        if [ -f "$file_alpine_release" ]; then
+            apk add "$sibm_dependency"
+        elif [ -f "$file_debian_version" ]; then
+            apt install "$sibm_dependency"
+        else
+            error_msg "Unrecognized distro, aborting"
+        fi
+        unset sibm_dependency
+    fi
+
+    #  Abort if not running on iSH
+    if ! test -d /proc/ish; then
+        msg_3 "Not runing on iSH /iCloud mount not checked"
+        unset sibm_dlg_app
+        return
+    fi
+
+    if bldstat_get status_prebuilt_fs && bldstat_get status_is_chrooted; then
+        msg_3 "Pre-building FS - task delayed until final step"
+        unset sibm_dlg_app
+        return
+    fi
+    sibm_text="Do you want to mount iCloud now?"
+    # --topleft \
+    "$sibm_dlg_app" \
+        --title "Mount iCloud" \
+        --yesno "$sibm_text" 0 0
+
+    sibm_exitstatus=$?
+
+    if [ "$sibm_exitstatus" -eq 0 ]; then
+        mount -t ios x /iCloud
+    fi
+    unset sibm_dlg_app
+    unset sibm_text
+    unset sibm_exitstatus
     # msg_3 "should_icloud_be_mounted()  done"
 }
 
@@ -315,8 +347,18 @@ start_setup() {
     [ -z "$ss_vers_info" ] && error_msg "start_setup() no ss_vers_info provided"
 
     test -f "$additional_tasks_script" && notification_additional_tasks
+    echo
 
     ! is_iCloud_mounted && iCloud_mount_prompt_notification
+
+    if [ -z "$AOK_TIMEZONE" ]; then
+        echo " |  There will be a dialog for        |"
+        echo " |  setting timezone after package    |"
+        echo " |  updates.                          |"
+        echo " |  This is the final step requiring  |"
+        echo " |  user intervention. After that the |"
+        echo " |  install completes independently.  |"
+    fi
 
     msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${ss_distro_name}: $ss_vers_info"
 

@@ -29,6 +29,14 @@ fi
 
 msg_script_title "setup_alpine_final_tasks.sh - Final part of setup"
 
+# If this was a pre-built FS, now is the time to ask if iCloud should be mounted
+if bldstat_get "$status_prebuilt_fs"; then
+    msg_3 "Considering /iCloud mount for a pre-built FS"
+    ! is_iCloud_mounted && should_icloud_be_mounted
+else
+    msg_3 "Was not pre-built /iCloud not considered"
+fi
+
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     if ! is_aok_kernel; then
         msg_2 "Removing apps that depend on the iSH-AOK kernel"

@@ -22,6 +22,29 @@ setup_environment() {
     msg_2 "copy some /etc files"
     sed "s/AOK_VERSION/$AOK_VERSION/" "$aok_content"/common_AOK/etc/issue >/etc/issue
 
+    if ! command -v sudo >/dev/null; then
+        error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
+    fi
+
+    if ! command -v bash >/dev/null; then
+        error_msg "bash not installed, common_AOK/setup_environment() can not complete"
+    fi
+
+    copy_local_bins common_AOK
+
+    #
+    #  Need full path to handle that this path is not correctly cached at
+    #  this point if Debian is being installed, probably due to switching
+    #  from Alpine to Debian without having rebooted yet.
+    #
+    msg_2 "Setitng time zone"
+    if [ -n "$AOK_TIMEZONE" ]; then
+        msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
+        ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
+    else
+        /usr/local/bin/set-timezone
+    fi
+
     if command -v openrc >/dev/null; then
         msg_2 "Adding runbg service"
         cp -a "$aok_content"/common_AOK/etc/init.d/runbg /etc/init.d
@@ -49,8 +72,6 @@ setup_environment() {
         msg_2 "sshd not installed - port not changed"
     fi
 
-    copy_local_bins common_AOK
-
     if [ "$QUICK_DEPLOY" -eq 0 ]; then
         msg_2 "Activating group sudo for no passwd sudo"
         cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
@@ -65,18 +86,6 @@ setup_environment() {
     #
     TERM=xterm
 
-    #
-    #  Need full path to handle that this path is not correctly cached at
-    #  this point if Debian is being installed, probably due to switching
-    #  from Alpine to Debian without having rebooted yet.
-    #
-    msg_2 "Setitng time zone"
-    if [ -n "$AOK_TIMEZONE" ]; then
-        msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
-        ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
-    else
-        /usr/local/bin/set-timezone
-    fi
 }
 
 setup_login() {

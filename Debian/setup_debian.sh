@@ -120,6 +120,8 @@ else
     msg_2 "QUICK_DEPLOY - skipping locales"
 fi
 
+msg_2 "Installing dependencies for common setup"
+apt install -y sudo openrc bash openssh-server
 #
 #  Common deploy, used both for Alpine & Debian
 #
@@ -130,9 +132,9 @@ fi
 #
 #  Overriding common runbg with Debian specific, work in progress...
 #
-msg_2 "Adding runbg service"
-cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
-ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
+# msg_2 "Adding runbg service"
+# cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
+# ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 
 #
 #  This is installed by $setup_common_aok, so must come after that!
