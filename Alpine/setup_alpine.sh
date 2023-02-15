@@ -109,24 +109,6 @@ replace_key_files() {
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
 
-    # Networking, hostname and possibly others can't start because of
-    # current limitations in iSH So we fake it out
-    # rm /etc/init.d/networking
-
-    case "$alpine_release" in
-
-    "3.14")
-        #
-        #  More hackery.  Initial case is the need to make pam_motd.so
-        #  optional, so that the ish user will work in Alpine 3.14
-        #
-        msg_3 "Replacing /etc/pam.d for 3.14"
-        $cp "$aok_content"/Alpine/etc/pam.d/* /etc/pam.d
-        ;;
-
-    *) ;;
-
-    esac
     msg_3 "replace_key_files() done"
 }
 
