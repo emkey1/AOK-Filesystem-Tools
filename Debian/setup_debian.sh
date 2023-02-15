@@ -91,7 +91,7 @@ cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
 #
 #  This must run before any task doing apt actions
 #
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     msg_2 "Installing sources.list"
     cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
