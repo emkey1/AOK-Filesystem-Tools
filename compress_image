@@ -111,7 +111,9 @@ msg_1 "Creating image"
 #
 # Tar up and zip the result
 #
-cd "$build_root_d" || exit 99
+cd "$build_root_d" || {
+    error_msg "Failed to cd into: $build_root_d"
+}
 
 if $use_bzip2; then
     opts="cfj"

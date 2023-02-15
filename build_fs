@@ -23,7 +23,9 @@ prog_name=$(basename "$0")
 #  to keep things relative and simple
 #
 #  shellcheck disable=SC1007
-cd "$aok_content" || exit 1
+cd "$aok_content" || {
+    error_msg "Failed to cd into: $aok_content"
+}
 
 #
 #  Default for options
@@ -356,7 +358,9 @@ prebuild_fs() {
     # chrooting and doing setup
     #
     msg_1 "Pre-building FS"
-    cd "$aok_content" || exit 17
+    cd "$aok_content" || {
+        error_msg "Failed to cd into: $aok_content"
+    }
 
     bldstat_set "$status_prebuilt_fs"
 

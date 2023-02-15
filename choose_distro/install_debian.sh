@@ -17,35 +17,38 @@ msg_script_title "install_debian.sh  Downloading & Installing Debian"
 #
 
 debian_download_location="/tmp/debian_fs"
-
-mkdir -p "$debian_download_location"
-
-cd "$debian_download_location" || exit 99
-
 src_image="$DEBIAN_SRC_IMAGE"
 src_tarball="/$debian_download_location/$debian_src_tb"
 
+mkdir -p "$debian_download_location"
+cd "$debian_download_location" || {
+    error_msg "Failed to cd into: $debian_download_location"
+}
+
+ensure_usable_wget
 msg_2 "Downloading $src_image"
 wget "$src_image"
 
 t_extract="$(date +%s)"
 msg_1 "Extracting Debian (will show unpack time)"
-create_fs "$src_tarball" "/Debian"
+distro_tmp_dir="/Debian"
+create_fs "$src_tarball" "$distro_tmp_dir"
 duration="$(($(date +%s) - t_extract))"
 display_time_elapsed "$duration" "Unpacking Debian"
 unset duration
 
-cd /
 msg_3 "Extracted Debian tarball"
 
-msg_3 "maintaining resolv.conf"
-cp -a /etc/resolv.conf /Debian/etc
+cd /
+
+msg_3 "Maintaining resolv.conf"
+cp -a /etc/resolv.conf "$distro_tmp_dir"/etc
 
 msg_3 "maintaining /etc/opt"
-cp -a /etc/opt /Debian/etc
+cp -a /etc/opt "$distro_tmp_dir"/etc
 
 msg_2 "Moving Debian /etc/profile into place"
-cp "$aok_content"/Debian/etc/profile /Debian/etc/profile
+cp "$aok_content"/Debian/etc/profile "$distro_tmp_dir"/etc/profile
 
 rm -rf "$debian_download_location"
 

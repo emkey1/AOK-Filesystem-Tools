@@ -115,7 +115,10 @@ copy_skel_files() {
         error_msg "copy_skel_files() needs a destination param"
     fi
     cp -r /etc/skel/. "$csf_dest"
-    cd "$csf_dest" || exit 99
+    cd "$csf_dest" || {
+        error_msg "Failed to cd into: $csf_dest"
+    }
+
     ln -sf .bash_profile .bashrc
 
     unset csf_dest

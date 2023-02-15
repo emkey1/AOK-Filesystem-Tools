@@ -224,7 +224,10 @@ create_fs() {
     fi
     [ -z "$cf_fs_location" ] && error_msg "no cf_fs_location detected"
     mkdir -p "$cf_fs_location"
-    cd "$cf_fs_location" || exit 1
+    cd "$cf_fs_location" || {
+        error_msg "Failed to cd into: $cf_fs_location"
+    }
+
     msg_2 "Extracting $cf_tarball"
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
         cf_filter="z"
@@ -359,7 +362,10 @@ copy_skel_files() {
         error_msg "copy_skel_files() needs a destination param"
     fi
     cp -r /etc/skel/. "$csf_dest"
-    cd "$csf_dest" || exit 99
+    cd "$csf_dest" || {
+        error_msg "Failed to cd into: $csf_dest"
+    }
+
     ln -sf .bash_profile .bashrc
 
     unset csf_dest
