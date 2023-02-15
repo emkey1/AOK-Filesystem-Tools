@@ -145,6 +145,8 @@ user_root() {
     #  root user env
     #
     copy_skel_files /root
+    msg_3 "Add /usr/local/sbin & bin to PATH"
+    echo "PATH=/usr/local/sbin:/usr/local/bin:$PATH" >>/root/.bash_profile
     chown -R root: /root
     msg_3 "clear root history"
     rm /root/.bash_history -f
