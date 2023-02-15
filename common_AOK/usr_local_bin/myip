@@ -1,36 +1,38 @@
 #!/bin/bash
 
-INT_IP=$(curl -s http://ifconfig.me)
-
-if [ $? -ne 0 ]; then
-    echo "Unable to determine Internet IP"
-else 
-    echo "Internet IP: $INT_IP"
-fi
-
-if [ -f "/proc/ish/ips" ]; then
-   declare -A OUTPUT_ARRAY
-   while read -r line; do
-      if [[ $line =~ ^en.*INET6 ]]; then
-         OUTPUT_ARRAY["v6"]=$(echo "$line" | awk '{print $2}')
-      elif [[ $line =~ ^en.*INET ]]; then
-         OUTPUT_ARRAY["v4"]=$(echo "$line" | awk '{print $2}')
-      fi
-   done < "/proc/ish/ips"
-
-   if [ -n "${OUTPUT_ARRAY[v4]}" ]; then
-      echo "Local IP(V4): ${OUTPUT_ARRAY[v4]}"
-   fi
-
-   if [ -n "${OUTPUT_ARRAY[v6]}" ]; then
-      echo "Local IP(V6): ${OUTPUT_ARRAY[v6]}"
-   fi
+printf "Internet IP:  "
+if curl -s http://ifconfig.me; then
+    printf "\n"
 else
-   LOCAL_IP=$(ip addr | awk '/inet / {print $2}' | cut -d/ -f1)
-
-   if [ -n "$LOCAL_IP" ]; then
-      echo "Local IP(V4): $LOCAL_IP"
-   else
-      echo "Local IP(V4): Unknown"
-   fi
+    echo "Error: Unable to determine"
 fi
+
+if [[ -f "/proc/ish/ips" ]]; then
+    declare -A OUTPUT_ARRAY
+    while read -r line; do
+        if [[ $line =~ ^en.*INET6 ]]; then
+            OUTPUT_ARRAY["v6"]=$(echo "$line" | awk '{print $2}')
+        elif [[ $line =~ ^en.*INET ]]; then
+            OUTPUT_ARRAY["v4"]=$(echo "$line" | awk '{print $2}')
+        fi
+    done <"/proc/ish/ips"
+    if [[ -n "${OUTPUT_ARRAY[v4]}" ]]; then
+        LOCAL_IP="${OUTPUT_ARRAY[v4]}"
+    else
+        LOCAL_IP="Unknown"
+    fi
+    if [[ -n "${OUTPUT_ARRAY[v6]}" ]]; then
+        LOCAL_IP_V6="${OUTPUT_ARRAY[v6]}"
+    fi
+else
+    LOCAL_IP=$(idev_ip 2>/dev/null | cut -d: -f2)
+    if [[ -z "$LOCAL_IP" ]]; then
+        LOCAL_IP="Unknown"
+    fi
+fi
+
+#
+#  Local IPs are indented a full tab, to make internet IP stand out
+#
+printf "Local IP(V4):\t%s\n" "$LOCAL_IP"
+[[ -n "$LOCAL_IP_V6" ]] && printf "Local IP(V6):\t%s\n" "$LOCAL_IP_V6"

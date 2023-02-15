@@ -10,23 +10,26 @@
 #  https://gist.github.com/eduardoaugustojulio/fa83cf85efa39919d6a70ca679e91f28
 #
 
-# --erase-on-exit prevents scrollback from being lost, but isnt available on Deb 10
-dialog_app="dialog --erase-on-exit"
-# dialog_app="whiptail"
+# dialog_app="dialog"
+dialog_app="whiptail"
 
-if [[ -f /etc/debian_version ]]; then
-    # older Debians use a dialog versioon not compatible with this
-    # so enforce whiptail
-    dialog_app="whiptail"
-fi
+# if [[ -d /etc/apt ]] || [[ -f /etc/alpine-release ]] && [[
+#     "$(sed 's/\./ /g' /etc/alpine-release | awk '{print $1"."$2 }')" = "3.14" ]] \
+#     ; then
+#     #
+#     #  Older Alpines and supported Debians use a dialog version not able
+#     #  to handle arrows,so whiptail is enforced
+#     #
+#     dialog_app="whiptail"
+# fi
 
-do_clear() {
-    #
-    #  dialog ueses an option too clear screen after an item is displayed
-    #  this is only needed for whiptail
-    #
-    [[ "$dialog_app" = "whiptail" ]] && clear
-}
+# do_clear() {
+#     #
+#     #  dialog ueses an option too clear screen after an item is displayed
+#     #  this is only needed for whiptail
+#     #
+#     [[ "$dialog_app" = "whiptail" ]] && clear
+# }
 
 check_dependencies() {
     #
@@ -41,7 +44,11 @@ check_dependencies() {
         #  Since whiptail is part of newt, we need to handle that case
         #
         dependency="$dlg_app"
-        [[ $dependency = "whiptail" ]] && dependency="newt"
+
+        if [[ $dependency = "whiptail" ]]; then
+            # whiptail is in package newt
+            dependency="newt"
+        fi
         apks+=("$dependency")
     fi
 
@@ -148,4 +155,4 @@ if test -n "$tZone"; then
     $dialog_app --msgbox "Time Zone is now:\n\n $tZone\n" 0 0
 fi
 
-do_clear
+# do_clear

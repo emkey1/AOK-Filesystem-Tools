@@ -25,21 +25,15 @@ fi
 . /opt/AOK/tools/utils.sh
 
 install_apks() {
-    if [ -n "$CORE_APKS" ]; then
+    if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
         msg_1 "Install core packages"
 
-        if [ "$QUICK_DEPLOY" -eq 0 ]; then
-            #  busybox-extras no longer a package starting with 3.16, so delete if present
-            if [ "$(awk 'BEGIN{print ('"$alpine_release"' > 3.15)}')" -eq 1 ]; then
-                msg_3 "Removing busybox-extras from core apks, not available past 3.15"
-                CORE_APKS="$(echo "$CORE_APKS" | sed 's/busybox\-extras//')"
-            fi
-        elif [ "$QUICK_DEPLOY" -eq 1 ]; then
+        if [ "$QUICK_DEPLOY" -eq 1 ]; then
             #
             #  If you want to override CORE_APKS in a quick deploy
             #  set it to a value higher than 1
             #
-            msg_2 "QUICK_DEPLOY - doing minimal package install"
+            msg_2 "QUICK_DEPLOY=1 - doing minimal package install"
             #  probably absolute minimal without build errors
             # CORE_APKS="openssh bash openrc sudo dcron dcron-openrc"
             CORE_APKS="bash openrc"
@@ -55,16 +49,18 @@ install_apks() {
         #  is present, if found install it.
         #
         if [ -n "$(apk search shadow-login)" ]; then
-            if [ "$QUICK_DEPLOY" -eq 0 ]; then
-                msg_3 "Installing shadow-login"
-                apk add shadow-login
-            else
-                msg_3 "QUICK_DEPLOY - skipping shadow-login"
-            fi
+            msg_3 "Installing shadow-login"
+            apk add shadow-login
         fi
+    elif [ "$QUICK_DEPLOY" -eq 1 ]; then
+        msg_1 "QUICK_DEPLOY - skipping CORE_APKS"
+    else
+        msg_1 "No CORE_APKS defined"
     fi
 
-    if [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
+    if [ "$QUICK_DEPLOY" -ne 0 ]; then
+        msg_2 "QUICK_DEPLOY - skipping AOK_APKS"
+    elif [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
         msg_2 "Skipping AOK only packages on non AOK kernels"
     elif [ -n "$AOK_APKS" ]; then
         #  Only deploy on aok kernels and if any are defined
@@ -78,6 +74,8 @@ install_apks() {
         else
             msg_2 "QUICK_DEPLOY - skipping AOK kernel packages"
         fi
+    else
+        msg_1 "No AOK_APKS defined"
     fi
 }
 
@@ -100,7 +98,7 @@ replace_key_files() {
         if [ "$ALPINE_VERSION" = "edge" ]; then
             msg_3 "Adding apk repositories containing testing"
             cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-        else
+        elif [ "$alpine_release" = "3.17" ]; then
             msg_3 "Adding edge/testing as a restricted repo"
             msg_3 " in order to install testing apks do apk add foo@testing"
             msg_3 " in case of incompatible dependencies an error will be displayed"
@@ -111,24 +109,6 @@ replace_key_files() {
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
 
-    # Networking, hostname and possibly others can't start because of
-    # current limitations in iSH So we fake it out
-    # rm /etc/init.d/networking
-
-    case "$alpine_release" in
-
-    "3.14")
-        #
-        #  More hackery.  Initial case is the need to make pam_motd.so
-        #  optional, so that the ish user will work in Alpine 3.14
-        #
-        msg_3 "Replacing /etc/pam.d for 3.14"
-        $cp "$aok_content"/Alpine/etc/pam.d/* /etc/pam.d
-        ;;
-
-    *) ;;
-
-    esac
     msg_3 "replace_key_files() done"
 }
 
@@ -162,6 +142,13 @@ apk update
 
 ! is_iCloud_mounted && should_icloud_be_mounted
 
+msg_2 "Installing dependencies for common setup"
+apk add sudo openrc bash openssh-server
+
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
+
 msg_2 "apk upgrade"
 apk upgrade
 
@@ -170,8 +157,8 @@ install_apks
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
-msg_2 "Copy iSH compatible pam base-session"
-cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
+# msg_2 "Copy iSH compatible pam base-session"
+# cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "adding group sudo"
@@ -198,10 +185,6 @@ if apk info -e dcron >/dev/null; then
     rc-service dcron start
     msg_3 "Setting dcron for checking every 15 mins"
     cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
-fi
-
-if ! "$setup_common_aok"; then
-    error_msg "$setup_common_aok reported error"
 fi
 
 if [ "$QUICK_DEPLOY" -ne 0 ]; then

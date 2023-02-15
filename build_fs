@@ -23,7 +23,9 @@ prog_name=$(basename "$0")
 #  to keep things relative and simple
 #
 #  shellcheck disable=SC1007
-cd "$aok_content" || exit 1
+cd "$aok_content" || {
+    error_msg "Failed to cd into: $aok_content"
+}
 
 #
 #  Default for options
@@ -146,15 +148,6 @@ show_version() { # Multi OK 1
     exit 0
 }
 
-ensure_usable_wget() {
-    msg_2 "ensure_usable_wget()"
-    #  shellcheck disable=SC2010
-    if ls -l "$(command -v wget)" | grep -q busybox; then
-        error_msg "You need to install a real wget, busybox does not handle redirects"
-    fi
-    # msg_3 "ensure_usable_wget()  done"
-}
-
 display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
@@ -269,7 +262,11 @@ copy_AOK_to_dest() {
         (
             echo
             echo
-            echo "##########   Config overrides   ##########"
+            echo "########################################################################"
+            echo "#"
+            echo "#                   Config overrides"
+            echo "#"
+            echo "########################################################################"
             echo
             cat "$io_conf_overrides"
         ) >>"$io_dst_conf"
@@ -356,7 +353,9 @@ prebuild_fs() {
     # chrooting and doing setup
     #
     msg_1 "Pre-building FS"
-    cd "$aok_content" || exit 17
+    cd "$aok_content" || {
+        error_msg "Failed to cd into: $aok_content"
+    }
 
     bldstat_set "$status_prebuilt_fs"
 

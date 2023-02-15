@@ -91,7 +91,7 @@ cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
 #
 #  This must run before any task doing apt actions
 #
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     msg_2 "Installing sources.list"
     cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
@@ -120,6 +120,8 @@ else
     msg_2 "QUICK_DEPLOY - skipping locales"
 fi
 
+msg_2 "Installing dependencies for common setup"
+apt install -y sudo openrc bash openssh-server
 #
 #  Common deploy, used both for Alpine & Debian
 #
@@ -130,9 +132,9 @@ fi
 #
 #  Overriding common runbg with Debian specific, work in progress...
 #
-msg_2 "Adding runbg service"
-cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
-ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
+# msg_2 "Adding runbg service"
+# cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
+# ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 
 #
 #  This is installed by $setup_common_aok, so must come after that!
@@ -148,7 +150,7 @@ ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 #  a working system if iSH crashes during apt upgrade
 #  or install of CORE_DEB_PKGS and sshd
 #
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     openrc_might_trigger_errors
     msg_1 "apt upgrade"
     apt upgrade -y
@@ -160,7 +162,7 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     fi
     install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and sshd"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
 fi
 
 msg_2 "Add boot init.d items suitable for iSH"
