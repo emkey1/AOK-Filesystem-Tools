@@ -148,7 +148,7 @@ ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 #  a working system if iSH crashes during apt upgrade
 #  or install of CORE_DEB_PKGS and sshd
 #
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
+if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     openrc_might_trigger_errors
     msg_1 "apt upgrade"
     apt upgrade -y
@@ -160,7 +160,7 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     fi
     install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and sshd"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
 fi
 
 msg_2 "Add boot init.d items suitable for iSH"
