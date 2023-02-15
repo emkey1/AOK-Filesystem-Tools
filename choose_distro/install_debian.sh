@@ -62,16 +62,16 @@ msg_2 "Deleting most of Alpine FS"
 #
 find /lib/ -mindepth 1 -maxdepth 1 | grep -v musl | xargs rm -rf
 
-rm /usr -rf
-rm /var -rf
-rm /sbin -rf
 rm /home -rf
 rm /etc -rf
 rm /media -rf
 rm /mnt -rf
 rm /root -rf
 rm /run -rf
+rm /sbin -rf
 rm /srv -rf
+rm /usr -rf
+rm /var -rf
 
 msg_3 "Moving busybox to root"
 #  will be deleted on Debian 1st boot
@@ -87,19 +87,19 @@ msg_3 "Deleting last parts of Alpine"
 # /busybox echo "-> Putting Debian stuff into place"
 msg_3 "Putting Debian stuff into place"
 
-/busybox mv /Debian/bin /
-/busybox mv /Debian/sbin /
-/busybox mv /Debian/home /
-/busybox mv /Debian/lib64 /
-/busybox mv /Debian/libx32 /
-/busybox mv /Debian/media /
-/busybox mv /Debian/mnt /
-/busybox mv /Debian/root /
-/busybox mv /Debian/run /
-/busybox mv /Debian/srv /
-/busybox mv /Debian/usr /
-/busybox mv /Debian/var /
-/busybox mv /Debian/etc /
+/busybox mv "$distro_tmp_dir"/bin /
+/busybox mv "$distro_tmp_dir"/sbin /
+/busybox mv "$distro_tmp_dir"/home /
+/busybox mv "$distro_tmp_dir"/lib64 /
+/busybox mv "$distro_tmp_dir"/libx32 /
+/busybox mv "$distro_tmp_dir"/media /
+/busybox mv "$distro_tmp_dir"/mnt /
+/busybox mv "$distro_tmp_dir"/root /
+/busybox mv "$distro_tmp_dir"/run /
+/busybox mv "$distro_tmp_dir"/srv /
+/busybox mv "$distro_tmp_dir"/usr /
+/busybox mv "$distro_tmp_dir"/var /
+/busybox mv "$distro_tmp_dir"/etc /
 
 # /busybox echo "-> Copying Alpine lib (musl) to /usr/lib"
 msg_3 "Copying Alpine lib (musl) to /usr/lib"
@@ -112,8 +112,10 @@ msg_3 "Replacing /lib with a soft-link to /usr/lib"
 
 #  From now on Debian should be fully available
 
-msg_3 "Removing tmp area /Debian"
-rm /Debian -rf
+msg_3 "Removing tmp area $distro_tmp_dir"
+rm "$distro_tmp_dir" -rf || {
+    error_msg "Failed to clear: $distro_tmp_dir"
+}
 
 msg_2 "Removing last traces of Alpine - busybox"
 rm /busybox
