@@ -185,27 +185,17 @@ else
     msg_2 "QUICK_DEPLOY - did not remove default services"
 fi
 
-msg_1 "Setup complete!"
-echo
+if bldstat_get "$status_prebuilt_fs"; then
+    msg_2 "Clear apt cache on pre-built FS, saves some 50MB in the tarball"
+    rm /var/cache/apt /var/lib/apt -rf
 
-bldstat_clear "$status_being_built"
+    select_profile "$setup_debian_final"
+else
+    "$setup_debian_final"
+    not_prebuilt=1
+fi
+
+msg_1 "Setup complete!"
 
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
-unset duration
-
-if bldstat_get "$status_prebuilt_fs"; then
-    msg_2 "Clear apt cache on pre-built FS, saves some 50MB on the tarball"
-    rm /var/cache/apt /var/lib/apt -rf
-fi
-
-#  Clear up build env
-bldstat_clear_all
-
-select_profile "$aok_content"/Debian/etc/profile
-
-run_additional_tasks_if_found
-
-msg_1 "This system has completed the last deploy steps and is ready"
-msg_2 "Please reboot/restart the app!"
-echo
