@@ -8,7 +8,9 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  Completes the setup of Alpine
+#  Completes the setup of Alpine.
+#  On normal installs, this runs at the end of the install.
+#  On pre-builds this will be run on first boot at destination device
 #
 
 #
@@ -33,8 +35,6 @@ msg_script_title "setup_alpine_final_tasks.sh - Final part of setup"
 if bldstat_get "$status_prebuilt_fs"; then
     msg_3 "Considering /iCloud mount for a pre-built FS"
     ! is_iCloud_mounted && should_icloud_be_mounted
-else
-    msg_3 "Was not pre-built /iCloud not considered"
 fi
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
@@ -57,6 +57,5 @@ select_profile "$aok_content"/Alpine/etc/profile
 
 run_additional_tasks_if_found
 
-msg_1 "This system has completed the last deploy steps and is ready"
-msg_2 "Please reboot/restart the app!"
+msg_1 "This system has completed the last deploy steps and is ready!"
 echo

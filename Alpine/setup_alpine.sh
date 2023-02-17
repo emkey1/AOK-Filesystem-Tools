@@ -202,17 +202,21 @@ msg_2 "Setting defined login mode: $INITIAL_LOGIN_MODE"
 msg_2 "Preparing initial motd"
 /usr/local/sbin/update_motd
 
+if bldstat_get "$status_prebuilt_fs"; then
+    select_profile "$setup_alpine_final"
+else
+    "$setup_alpine_final"
+    not_prebuilt=1
+fi
+
 msg_1 "Setup complete!"
-echo
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
 
-#
-#  This should run on destination platform
-#
-if is_chrooted; then
-    select_profile "$setup_alpine_final"
-else
-    "$setup_alpine_final"
+if [ "$not_prebuilt" = 1 ]; then
+    msg_1 "Please reboot/restart this app now!"
+    echo "/etc/inittab was changed during the install."
+    echo "In order for this new version to be used, a restart is needed."
+    echo
 fi
