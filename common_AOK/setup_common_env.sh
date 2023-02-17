@@ -200,4 +200,3 @@ else
 fi
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
-echo
