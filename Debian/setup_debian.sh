@@ -199,3 +199,10 @@ msg_1 "Setup complete!"
 
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
+
+if [ "$not_prebuilt" = 1 ]; then
+    msg_1 "Please reboot/restart this app now!"
+    echo "/etc/inittab was changed during the install."
+    echo "In order for this new version to be used, a restart is needed."
+    echo
+fi
