@@ -66,6 +66,7 @@ msg_1() {
     [ -z "$1" ] && error_msg "msg_1() no param"
     echo
     echo "===  $1  ==="
+    echo
 }
 
 msg_2() {
@@ -439,7 +440,6 @@ run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
     if [ -x "$additional_tasks_script" ]; then
         msg_1 "Running additional setup tasks"
-        echo
         "$additional_tasks_script" && rm "$additional_tasks_script"
         echo
     fi
@@ -611,6 +611,8 @@ setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
 setup_alpine_scr="$aok_content"/Alpine/setup_alpine.sh
 setup_alpine_final="$aok_content"/Alpine/setup_alpine_final_tasks.sh
 setup_debian_scr="$aok_content"/Debian/setup_debian.sh
+setup_debian_final="$aok_content"/Debian/setup_debian_final_tasks.sh
 setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
+setup_devuan_final="$aok_content"/Devuan/setup_devuan_final_tasks.sh
 setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
