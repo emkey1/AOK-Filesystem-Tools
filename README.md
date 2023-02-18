@@ -30,6 +30,7 @@ Building a Debian FS, then chrooting into it on your iOS device does not work fu
 It gets going, but any further apt installs tend to fail.
 
 For now the two recomended and working build methods are:
+
 - Build the FS on your iOS device, then mount the resulting FS image as a new FS & reboot into it
 - Build the FS on a Linux (x86) node, then mount the resulting FS image as a new FS & reboot into it
 
@@ -121,6 +122,5 @@ After Alpine / Debian setup is completed, bash can be used
 `sudo ./tools/do_chroot.sh` defaults to use bash if no command is specified.
 
 #### License
-
 
 [MIT](LICENSE)
