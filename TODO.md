@@ -3,6 +3,14 @@
 - Generating bzip2 images only results in very moderate size reductions
 should be investigated to hopefully generate smaller images.
 
+## Debian setup
+Early on there is an error msg
+
+`mount: /proc/mounts: parse error at line 3 -- ignored`
+
+Could be related to is_chrooted() called from is_iCloud_mounted()
+examine!
+
 ## /etc/motd
 
 check pam settings to see if ithelps
