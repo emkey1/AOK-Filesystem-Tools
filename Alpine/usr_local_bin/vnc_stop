@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Shutting down vnc-server if running
+#
+
+# shellcheck disable=SC2009,SC2143
+if [ -n "$(ps ax | grep -v grep | grep Xorg)" ]; then
+    killall Xorg
+
+    sleep 2
+
+    echo
+    echo "vnc server is now shut down"
+else
+    echo "vnc server was not running"
+fi
