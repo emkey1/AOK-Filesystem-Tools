@@ -12,8 +12,7 @@ No need to separately install python3, since it is pulled in as a
 dependency.
 
 Rather than doing the usual `pip install xxx` which often fails on iSH
-especially if the package needs to compile something,
-first try
+especially if the package needs to compile something, first try
 
 ```apk search py3- | grep xxx```
 
