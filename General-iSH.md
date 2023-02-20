@@ -15,11 +15,11 @@ Rather than doing the usual `pip install xxx` which often fails on iSH
 especially if the package needs to compile something,
 first try
 
-```pip search py3- | grep xxx```
+```apk search py3- | grep xxx```
 
-and if found do the matching  `apk add`
-for that package. If what you are looking for is available as an apk
-package it will work, so this is the prefered way to meet dependencies.
+and if found do the matching  `apk add` for that package. 
+If what you are looking for is available as an apk package it will work, 
+so this is the prefered way to meet dependencies.
 
 If you are lucky `pip install xxx` will work, but dont have too high
 expectations...
