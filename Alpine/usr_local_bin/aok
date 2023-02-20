@@ -60,6 +60,16 @@ sanity_check() {
         exit 1
     fi
 
+    if [ ! -x /bin/login.alpine ]; then
+        echo
+        echo "No /bin/login.alpine pressent"
+        echo "Enabeling login would make the system unaccsesable"
+        echo "Reverting to disabled mode"
+        echo
+        "$0" -l disable
+        exit 1
+    fi
+
     unset login_busybox
 }
 
