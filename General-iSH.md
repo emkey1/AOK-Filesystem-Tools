@@ -16,7 +16,7 @@ especially if the package needs to compile something, first try
 
 ```apk search py3- | grep xxx```
 
-and if found do the matching  `apk add` for that package. 
+and if found do the matching  `apk add` for that package.
 If what you are looking for is available as an apk package it will work,
 and it will install all dependencies.
 So this is the prefered way to meet dependencies.
