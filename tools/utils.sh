@@ -91,11 +91,11 @@ is_aok_kernel() {
 }
 
 is_debian() {
-    test -f /etc/debian_version
+    test -f "$build_root_d"/etc/debian_version
 }
 
 is_alpine() {
-    test -f /etc/alpine-release
+    test -f "$build_root_d"/etc/alpine-release
 }
 
 is_iCloud_mounted() {
@@ -221,6 +221,17 @@ ensure_usable_wget() {
     # msg_3 "ensure_usable_wget()  done"
 }
 
+user_interactions() {
+    msg_2 "user_interactions()"
+
+    ! is_iCloud_mounted && should_icloud_be_mounted
+    if [ -z "$AOK_TIMEZONE" ]; then
+        [ -z "$(command -v bash)" ] && apk add bash
+        /opt/AOK/common_AOK/usr_local_bin/set-timezone
+    fi
+    # msg_3 "user_interactions()  - done"
+}
+
 create_fs() {
     msg_2 "create_fs($1)"
     cf_tarball="$1"
@@ -267,7 +278,7 @@ iCloud_mount_prompt_notification() {
 
     echo "
  |  There is a prompt about mounting  |
- |  /iCloud, right after package      |
+ |  /iCloud, right after repository   |
  |  updates.                          |"
 }
 
