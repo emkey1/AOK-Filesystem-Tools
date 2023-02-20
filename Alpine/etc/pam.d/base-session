@@ -1,5 +1,5 @@
-# basic PAM configuration for Alpine.
+# basic PAM configuration for Alpine
 
-session		include		base-session-noninteractive
-# session		optional	pam_motd.so	motd=/etc/motd
--session	optional	pam_elogind.so
+session     include     base-session-noninteractive
+session     optional    pam_motd.so motd=/etc/motd
+# session     optional    pam_elogind.so
