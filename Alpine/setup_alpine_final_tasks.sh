@@ -31,10 +31,22 @@ fi
 
 msg_script_title "setup_alpine_final_tasks.sh - Final part of setup"
 
-# If this was a pre-built FS, now is the time to ask if iCloud should be mounted
 if bldstat_get "$status_prebuilt_fs"; then
-    msg_3 "Considering /iCloud mount for a pre-built FS"
-    ! is_iCloud_mounted && should_icloud_be_mounted
+
+    if [ -n "$INITIAL_LOGIN_MODE" ]; then
+        #
+        #  If this was pre-built login might have been forced to disabled
+        #  depending on build-platform. Since this (hopefully) runs on
+        #  destination platform, this should work as intended
+        #
+        /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
+    fi
+
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        user_interactions
+    else
+        msg_2 "QUICK_DEPLOY - skipping pre-build triggered user interactions"
+    fi
 fi
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then

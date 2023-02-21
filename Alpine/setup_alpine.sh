@@ -133,20 +133,19 @@ if [ -z "$alpine_release" ]; then
 fi
 
 msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
-echo "$ALPINE_VERSION" >"$file_alpine_release"
+echo "$alpine_release" >"$file_alpine_release"
 
 replace_key_files
 
 msg_2 "apk update"
 apk update
 
-! is_iCloud_mounted && should_icloud_be_mounted
-
-msg_2 "Installing dependencies for common setup"
-apk add sudo openrc bash openssh-server
-
-if ! "$setup_common_aok"; then
-    error_msg "$setup_common_aok reported error"
+#
+#  Doing some user interactions as early as possible, unless this is
+#  pre-built, then this happens on first boot via setup_alpine_final_tasks.sh
+#
+if ! bldstat_get "$status_prebuilt_fs"; then
+    user_interactions
 fi
 
 msg_2 "apk upgrade"
@@ -157,8 +156,8 @@ install_apks
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
 
-# msg_2 "Copy iSH compatible pam base-session"
-# cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
+msg_2 "Copy iSH compatible pam base-session"
+cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "adding group sudo"
@@ -192,6 +191,12 @@ if [ "$QUICK_DEPLOY" -ne 0 ]; then
     INITIAL_LOGIN_MODE="disable"
 fi
 
+# msg_2 "Installing dependencies for common setup"
+# apk add sudo openrc bash openssh-server
+
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
 #
 #  Setup Initial login mode
 #

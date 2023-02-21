@@ -4,6 +4,12 @@
 ::sysinit:/usr/local/sbin/fix_dev
 
 #
+#  Login crashes if /etc/issue is not pressent.
+#  This ensures at least an empty file is there
+#
+::sysinit:/usr/local/sbin/ensure_issue_exists.sh
+
+#
 #  Not system critical but we might as well do it here
 #  instead of creating a full service for the task
 #

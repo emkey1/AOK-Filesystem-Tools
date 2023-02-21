@@ -17,10 +17,14 @@ if [ "$(whoami)" != "root" ]; then
     exit 0
 fi
 
-echo "Adding critical packages (If missing)"
-# In this case we want the variable to split up into separate params...
-# shellcheck disable=SC2154,SC2086
-apk add $VNC_APKS
+if ! command -v x11vnc >/dev/null; then
+    echo
+    echo "Installing dependencies"
+    echo
+    # In this case we want the variable to split up into separate params...
+    # shellcheck disable=SC2154,SC2086
+    apk add $VNC_APKS
+fi
 
 echo "Creating directories and writing config files"
 
@@ -28,7 +32,7 @@ if [ ! -e /etc/X11/xorg.conf.d ]; then
     mkdir -p /etc/X11/xorg.conf.d
 fi
 
-cat <<HERE > /etc/X11/xorg.conf.d/10-headless.conf
+cat <<HERE >/etc/X11/xorg.conf.d/10-headless.conf
 Section "Monitor"
         Identifier "dummy_monitor"
         HorizSync 28.0-80.0
@@ -59,7 +63,7 @@ if [ ! -e /home/ish/i3logs ]; then
     chown ish.ish /home/ish/i3logs
 fi
 
-cat <<THERE > /home/ish/.xinitrc
+cat <<THERE >/home/ish/.xinitrc
 xrdb -merge ~/.Xresources
 xterm -geometry 80x50+494+51 &
 xterm -geometry 80x20+494-0 &
@@ -68,7 +72,7 @@ THERE
 
 chown ish.ish /home/ish/.xinitrc
 
-cat <<EVERYWHERE > /home/ish/.Xresources
+cat <<EVERYWHERE >/home/ish/.Xresources
 Xft.dpi: 264
 xterm*VT100.Translations: #override \
     Ctrl <Key> minus: smaller-vt-font() \n\
@@ -78,7 +82,7 @@ EVERYWHERE
 
 chown ish.ish /home/ish/.Xresources
 
-cat <<BEATLES > /etc/X11/Xwrapper.config
+cat <<BEATLES >/etc/X11/Xwrapper.config
 allowed_users = anybody
 BEATLES
 

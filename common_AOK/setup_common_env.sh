@@ -20,7 +20,14 @@ setup_environment() {
     echo "$AOK_VERSION" >"$file_aok_release"
 
     msg_2 "copy some /etc files"
-    sed "s/AOK_VERSION/$AOK_VERSION/" "$aok_content"/common_AOK/etc/issue >/etc/issue
+
+    if is_alpine; then
+        echo "This is an iSH node, running Alpine: $alpine_release" >/etc/issue
+        if [ -n "$USER_NAME" ]; then
+            echo "Default user is: $USER_NAME" >>/etc/issue
+        fi
+        echo >>/etc/issue
+    fi
 
     if ! command -v sudo >/dev/null; then
         error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
@@ -41,8 +48,6 @@ setup_environment() {
     if [ -n "$AOK_TIMEZONE" ]; then
         msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
         ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
-    else
-        /usr/local/bin/set-timezone
     fi
 
     if command -v openrc >/dev/null; then

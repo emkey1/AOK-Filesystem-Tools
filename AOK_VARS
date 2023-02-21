@@ -121,9 +121,9 @@ AOK_APKS="htop procps nload"
 
 VNC_APKS='x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
 
-DEVEL_APKS='python3 py3-pip python3-dev build-base linux-headers cmake'
+DEVEL_APKS='py3-pip python3-dev build-base linux-headers cmake'
 NODEJS_APKS='nodejs nodejs-dev'
-BLOAT3_APKS='emacs neofetch'
+# BLOAT3_APKS='emacs neofetch'
 
 DOCS_APKS='openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc'
 
