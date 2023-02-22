@@ -285,6 +285,10 @@ iCloud_mount_prompt_notification() {
 should_icloud_be_mounted() {
     msg_2 "should_icloud_be_mounted()"
 
+    if ! is_ish; then
+        msg_3 "This is not iSH, skipping /iCloud mount check"
+        return
+    fi
     if is_iCloud_mounted; then
         msg_3 "was already mounted, returning"
         return
@@ -606,13 +610,6 @@ file_aok_release="$build_root_d"/etc/aok-release
 #  FIRST_BOOT_ADDITIONAL_TASKS
 #
 additional_tasks_script="$build_root_d/opt/additional_tasks"
-
-#
-#  After all packages are installed, if /bin/login was something other
-#  than a soft-link to /bin/busybox, it will be renamed to this,
-#  so it can be selected later.
-#
-login_original="/bin/login.alpine"
 
 #
 #  Either run this script chrooted if the host OS supports it, or run it
