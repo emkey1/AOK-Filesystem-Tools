@@ -50,10 +50,11 @@ if bldstat_get "$status_prebuilt_fs"; then
 fi
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    if ! is_aok_kernel; then
+    if ! is_aok_kernel && [ -n "$AOK_APKS" ]; then
         msg_2 "Removing apps that depend on the iSH-AOK kernel"
         #
-        #  aok dependent bins serve no purpose on other platforms, delete
+        #  aok dependent bins wont work on regular iSH,
+        #  delete if any defined
         #
         # shellcheck disable=SC2086
         apk del $AOK_APKS
