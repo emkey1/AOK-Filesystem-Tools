@@ -4,16 +4,11 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2022,2023: Jacob.Lundqvist@gmail.com
 #
 #  Script to do various things related to the configuration of ish
 #
-version="0.2.3  2022-12-18"
-
-is_aok_kernel() {
-    grep -qi aok /proc/ish/version 2>/dev/null
-    return $?
-}
+version="0.3.0  2023-02-23"
 
 show_help() {
     cat <<EOF
@@ -33,64 +28,24 @@ EOF
     exit 0
 }
 
-sanity_check() {
-    #
-    #  If /bin/login is not a soft-link, change it to a safe initial method
-    #  that will work also on non-AOK kernels
-    #
-    if [ ! -L "/bin/login" ]; then
-        if [ -x "$login_busybox" ]; then
-            rm -f /bin/login
-            ln -sf "$login_busybox" /bin/login
-        else
-            echo
-            echo "ERROR: Expected /bin/login to be a soft-link,"
-            echo "       It was not, and failed to find: $login_busybox"
-            echo "       the assumed default candidate to link to."
-            exit 1
-        fi
-    fi
-
-    if ! is_aok_kernel && [ "$requested_method" != "disable" ]; then
-        echo
-        echo "WARNING: non-AOK kernels can only use: disable"
-        echo "       Reverting to this method."
-        echo
-        "$0" -l disable
-        exit 1
-    fi
-
-    if [ ! -x /bin/login.alpine ]; then
-        echo
-        echo "No /bin/login.alpine pressent"
-        echo "Enabeling login would make the system unaccsesable"
-        echo "Reverting to disabled mode"
-        echo
-        "$0" -l disable
-        exit 1
-    fi
-
-    unset login_busybox
-}
-
 change_login_procedure() {
     requested_method="$1"
 
     case "$requested_method" in
 
     "once")
-        sanity_check
         echo "Enabling login prompt, but only for initial login."
-        echo "  AOK app will exit when you logout"
+        echo "  This App will exit when you logout"
+        rm -f /bin/login
         ln -sf /bin/login.once /bin/login
         exit 0
         ;;
 
     "enable")
-        sanity_check
         echo "Enabling login prompt."
         echo "  You will be prompted for your login name and password"
-        echo "  if one has been set when launching AOK"
+        echo "  if one has been set when launching this App"
+        rm -f /bin/login
         ln -sf /bin/login.loop /bin/login
         exit 0
         ;;
@@ -101,15 +56,9 @@ change_login_procedure() {
         #  That means in this case we should remove the previous login
         #
         echo "Disabling login prompt on startup. You will start at root prompt"
-        echo "  when launching AOK"
-        # shellcheck disable=SC2154
-        if [ -x "$login_original" ]; then
-            login_bin="$login_original"
-        else
-            login_bin="$login_busybox"
-        fi
+        echo "  when launching this App"
         rm -f /bin/login
-        ln -sf "$login_bin" /bin/login
+        ln -sf "/bin/busybox" /bin/login
         exit 0
         ;;
 

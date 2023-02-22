@@ -109,18 +109,12 @@ setup_login() {
     cp "$aok_content"/Alpine/bin/login.once /bin
     chmod +x /bin/login.once
 
-    #
-    #  Save the original login, if it was not just a soft-link
-    #
-    if [ -x /bin/login ] && [ ! -L /bin/login ]; then
-        #  If it is a file, assume it to be the shadow login binary, save it
-        #  so that it can be selected later
-        mv /bin/login "$login_original"
+    if is_alpine; then
+        #  For now use a safe method, the requested method will be
+        #  setup towards the end of the setup process
+        rm /bin/login
+        ln -sf /bin/busybox /bin/login
     fi
-
-    #  For now use a safe method, if supported the requested method will be
-    #  setup towards the end of the setup process
-    ln -sf /bin/busybox /bin/login
 }
 
 copy_skel_files() {
