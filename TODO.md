@@ -3,6 +3,12 @@
 - Generating bzip2 images only results in very moderate size reductions
 should be investigated to hopefully generate smaller images.
 
+## Debian
+
+Allow local login without password, sshd will block it over the net
+/etc/pam.d/common-auth   nnullok_secure -> nullok
+
+
 ## /etc/motd
 
 check pam settings to see if ithelps
