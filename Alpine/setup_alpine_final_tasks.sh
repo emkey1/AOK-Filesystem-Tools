@@ -33,15 +33,6 @@ msg_script_title "setup_alpine_final_tasks.sh - Final part of setup"
 
 if bldstat_get "$status_prebuilt_fs"; then
 
-    if [ -n "$INITIAL_LOGIN_MODE" ]; then
-        #
-        #  If this was pre-built login might have been forced to disabled
-        #  depending on build-platform. Since this (hopefully) runs on
-        #  destination platform, this should work as intended
-        #
-        /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
-    fi
-
     if [ "$QUICK_DEPLOY" -eq 0 ]; then
         user_interactions
     else
@@ -61,6 +52,15 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     fi
 else
     msg_2 "QUICK_DEPLOY - skipping removal of AOK kernel packages"
+fi
+
+if [ -n "$INITIAL_LOGIN_MODE" ]; then
+    #
+    #  Now that final_tasks have run as root, the desired login method
+    #  can be set.
+    #
+    msg_2 "Using defined loing method. It will be used next time App is run"
+    /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 fi
 
 #  Clear up build env

@@ -198,11 +198,9 @@ if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
 #
-#  Setup Initial login mode
+#  Setup Initial login mode will be done by setup_alpine_final_tasks.sh
+#  If we do it now, final_tasks might not run as root
 #
-msg_2 "Setting defined login mode: $INITIAL_LOGIN_MODE"
-#  shellcheck disable=SC2154
-/usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 
 msg_2 "Preparing initial motd"
 /usr/local/sbin/update_motd
