@@ -20,3 +20,9 @@
 
 # I use it as a reminder so I dont override anything locally
 globals.txt
+
+# src makefile output
+src/login.loop
+src/login.once
+src/idev_ip
+
