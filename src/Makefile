@@ -16,6 +16,6 @@ idev_ip: idev_ip.c
 	gcc -o idev_ip idev_ip.c
 
 install:  all
-	cp login.once ../Alpine/bin
-	cp login.loop ../Alpine/bin
-	cp idev_ip ../Alpine/bin
+	mv login.once ../Alpine/bin
+	mv login.loop ../Alpine/bin
+	mv idev_ip ../Alpine/usr_local_bin
