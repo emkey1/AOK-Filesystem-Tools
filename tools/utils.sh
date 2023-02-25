@@ -333,7 +333,7 @@ should_icloud_be_mounted() {
         return
     fi
 
-    if bldstat_get status_prebuilt_fs && bldstat_get status_is_chrooted; then
+    if bldstat_get "$status_prebuilt_fs" && bldstat_get "$status_is_chrooted"; then
         msg_3 "Pre-building FS - task delayed until final step"
         unset sibm_dlg_app
         return

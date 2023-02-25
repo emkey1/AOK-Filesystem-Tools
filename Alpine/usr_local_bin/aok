@@ -77,10 +77,14 @@ change_login_procedure() {
     esac
 }
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 verbose=0
 prog_name=$(basename "$0")
-
-login_busybox="/bin/busybox"
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
