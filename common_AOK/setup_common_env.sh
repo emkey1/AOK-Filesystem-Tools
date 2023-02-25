@@ -22,12 +22,16 @@ setup_environment() {
     msg_2 "copy some /etc files"
 
     if is_alpine; then
-        echo "This is an iSH node, running Alpine: $alpine_release" >/etc/issue
-        if [ -n "$USER_NAME" ]; then
-            echo "Default user is: $USER_NAME" >>/etc/issue
-        fi
-        echo >>/etc/issue
+        release_info="Alpine: $alpine_release"
+    elif is_debian; then
+        release_info="Debian: $(cat /etc/debian_version)"
     fi
+
+    echo "This is an iSH node, running $release_info" >/etc/issue
+    if [ -n "$USER_NAME" ]; then
+        echo "Default user is: $USER_NAME" >>/etc/issue
+    fi
+    echo >>/etc/issue
 
     if ! command -v sudo >/dev/null; then
         error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
@@ -91,30 +95,6 @@ setup_environment() {
     #
     TERM=xterm
 
-}
-
-setup_login() {
-    if [ -f "$file_debian_version" ]; then
-        # -> For now Debian login is not altered
-        return
-    fi
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    msg_2 "Install AOK login methods"
-    cp "$aok_content"/Alpine/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Alpine/bin/login.once /bin
-    chmod +x /bin/login.once
-
-    if is_alpine; then
-        #  For now use a safe method, the requested method will be
-        #  setup towards the end of the setup process
-        rm /bin/login
-        ln -sf /bin/busybox /bin/login
-    fi
 }
 
 copy_skel_files() {
@@ -209,7 +189,6 @@ create_user() {
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
-setup_login
 user_root
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     # [ -n "$USER_NAME" ] &&

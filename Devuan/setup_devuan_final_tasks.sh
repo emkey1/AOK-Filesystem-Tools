@@ -31,13 +31,12 @@ fi
 
 msg_script_title "setup_devuan_final_tasks.sh - Final part of setup"
 
-# If this was a pre-built FS, now is the time to ask if iCloud should be mounted
 if bldstat_get "$status_prebuilt_fs"; then
-    msg_3 "Considering /iCloud mount for a pre-built FS"
-    ! is_iCloud_mounted && should_icloud_be_mounted
-
-    msg_1 "Re-populating the apt-cache, cleared in order to keep FS image size down"
-    apt update
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        user_interactions
+    else
+        msg_2 "QUICK_DEPLOY - skipping pre-build triggered user interactions"
+    fi
 fi
 
 #  Clear up build env
