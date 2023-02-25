@@ -8,7 +8,7 @@
 #
 #  Script to do various things related to the configuration of ish
 #
-version="0.3.0  2023-02-23"
+version="0.3.1  2023-02-25"
 
 show_help() {
     cat <<EOF
@@ -37,7 +37,7 @@ change_login_procedure() {
         echo "Enabling login prompt, but only for initial login."
         echo "  This App will exit when you logout"
         rm -f /bin/login
-        ln -sf /bin/login.once /bin/login
+        cp /bin/login.once /bin/login
         exit 0
         ;;
 
@@ -46,19 +46,19 @@ change_login_procedure() {
         echo "  You will be prompted for your login name and password"
         echo "  if one has been set when launching this App"
         rm -f /bin/login
-        ln -sf /bin/login.loop /bin/login
+        cp /bin/login.loop /bin/login
         exit 0
         ;;
 
     "disable")
-        #
-        #  Since we are choosing the safe option, no need for sanity check
-        #  That means in this case we should remove the previous login
-        #
         echo "Disabling login prompt on startup. You will start at root prompt"
         echo "  when launching this App"
         rm -f /bin/login
-        ln -sf "/bin/busybox" /bin/login
+        if [ -f /etc/alpine-release ]; then
+            ln -sf "/bin/busybox" /bin/login
+        else
+            cp "/bin/login.original" /bin/login
+        fi
         exit 0
         ;;
 
@@ -90,7 +90,9 @@ prog_name=$(basename "$0")
 if [ "$(whoami)" != "root" ]; then
     echo "Executing as root"
     # using $0 instead of full path makes location not hardcoded
-    sudo "$0" "$@"
+    if ! sudo "$0" "$@"; then
+        error_msg "Failed to sudo run: $0"
+    fi
     exit 0
 fi
 
