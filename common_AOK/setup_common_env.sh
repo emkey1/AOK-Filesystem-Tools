@@ -160,19 +160,24 @@ create_user() {
 
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
-    
+
+    if is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
+        msg_2 "WARNING /bin/ash not available in Debian, replacing with /bin/bash"
+        USER_SHELL="/bin/bash"
+    fi
+
     #
     #  Determine what shell to use for custom user
     #
     if [ -n "$USER_SHELL" ]; then
         if [ ! -x "$build_root_d$USER_SHELL" ]; then
-	    error_msg "User shell not found: $USER_SHELL"
-	fi
-	use_shell="$USER_SHELL"
-	msg_3 "User shell: $use_shell"
+            error_msg "User shell not found: $USER_SHELL"
+        fi
+        use_shell="$USER_SHELL"
+        msg_3 "User shell: $use_shell"
     else
         use_shell="/bin/bash"
-	msg_3 "User shell (default): $use_shell"
+        msg_3 "User shell (default): $use_shell"
     fi
 
     # temp changing UID_MIN is to silence the warning:
