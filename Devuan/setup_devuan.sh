@@ -107,27 +107,12 @@ else
 fi
 
 #
-#  Do this check after update and before upgrade, to allow for it to
-#  happen as early as possible, since it might require operator interaction.
-#  After this the setup can run on its own.
+#  Doing some user interactions as early as possible, unless this is
+#  pre-built, then this happens on first boot via setup_alpine_final_tasks.sh
 #
-! is_iCloud_mounted && should_icloud_be_mounted
-
-#
-#  Common deploy, used both for Alpine & Debian
-#
-if ! "$setup_common_aok"; then
-    error_msg "$setup_common_aok reported error"
+if ! bldstat_get "$status_prebuilt_fs"; then
+    user_interactions
 fi
-
-#
-#  This is installed by $setup_common_aok, so must come after that!
-#  Ensure hostname is in /etc/hosts
-#  This will be run from inittab each time this boots, so if name is
-#  changed in iOS, the new name will be bound to 127.0.0.1
-#  on next restart, or right away if you run this manually
-#
-/usr/local/sbin/ensure_hostname_in_host_file.sh
 
 #
 #  Do this after all essential steps, to hopefully still have
@@ -138,14 +123,14 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
-    # if [ -n "$CORE_DEB_PKGS" ]; then
-    #     msg_1 "Add core Devuan packages"
-    #     echo "$CORE_DEB_PKGS"
-    #     bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
-    # fi
-    # install_sshd
+    if [ -n "$CORE_DEB_PKGS" ]; then
+        msg_1 "Add core Debian packages"
+        echo "$CORE_DEB_PKGS"
+        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+    fi
+    install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and sshd"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
 fi
 
 # msg_2 "Add boot init.d items suitable for iSH"
@@ -168,6 +153,22 @@ fi
 # else
 #     msg_2 "QUICK_DEPLOY - did not remove default services"
 # fi
+
+#
+#  Common deploy, used both for Alpine & Debian
+#
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
+
+#
+#  This is installed by $setup_common_aok, so must come after that!
+#  Ensure hostname is in /etc/hosts
+#  This will be run from inittab each time this boots, so if name is
+#  changed in iOS, the new name will be bound to 127.0.0.1
+#  on next restart, or right away if you run this manually
+#
+/usr/local/sbin/ensure_hostname_in_host_file.sh
 
 if bldstat_get "$status_prebuilt_fs"; then
     msg_2 "Clear apt cache on pre-built FS, saves some 50MB in the tarball"
