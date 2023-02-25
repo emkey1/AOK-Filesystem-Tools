@@ -95,7 +95,7 @@ if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     msg_2 "Installing sources.list"
     cp "$aok_content"/Debian/etc/apt_sources.list /etc/apt/sources.list
 
-    msg_2 "apt update"
+    msg_1 "apt update"
     apt update -y
 else
     msg_2 "QUICK_DEPLOY - skipping apt update"
