@@ -192,7 +192,7 @@ display_build_target() { # Multi OK 1
     else
         release_msg="Alpine: $ALPINE_VERSION"
     fi
-    msg_1 "Building $release_msg iSH-AOK: $AOK_VERSION filesystem"
+    msg_1 "Building iSH-AOK $release_msg filesystem - $AOK_VERSION"
     unset release_msg
 
     if ! $aok_FS_do_compress; then
@@ -473,6 +473,16 @@ display_build_time() {
 #===============================================================
 
 t_start="$(date +%s)"
+
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    msg_1 "Executing $0 as root"
+    # using $0 instead of full path makes location not hardcoded
+    if ! sudo "$0" "$@"; then
+        error_msg "Failed to sudo run: $0"
+    fi
+    exit 0
+fi
 
 parse_arguments "$@"
 

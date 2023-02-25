@@ -16,29 +16,6 @@ version="1.4.0a"
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-if [ "$build_env" -eq 0 ]; then
-    echo
-    echo "AOK can only be chrooted on iSH or Linux (x86)"
-    echo
-    exit 1
-fi
-
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else, this to ensure build_env can be found
-#
-cd "$aok_content" || {
-    error_msg "Failed to cd into: $aok_content"
-}
-
-prog_name=$(basename "$0")
-
-CHROOT_TO="$build_root_d"
-
-if [ "$(whoami)" != "root" ]; then
-    error_msg "This must be run as root or using sudo!"
-fi
-
 env_prepare() {
     # msg_2 "Preparing the environment for chroot"
 
@@ -103,6 +80,39 @@ EOF
 #   Main
 #
 #===============================================================
+
+prog_name=$(basename "$0")
+
+CHROOT_TO="$build_root_d"
+
+if [ "$build_env" -eq 0 ]; then
+    echo
+    echo "AOK can only be chrooted on iSH or Linux (x86)"
+    echo
+    exit 1
+fi
+
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    msg_1 "Executing $0 as root"
+    # using $0 instead of full path makes location not hardcoded
+    if ! sudo "$0" "$@"; then
+        error_msg "Failed to sudo run: $0"
+    fi
+    exit 0
+fi
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else, this to ensure build_env can be found
+#
+cd "$aok_content" || {
+    error_msg "Failed to cd into: $aok_content"
+}
+
+# if [ "$(whoami)" != "root" ]; then
+#     error_msg "This must be run as root or using sudo!"
+# fi
 
 case "$1" in
 
