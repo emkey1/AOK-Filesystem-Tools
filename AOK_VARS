@@ -29,6 +29,11 @@ AOK_VERSION="Beta-002"
 USER_NAME="ish"
 
 #
+# Shell for user USER_NAME (if defined)
+#
+USER_SHELL="/bin/bash"
+
+#
 #  Alternatives are: enable disable once
 #  This is not yet supported on Debian/Devuan builds,
 #  and will be ignored there

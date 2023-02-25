@@ -152,7 +152,7 @@ user_root() {
 }
 
 create_user() {
-    msg_2 "Creating additional user and group $USER_NAME"
+    msg_2 "Creating default user and group: $USER_NAME"
     if [ -z "$USER_NAME" ]; then
         msg_3 "No user requested"
         return
@@ -160,11 +160,25 @@ create_user() {
 
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
+    
+    #
+    #  Determine what shell to use for custom user
+    #
+    if [ -n "$USER_SHELL" ]; then
+        if [ ! -x "$build_root_d$USER_SHELL" ]; then
+	    error_msg "User shell not found: $USER_SHELL"
+	fi
+	use_shell="$USER_SHELL"
+	msg_3 "User shell: $use_shell"
+    else
+        use_shell="/bin/bash"
+	msg_3 "User shell (default): $use_shell"
+    fi
 
     # temp changing UID_MIN is to silence the warning:
     # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
     #  add additional groups with -G
-    useradd -m -s /bin/bash -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
+    useradd -m -s "$use_shell" -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
 
     # shadow with blank ish password
     sed -i "s/${USER_NAME}:\!:/${USER_NAME}::/" /etc/shadow
@@ -193,7 +207,8 @@ setup_environment
 setup_login
 user_root
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    [ -n "$USER_NAME" ] && create_user
+    # [ -n "$USER_NAME" ] &&
+    create_user
 else
     msg_2 "QUICK_DEPLOY - skipping additional user:"
 fi
