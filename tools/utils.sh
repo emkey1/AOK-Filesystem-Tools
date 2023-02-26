@@ -12,22 +12,6 @@
 #
 
 #
-#  To make things simple, this is the expected location for AOK-Filesystem-tools
-#  both on build and iSH systems
-#  Due to necesity, this file needs to be sourced as: . /opt/AOK/toold/utils.sh
-#  Please do not use the abs path /opt/AOK for anything else, in all other
-#  references, use $aok_content
-#  If this location is ever changed, this will keep the changes in the
-#  code to a minimum.
-#
-aok_content="/opt/AOK"
-
-#
-#  Used for keeping track of deploy / chroot status
-#
-aok_content_etc="/etc$aok_content"
-
-#
 #  Display an error message, second optional param is exit code,
 #  defaulting to 1. If exit code is 0 this will not exit, just display
 #  the error message, then continue.
@@ -187,6 +171,19 @@ bldstat_clear_all() {
     bldstat_clear
 }
 
+run_as_root() {
+    #  if started by user account, execute again as root
+    if [ "$(whoami)" != "root" ]; then
+        msg_2 "Executing $0 as root"
+        # using $0 instead of full path makes location not hardcoded
+        if ! sudo "$0" "$@"; then
+            error_msg "Failed to sudo run: $0"
+        fi
+        # terminate the user initiated instance
+        exit 0
+    fi
+}
+
 #  shellcheck disable=SC2120
 select_profile() {
     msg_2 "select_profile($1)"
@@ -297,16 +294,6 @@ should_icloud_be_mounted() {
     # sibm_dlg_app="dialog"
     sibm_dlg_app="whiptail"
 
-    # if [ -d /etc/apt ] || [ -f /etc/alpine-release ] &&
-    #     [ "$(sed 's/\./ /g' /etc/alpine-release | awk '{print $1"."$2 }')" = "3.14" ] \
-    #     ; then
-    #     #
-    #     #  Older Alpines and supported Debians use a dialog version not able
-    #     #  to handle arrows,so whiptail is enforced
-    #     #
-    #     sibm_dlg_app="whiptail"
-    # fi
-
     if [ -z "$(command -v "$sibm_dlg_app")" ]; then
         sibm_dependency="$sibm_dlg_app"
         msg_3 "Installing dependency: $sibm_dependency"
@@ -338,10 +325,10 @@ should_icloud_be_mounted() {
         unset sibm_dlg_app
         return
     fi
-    sibm_text="Do you want to mount iCloud now?"
+    sibm_text="Do you want to mount /iCloud now?"
     # --topleft \
     "$sibm_dlg_app" \
-        --title "Mount iCloud" \
+        --title "Mount /iCloud" \
         --yesno "$sibm_text" 0 0
 
     sibm_exitstatus=$?
@@ -355,13 +342,30 @@ should_icloud_be_mounted() {
     # msg_3 "should_icloud_be_mounted()  done"
 }
 
+distro_name_set() {
+    dns_name="$1"
+    if [ -z "$dns_name" ]; then
+        error_msg "distro_name_set() - no param"
+    fi
+    echo "$dns_name" >"$build_root_d"/tmp/distro_name
+    unset dns_name
+}
+
+distro_name_get() {
+    if [ ! -f /tmp/distro_name ]; then
+        error_msg "/tmo/distro_name not found!"
+    fi
+    cat /tmp/distro_name
+}
+
 start_setup() {
     msg_2 "start_setup()"
     ss_distro_name="$1"
-    [ -z "$ss_distro_name" ] && error_msg "start_setup() no ss_distro_name provided"
+    [ -z "$ss_distro_name" ] && error_msg "start_setup() no distro_name provided"
     ss_vers_info="$2"
-    [ -z "$ss_vers_info" ] && error_msg "start_setup() no ss_vers_info provided"
+    [ -z "$ss_vers_info" ] && error_msg "start_setup() no vers_info provided"
 
+    distro_name_set "$ss_distro_name"
     test -f "$additional_tasks_script" && notification_additional_tasks
     echo
 
@@ -389,6 +393,7 @@ start_setup() {
     fi
 
     copy_local_bins "$ss_distro_name"
+
     unset ss_distro_name
     unset ss_vers_info
     # msg_3 "start_setup() done"
@@ -468,6 +473,17 @@ run_additional_tasks_if_found() {
 #===============================================================
 
 #
+#  To make things simple, this is the expected location for AOK-Filesystem-tools
+#  both on build and iSH systems
+#  Due to necesity, this file needs to be sourced as: . /opt/AOK/toold/utils.sh
+#  Please do not use the abs path /opt/AOK for anything else, in all other
+#  references, use $aok_content
+#  If this location is ever changed, this will keep the changes in the
+#  code to a minimum.
+#
+aok_content="/opt/AOK"
+
+#
 #  Import settings
 #
 #  shellcheck disable=SC1091
@@ -476,15 +492,20 @@ run_additional_tasks_if_found() {
 #
 #  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
 #
-if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
-    conf_overrides="${aok_content}/.AOK_VARS"
-    if [ -f "$conf_overrides" ]; then
-        msg_1 "Found .AOK_VARS"
-        #  shellcheck disable=SC1090
-        . "$conf_overrides"
-    fi
-    unset conf_overrides
+# if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
+conf_overrides="${aok_content}/.AOK_VARS"
+if [ -f "$conf_overrides" ]; then
+    # msg_2 "Found .AOK_VARS"
+    #  shellcheck disable=SC1090
+    . "$conf_overrides"
 fi
+unset conf_overrides
+# fi
+
+#
+#  Used for keeping track of deploy / chroot status
+#
+aok_content_etc="/etc$aok_content"
 
 #
 #  Detecting build environments
@@ -522,6 +543,7 @@ devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | grep -oE '[^/]+$')"
 #
 #  Extract the release/branch/major version, from the requested Alpine,
 #  gives something like 3.14
+#
 if [ "$ALPINE_VERSION" = "edge" ]; then
     alpine_src_tb="alpine-minirootfs-20221110-x86.tar.gz"
     alpine_release="$ALPINE_VERSION"
@@ -539,10 +561,10 @@ unset _vers
 #  Names of the generated distribution tarballs, no ext, that is ecided
 #  upon during compression
 #
-alpine_tb="Alpine-${ALPINE_VERSION}-iSH-AOK-$AOK_VERSION"
-select_distro_tb="SelectDistro-iSH-AOK-$AOK_VERSION"
-debian_tb="Debian-iSH-AOK-$AOK_VERSION"
-devuan_tb="Devuan-iSH-AOK-$AOK_VERSION"
+alpine_tb="iSH-AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION"
+select_distro_tb="iSH-AOK-SelectDistro-$AOK_VERSION"
+debian_tb="iSH-AOK-Debian-$AOK_VERSION"
+devuan_tb="iSH-AOK-Devuan-$AOK_VERSION"
 
 target_alpine="Alpine"
 target_debian="Debian"
@@ -585,14 +607,14 @@ build_status_raw="$aok_content_etc"
 #  must be defined before this
 #
 if is_chrooted; then
-    build_root_d=""
     # msg_3 "This is chrooted"
-elif test -f "$build_status_raw/$status_being_built"; then
     build_root_d=""
+elif test -f "$build_status_raw/$status_being_built"; then
     # msg_3 "This is running on dest platform"
+    build_root_d=""
 else
     # msg_3 "Not chrooted, not dest platform"
-    build_root_d="$build_base_d/iSH-AOK-FS"
+    build_root_d="$build_base_d/FS"
 fi
 
 #  Now the proper value can be set

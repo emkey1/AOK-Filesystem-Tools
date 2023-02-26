@@ -11,6 +11,77 @@
 #  This modifies a Devuan Linux FS with the AOK changes
 #
 
+install_sshd() {
+    #
+    #  Install sshd, then remove the service, in order to not leave it running
+    #  unless requested to: with enable_sshd / disable_sshd
+    #
+    msg_1 "Installing openssh-server"
+
+    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
+    rm -f /etc/ssh/ssh_host*key*
+
+    # openrc_might_trigger_errors
+
+    # apt install -y openssh-server
+
+    # msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    # rc-update del ssh default
+}
+
+prepare_env_etc() {
+    msg_2 "prepare_env_etc()"
+
+    msg_3 "Devuan AOK inittab"
+    cp -a "$aok_content"/Devuan/etc/inittab /etc
+
+    msg_3 "hosts file helping apt tools"
+    cp -a "$aok_content"/Devuan/etc/hosts /etc
+
+    #
+    #  Most of the Debian services, mounting fs, setting up networking etc
+    #  serve no purpose in iSH, since all this is either handled by iOS
+    #  or done by the app before bootup
+    #
+    # # skipping openrc
+    # msg_2 "Disabling previous openrc runlevel tasks"
+    # rm /etc/runlevels/*/* -f
+
+    msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
+    mkdir -p /etc/update-motd.d
+    cp -a "$aok_content"/Devuan/etc/update-motd.d/* /etc/update-motd.d
+
+    msg_3 "prepare_env_etc() done"
+}
+
+setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    # SKIP_LOGIN
+    msg_2 "Install Debian AOK login methods"
+    cp "$aok_content"/Debian/bin/login.loop /bin
+    chmod +x /bin/login.loop
+    cp "$aok_content"/Debian/bin/login.once /bin
+    chmod +x /bin/login.once
+
+    # cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
+
+    #  For now use a safe method, the requested method will be
+    #  setup towards the end of the setup process
+    # SKIP_LOGIN
+    msg_3 "Prepping Devuan login"
+    cp -a /bin/login /bin/login.original
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 #
 #  Since this is run as /etc/profile during deploy, and this wait is
 #  needed for /etc/profile (see Alpine/etc/profile for details)
@@ -27,41 +98,12 @@ fi
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-install_sshd() {
-    #
-    #  Install sshd, then remove the service, in order to not leave it running
-    #  unless requested to: with enable_sshd / disable_sshd
-    #
-    msg_1 "Installing openssh-server"
-
-    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
-    rm /etc/ssh/ssh_host*key*
-
-    # # skipping openrc
-    # openrc_might_trigger_errors
-
-    # apt install -y openssh-server
-
-    # msg_3 "Disable sshd for now, enable it with: enable_sshd"
-    # rc-update del ssh default
-}
-
-replace_key_files() {
-    msg_2 "replace_key_files()"
-
-    msg_2 "Installing custom inittab"
-    cp -a "$aok_content"/Devuan/etc/inittab /etc
-
-    msg_3 "hosts file helping apt tools"
-    cp -a "$aok_content"/Devuan/etc/hosts /etc
-    msg_3 "replace_key_files() done"
-}
-
-#===============================================================
-#
-#   Main
-#
-#===============================================================
+if [ "$build_env" -eq 0 ]; then
+    echo
+    echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
+    echo "##           You have been warned"
+    echo
+fi
 
 tsd_start="$(date +%s)"
 
@@ -78,33 +120,16 @@ if test -f /AOK; then
     rm -rf /AOK
 fi
 
-replace_key_files
-
-#
-#  Most of the Debian services, mounting fs, setting up networking etc
-#  serve no purpose in iSH, since all this is either handled by iOS
-#  or done by the app before bootup
-#
-# # skipping openrc
-# msg_2 "Disabling previous openrc runlevel tasks"
-# rm /etc/runlevels/*/* -f
-
-msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
-mkdir -p /etc/update-motd.d
-cp -a "$aok_content"/Devuan/etc/update-motd.d/* /etc/update-motd.d
+prepare_env_etc
 
 #
 #  This must run before any task doing apt actions
 #
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "Installing sources.list"
-    cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
+msg_2 "Installing sources.list"
+cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
 
-    msg_2 "apt update"
-    apt update -y
-else
-    msg_2 "QUICK_DEPLOY - skipping apt update"
-fi
+msg_1 "apt update"
+apt update -y
 
 #
 #  Doing some user interactions as early as possible, unless this is
@@ -114,11 +139,6 @@ if ! bldstat_get "$status_prebuilt_fs"; then
     user_interactions
 fi
 
-#
-#  Do this after all essential steps, to hopefully still have
-#  a working system if iSH crashes during apt upgrade
-#  or install of CORE_DEB_PKGS and sshd
-#
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
@@ -170,10 +190,16 @@ fi
 #
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
-if bldstat_get "$status_prebuilt_fs"; then
-    msg_2 "Clear apt cache on pre-built FS, saves some 50MB in the tarball"
-    rm /var/cache/apt /var/lib/apt -rf
+#
+#  Overriding common runbg with Debian specific, work in progress...
+#
+# msg_2 "Adding runbg service"
+# cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
+# ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 
+setup_login
+
+if bldstat_get "$status_prebuilt_fs"; then
     select_profile "$setup_devuan_final"
 else
     "$setup_devuan_final"

@@ -21,13 +21,12 @@ setup_environment() {
 
     msg_2 "copy some /etc files"
 
-    if is_alpine; then
-        echo "This is an iSH node, running Alpine: $alpine_release" >/etc/issue
-        if [ -n "$USER_NAME" ]; then
-            echo "Default user is: $USER_NAME" >>/etc/issue
-        fi
-        echo >>/etc/issue
+    echo "This is an iSH node, running $(distro_name_get)" >/etc/issue
+
+    if [ -n "$USER_NAME" ]; then
+        echo "Default user is: $USER_NAME" >>/etc/issue
     fi
+    echo >>/etc/issue
 
     if ! command -v sudo >/dev/null; then
         error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
@@ -93,30 +92,6 @@ setup_environment() {
 
 }
 
-setup_login() {
-    if [ -f "$file_debian_version" ]; then
-        # -> For now Debian login is not altered
-        return
-    fi
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    msg_2 "Install AOK login methods"
-    cp "$aok_content"/Alpine/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Alpine/bin/login.once /bin
-    chmod +x /bin/login.once
-
-    if is_alpine; then
-        #  For now use a safe method, the requested method will be
-        #  setup towards the end of the setup process
-        rm /bin/login
-        ln -sf /bin/busybox /bin/login
-    fi
-}
-
 copy_skel_files() {
     csf_dest="$1"
     if [ -z "$csf_dest" ]; then
@@ -170,8 +145,8 @@ create_user() {
     #  Determine what shell to use for custom user
     #
     if [ -n "$USER_SHELL" ]; then
-        if [ ! -x "$build_root_d$USER_SHELL" ]; then
-            error_msg "User shell not found: $USER_SHELL"
+        if [ ! -x "${build_root_d}$USER_SHELL" ]; then
+            error_msg "User shell not found: ${build_root_d} $USER_SHELL"
         fi
         use_shell="$USER_SHELL"
         msg_3 "User shell: $use_shell"
@@ -209,7 +184,6 @@ create_user() {
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
-setup_login
 user_root
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     # [ -n "$USER_NAME" ] &&

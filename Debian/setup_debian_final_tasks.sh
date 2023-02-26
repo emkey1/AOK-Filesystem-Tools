@@ -29,18 +29,24 @@ fi
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-# This is only ever run inside the FS, so ensure to use a local reference
-aok_content="/opt/AOK"
-
 msg_script_title "setup_debian_final_tasks.sh - Final part of setup"
 
-# If this was a pre-built FS, now is the time to ask if iCloud should be mounted
 if bldstat_get "$status_prebuilt_fs"; then
-    msg_3 "Considering /iCloud mount for a pre-built FS"
-    ! is_iCloud_mounted && should_icloud_be_mounted
+    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        user_interactions
+    else
+        msg_2 "QUICK_DEPLOY - skipping pre-build triggered user interactions"
+    fi
+fi
 
-    msg_1 "Re-populating the apt-cache, cleared in order to keep FS image size down"
-    apt update
+# SKIP_LOGIN
+if [ -n "$INITIAL_LOGIN_MODE" ]; then
+    #
+    #  Now that final_tasks have run as root, the desired login method
+    #  can be set.
+    #
+    msg_2 "Using defined login method. It will be used next time App is run"
+    /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 fi
 
 #  Clear up build env

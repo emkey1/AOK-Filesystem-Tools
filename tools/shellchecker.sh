@@ -29,7 +29,6 @@ checkables=(
 
     # Alpine/cron/15min/dmesg_save
     Alpine/etc/profile
-    Alpine/usr_local_bin/aok
     Alpine/usr_local_bin/aok_groups
     Alpine/usr_local_bin/apt
     Alpine/usr_local_bin/disable_vnc
@@ -43,12 +42,12 @@ checkables=(
     Alpine/setup_alpine_final_tasks.sh
     Alpine/setup_alpine.sh
 
-    \
     choose_distro/install_debian.sh
     choose_distro/select_distro_prepare.sh
     choose_distro/select_distro.sh
 
     ## common_AOK/etc/skel/.bash_profile
+    common_AOK/usr_local_bin/aok
     common_AOK/usr_local_bin/disable_sshd
     # common_AOK/usr_local_bin/dmesg  perl
     common_AOK/usr_local_bin/elock

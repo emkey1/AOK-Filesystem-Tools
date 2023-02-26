@@ -11,33 +11,6 @@
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.
 #
-version="1.4.0a"
-
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
-if [ "$build_env" -eq 0 ]; then
-    echo
-    echo "AOK can only be chrooted on iSH or Linux (x86)"
-    echo
-    exit 1
-fi
-
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else, this to ensure build_env can be found
-#
-cd "$aok_content" || {
-    error_msg "Failed to cd into: $aok_content"
-}
-
-prog_name=$(basename "$0")
-
-CHROOT_TO="$build_root_d"
-
-if [ "$(whoami)" != "root" ]; then
-    error_msg "This must be run as root or using sudo!"
-fi
 
 env_prepare() {
     # msg_2 "Preparing the environment for chroot"
@@ -60,6 +33,7 @@ env_prepare() {
     else
         mount -t sysfs sys "$CHROOT_TO"/sys
         mount -o bind /dev "$CHROOT_TO"/dev
+        mount -o bind /dev/pts "$CHROOT_TO"/dev/pts
     fi
     # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
@@ -77,6 +51,7 @@ env_cleanup() {
     else
         msg_3 "Unmounting /sys & /dev"
         umount "$CHROOT_TO"/sys
+        umount "$CHROOT_TO"/dev/pts
         umount "$CHROOT_TO"/dev
     fi
 }
@@ -90,7 +65,6 @@ chroot with env setup so this works on both Linux & iSH
 Available options:
 
 -h  --help     Print this help and exit
--v  --version  Display version and exit
 -c  --cleanup  Cleanup env
 -p, --path     What dir to chroot into, defaults to: $build_root_d
 command        What to run, defaults to "bash -l", command and params must be quoted!
@@ -104,16 +78,38 @@ EOF
 #
 #===============================================================
 
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
+run_as_root "$@"
+
+prog_name=$(basename "$0")
+
+CHROOT_TO="$build_root_d"
+
+if [ "$build_env" -eq 0 ]; then
+    echo
+    echo "AOK can only be chrooted on iSH or Linux (x86)"
+    echo
+    exit 1
+fi
+
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else, this to ensure build_env can be found
+#
+cd "$aok_content" || {
+    error_msg "Failed to cd into: $aok_content"
+}
+
+# if [ "$(whoami)" != "root" ]; then
+#     error_msg "This must be run as root or using sudo!"
+# fi
+
 case "$1" in
 
 "-h" | "--help")
     show_help
-    exit 0
-    ;;
-
-"-v" | "--version")
-    echo "$prog_name, version $version"
-    echo
     exit 0
     ;;
 

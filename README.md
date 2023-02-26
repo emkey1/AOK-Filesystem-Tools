@@ -2,6 +2,11 @@
 
 It is assumed this is cloned into /opt/AOK
 
+## Recent changes
+
+- logins supported by all three distros
+- USER_SHELL allows setting the shell for the sample user
+
 ## Compatability
 
 You can build the FS on any platform, but for chrooting (Prebuilding FS, or testing) you need to use iSH or Linux(x86).
@@ -11,12 +16,6 @@ You can build the FS on any platform, but for chrooting (Prebuilding FS, or test
 ### Alpine
 
 Fully usable
-
-#### Known Alpine issues
-
-When Alpine login is enabled /etc/motd is not displayed, I have tried to
-figure out a way to display it only on logins, but not come up with
-a good way, when login is disabled, it is displayed.
 
 ### Debian
 
@@ -37,10 +36,6 @@ For now the two recomended and working build methods are:
 These two methods have been tested and work both with and without the prebuilt option.
 
 On a Linux(x86) node you can successfully chroot into the new FS, services does not work, and there is no /proc/ish But you can do additional apt installs and stuff like that, then when completed tar it and mount as a new FS on your iOS device
-
-##### Login
-
-The AOK alternate logins are not yet used, pending testing
 
 ##### Specific iSH-AOK services
 
@@ -68,8 +63,8 @@ Instructions on how to build an iSH family File system: `./build_fs -h`
 
 ## Multi distro
 
-run `build_fs -s` to create a Distro asking if you want to use Alpine or
-Debian
+run `build_fs -s` to create a Distro asking if you want to use Alpine,
+Debian or Devuan.
 
 This is the recomended build method if you don't need to prebuild.
 Initial tarball will be arround 10MB. Asuming the target device is
