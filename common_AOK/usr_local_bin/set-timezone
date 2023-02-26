@@ -10,13 +10,9 @@
 #  https://gist.github.com/eduardoaugustojulio/fa83cf85efa39919d6a70ca679e91f28
 #
 
-# do_clear() {
-#     #
-#     #  dialog ueses an option too clear screen after an item is displayed
-#     #  this is only needed for whiptail
-#     #
-#     [[ "$dialog_app" = "whiptail" ]] && clear
-# }
+log_it() {
+    echo "$1" >>/tmp/tzlog
+}
 
 check_dependencies() {
     #
@@ -120,9 +116,16 @@ main() {
         #  selected, the outermost layer of this will use it once exiting.
         #
         main
+        # tZone will already be set, so just return now
+        return
     fi
 
-    if ! $dialog_app --yesno "Setting Time Zone to:\n\n    $region/$tz\n" 0 0; then
+    selected_tz="$region/$tz"
+    if [ "$selected_tz" = "/" ]; then
+        return
+    fi
+
+    if ! $dialog_app --yesno "Setting Time Zone to:\n\n    $selected_tz\n" 0 0; then
         #  recurse and try again
         main
     else
@@ -141,7 +144,6 @@ dialog_app="whiptail"
 
 # execute again as root
 if [[ "$(whoami)" != "root" ]]; then
-    echo "Executing as root"
     # using $0 instead of full path makes location not hardcoded
     if ! sudo "$0" "$@"; then
         echo
@@ -159,6 +161,7 @@ if test -n "$tZone"; then
     #
     #  Use the selected time-zone
     #
+    echo "Using time zone: $tZone"
     ln -sf "/usr/share/zoneinfo/$tZone" /etc/localtime
 fi
 
