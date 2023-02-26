@@ -1,5 +1,5 @@
 #
-#	Makefile for the Debian login wrappers
+#	Makefile for the Alpine login wrappers
 #
 
 all: login.loop login.once
@@ -14,5 +14,5 @@ login.once: login.once.c
 	gcc -o login.once login.once.c
 
 install:  all
-	cp login.once ../bin
-	cp login.loop ../bin
+	cp login.once ../Alpine/bin
+	cp login.loop ../Alpine/bin
