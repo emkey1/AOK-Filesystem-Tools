@@ -117,6 +117,25 @@ replace_key_files() {
     msg_3 "replace_key_files() done"
 }
 
+setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    msg_2 "Install Alpine login methods"
+    cp "$aok_content"/Alpine/bin/login.loop /bin
+    chmod +x /bin/login.loop
+    cp "$aok_content"/Alpine/bin/login.once /bin
+    chmod +x /bin/login.once
+
+    #  For now use a safe method, the requested method will be
+    #  setup towards the end of the setup process
+    rm /bin/login
+    ln -sf /bin/busybox /bin/login
+
+}
+
 #===============================================================
 #
 #   Main
@@ -141,6 +160,7 @@ msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
 echo "$alpine_release" >"$file_alpine_release"
 
 replace_key_files
+setup_login
 
 msg_2 "apk update"
 apk update

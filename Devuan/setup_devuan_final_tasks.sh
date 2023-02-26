@@ -39,6 +39,16 @@ if bldstat_get "$status_prebuilt_fs"; then
     fi
 fi
 
+# SKIP_LOGIN
+if [ -n "$INITIAL_LOGIN_MODE" ]; then
+    #
+    #  Now that final_tasks have run as root, the desired login method
+    #  can be set.
+    #
+    msg_2 "Using defined login method. It will be used next time App is run"
+    /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
+fi
+
 #  Clear up build env
 bldstat_clear_all
 

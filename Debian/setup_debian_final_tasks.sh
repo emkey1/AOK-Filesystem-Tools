@@ -39,6 +39,7 @@ if bldstat_get "$status_prebuilt_fs"; then
     fi
 fi
 
+# SKIP_LOGIN
 if [ -n "$INITIAL_LOGIN_MODE" ]; then
     #
     #  Now that final_tasks have run as root, the desired login method

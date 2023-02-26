@@ -53,4 +53,4 @@ if [ -d /etc/profile.d ]; then
 fi
 
 # Be sure to set the locale
-export LANG=C.UTF-8
+# export LANG=en_US.UTF-8

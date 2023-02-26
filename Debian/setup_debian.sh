@@ -11,22 +11,6 @@
 #  This modifies a Debian Linux FS with the AOK changes
 #
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-sleep 2
-
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
-#  shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
 install_sshd() {
     #
     #  Install sshd, then remove the service, in order to not leave it running
@@ -35,7 +19,7 @@ install_sshd() {
     msg_1 "Installing openssh-server"
 
     msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
-    rm /etc/ssh/ssh_host*key*
+    rm -f /etc/ssh/ssh_host*key*
 
     openrc_might_trigger_errors
 
@@ -96,6 +80,7 @@ setup_login() {
     #  at this point we just ensure everything is available and initial boot
     #  will use the default loging that should work on all platforms.
     #
+    # SKIP_LOGIN
     msg_2 "Install Debian AOK login methods"
     cp "$aok_content"/Debian/bin/login.loop /bin
     chmod +x /bin/login.loop
@@ -106,8 +91,9 @@ setup_login() {
 
     #  For now use a safe method, the requested method will be
     #  setup towards the end of the setup process
+    # SKIP_LOGIN
     msg_3 "Prepping Debian login"
-    mv /bin/login /bin/login.original
+    cp -a /bin/login /bin/login.original
 }
 
 #===============================================================
@@ -115,6 +101,22 @@ setup_login() {
 #   Main
 #
 #===============================================================
+
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 2
+
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
+
+#  shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
 
 if [ "$build_env" -eq 0 ]; then
     echo
@@ -158,13 +160,13 @@ fi
 #  Should be run before installing CORE_DEB_PKGS to minimize amount of
 #  warnings displayed due to no locale being set
 #
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "Setup locale"
-    msg_3 "locale warnings during this process can be ignored"
-    apt install -y locales
-else
-    msg_2 "QUICK_DEPLOY - skipping locales"
-fi
+# if [ "$QUICK_DEPLOY" -eq 0 ]; then
+#     msg_2 "Setup locale"
+#     msg_3 "locale warnings during this process can be ignored"
+#     apt install -y locales
+# else
+#     msg_2 "QUICK_DEPLOY - skipping locales"
+# fi
 
 if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     openrc_might_trigger_errors

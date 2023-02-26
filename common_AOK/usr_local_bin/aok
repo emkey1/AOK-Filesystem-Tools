@@ -31,13 +31,22 @@ EOF
 change_login_procedure() {
     requested_method="$1"
 
+    if [ ! "$requested_method" = "disable" ] && [ "$(ls /home/ | wc -l)" -lt 1 ]; then
+        echo
+        echo "WARNING: an active login method was selected,"
+        echo "however no user accounts were found, thus switching to disable."
+        echo "Otherwise you would most likely get stuck on the login prompt next boot."
+        echo
+        requested_method="disable"
+    fi
+
     case "$requested_method" in
 
     "once")
         echo "Enabling login prompt, but only for initial login."
         echo "  This App will exit when you logout"
         rm -f /bin/login
-        cp /bin/login.once /bin/login
+        ln -sf /bin/login.once /bin/login
         exit 0
         ;;
 
@@ -46,7 +55,7 @@ change_login_procedure() {
         echo "  You will be prompted for your login name and password"
         echo "  if one has been set when launching this App"
         rm -f /bin/login
-        cp /bin/login.loop /bin/login
+        ln -sf /bin/login.loop /bin/login
         exit 0
         ;;
 
@@ -57,7 +66,7 @@ change_login_procedure() {
         if [ -f /etc/alpine-release ]; then
             ln -sf "/bin/busybox" /bin/login
         else
-            cp "/bin/login.original" /bin/login
+            ln -sf "/bin/login.original" /bin/login
         fi
         exit 0
         ;;
@@ -83,18 +92,20 @@ change_login_procedure() {
 #
 #===============================================================
 
-verbose=0
-prog_name=$(basename "$0")
-
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
     echo "Executing as root"
     # using $0 instead of full path makes location not hardcoded
     if ! sudo "$0" "$@"; then
-        error_msg "Failed to sudo run: $0"
+        echo
+        echo "ERROR: Failed to sudo $0"
+        echo
     fi
     exit 0
 fi
+
+verbose=0
+prog_name=$(basename "$0")
 
 while true; do
     case "$1" in

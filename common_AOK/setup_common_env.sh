@@ -21,13 +21,8 @@ setup_environment() {
 
     msg_2 "copy some /etc files"
 
-    if is_alpine; then
-        release_info="Alpine: $alpine_release"
-    elif is_debian; then
-        release_info="Debian: $(cat /etc/debian_version)"
-    fi
+    echo "This is an iSH node, running $(distro_name_get)" >/etc/issue
 
-    echo "This is an iSH node, running $release_info" >/etc/issue
     if [ -n "$USER_NAME" ]; then
         echo "Default user is: $USER_NAME" >>/etc/issue
     fi
@@ -150,8 +145,8 @@ create_user() {
     #  Determine what shell to use for custom user
     #
     if [ -n "$USER_SHELL" ]; then
-        if [ ! -x "$build_root_d$USER_SHELL" ]; then
-            error_msg "User shell not found: $USER_SHELL"
+        if [ ! -x "${build_root_d}$USER_SHELL" ]; then
+            error_msg "User shell not found: ${build_root_d} $USER_SHELL"
         fi
         use_shell="$USER_SHELL"
         msg_3 "User shell: $use_shell"
