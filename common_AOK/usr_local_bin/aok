@@ -31,7 +31,7 @@ EOF
 change_login_procedure() {
     requested_method="$1"
 
-    if [ ! "$requested_method" = "disable" ] && [ "$(ls /home/ | wc -l)" -lt 1 ]; then
+    if [ ! "$requested_method" = "disable" ] && [ "$(find /home -mindepth 1 -maxdepth 1 | wc -l)" -lt 1 ]; then
         echo
         echo "WARNING: an active login method was selected,"
         echo "however no user accounts were found, thus switching to disable."
