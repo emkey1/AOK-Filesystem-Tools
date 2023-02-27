@@ -1,4 +1,4 @@
-# /etc/inittab
+# inittab
 
 # Ensure all devices  are ok
 ::sysinit:/usr/local/sbin/fix_dev
