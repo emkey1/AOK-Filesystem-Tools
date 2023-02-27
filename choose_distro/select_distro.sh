@@ -23,9 +23,9 @@ Devuan is still experimental. It has DNS issues, enough is in /etc/hosts
 for basic apt actions
 
 Select distro:
- 1 - Alpine
- 2 - Debian
- 3 - Devuan
+ 1 - Alpine $ALPINE_VERSION
+ 2 - Debian 10
+ 3 - Devuan 4
 "
     echo
     echo "$text"

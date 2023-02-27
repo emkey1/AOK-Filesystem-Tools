@@ -29,6 +29,11 @@ AOK_VERSION="Beta-002"
 USER_NAME="ish"
 
 #
+# Shell for user USER_NAME (if defined)
+#
+USER_SHELL="/bin/bash"
+
+#
 #  Alternatives are: enable disable once
 #  This is not yet supported on Debian/Devuan builds,
 #  and will be ignored there
@@ -136,10 +141,10 @@ DOCS_APKS='openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc mandoc 
 #
 #  If a Debian install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/a762e1zr2wkmnmu/Debian10-ish-base-v24.tgz"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/ut2e54u2kcrtz88/Devuan_4-ish-base-v5.tgz"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/6w71oponu7hfr13/Debian10-ish-base-v27.tgz"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
 
 #
 #  Additional debs for Debian image
 #
-CORE_DEB_PKGS="tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3.7 openssh-client"
+CORE_DEB_PKGS="openssl python3-minimal tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3 openssh-client"

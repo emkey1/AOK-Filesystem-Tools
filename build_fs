@@ -10,38 +10,9 @@
 #  Some options needs chrooting, those steps can only be done when
 #  running iSH or Linux(x86)
 #
-version="2.1.0"
-
-#  shellcheck disable=SC1007
-prog_name=$(basename "$0")
-
-#  shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
-#
-#  Point to AOK-Filesystem-Tools dir, in case this was run with a path
-#  to keep things relative and simple
-#
-#  shellcheck disable=SC1007
-cd "$aok_content" || {
-    error_msg "Failed to cd into: $aok_content"
-}
-
-#
-#  Default for options
-#
-build_target="$target_alpine" # default target
-verbose=false                 # true displays tar/untar progress
-use_bzip2=false               # Use tgz when compressing image
-pre_build_FS=false            # true meand generat4 pre-built FS
-aok_FS_do_compress=true       # compress FS at end of build_fs
-
-aok_files="${build_root_d}${aok_content}"
 
 show_help() { # Multi OK 1
     cat <<EOF
-$prog_name, version $version
-
 Usage: $prog_name [-h] [-v] [-p] [-c] [-z] [-u]
 
 This builds the iSH-AOK filesystem.
@@ -53,7 +24,6 @@ on the device upon first boot.
 Available options:
 
 -h  --help         Print this help and exit
--V  --version      Show version and exit
 -v  --verbose      Displays extra info, like untaring/taring progress
 -s  --select       Offer selection between Alpine & Debian on first boot.
 -d  --debian       Build a Debian FS.
@@ -75,8 +45,6 @@ parse_arguments() { # Multi OK 1
         case "$1" in
 
         "-h" | "--help") show_help ;;
-
-        "-V" | "--version") show_version ;;
 
         "-v" | "--verbose") verbose=true ;;
 
@@ -143,11 +111,6 @@ parse_arguments() { # Multi OK 1
     done
 }
 
-show_version() { # Multi OK 1
-    echo "$prog_name $version"
-    exit 0
-}
-
 display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
@@ -192,7 +155,7 @@ display_build_target() { # Multi OK 1
     else
         release_msg="Alpine: $ALPINE_VERSION"
     fi
-    msg_1 "Building $release_msg iSH-AOK: $AOK_VERSION filesystem"
+    msg_1 "Building iSH-AOK $release_msg filesystem - $AOK_VERSION"
     unset release_msg
 
     if ! $aok_FS_do_compress; then
@@ -299,6 +262,7 @@ add_additional_tasks_if_defined() {
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
 
+    distro_name_set Alpine
     select_profile "$setup_alpine_scr"
     # msg_3 "setup_Alpine_on_1st_boot() done"
 }
@@ -306,6 +270,7 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
+    distro_name_set Debian
     select_profile "$setup_debian_scr"
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
@@ -313,6 +278,7 @@ setup_Debian_on_1st_boot() {
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
+    distro_name_set Devuan
     select_profile "$setup_devuan_scr"
     # msg_3 "setup_Devuan_on_1st_boot() done"
 }
@@ -320,6 +286,7 @@ setup_Devuan_on_1st_boot() {
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
 
+    distro_name_set SelectDistro
     select_profile "$setup_select_distro_prepare"
 
     #
@@ -472,7 +439,35 @@ display_build_time() {
 #
 #===============================================================
 
+#  shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
+run_as_root "$@"
+
 t_start="$(date +%s)"
+
+# shellcheck disable=SC1007
+prog_name=$(basename "$0")
+
+#
+#  Point to AOK-Filesystem-Tools dir, in case this was run with a path
+#  to keep things relative and simple
+#
+#  shellcheck disable=SC1007
+cd "$aok_content" || {
+    error_msg "Failed to cd into: $aok_content"
+}
+
+#
+#  Default for options
+#
+build_target="$target_alpine" # default target
+verbose=false                 # true displays tar/untar progress
+use_bzip2=false               # Use tgz when compressing image
+pre_build_FS=false            # true meand generat4 pre-built FS
+aok_FS_do_compress=true       # compress FS at end of build_fs
+
+aok_files="${build_root_d}${aok_content}"
 
 parse_arguments "$@"
 

@@ -57,26 +57,31 @@ install_apks() {
     else
         msg_1 "No CORE_APKS defined"
     fi
+}
 
-    if [ "$QUICK_DEPLOY" -ne 0 ]; then
-        msg_2 "QUICK_DEPLOY - skipping AOK_APKS"
-    elif [ "$build_env" -eq 1 ] && ! is_aok_kernel; then
-        msg_2 "Skipping AOK only packages on non AOK kernels"
-    elif [ -n "$AOK_APKS" ]; then
-        #  Only deploy on aok kernels and if any are defined
-        #  This might not be deployed on a system with the AOK kernel, but we cant
-        #  know at this point in time, so play it safe and install them
-        if [ "$QUICK_DEPLOY" -eq 0 ]; then
-            msg_2 "Add packages only for AOK kernel"
-            # In this case we want the variable to expand into its components
-            # shellcheck disable=SC2086
-            apk add $AOK_APKS
-        else
-            msg_2 "QUICK_DEPLOY - skipping AOK kernel packages"
-        fi
-    else
+install_aok_apks() {
+    if [ -z "$AOK_APKS" ]; then
         msg_1 "No AOK_APKS defined"
+        return
+    elif [ "$QUICK_DEPLOY" -ne 0 ]; then
+        msg_1 "QUICK_DEPLOY - skipping AOK_APKS"
+        return
+    elif ! bldstat_get "$status_prebuilt_fs" && ! is_aok_kernel; then
+        msg_1 "Skipping AOK only packages on non AOK kernel"
+        return
     fi
+
+    msg_1 "Install packages only for AOK kernel"
+    #
+    #  This might not be deployed on a system with the AOK kernel, but we cant
+    #  know at this point in time, so play it safe and install them
+    #  setup_alpine_final_tasks.sh will remove them, if run on a non-AOK kernel
+    #
+
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086
+    apk add $AOK_APKS
+    echo
 }
 
 replace_key_files() {
@@ -112,6 +117,25 @@ replace_key_files() {
     msg_3 "replace_key_files() done"
 }
 
+setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    msg_2 "Install Alpine login methods"
+    cp "$aok_content"/Alpine/bin/login.loop /bin
+    chmod +x /bin/login.loop
+    cp "$aok_content"/Alpine/bin/login.once /bin
+    chmod +x /bin/login.once
+
+    #  For now use a safe method, the requested method will be
+    #  setup towards the end of the setup process
+    rm /bin/login
+    ln -sf /bin/busybox /bin/login
+
+}
+
 #===============================================================
 #
 #   Main
@@ -136,6 +160,7 @@ msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
 echo "$alpine_release" >"$file_alpine_release"
 
 replace_key_files
+setup_login
 
 msg_2 "apk update"
 apk update
@@ -152,6 +177,7 @@ msg_2 "apk upgrade"
 apk upgrade
 
 install_apks
+install_aok_apks
 
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
@@ -188,6 +214,7 @@ fi
 
 if [ "$QUICK_DEPLOY" -ne 0 ]; then
     msg_2 "QUICK_DEPLOY - disabling custom login"
+    # shellcheck disable=SC2034
     INITIAL_LOGIN_MODE="disable"
 fi
 

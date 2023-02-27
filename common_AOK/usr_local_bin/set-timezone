@@ -10,26 +10,9 @@
 #  https://gist.github.com/eduardoaugustojulio/fa83cf85efa39919d6a70ca679e91f28
 #
 
-# dialog_app="dialog"
-dialog_app="whiptail"
-
-# if [[ -d /etc/apt ]] || [[ -f /etc/alpine-release ]] && [[
-#     "$(sed 's/\./ /g' /etc/alpine-release | awk '{print $1"."$2 }')" = "3.14" ]] \
-#     ; then
-#     #
-#     #  Older Alpines and supported Debians use a dialog version not able
-#     #  to handle arrows,so whiptail is enforced
-#     #
-#     dialog_app="whiptail"
-# fi
-
-# do_clear() {
-#     #
-#     #  dialog ueses an option too clear screen after an item is displayed
-#     #  this is only needed for whiptail
-#     #
-#     [[ "$dialog_app" = "whiptail" ]] && clear
-# }
+log_it() {
+    echo "$1" >>/tmp/tzlog
+}
 
 check_dependencies() {
     #
@@ -133,14 +116,41 @@ main() {
         #  selected, the outermost layer of this will use it once exiting.
         #
         main
+        # tZone will already be set, so just return now
+        return
+    fi
+
+    selected_tz="$region/$tz"
+    if [ "$selected_tz" = "/" ]; then
+        return
+    fi
+
+    if ! $dialog_app --yesno "Setting Time Zone to:\n\n    $selected_tz\n" 0 0; then
+        #  recurse and try again
+        main
     else
         tZone="$region/$tz"
     fi
 }
 
-if [[ "$(whoami)" != 'root' ]]; then
-    echo "You must use sudo or run as root"
-    exit 1
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# dialog_app="dialog"
+dialog_app="whiptail"
+
+# execute again as root
+if [[ "$(whoami)" != "root" ]]; then
+    # using $0 instead of full path makes location not hardcoded
+    if ! sudo "$0" "$@"; then
+        echo
+        echo "ERROR: Failed to sudo $0"
+        echo
+    fi
+    exit 0
 fi
 
 check_dependencies
@@ -151,8 +161,8 @@ if test -n "$tZone"; then
     #
     #  Use the selected time-zone
     #
+    echo "Using time zone: $tZone"
     ln -sf "/usr/share/zoneinfo/$tZone" /etc/localtime
-    $dialog_app --msgbox "Time Zone is now:\n\n $tZone\n" 0 0
 fi
 
 # do_clear

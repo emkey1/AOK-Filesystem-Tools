@@ -20,3 +20,10 @@
 
 # I use it as a reminder so I dont override anything locally
 globals.txt
+
+# src makefile output
+src/idev_ip
+Alpine/src/login_loop
+Alpine/src/login_once
+Debian/src/login_loop
+Debian/src/login_once

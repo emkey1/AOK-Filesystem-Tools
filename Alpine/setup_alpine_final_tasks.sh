@@ -59,7 +59,7 @@ if [ -n "$INITIAL_LOGIN_MODE" ]; then
     #  Now that final_tasks have run as root, the desired login method
     #  can be set.
     #
-    msg_2 "Using defined loing method. It will be used next time App is run"
+    msg_2 "Using defined login method. It will be used next time App is run"
     /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 fi
 

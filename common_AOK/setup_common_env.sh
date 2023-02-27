@@ -21,13 +21,12 @@ setup_environment() {
 
     msg_2 "copy some /etc files"
 
-    if is_alpine; then
-        echo "This is an iSH node, running Alpine: $alpine_release" >/etc/issue
-        if [ -n "$USER_NAME" ]; then
-            echo "Default user is: $USER_NAME" >>/etc/issue
-        fi
-        echo >>/etc/issue
+    echo "This is an iSH node, running $(distro_name_get)" >/etc/issue
+
+    if [ -n "$USER_NAME" ]; then
+        echo "Default user is: $USER_NAME" >>/etc/issue
     fi
+    echo >>/etc/issue
 
     if ! command -v sudo >/dev/null; then
         error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
@@ -93,30 +92,6 @@ setup_environment() {
 
 }
 
-setup_login() {
-    if [ -f "$file_debian_version" ]; then
-        # -> For now Debian login is not altered
-        return
-    fi
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    msg_2 "Install AOK login methods"
-    cp "$aok_content"/Alpine/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Alpine/bin/login.once /bin
-    chmod +x /bin/login.once
-
-    if is_alpine; then
-        #  For now use a safe method, the requested method will be
-        #  setup towards the end of the setup process
-        rm /bin/login
-        ln -sf /bin/busybox /bin/login
-    fi
-}
-
 copy_skel_files() {
     csf_dest="$1"
     if [ -z "$csf_dest" ]; then
@@ -152,7 +127,7 @@ user_root() {
 }
 
 create_user() {
-    msg_2 "Creating additional user and group $USER_NAME"
+    msg_2 "Creating default user and group: $USER_NAME"
     if [ -z "$USER_NAME" ]; then
         msg_3 "No user requested"
         return
@@ -161,10 +136,29 @@ create_user() {
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
 
+    if is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
+        msg_2 "WARNING /bin/ash not available in Debian, replacing with /bin/bash"
+        USER_SHELL="/bin/bash"
+    fi
+
+    #
+    #  Determine what shell to use for custom user
+    #
+    if [ -n "$USER_SHELL" ]; then
+        if [ ! -x "${build_root_d}$USER_SHELL" ]; then
+            error_msg "User shell not found: ${build_root_d} $USER_SHELL"
+        fi
+        use_shell="$USER_SHELL"
+        msg_3 "User shell: $use_shell"
+    else
+        use_shell="/bin/bash"
+        msg_3 "User shell (default): $use_shell"
+    fi
+
     # temp changing UID_MIN is to silence the warning:
     # ish's uid 501 outside of the UID_MIN 1000 and UID_MAX 6000 range.
     #  add additional groups with -G
-    useradd -m -s /bin/bash -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
+    useradd -m -s "$use_shell" -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
 
     # shadow with blank ish password
     sed -i "s/${USER_NAME}:\!:/${USER_NAME}::/" /etc/shadow
@@ -190,10 +184,10 @@ create_user() {
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
-setup_login
 user_root
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    [ -n "$USER_NAME" ] && create_user
+    # [ -n "$USER_NAME" ] &&
+    create_user
 else
     msg_2 "QUICK_DEPLOY - skipping additional user:"
 fi

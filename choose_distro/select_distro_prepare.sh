@@ -33,8 +33,8 @@ msg_script_title "select_distro_prepare.sh  Prep for distro select"
 msg_3 "apk update & upgrade"
 apk update && apk upgrade
 
-msg_3 "Installing newt (whiptail) & wget (needed for Debian download)"
-apk add newt wget
+msg_3 "Installing wget (needed for Debian download)"
+apk add wget
 
 # shellcheck disable=SC2154
 bldstat_set "$status_select_distro_prepared"
