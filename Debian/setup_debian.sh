@@ -133,6 +133,9 @@ msg_script_title "setup_debian.sh  Debian specific AOK env"
 msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
+msg_3 "Create /var/log/wtmp"
+touch /var/log/wtmp
+
 start_setup Debian "$(cat /etc/debian_version)"
 
 if test -f /AOK; then

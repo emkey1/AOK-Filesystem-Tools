@@ -13,11 +13,10 @@
 select_distro() {
     text="
 Alpine is the regular AOK FS, fully stable.
-This will install Alpine $ALPINE_VERSION
 
 Debian is version 10 (Buster). It was end of lifed 2022-07-18 and is
-thus now unmaintained. It should be fine for testing Debian with
-the AOK FS extensions under iSH-AOK.
+thus now unmaintained except for security updates.
+It should be fine for testing Debian with the AOK FS extensions under iSH-AOK.
 
 Devuan is still experimental. It has DNS issues, enough is in /etc/hosts
 for basic apt actions

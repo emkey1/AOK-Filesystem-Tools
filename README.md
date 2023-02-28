@@ -13,20 +13,22 @@ You can build the FS on any platform, but for chrooting (Prebuilding FS, or test
 
 ## Distros available
 
-### Alpine
+### Alpine FS
 
 Fully usable
 
-### Debian
+### Debian FS
 
 Fully usable
 
-#### Known Debian issues
+#### Known Debian FS issues
+
+##### Using Blink
+
+When disconnecting from an iSH-AOK Debian FS session, it is left hanging.
+You need to hit Enter to get back to the Blink prompt.
 
 ##### Building it
-
-Building a Debian FS, then chrooting into it on your iOS device does not work fully.
-It gets going, but any further apt installs tend to fail.
 
 For now the two recomended and working build methods are:
 
@@ -34,8 +36,6 @@ For now the two recomended and working build methods are:
 - Build the FS on a Linux (x86) node, then mount the resulting FS image as a new FS & reboot into it
 
 These two methods have been tested and work both with and without the prebuilt option.
-
-On a Linux(x86) node you can successfully chroot into the new FS, services does not work, and there is no /proc/ish But you can do additional apt installs and stuff like that, then when completed tar it and mount as a new FS on your iOS device
 
 ##### Specific iSH-AOK services
 
@@ -67,7 +67,7 @@ run `build_fs -s` to create a Distro asking if you want to use Alpine,
 Debian or Devuan.
 
 This is the recomended build method if you don't need to prebuild.
-Initial tarball will be arround 10MB. Asuming the target device is
+Initial tarball will be arround 8MB. Asuming the target device is
 resonably modern, the deploy should not take too long.
 
 ## Prebuilt FS

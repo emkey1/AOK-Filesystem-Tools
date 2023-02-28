@@ -14,13 +14,13 @@ show_help() {
     cat <<EOF
 Usage: $prog_name [-h] [-v] [-z]
 
-This creates a compressed tar file. that iSH can mount as a file syste,
+This creates a compressed tar file. that iSH can mount as a file system
+It autodetects FS type, and will use a matching filename for the tarball.
 
 Available options:
 
 -h  --help         Print this help and exit.
--l  --label        Provide a name for tarball (without extension)
-                   if not given, Alpine is asumed.
+-l  --label        Provide a name for tarball (without path or extension)
 -j  --bzip2        Use bzip2 compression
 -v  --verbose      Display progrss as FS is being compressed.
 EOF
@@ -149,6 +149,9 @@ if is_ish; then
     cp "$tarball" "$icloud_archive_d"
 fi
 
-msg_1 "Image is ready!"
-
+if $verbose; then
+    msg_1 "Image is ready - $tarball"
+else
+    msg_1 "Image is ready!"
+fi
 exit 0 #  Avoid exiting with error if above file did not exist

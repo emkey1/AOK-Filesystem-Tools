@@ -286,6 +286,7 @@ should_icloud_be_mounted() {
         msg_3 "This is not iSH, skipping /iCloud mount check"
         return
     fi
+
     if is_iCloud_mounted; then
         msg_3 "was already mounted, returning"
         return
@@ -311,13 +312,6 @@ should_icloud_be_mounted() {
             error_msg "Unrecognized distro, aborting"
         fi
         unset sibm_dependency
-    fi
-
-    #  Abort if not running on iSH
-    if ! test -d /proc/ish; then
-        msg_3 "Not runing on iSH /iCloud mount not checked"
-        unset sibm_dlg_app
-        return
     fi
 
     if bldstat_get "$status_prebuilt_fs" && bldstat_get "$status_is_chrooted"; then
@@ -561,10 +555,10 @@ unset _vers
 #  Names of the generated distribution tarballs, no ext, that is ecided
 #  upon during compression
 #
-alpine_tb="iSH-AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION"
-select_distro_tb="iSH-AOK-SelectDistro-$AOK_VERSION"
-debian_tb="iSH-AOK-Debian-$AOK_VERSION"
-devuan_tb="iSH-AOK-Devuan-$AOK_VERSION"
+alpine_tb="AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION"
+select_distro_tb="AOK-SelectDistro-$AOK_VERSION"
+debian_tb="AOK-Debian-$AOK_VERSION"
+devuan_tb="AOK-Devuan-$AOK_VERSION"
 
 target_alpine="Alpine"
 target_debian="Debian"
