@@ -25,7 +25,7 @@ Available options:
 
 -h  --help         Print this help and exit
 -v  --verbose      Displays extra info, like untaring/taring progress
--s  --select       Offer selection between Alpine & Debian on first boot.
+-s  --select       Offer selection between Alpine, Debian & Devuan on first boot.
 -d  --debian       Build a Debian FS.
 -D  --devuan       Build a Devuan FS.
 -p  --prebuilt     Build the entire FS on the running platform, making
