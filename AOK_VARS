@@ -141,7 +141,7 @@ DOCS_APKS='openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc mandoc 
 #
 #  If a Debian install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/6w71oponu7hfr13/Debian10-ish-base-v27.tgz"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/6po880laygb9nyh/Debian10-ish-base-v28.tgz"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
 
 #
