@@ -67,7 +67,7 @@ run `build_fs -s` to create a Distro asking if you want to use Alpine,
 Debian or Devuan.
 
 This is the recomended build method if you don't need to prebuild.
-Initial tarball will be arround 10MB. Asuming the target device is
+Initial tarball will be arround 8MB. Asuming the target device is
 resonably modern, the deploy should not take too long.
 
 ## Prebuilt FS
