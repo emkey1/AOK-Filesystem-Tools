@@ -12,14 +12,12 @@
 
 extern void show_issue(void);
 
-int mylogin(void)
-{
+int mylogin(void) {
 
     char *argv[2] = {"", NULL}; // You could try specifying a login here but it won't work
     int pid = fork();
 
-    if (pid == 0)
-    {
+    if (pid == 0) {
         show_issue();
         execvp("/bin/login.original", argv);
     }
@@ -28,10 +26,8 @@ int mylogin(void)
     wait(NULL);
 }
 
-int main(void)
-{
-    while (1)
-    {
+int main(void) {
+    while (1) {
         mylogin();
     }
 
