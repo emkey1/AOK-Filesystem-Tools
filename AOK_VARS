@@ -104,7 +104,7 @@ ALPINE_VERSION=3.16.4 # End of Alpine support 2024-05-23
 #
 #  Always installed packages
 #
-CORE_APKS="openssh openrc zsh bash tmux git curl openssl-dev shadow sudo busybox-extras mosh fortune elinks dcron dcron-openrc vim nano ssl_client ncftp coreutils findutils tar ncurses-dev ncurses file less sed gawk grep util-linux tzdata rsync"
+CORE_APKS="busybox-extras coreutils findutils ncurses openrc openssh shadow sudo ssl_client tzdata util-linux bash zsh dcron dcron-openrc file gawk grep less newt rsync sed tar tmux mosh git ncurses-dev openssl-dev curl elinks ncftp vim nano fortune"
 
 #
 #  Additional packages. These don't work with stock iSH but work with
@@ -147,4 +147,4 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6
 #
 #  Additional debs for Debian image
 #
-CORE_DEB_PKGS="openssl python3-minimal tzdata psmisc file curl less zsh git tmux mosh elinks nano gawk rsync manpages python3 ncftp python3 openssh-client"
+CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages whiptail rsync tmux mosh git python3 python3-minimal curl elinks ncftp openssl nano fortune-mod"
