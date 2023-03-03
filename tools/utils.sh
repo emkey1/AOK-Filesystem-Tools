@@ -299,8 +299,8 @@ should_icloud_be_mounted() {
         sibm_dependency="$sibm_dlg_app"
         msg_3 "Installing dependency: $sibm_dependency"
 
-        if [ "$sibm_dependency" = "whiptail" ]; then
-            # whiptail is in package newt
+        if [ "$sibm_dependency" = "whiptail" ] && is_alpine; then
+            # whiptail is in package newt in Alpine
             sibm_dependency="newt"
         fi
 
@@ -557,8 +557,8 @@ unset _vers
 #
 alpine_tb="AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION"
 select_distro_tb="AOK-SelectDistro-$AOK_VERSION"
-debian_tb="AOK-Debian-$AOK_VERSION"
-devuan_tb="AOK-Devuan-$AOK_VERSION"
+debian_tb="AOK-Debian-10-$AOK_VERSION"
+devuan_tb="AOK-Devuan-4-$AOK_VERSION"
 
 target_alpine="Alpine"
 target_debian="Debian"
