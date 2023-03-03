@@ -21,7 +21,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="Beta-002"
+AOK_VERSION="Beta-003"
 
 #
 #  If defined this user will be created
@@ -111,7 +111,7 @@ CORE_APKS="busybox-extras coreutils findutils ncurses openrc openssh shadow sudo
 #  iSH-AOK and will probably work with the Linux Kernel iSH
 #  Will only be installed if the kernel is identified as iSH-AOK
 #
-AOK_APKS="htop procps nload"
+AOK_APKS="procps nload"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
