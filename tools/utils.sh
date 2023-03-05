@@ -438,9 +438,8 @@ copy_skel_files() {
 }
 
 notification_additional_tasks() {
-    msg_2 "notification_additional_tasks()"
+    # msg_2 "notification_additional_tasks()"
     if [ -f "$additional_tasks_script" ]; then
-        msg_2 "notification_additional_tasks()"
         echo "At the end of the install, this will be run:"
         echo "--------------------"
         cat "$additional_tasks_script"
