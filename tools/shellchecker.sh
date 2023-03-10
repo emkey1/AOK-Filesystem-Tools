@@ -19,7 +19,10 @@ echo
 #  somewhere else.
 #
 cd /opt/AOK || {
-    error_msg "Failed to cd into: /opt/AOK"
+    echo
+    echo "ERROR: The AOK file tools needs to be saved to /opt/AOK for things to work!".
+    echo
+    exit 1
 }
 
 checkables=(
