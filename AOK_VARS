@@ -1,5 +1,7 @@
 #!/bin/sh
 # This is sourced. Fake bang-path to help editors and linters
+#
+# ShellCheck conditions at the top of the file are globals
 # shellcheck disable=SC2034
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
@@ -35,8 +37,6 @@ USER_SHELL="/bin/bash"
 
 #
 #  Alternatives are: enable disable once
-#  This is not yet supported on Debian/Devuan builds,
-#  and will be ignored there
 #
 INITIAL_LOGIN_MODE="enable"
 
@@ -69,7 +69,7 @@ INITIAL_LOGIN_MODE="enable"
 #  Valid settings
 #  --------------
 #  0 - Disabled, full deploy will happen
-#  1 - all quick deploy options are active, CORE_APKS will not be installed2
+#  1 - all quick deploy options are active, CORE_APKS will not be installed
 #  2 - CORE_APKS will be installed, all other QUICK_DEPLOY conditions will
 #      be followed. Handle this in your .AOK_VARS something like this:
 #
