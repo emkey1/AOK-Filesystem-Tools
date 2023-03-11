@@ -439,6 +439,17 @@ display_build_time() {
 #
 #===============================================================
 
+#
+#  Ensure this is run in the intended location in case this was launched from
+#  somewhere else.
+#
+cd /opt/AOK || {
+    echo
+    echo "ERROR: The AOK file tools needs to be saved to /opt/AOK for things to work!".
+    echo
+    exit 1
+}
+
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 

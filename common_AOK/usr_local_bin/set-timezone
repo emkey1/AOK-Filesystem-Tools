@@ -121,7 +121,7 @@ main() {
     fi
 
     selected_tz="$region/$tz"
-    if [ "$selected_tz" = "/" ]; then
+    if [[ "$selected_tz" = "/" ]]; then
         return
     fi
 

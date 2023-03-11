@@ -64,33 +64,6 @@ msg_3() {
 }
 
 #
-#  Some boolean checks
-#
-is_ish() {
-    test -d /proc/ish
-}
-
-is_aok_kernel() {
-    grep -qi aok /proc/ish/version 2>/dev/null
-}
-
-is_debian() {
-    test -f "$build_root_d"/etc/debian_version
-}
-
-is_alpine() {
-    test -f "$build_root_d"/etc/alpine-release
-}
-
-is_iCloud_mounted() {
-    mount | grep -wq iCloud
-}
-
-is_chrooted() {
-    bldstat_get "$status_is_chrooted"
-}
-
-#
 #  Display warning message indicating that errors displayed during
 #  openrc actions can be ignored, and are not to be read as failures in
 #  the deploy procedure.
@@ -115,6 +88,33 @@ display_time_elapsed() {
     unset dte_label
     unset dte_mins
     unset dte_seconds
+}
+
+#
+#  Some boolean checks
+#
+is_ish() {
+    test -d /proc/ish
+}
+
+is_aok_kernel() {
+    grep -qi aok /proc/ish/version 2>/dev/null
+}
+
+is_debian() {
+    test -f "$build_root_d"/etc/debian_version
+}
+
+is_alpine() {
+    test -f "$build_root_d"/etc/alpine-release
+}
+
+is_iCloud_mounted() {
+    mount | grep -wq iCloud
+}
+
+is_chrooted() {
+    bldstat_get "$status_is_chrooted"
 }
 
 #
@@ -171,17 +171,61 @@ bldstat_clear_all() {
     bldstat_clear
 }
 
-run_as_root() {
-    #  if started by user account, execute again as root
-    if [ "$(whoami)" != "root" ]; then
-        msg_2 "Executing $0 as root"
-        # using $0 instead of full path makes location not hardcoded
-        if ! sudo "$0" "$@"; then
-            error_msg "Failed to sudo run: $0"
-        fi
-        # terminate the user initiated instance
-        exit 0
+distro_name_set() {
+    dns_name="$1"
+    if [ -z "$dns_name" ]; then
+        error_msg "distro_name_set() - no param"
     fi
+    echo "$dns_name" >"$build_root_d"/tmp/distro_name
+    unset dns_name
+}
+
+distro_name_get() {
+    if [ ! -f /tmp/distro_name ]; then
+        error_msg "/tmo/distro_name not found!"
+    fi
+    cat /tmp/distro_name
+}
+
+start_setup() {
+    msg_2 "start_setup()"
+    ss_distro_name="$1"
+    [ -z "$ss_distro_name" ] && error_msg "start_setup() no distro_name provided"
+    ss_vers_info="$2"
+    [ -z "$ss_vers_info" ] && error_msg "start_setup() no vers_info provided"
+
+    distro_name_set "$ss_distro_name"
+    test -f "$additional_tasks_script" && notification_additional_tasks
+    echo
+
+    ! is_iCloud_mounted && iCloud_mount_prompt_notification
+
+    if [ -z "$AOK_TIMEZONE" ]; then
+        echo " |  There will be a dialog for        |"
+        echo " |  setting timezone after package    |"
+        echo " |  updates.                          |"
+        echo " |  This is the final step requiring  |"
+        echo " |  user intervention. After that the |"
+        echo " |  install completes independently.  |"
+    fi
+
+    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${ss_distro_name}: $ss_vers_info"
+
+    if [ "$QUICK_DEPLOY" -ne 0 ]; then
+        echo
+        echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
+    fi
+
+    if ! is_chrooted; then
+        cat /dev/location >/dev/null &
+        msg_3 "iSH now able to run in the background"
+    fi
+
+    copy_local_bins "$ss_distro_name"
+
+    unset ss_distro_name
+    unset ss_vers_info
+    # msg_3 "start_setup() done"
 }
 
 #  shellcheck disable=SC2120
@@ -207,15 +251,6 @@ select_profile() {
     chmod 744 "$build_root_d"/etc/profile
     unset sp_new_profile
     msg_3 "select_profile() done"
-}
-
-ensure_usable_wget() {
-    msg_2 "ensure_usable_wget()"
-    #  shellcheck disable=SC2010
-    if ls -l "$(command -v wget)" | grep -q busybox; then
-        error_msg "You need to install a real wget, busybox does not handle redirects"
-    fi
-    # msg_3 "ensure_usable_wget()  done"
 }
 
 user_interactions() {
@@ -336,61 +371,32 @@ should_icloud_be_mounted() {
     # msg_3 "should_icloud_be_mounted()  done"
 }
 
-distro_name_set() {
-    dns_name="$1"
-    if [ -z "$dns_name" ]; then
-        error_msg "distro_name_set() - no param"
+#
+#  Auto sudo
+#
+run_as_root() {
+    #  if started by user account, execute again as root
+    if [ "$(whoami)" != "root" ]; then
+        msg_2 "Executing $0 as root"
+        # using $0 instead of full path makes location not hardcoded
+        if ! sudo "$0" "$@"; then
+            error_msg "Failed to sudo run: $0"
+        fi
+        # terminate the user initiated instance
+        exit 0
     fi
-    echo "$dns_name" >"$build_root_d"/tmp/distro_name
-    unset dns_name
 }
 
-distro_name_get() {
-    if [ ! -f /tmp/distro_name ]; then
-        error_msg "/tmo/distro_name not found!"
+#
+#  Busybox wget cant hanle redirects, this installs real wget if needbe
+#
+ensure_usable_wget() {
+    msg_2 "ensure_usable_wget()"
+    #  shellcheck disable=SC2010
+    if ls -l "$(command -v wget)" | grep -q busybox; then
+        error_msg "You need to install a real wget, busybox does not handle redirects"
     fi
-    cat /tmp/distro_name
-}
-
-start_setup() {
-    msg_2 "start_setup()"
-    ss_distro_name="$1"
-    [ -z "$ss_distro_name" ] && error_msg "start_setup() no distro_name provided"
-    ss_vers_info="$2"
-    [ -z "$ss_vers_info" ] && error_msg "start_setup() no vers_info provided"
-
-    distro_name_set "$ss_distro_name"
-    test -f "$additional_tasks_script" && notification_additional_tasks
-    echo
-
-    ! is_iCloud_mounted && iCloud_mount_prompt_notification
-
-    if [ -z "$AOK_TIMEZONE" ]; then
-        echo " |  There will be a dialog for        |"
-        echo " |  setting timezone after package    |"
-        echo " |  updates.                          |"
-        echo " |  This is the final step requiring  |"
-        echo " |  user intervention. After that the |"
-        echo " |  install completes independently.  |"
-    fi
-
-    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${ss_distro_name}: $ss_vers_info"
-
-    if [ "$QUICK_DEPLOY" -ne 0 ]; then
-        echo
-        echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
-    fi
-
-    if ! is_chrooted; then
-        cat /dev/location >/dev/null &
-        msg_3 "iSH now able to run in the background"
-    fi
-
-    copy_local_bins "$ss_distro_name"
-
-    unset ss_distro_name
-    unset ss_vers_info
-    # msg_3 "start_setup() done"
+    # msg_3 "ensure_usable_wget()  done"
 }
 
 copy_local_bins() {
@@ -438,9 +444,8 @@ copy_skel_files() {
 }
 
 notification_additional_tasks() {
-    msg_2 "notification_additional_tasks()"
+    # msg_2 "notification_additional_tasks()"
     if [ -f "$additional_tasks_script" ]; then
-        msg_2 "notification_additional_tasks()"
         echo "At the end of the install, this will be run:"
         echo "--------------------"
         cat "$additional_tasks_script"
