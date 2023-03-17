@@ -8,6 +8,8 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
+#  setup_alpine_final_tasks.sh
+#
 #  Completes the setup of Alpine.
 #  On normal installs, this runs at the end of the install.
 #  On pre-builds this will be run on first boot at destination device

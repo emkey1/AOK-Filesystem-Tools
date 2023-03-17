@@ -6,6 +6,8 @@
 #
 #  License: MIT
 #
+#  setup_debian.sh
+#
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  This modifies a Debian Linux FS with the AOK changes

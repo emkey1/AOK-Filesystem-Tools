@@ -6,6 +6,8 @@
 #
 #  License: MIT
 #
+#  setup_devuan.sh
+#
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  This modifies a Devuan Linux FS with the AOK changes

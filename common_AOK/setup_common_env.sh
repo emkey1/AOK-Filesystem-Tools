@@ -137,7 +137,7 @@ create_user() {
     groupadd -g 501 "$USER_NAME"
 
     if is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
-        msg_2 "WARNING /bin/ash not available in Debian, replacing with /bin/bash"
+        msg_2 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
         USER_SHELL="/bin/bash"
     fi
 
