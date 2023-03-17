@@ -9,8 +9,8 @@
 #  Displays AOK release info
 #
 
-deb_version="/etc/debian_version"
+devu_version="/etc/devuan_version"
 
-if [ -e "$deb_version" ]; then
-    echo "[36mDebian release:  $(cat "$deb_version")[0m"
+if [ -e "$devu_version" ]; then
+    echo "[36mDevuan release:  $(cat "$devu_version")[0m"
 fi
