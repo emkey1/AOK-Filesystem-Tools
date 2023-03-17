@@ -250,7 +250,7 @@ select_profile() {
     #
     chmod 744 "$build_root_d"/etc/profile
     unset sp_new_profile
-    msg_3 "select_profile() done"
+    # msg_3 "select_profile() done"
 }
 
 user_interactions() {
