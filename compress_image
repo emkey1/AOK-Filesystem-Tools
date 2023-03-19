@@ -138,9 +138,11 @@ cd "$build_root_d" || {
 if $use_bzip2; then
     opts="cfj"
     tarball="${tarball}.tar.bz2"
+    tarball_fn="${tarball_fn}.tar.bz2"
 else
     opts="cfz"
     tarball="${tarball}.tgz"
+    tarball_fn="${tarball_fn}.tgz"
 fi
 
 msg_1 "Creating image $tarball"
