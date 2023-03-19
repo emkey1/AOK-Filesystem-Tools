@@ -91,7 +91,7 @@ if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
 fi
 
 if [ -n "$tar_name" ]; then
-    tarball="${tar_name}"
+    tarball_fn="${tar_name}"
 else
     #
     #  If no tarball name was given, try to identify what is prepared
@@ -104,13 +104,13 @@ else
 
         case "$distro_name" in
 
-        "Alpine") tarball="$alpine_tb" ;;
+        "Alpine") tarball_fn="$alpine_tb" ;;
 
-        "Debian") tarball="$debian_tb" ;;
+        "Debian") tarball_fn="$debian_tb" ;;
 
-        "Devuan") tarball="$devuan_tb" ;;
+        "Devuan") tarball_fn="$devuan_tb" ;;
 
-        "SelectDistro") tarball="$select_distro_tb" ;;
+        "SelectDistro") tarball_fn="$select_distro_tb" ;;
 
         *)
             error_msg "Failed to identify prepared distro: [$distro_name]"
@@ -123,7 +123,7 @@ else
 fi
 
 # set location
-tarball="$build_base_d/$tarball"
+tarball="$build_base_d/$tarball_fn"
 
 # echo "removing temp /dev items"
 # rm  -f "$build_root_d"/dev/*
@@ -154,8 +154,8 @@ tar "$opts" "$tarball" .
 #
 # copy it to /iCloud if this runs on iSH
 #
-if is_ish; then
-    msg_2 "Copying image into $icloud_archive_d"
+if is_ish && [ "$(ls /iCloud | wc -l)" -gt 0 ]; then
+    msg_2 "Creating additional copy: $icloud_archive_d/$tarball_fn"
     mkdir -p "$icloud_archive_d"
     cp "$tarball" "$icloud_archive_d"
 fi
