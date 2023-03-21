@@ -8,7 +8,6 @@
 #
 #  Script to do various things related to the configuration of ish
 #
-version="0.3.1  2023-02-25"
 
 show_help() {
     cat <<EOF
@@ -21,9 +20,8 @@ Currently only login procedure can be altered.
 Available options:
 
 -h, --help      Print this help and exit
--V, --version   Display version and exit
 -v, --verbose   Be verbose
--l, --login     Decides login procedure [once|disable|enable]
+-l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
 EOF
     exit 0
 }
@@ -86,6 +84,16 @@ change_login_procedure() {
     esac
 }
 
+display_login_method() {
+    if ls -l /bin/login | grep -q login.loop; then
+        echo "enabled"
+    elif ls -l /bin/login | grep -q login.once; then
+        echo "once"
+    else
+        echo "disabled"
+    fi
+}
+
 #===============================================================
 #
 #   Main
@@ -114,11 +122,6 @@ while true; do
         show_help
         ;;
 
-    "-V" | "--version")
-        echo "$prog_name  $version"
-        exit 0
-        ;;
-
     "-v" | "--verbose")
         if [ "$verbose" -eq 0 ]; then
             echo "===  Enabling verbose mode  ==="
@@ -131,7 +134,12 @@ while true; do
         ;;
 
     "-l" | "--login")
-        change_login_procedure "$2"
+        if [ -n "$2" ]; then
+            change_login_procedure "$2"
+        else
+            printf "Current login method: "
+            display_login_method
+        fi
         ;;
 
     *)
