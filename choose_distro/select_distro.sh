@@ -82,11 +82,13 @@ fi
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
+tcd_start="$(date +%s)"
+
 #  Ensure important devices are present
 msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 select_distro
 
-duration="$(($(date +%s) - tcd_start))"
+duration="$(($(date +%s) - $tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
