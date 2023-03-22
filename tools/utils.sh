@@ -81,6 +81,11 @@ display_time_elapsed() {
 
     dte_mins="$((dte_t_in / 60))"
     dte_seconds="$((dte_t_in - dte_mins * 60))"
+
+    #  Add zero prefix when < 10
+    [ "$dte_mins" -gt 0 ] && [ "$dte_mins" -lt 10 ] && dte_mins="0$dte_mins"
+    [ "$dte_seconds" -lt 10 ] && dte_seconds="0$dte_seconds"
+
     echo
     echo "Time elapsed: $dte_mins:$dte_seconds - $dte_label"
     echo
