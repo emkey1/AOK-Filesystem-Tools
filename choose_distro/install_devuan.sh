@@ -18,7 +18,7 @@ msg_script_title "install_devuan.sh  Downloading & Installing Devuan"
 
 devuan_download_location="/tmp/devuan_fs"
 src_image="$DEVUAN_SRC_IMAGE"
-src_tarball="/$devuan_download_location/$devuan_src_tb"
+src_tarball="$devuan_download_location/$devuan_src_tb"
 
 mkdir -p "$devuan_download_location"
 cd "$devuan_download_location" || {
