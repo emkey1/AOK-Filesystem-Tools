@@ -29,6 +29,7 @@ Select distro:
     echo
     echo "$text"
     read -r selection
+    echo
     case "$selection" in
 
     1)
@@ -51,7 +52,6 @@ Select distro:
         ;;
 
     *)
-        echo
         echo "*****   Invalid selection   *****"
         sleep 1
         select_distro
