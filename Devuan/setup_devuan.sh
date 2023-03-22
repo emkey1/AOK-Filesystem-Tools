@@ -210,7 +210,7 @@ fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - tsd_start))"
+duration="$(($(date +%s) - $tsd_start))"
 display_time_elapsed "$duration" "Setup Devuan"
 
 if [ "$not_prebuilt" = 1 ]; then
