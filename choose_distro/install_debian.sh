@@ -18,7 +18,7 @@ msg_script_title "install_debian.sh  Downloading & Installing Debian"
 
 debian_download_location="/tmp/debian_fs"
 src_image="$DEBIAN_SRC_IMAGE"
-src_tarball="/$debian_download_location/$debian_src_tb"
+src_tarball="$debian_download_location/$debian_src_tb"
 
 mkdir -p "$debian_download_location"
 cd "$debian_download_location" || {
