@@ -6,7 +6,8 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  Ensure that hostname is in /etc/hosts, if not
+#  Ensure that hostname is in /etc/hosts, if not add it to loopback
+#
 
 host_file="/etc/hosts"
 host_name="$(hostname | tr '[:upper:]' '[:lower:]')"

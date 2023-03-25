@@ -11,8 +11,7 @@
 #
 
 show_help() {
-    cat <<EOF
-Usage: $prog_name [-h] [-v] [-z]
+    echo "Usage: $prog_name [-h] [-v] [-z]
 
 This creates a compressed tar file. that iSH can mount as a file system
 It autodetects FS type, and will use a matching filename for the tarball.
@@ -22,8 +21,7 @@ Available options:
 -h  --help         Print this help and exit.
 -l  --label        Provide a name for tarball (without path or extension)
 -j  --bzip2        Use bzip2 compression
--v  --verbose      Display progrss as FS is being compressed.
-EOF
+-v  --verbose      Display progrss as FS is being compressed."
     exit 0
 }
 

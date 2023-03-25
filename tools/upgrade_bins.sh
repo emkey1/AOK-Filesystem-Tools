@@ -1,0 +1,63 @@
+#!/bin/sh
+# shellcheck disable=SC2154
+
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  upgrades /usr/local/bin & /usr/local/sbin with latest versions
+#  from /opt/AOK, both common and distro based items
+#
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    echo "Executing as root"
+    # using $0 instead of full path makes location not hardcoded
+    if ! sudo "$0" "$@"; then
+        echo
+        echo "ERROR: Failed to sudo $0"
+        echo
+    fi
+    exit 0
+fi
+
+if [ ! -d /opt/AOK ]; then
+    echo "/opt/AOK missing, this can't continue!"
+    exit 1
+fi
+
+echo
+echo "Upgrading /usr/local/bin & /usr/local/bin with current items from /opt/AOK"
+echo
+
+#
+#  Always copy common stuff
+#
+cp -av /opt/AOK/common_AOK/usr_local_bin/* /usr/local/bin
+cp -av /opt/AOK/common_AOK/usr_local_sbin/* /usr/local/sbin
+
+#
+#  Copy distro specific stuff
+#
+if [ -f /etc/alpine-release ]; then
+    cp -av /opt/AOK/Alpine/usr_local_bin/* /usr/local/bin
+    cp -av /opt/AOK/Alpine/usr_local_sbin/* /usr/local/sbin
+elif [ -f /etc/devuan_version ]; then
+    cp -av /opt/AOK/Devuan/usr_local_bin/* /usr/local/bin
+    cp -av /opt/AOK/Devuan/usr_local_sbin/* /usr/local/sbin
+elif [ -f /etc/debian_version ]; then
+    cp -av /opt/AOK/Debian/usr_local_bin/* /usr/local/bin
+    cp -av /opt/AOK/Debian/usr_local_sbin/* /usr/local/sbin
+else
+    echo "ERROR: Failed to recognize Distro, aborting."
+    exit 1
+fi

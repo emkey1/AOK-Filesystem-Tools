@@ -10,8 +10,7 @@
 #
 
 show_help() {
-    cat <<EOF
-Usage: $prog_name [-h] [-v] [-l login procedure]
+    echo "Usage: $prog_name [-h] [-v] [-l login procedure]
 
 An AOK-only script that manages iSH/AOK specific things.
 
@@ -21,8 +20,7 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
-EOF
+-l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)"
     exit 0
 }
 

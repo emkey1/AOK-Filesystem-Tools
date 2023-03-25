@@ -5,6 +5,11 @@
 #  License: MIT
 #
 
+if [ ! -d /opt/AOK ]; then
+    echo "/opt/AOK missing, this can't continue!"
+    exit 1
+fi
+
 # Read important stuff
 # shellcheck disable=SC1091
 . /opt/AOK/AOK_VARS

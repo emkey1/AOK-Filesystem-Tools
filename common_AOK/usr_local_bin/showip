@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! grep -qi aok /proc/ish/version 2>/dev/null; then
+    echo "Not running on iSH-AOK, exiting."
+    exit 1
+fi
+
 INT_IP="$(curl ifconfig.me 2>/dev/null)"
 
 echo "Internet IP: $INT_IP"
