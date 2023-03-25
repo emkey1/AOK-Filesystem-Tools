@@ -18,4 +18,5 @@
 # date      >  /tmp/initial-service-status
 # rc-status >> /tmp/initial-service-status
 
-rc-status  |grep -v -e started -e Runlevel: -e started | awk '{cmd="rc-service " $1 " restart" ; system(cmd)}'
+echo "If nothing is displayed, all services are running"
+rc-status | grep -v -e started -e Runlevel: -e started | awk '{cmd="rc-service " $1 " restart" ; system(cmd)}'
