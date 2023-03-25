@@ -109,7 +109,10 @@ CORE_APKS="busybox-extras coreutils findutils ncurses openrc openssh shadow sudo
 #
 #  Additional packages. These don't work with stock iSH but work with
 #  iSH-AOK and will probably work with the Linux Kernel iSH
-#  Will only be installed if the kernel is identified as iSH-AOK
+#  Will only be installed if the kernel is identified as iSH-AOK.
+#  If doing a prebuild, these will be installed regardless of
+#  build platform, then on first boot at dest device, they
+#  will be removed if at this time the env is not iSH-AOK
 #
 AOK_APKS="procps nload"
 
@@ -123,10 +126,10 @@ AOK_APKS="procps nload"
 #
 #  You can add/modify all the groups to your liking.
 #  Again, consider using .AOK_VARS
-
+#
 VNC_APKS='x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
 
-DEVEL_APKS='py3-pip python3-dev build-base linux-headers cmake'
+DEVEL_APKS='build-base linux-headers cmake automake autoconf byacc py3-pip libffi-dev openssl-dev bzip2-dev zlib-dev xz-dev readline-dev sqlite-dev tk-dev libevent-dev ncurses-dev python3-dev'
 NODEJS_APKS='nodejs nodejs-dev'
 # BLOAT3_APKS='emacs neofetch'
 
