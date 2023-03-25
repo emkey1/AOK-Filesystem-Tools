@@ -12,8 +12,7 @@
 #
 
 show_help() { # Multi OK 1
-    cat <<EOF
-Usage: $prog_name [-h] [-v] [-p] [-c] [-z] [-u]
+    echo "Usage: $prog_name [-h] [-v] [-p] [-c] [-z] [-u]
 
 This builds the iSH-AOK filesystem.
 
@@ -34,8 +33,7 @@ Available options:
                    This can only be done on iSH or Linux (x86)!
 -j  --bzip2        Use bzip2 compression for distribution
 -N  --no_compress  Terminates when FS is prepared, without generating
-                   a FS tarball.
-EOF
+                   a FS tarball."
     exit 0
 }
 
