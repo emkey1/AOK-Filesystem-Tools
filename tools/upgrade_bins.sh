@@ -18,6 +18,18 @@
 #
 #===============================================================
 
+if [ ! -d /opt/AOK ]; then
+    echo "/opt/AOK missing, this can't continue!"
+    exit 1
+fi
+
+#  shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
+if ! is_ish; then
+    error_msg "This should only be run on an iSH platform!"
+fi
+
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
     echo "Executing as root"
@@ -28,11 +40,6 @@ if [ "$(whoami)" != "root" ]; then
         echo
     fi
     exit 0
-fi
-
-if [ ! -d /opt/AOK ]; then
-    echo "/opt/AOK missing, this can't continue!"
-    exit 1
 fi
 
 echo

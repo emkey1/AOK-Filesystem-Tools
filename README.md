@@ -2,6 +2,10 @@
 
 It is assumed this is cloned into /opt/AOK
 
+Since various parts of this is both used in the initial build process on
+the host platform, and also for finalizing the setup on the destination
+platform. It must be located in a known location to be found.
+
 ## Recent changes
 
 - logins supported by all three distros
@@ -9,7 +13,8 @@ It is assumed this is cloned into /opt/AOK
 
 ## Compatability
 
-You can build the FS on any platform, but for chrooting (Prebuilding FS, or testing) you need to use iSH or Linux(x86).
+You can build the FS on any platform, but for chrooting (Prebuilding FS,
+or testing) you need to use iSH or Linux(x86).
 
 ## Distros available
 
