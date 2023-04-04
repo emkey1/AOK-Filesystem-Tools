@@ -286,7 +286,7 @@ create_fs() {
         error_msg "Failed to cd into: $cf_fs_location"
     }
 
-    msg_2 "Extracting $cf_tarball"
+    msg_3 "Extracting $cf_tarball"
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
         cf_filter="z"
     else

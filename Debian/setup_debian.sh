@@ -25,6 +25,7 @@ install_sshd() {
 
     openrc_might_trigger_errors
 
+    msg_3 "Install sshd"
     apt install -y openssh-server
 
     msg_3 "Disable sshd for now, enable it with: enable_sshd"
@@ -33,8 +34,7 @@ install_sshd() {
 
 # should be renamed to prepare_env_etc
 prepare_env_etc() {
-    msg_2 "prepare_env_etc()"
-    msg_2 "Replacing a few /etc files"
+    msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
     msg_3 "Debian AOK inittab"
     cp -a "$aok_content"/Debian/etc/inittab /etc
@@ -44,10 +44,10 @@ prepare_env_etc() {
     #  serve no purpose in iSH, since all this is either handled by iOS
     #  or done by the app before bootup
     #
-    msg_2 "Disabling previous openrc runlevel tasks"
+    msg_3 "Disabling previous openrc runlevel tasks"
     rm /etc/runlevels/*/* -f
 
-    msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
+    msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
     cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
@@ -62,12 +62,12 @@ debian_services() {
     msg_2 "Add boot init.d items suitable for iSH"
     rc-update add urandom boot
 
-    msg_2 "Add shutdown init.d items suitable for iSH"
+    msg_3 "Add shutdown init.d items suitable for iSH"
     rc-update add sendsigs off
     rc-update add umountroot off
     rc-update add urandom off
 
-    msg_2 "Disable some auto-enabled services that wont make sense in iSH"
+    msg_3 "Disable some auto-enabled services that wont make sense in iSH"
     openrc_might_trigger_errors
 
     rc-update del dbus default

@@ -219,7 +219,7 @@ copy_AOK_to_dest() {
     io_dst_conf="$aok_files"/AOK_VARS
     io_conf_overrides="$aok_content"/.AOK_VARS
     if [ -f "$io_conf_overrides" ]; then
-        msg_2 "Appending .AOK_CONF on dest FS"
+        msg_3 "Appending .AOK_CONF on dest FS"
         (
             echo
             echo
@@ -252,7 +252,7 @@ add_additional_tasks_if_defined() {
             echo "$FIRST_BOOT_ADDITIONAL_TASKS"
         } >"$additional_tasks_script"
         chmod 755 "$additional_tasks_script"
-        msg_2 "setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $additional_tasks_script"
+        msg_3 "setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $additional_tasks_script"
     fi
     # msg_3 "add_additional_tasks_if_defined() done"
 }
@@ -307,7 +307,7 @@ select_distro_on_1st_boot() {
 }
 
 prebuild_fs() {
-    msg_2 "prebuild_fs()"
+    msg_1 "prebuild_fs()"
 
     if [ "$build_env" -eq 0 ]; then
         msg_1 "Not possible to pre-build on this environment!"
@@ -317,7 +317,6 @@ prebuild_fs() {
     #
     # chrooting and doing setup
     #
-    msg_1 "Pre-building FS"
     cd "$aok_content" || {
         error_msg "Failed to cd into: $aok_content"
     }
@@ -491,18 +490,18 @@ fi
 cache_fs_image
 create_fs "${src_img_cache_d}/$src_tarball" "$build_root_d" "$verbose"
 copy_AOK_to_dest
-msg_2 "Deployed $aok_content on new filesystem"
+msg_3 "Deployed $aok_content on new filesystem"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
 #  Since setup_alpine.sh will create an AOK relevant motd,
 #  deleting the default one both on Alpine & Debian makes sence.
 #
-msg_2 "remove initial /etc/motd from new filesystem"
+msg_2 "Remove initial /etc/motd from new filesystem"
 rm "$build_root_d"/etc/motd
 
 # Should always happen
-msg_2 "create directory /iCloud inside new filesystem"
+msg_2 "Create directory /iCloud inside new filesystem"
 mkdir "$build_root_d"/iCloud
 
 if [ "$build_target" = "$target_debian" ]; then
