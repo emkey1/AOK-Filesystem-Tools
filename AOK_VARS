@@ -95,10 +95,10 @@ QUICK_DEPLOY=0
 #
 #  ALPINE_VERSION defines what Alpine release will be used
 #
-# ALPINE_VERSION=3.14.9 # End of Alpine support 2023-05-01
-# ALPINE_VERSION=3.15.7 # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.4 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.2 # End of Alpine support 2024-11-22
+# ALPINE_VERSION=3.14.10 # End of Alpine support 2023-05-01
+# ALPINE_VERSION=3.15.8 # End of Alpine support 2023-11-01
+ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.3 # End of Alpine support 2024-11-22
 # ALPINE_VERSION=edge # Current development tree
 
 #
