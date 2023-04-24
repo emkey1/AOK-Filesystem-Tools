@@ -150,4 +150,4 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6
 #
 #  Additional debs for Debian image
 #
-CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages whiptail rsync tmux mosh git python3 python3-minimal curl elinks ncftp openssl nano fortune-mod"
+CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages whiptail rsync tmux mosh git build-essential python3-pip python3-minimal curl elinks ncftp openssl nano fortune-mod"
