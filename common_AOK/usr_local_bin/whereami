@@ -29,7 +29,6 @@ lat="$(echo "$gps" | cut -d, -f 1)"
 lon="$(echo "$gps" | cut -d, -f 2)"
 
 printf " place name..."
-
 url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
 # echo "url is: $url"
 location="$(curl "$url" 2>/dev/null)"
