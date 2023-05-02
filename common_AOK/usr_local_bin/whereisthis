@@ -19,7 +19,7 @@ if ! command -v jq >/dev/null; then
 fi
 
 filter_out_chars() {
-    echo "$1" | sed -e 's/,/ /g' -e 's/+//g' -e 's/ //g'
+    echo "$1" | sed -e 's/,/ /g' -e 's/+//g'
 }
 
 if [ -n "$2" ]; then
