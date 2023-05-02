@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
-#  Display name of selected location
+#  whereisthis - Display name of selected location
 #
 
 #
@@ -18,11 +18,34 @@ if ! command -v jq >/dev/null; then
     }
 fi
 
-printf "Lattitude " >&2
-read -r lat
-printf "Longditude " >&2
-read -r lon
+filter_out_chars() {
+    echo "$1" | sed -e 's/,/ /g' -e 's/+//g' -e 's/ //g'
+}
 
+if [ -n "$2" ]; then
+    lat="$(filter_out_chars "$1")"
+    lon="$(filter_out_chars "$2")"
+elif [ -n "$1" ]; then
+    if [ "${1#*","}" != "$1" ]; then
+        #
+        # In this case only filter out +
+        # , is a separator we need to scan for
+        #
+        lat="$(echo "$1" | sed 's/+//g' | cut -d, -f 1)"
+        lon="$(echo "$1" | sed 's/+//g' | cut -d, -f 2)"
+    else
+        echo "When given as one param, use ',' as separator for lat,lon"
+        exit 1
+    fi
+else
+    printf "Lattitude " >&2
+    read -r lat
+    printf "Longditude " >&2
+    read -r lon
+fi
+
+# echo "lat: [$lat]"
+# echo "lon: [$lon]"
 url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
 # echo "url is: $url"
 location="$(curl "$url" 2>/dev/null)"
