@@ -43,7 +43,7 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 echo
-echo "Upgrading /usr/local/bin & /usr/local/bin with current items from /opt/AOK"
+echo "Upgrading /usr/local/bin & /usr/local/sbin with current items from /opt/AOK"
 echo
 
 #
