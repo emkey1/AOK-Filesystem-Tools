@@ -7,4 +7,11 @@
 # Simple script to put text into the cut and paste buffer.
 # Example:  dmesg | pbcopy
 # Based on a script posted by Ian Edington on the ish Discord server
-cat - > /dev/clipboard
+#
+
+if [ ! -d /proc/ish ]; then
+    echo "This can only be run on iSH kernels!"
+    exit 1
+fi
+
+cat - >/dev/clipboard

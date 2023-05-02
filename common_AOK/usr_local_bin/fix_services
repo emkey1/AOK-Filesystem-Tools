@@ -10,6 +10,11 @@
 #
 version="0.1.0  2022-05-25"
 
+if [ ! -d /proc/ish ]; then
+    echo "This can only be run on iSH kernels!"
+    exit 1
+fi
+
 prog_name=$(basename "$0")
 
 # execute again as root
@@ -19,8 +24,6 @@ if [ "$(whoami)" != "root" ]; then
     sudo "$0"
     exit 0
 fi
-
-
 
 echo "$prog_name  $version"
 echo

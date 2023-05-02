@@ -1,2 +1,8 @@
 #!/bin/sh
+
+if [ ! -d /proc/ish ]; then
+    echo "This can only be run on iSH kernels!"
+    exit 1
+fi
+
 cat /proc/ish/version
