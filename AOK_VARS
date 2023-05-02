@@ -104,7 +104,8 @@ ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
 #
 #  Always installed packages
 #
-pkgs_tools="busybox-extras coreutils util-linux sudo shadow tzdata findutils sed tar file gawk grep less git py3-pip"
+pkgs_tools="busybox-extras coreutils util-linux sudo shadow tzdata findutils \
+    sed tar file gawk grep less git py3-pip"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh rsync curl elinks ncftp mosh"
@@ -135,13 +136,21 @@ AOK_APKS="procps nload"
 #  You can add/modify all the groups to your liking.
 #  Again, consider using .AOK_VARS
 #
-VNC_APKS='x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
+VNC_APKS="x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock \
+    xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu"
 
-DEVEL_APKS='build-base linux-headers cmake automake autoconf byacc ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev ncurses-dev python3-dev'
+DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
+    ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev bzip2-dev \
+    zlib-dev xz-dev sqlite-dev tk-dev libevent-dev ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
 # BLOAT3_APKS='emacs neofetch'
 
-DOCS_APKS='openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc'
+DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc tmux-doc \
+    mandoc shadow-doc mosh-doc fortune-doc tzdata-doc elinks-doc dcron-doc \
+    vim-doc ncftp-doc coreutils-doc findutils-doc tar-doc ncurses-doc \
+    less-doc sed-doc gawk-doc grep-doc util-linux-doc tzdata-doc x11vnc-doc \
+    xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc strace-doc mandoc \
+    man-pages bash-doc strace-doc procps-doc rsync-doc htop-doc"
 
 ########################################################################
 #
@@ -158,4 +167,6 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6
 #
 #  Additional debs for Debian image
 #
-CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages whiptail rsync tmux mosh git build-essential automake python3-pip python3-minimal curl elinks ncftp openssl nano fortune-mod"
+CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages \
+    whiptail rsync tmux mosh git build-essential automake python3-pip \
+    python3-minimal curl elinks ncftp openssl nano fortune-mod"
