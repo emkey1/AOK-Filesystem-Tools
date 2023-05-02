@@ -50,5 +50,4 @@ url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&f
 # echo "url is: $url"
 location="$(curl "$url" 2>/dev/null)"
 
-printf "\n"
 echo "$location" | jq .display_name
