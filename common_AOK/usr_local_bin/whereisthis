@@ -8,7 +8,7 @@
 #
 
 filter_out_chars() {
-    echo "$1" | sed -e 's/,/ /g' -e 's/+//g' -e 's/ //g'
+    echo "$1" | sed -e 's/,//g' -e 's/+//g'
 }
 
 #
@@ -44,8 +44,8 @@ else
     read -r lon
 fi
 
-# echo "lat: [$lat]"
-# echo "lon: [$lon]"
+echo "lat: [$lat]"
+echo "lon: [$lon]"
 url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
 # echo "url is: $url"
 location="$(curl "$url" 2>/dev/null)"
