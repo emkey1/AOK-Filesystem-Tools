@@ -17,6 +17,10 @@ env_prepare() {
 
     # msg_3 "Mounting system resources"
 
+    if mount | grep -q "$CHROOT_TO" ; then
+	error_msg "This is already chrooted!"
+    fi
+
     mount -t proc proc "$CHROOT_TO"/proc
 
     if [ "$build_env" -eq 1 ]; then

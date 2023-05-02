@@ -286,7 +286,7 @@ create_fs() {
         error_msg "Failed to cd into: $cf_fs_location"
     }
 
-    msg_2 "Extracting $cf_tarball"
+    msg_3 "Extracting $cf_tarball (will take upto a few mins)"
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
         cf_filter="z"
     else
@@ -373,7 +373,7 @@ should_icloud_be_mounted() {
     unset sibm_dlg_app
     unset sibm_text
     unset sibm_exitstatus
-    # msg_3 "should_icloud_be_mounted()  done"
+    msg_3 "should_icloud_be_mounted()  done"
 }
 
 #
@@ -396,7 +396,7 @@ run_as_root() {
 #  Busybox wget cant hanle redirects, this installs real wget if needbe
 #
 ensure_usable_wget() {
-    msg_2 "ensure_usable_wget()"
+    msg_3 "ensure_usable_wget()"
     #  shellcheck disable=SC2010
     if ls -l "$(command -v wget)" | grep -q busybox; then
         error_msg "You need to install a real wget, busybox does not handle redirects"

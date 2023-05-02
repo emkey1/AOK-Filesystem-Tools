@@ -30,7 +30,7 @@ msg_script_title "select_distro_prepare.sh  Prep for distro select"
 #
 #  Needed in order to find dialog/newt in case they have been updated
 #
-msg_3 "apk update & upgrade"
+msg_2 "apk update & upgrade"
 apk update && apk upgrade
 
 msg_3 "Installing wget (needed for Debian download)"

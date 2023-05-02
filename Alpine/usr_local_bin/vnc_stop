@@ -7,8 +7,7 @@
 #  Shutting down vnc-server if running
 #
 
-# shellcheck disable=SC2009,SC2143
-if [ -n "$(ps ax | grep -v grep | grep Xorg)" ]; then
+if [ -n "$(pgrep Xorg)" ]; then
     killall Xorg
 
     sleep 2

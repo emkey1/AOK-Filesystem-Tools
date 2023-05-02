@@ -20,7 +20,7 @@ install_sshd() {
     #
     msg_1 "Installing openssh-server"
 
-    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
+    msg_2 "Remove previous ssh host keys if present in FS to ensure not using known keys"
     rm -f /etc/ssh/ssh_host*key*
 
     # openrc_might_trigger_errors
@@ -49,7 +49,7 @@ prepare_env_etc() {
     # msg_2 "Disabling previous openrc runlevel tasks"
     # rm /etc/runlevels/*/* -f
 
-    msg_2 "Adding env versions & AOK Logo to /etc/update-motd.d"
+    msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
     cp -a "$aok_content"/Devuan/etc/update-motd.d/* /etc/update-motd.d
 

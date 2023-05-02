@@ -7,12 +7,7 @@
 # Start vnc-server if not running
 #
 
-# Remove stale locks from /tmp
-
-# shellcheck disable=SC2009
-CHECK="$(ps ax | grep /usr/bin/startx | grep -v grep)"
-
-echo ">> CHECK:[$CHECK]"
+CHECK="$(pgrep startx)"
 
 # Do minimal sanity check to see if vnc/X11 are installed
 if [ ! -f /etc/X11/xorg.conf.d/10-headless.conf ]; then

@@ -35,7 +35,7 @@ install_apks() {
             #  If you want to override CORE_APKS in a quick deploy
             #  set it to a value higher than 1
             #
-            msg_2 "QUICK_DEPLOY=1 - doing minimal package install"
+            msg_3 "QUICK_DEPLOY=1 - doing minimal package install"
             #  probably absolute minimal without build errors
             # CORE_APKS="openssh bash openrc sudo dcron dcron-openrc"
             CORE_APKS="bash openrc"
@@ -87,8 +87,7 @@ install_aok_apks() {
 }
 
 replace_key_files() {
-    msg_2 "replace_key_files()"
-    msg_2 "Replacing a few /etc files"
+    msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
     msg_3 "Our inittab"
     cp "$aok_content"/Alpine/etc/inittab /etc
@@ -164,7 +163,7 @@ echo "$alpine_release" >"$file_alpine_release"
 replace_key_files
 setup_login
 
-msg_2 "apk update"
+msg_1 "apk update"
 apk update
 
 #
@@ -175,7 +174,7 @@ if ! bldstat_get "$status_prebuilt_fs"; then
     user_interactions
 fi
 
-msg_2 "apk upgrade"
+msg_1 "apk upgrade"
 apk upgrade
 
 install_apks

@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Display name of current location
+#
+
+if [ ! -d /proc/ish ]; then
+    echo "This can only be run on iSH kernels!"
+    exit 1
+fi
+
+#
+#  Ensuring jq is available
+#
+if ! command -v jq >/dev/null; then
+    echo "Installing missing dependency jq"
+    sudo apk add jq || {
+        echo "ERROR: Failed to install jq"
+        exit 1
+    }
+fi
+
+printf "Gathering location..."
+gps="$(head -n1 /dev/location | sed 's/+//g')"
+lat="$(echo "$gps" | cut -d, -f 1)"
+lon="$(echo "$gps" | cut -d, -f 2)"
+
+printf " place name..."
+url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
+# echo "url is: $url"
+location="$(curl "$url" 2>/dev/null)"
+
+printf "\n"
+echo "$location" | jq .display_name
