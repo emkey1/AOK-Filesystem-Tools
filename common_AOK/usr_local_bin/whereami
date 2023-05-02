@@ -28,10 +28,11 @@ gps="$(head -n1 /dev/location | sed 's/+//g')"
 lat="$(echo "$gps" | cut -d, -f 1)"
 lon="$(echo "$gps" | cut -d, -f 2)"
 
-printf " place name..."
+printf "place name..."
 url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
 # echo "url is: $url"
 location="$(curl "$url" 2>/dev/null)"
+printf "\n\n"
 
-printf "\n"
+echo "GPS location: $gps"
 echo "$location" | jq .display_name
