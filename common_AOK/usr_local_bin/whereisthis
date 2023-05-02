@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Display name of selected location
+#
+
+#
+#  Ensuring jq is available
+#
+if ! command -v jq >/dev/null; then
+    echo "Installing missing dependency jq"
+    sudo apk add jq || {
+        echo "ERROR: Failed to install jq"
+        exit 1
+    }
+fi
+
+printf "Lattitude " >&2
+read -r lat
+printf "Longditude " >&2
+read -r lon
+
+url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
+# echo "url is: $url"
+location="$(curl "$url" 2>/dev/null)"
+
+printf "\n"
+echo "$location" | jq .display_name
