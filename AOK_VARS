@@ -104,7 +104,15 @@ ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
 #
 #  Always installed packages
 #
-CORE_APKS="busybox-extras coreutils findutils ncurses openrc openssh shadow sudo ssl_client tzdata util-linux bash zsh dcron dcron-openrc file gawk grep less newt rsync sed tar tmux mosh git ncurses-dev openssl-dev curl elinks ncftp vim nano fortune"
+pkgs_tools="busybox-extras coreutils util-linux sudo shadow tzdata findutils sed tar file gawk grep less git py3-pip"
+pkgs_shells="bash zsh"
+pkgs_services="openrc dcron dcron-openrc"
+pkgs_net_tools="ssl_client openssh rsync curl elinks ncftp mosh"
+pkgs_editing="vim nano"
+pkgs_text_ui="ncurses newt tmux"
+pkgs_other="fortune"
+CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
+    $pkgs_editing $pkgs_text_ui $pkgs_other"
 
 #
 #  Additional packages. These don't work with stock iSH but work with
@@ -129,7 +137,7 @@ AOK_APKS="procps nload"
 #
 VNC_APKS='x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc ttf-dejavu'
 
-DEVEL_APKS='build-base linux-headers cmake automake autoconf byacc py3-pip libffi-dev openssl-dev bzip2-dev zlib-dev xz-dev readline-dev sqlite-dev tk-dev libevent-dev ncurses-dev python3-dev'
+DEVEL_APKS='build-base linux-headers cmake automake autoconf byacc ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev ncurses-dev python3-dev'
 NODEJS_APKS='nodejs nodejs-dev'
 # BLOAT3_APKS='emacs neofetch'
 
