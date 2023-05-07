@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if ! grep -qi aok /proc/ish/version 2>/dev/null; then
-    echo "Not running on iSH-AOK, exiting."
-    exit 1
-fi
-
 printf "Internet IP:  "
 if curl -s http://ifconfig.me; then
     printf "\n"
@@ -12,12 +7,18 @@ else
     echo "Error: Unable to determine"
 fi
 
+if ! grep -qi aok /proc/ish/version 2>/dev/null; then
+    echo "Not running on iSH-AOK, exiting."
+    exit 1
+fi
+
+
 if [[ -f "/proc/ish/ips" ]]; then
     declare -A OUTPUT_ARRAY
     while read -r line; do
         if [[ $line =~ ^en.*INET6 ]]; then
             OUTPUT_ARRAY["v6"]=$(echo "$line" | awk '{print $2}')
-        elif [[ $line =~ ^en.*INET ]]; then
+        elif [[ $line =~ ^.*INET\  ]]; then
             OUTPUT_ARRAY["v4"]=$(echo "$line" | awk '{print $2}')
         fi
     done <"/proc/ish/ips"
