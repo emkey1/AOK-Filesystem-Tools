@@ -7,6 +7,11 @@
 # Enable sshd to run automatically
 #
 
+if [ ! -d /proc/ish ]; then
+    echo "This can only be run on iSH kernels!"
+    exit 1
+fi
+
 if [ -f /etc/opt/AOK/is_chrooted ]; then
     echo "This can't be run when chrooted!"
     exit 1

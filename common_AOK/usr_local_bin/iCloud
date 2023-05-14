@@ -7,6 +7,12 @@
 #  Make it easier for people to mount their iCloud drive in iSh,
 #  Also create a /iCloud/AOK directory
 #
+
+if [ ! -d /proc/ish ]; then
+    echo "This can only be run on iSH kernels!"
+    exit 1
+fi
+
 echo "When the file picker pops up please choose a "
 echo "directory to mount."
 echo
