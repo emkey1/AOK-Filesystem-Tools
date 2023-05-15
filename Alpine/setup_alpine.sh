@@ -160,6 +160,12 @@ fi
 msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
 echo "$alpine_release" >"$file_alpine_release"
 
+if ! min_release "3.16"; then
+    # This package was introduced starting with Alpine 3.16
+    msg_3 "Excluding not yet available apk 'shadow-login"
+    CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
+fi
+
 replace_key_files
 setup_login
 
