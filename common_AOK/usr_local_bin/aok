@@ -24,6 +24,10 @@ Available options:
     exit 0
 }
 
+is_alpine() {
+    test -f /etc/alpine-release
+}
+
 change_login_procedure() {
     requested_method="$1"
 
@@ -43,6 +47,7 @@ change_login_procedure() {
         echo "  This App will exit when you logout"
         rm -f /bin/login
         ln -sf /bin/login.once /bin/login
+        echo "once" >"$login_method_stored"
         exit 0
         ;;
 
@@ -52,6 +57,7 @@ change_login_procedure() {
         echo "  if one has been set when launching this App"
         rm -f /bin/login
         ln -sf /bin/login.loop /bin/login
+        echo "enabled" >"$login_method_stored"
         exit 0
         ;;
 
@@ -59,11 +65,21 @@ change_login_procedure() {
         echo "Disabling login prompt on startup. You will start at root prompt"
         echo "  when launching this App"
         rm -f /bin/login
-        if [ -f /etc/alpine-release ]; then
+
+        if [ -f "$login_original" ]; then
+            #
+            #  This will also be the case for Alpine when shadow-login
+            #  is installed
+            #
+            ln -sf "$login_original" /bin/login
+        elif is_alpine; then
             ln -sf "/bin/busybox" /bin/login
         else
-            ln -sf "/bin/login.original" /bin/login
+            echo "ERROR: not Alpine and no $login_original"
+            exit 1
         fi
+
+        echo "disabled" >"$login_method_stored"
         exit 0
         ;;
 
@@ -82,14 +98,54 @@ change_login_procedure() {
     esac
 }
 
-display_login_method() {
-    if ls -l /bin/login | grep -q login.loop; then
+check_login_method() {
+    if ls -l /bin/login 2>/dev/null | grep -q login.loop; then
         echo "enabled"
-    elif ls -l /bin/login | grep -q login.once; then
+    elif ls -l /bin/login 2>/dev/null | grep -q login.once; then
         echo "once"
     else
         echo "disabled"
     fi
+}
+
+display_login_method() {
+    mthd_active="$(check_login_method)"
+    mthd_intended="$(cat $login_method_stored 2>/dev/null)"
+
+    if [ "$mthd_active" = "$mthd_intended" ]; then
+        echo "$mthd_active"
+        if [ ! -f /bin/login ]; then
+            if [ -f /bin/login.original ]; then
+                ln -sf /bin/login.original /bin/login
+            else
+                echo "ERROR: /bin/login missing"
+            fi
+        fi
+        exit 0
+    fi
+
+    echo "Inconsistency detected"
+    echo
+    echo "WARNING: active login method not the intended one"
+    echo "         attempting to fix"
+    echo
+    echo "current:   $mthd_active"
+    echo "intended: $mthd_intended"
+    echo
+
+    #
+    #  If stored setting not available repeat usage of active, in order
+    #  to set the selected to match
+    #
+    [ -z "$mthd_intended" ] && mthd_intended="$mthd_active"
+
+    case "$mthd_intended" in
+    "disabled") mthd="disable" ;;
+    "once") mthd="once" ;;
+    "enabled") mthd="enable" ;;
+    esac
+
+    change_login_procedure "$mthd"
 }
 
 #===============================================================
@@ -97,6 +153,14 @@ display_login_method() {
 #   Main
 #
 #===============================================================
+
+#
+#  Store login method, so that if /bin/login was updated
+#  it can be restored to intended state.
+#
+login_method_stored="/etc/opt/AOK-login_method"
+
+login_original="/bin/login.original"
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
@@ -108,6 +172,17 @@ if [ "$(whoami)" != "root" ]; then
         echo
     fi
     exit 0
+fi
+
+if is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
+    #
+    #  If /bin/login has been updated, ie is a file, this would indicate
+    #  shadow-login or similar has been updated. Update $login_original
+    #
+    mv /bin/login "$login_original"
+
+    # will restore it to its previous state, if need be
+    display_login_method
 fi
 
 verbose=0

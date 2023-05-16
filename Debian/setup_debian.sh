@@ -91,10 +91,6 @@ setup_login() {
 
     cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
 
-    #  For now use a safe method, the requested method will be
-    #  setup towards the end of the setup process
-    # SKIP_LOGIN
-    msg_3 "Prepping Debian login"
     cp -a /bin/login /bin/login.original
 }
 
