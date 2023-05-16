@@ -44,16 +44,6 @@ install_apks() {
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
         apk add $CORE_APKS
-
-        #
-        #  Starting with 3.16 shadow /bin/login is in its own package
-        #  simplest way to handle this is to just check if such a package
-        #  is present, if found install it.
-        #
-        if [ -n "$(apk search shadow-login)" ]; then
-            msg_3 "Installing shadow-login"
-            apk add shadow-login
-        fi
     elif [ "$QUICK_DEPLOY" -eq 1 ]; then
         msg_1 "QUICK_DEPLOY - skipping CORE_APKS"
     else
@@ -130,11 +120,7 @@ setup_login() {
     cp "$aok_content"/Alpine/bin/login.once /bin
     chmod +x /bin/login.once
 
-    #  For now use a safe method, the requested method will be
-    #  setup towards the end of the setup process
-    rm /bin/login
-    ln -sf /bin/busybox /bin/login
-
+    cp -av /bin/login /bin/login.original
 }
 
 #===============================================================
@@ -161,13 +147,14 @@ msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
 echo "$alpine_release" >"$file_alpine_release"
 
 if ! min_release "3.16"; then
-    # This package was introduced starting with Alpine 3.16
-    msg_3 "Excluding not yet available apk 'shadow-login"
-    CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
+    if [ -z "${CORE_APKS##*shadow-login*}" ]; then
+        # This package was introduced starting with Alpine 3.16
+        msg_3 "Excluding not yet available apk 'shadow-login"
+        CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
+    fi
 fi
 
 replace_key_files
-setup_login
 
 msg_1 "apk update"
 apk update
@@ -185,6 +172,8 @@ apk upgrade
 
 install_apks
 install_aok_apks
+
+setup_login
 
 msg_2 "Copy /etc/motd_template"
 cp -a "$aok_content"/Alpine/etc/motd_template /etc
