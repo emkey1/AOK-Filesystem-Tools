@@ -6,8 +6,10 @@
 #  to complete under iSH, leaving just a blank screen. Just a guess,
 #  but could be that the Launch cmd (triggering /etc/profile) is run
 #  before the OS is ready?
+#  2023-05-17 Trying without it now, enable it if you see just a blank
+#  scren  when iSH is started
 #
-sleep 2
+# sleep 2
 
 if [ "$(id -u)" -eq 0 ]; then
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

@@ -16,8 +16,10 @@
 #  to complete under iSH, leaving just a blank screen. Just a guess,
 #  but could be that the Launch cmd (triggering /etc/profile) is run
 #  before the OS is ready?
+#  2023-05-17 Trying without it now, enable it if you see just a blank
+#  scren  when iSH is started
 #
-sleep 2
+# sleep 2
 
 # Let's set the path here since that covers both zsh and bash
 export PATH=/usr/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/usr/local/games
