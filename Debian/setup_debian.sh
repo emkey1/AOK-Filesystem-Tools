@@ -25,8 +25,8 @@ install_sshd() {
 
     openrc_might_trigger_errors
 
-    msg_3 "Install sshd"
-    apt install -y openssh-server
+    msg_3 "Install sshd and sftp-server (scp server part)"
+    apt install -y openssh-server openssh-sftp-server
 
     msg_3 "Disable sshd for now, enable it with: enable_sshd"
     rc-update del ssh default
