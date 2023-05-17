@@ -32,5 +32,6 @@ sudo rc-service "$srvc_name" start
 
 echo
 echo "Remember to set a password for the ish user if you haven't already"
-echo "Do this by typing 'passwd' and following the prompts"
+echo "Do this by typing 'passwd ish' (if your root) or just 'passwd' (if you are the user)"
+echo " and follow the prompts"
 echo
