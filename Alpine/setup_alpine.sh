@@ -120,7 +120,7 @@ setup_login() {
     cp "$aok_content"/Alpine/bin/login.once /bin
     chmod +x /bin/login.once
 
-    cp -av /bin/login /bin/login.original
+    cp -a /bin/login /bin/login.original
 }
 
 #===============================================================
