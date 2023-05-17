@@ -143,7 +143,7 @@ if [ -z "$alpine_release" ]; then
     error_msg "alpine_release param not supplied"
 fi
 
-msg_2 "Setting $file_alpine_release to $ALPINE_VERSION"
+msg_2 "Setting $file_alpine_release to $alpine_release"
 echo "$alpine_release" >"$file_alpine_release"
 
 if ! min_release "3.16"; then
