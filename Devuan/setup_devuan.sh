@@ -23,12 +23,13 @@ install_sshd() {
     msg_2 "Remove previous ssh host keys if present in FS to ensure not using known keys"
     rm -f /etc/ssh/ssh_host*key*
 
-    # openrc_might_trigger_errors
+    openrc_might_trigger_errors
 
-    # apt install -y openssh-server
+    msg_3 "Install sshd and sftp-server (scp server part)"
+    apt install -y openssh-server openssh-sftp-server
 
-    # msg_3 "Disable sshd for now, enable it with: enable_sshd"
-    # rc-update del ssh default
+    msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    rc-update del ssh default
 }
 
 prepare_env_etc() {
@@ -147,7 +148,12 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
         echo "$CORE_DEB_PKGS"
         bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
     fi
-    install_sshd
+    #
+    # Devuan draws in some 91 packages if openssh-server is installed
+    # seems a bit much, also I havent figured out how to disable sshd
+    # initially, so not active ATM
+    #
+    # install_sshd
 else
     msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
 fi
