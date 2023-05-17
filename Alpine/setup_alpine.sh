@@ -121,6 +121,14 @@ setup_login() {
     chmod +x /bin/login.once
 
     cp -a /bin/login /bin/login.original
+
+    #
+    #  Not entirely ideal, here the target file is hardcoded
+    #  separatedly from /usr/local/bin//aok where it is also used.
+    #  Opens for inconsistency, but since aok doesnt depend on
+    #  /opt/AOK/tools/utils.sh not much to be done at the moment.
+    #
+    echo "disabled" > /etc/opt/AOK-login_method
 }
 
 #===============================================================
