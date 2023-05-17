@@ -69,12 +69,9 @@ setup_login() {
     cp "$aok_content"/Debian/bin/login.once /bin
     chmod +x /bin/login.once
 
+    # TODO: enabled in Debian, verify it can be ignored here
     # cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
 
-    #  For now use a safe method, the requested method will be
-    #  setup towards the end of the setup process
-    # SKIP_LOGIN
-    msg_3 "Prepping Devuan login"
     cp -a /bin/login /bin/login.original
 }
 

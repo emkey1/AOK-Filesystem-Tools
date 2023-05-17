@@ -122,6 +122,29 @@ is_chrooted() {
     bldstat_get "$status_is_chrooted"
 }
 
+min_release() {
+    #
+    #  Param is major release, like 3.16 or 3.17
+    #  returns true if the current release matches or is higher
+    #
+    rel_min="$1"
+    [ -z "$rel_min" ] && error_msg "min_release() no param given!"
+
+    # For edge always return true
+    [ "$ALPINE_VERSION" = "edge" ] && return 0
+
+    rel_this="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
+    result=$(awk -v x="$rel_min" -v y="$rel_this" 'BEGIN{if (x > y) print 1; else print 0}')
+
+    if [ "$result" -eq 1 ]; then
+        return 1 # false
+    elif [ "$result" -eq 0 ]; then
+        return 0 # true
+    else
+        error_msg "min_release() Failed to compare releases"
+    fi
+}
+
 #
 #  bldstat_xxx is manipulating state files under $aok_content_etc on
 #  the dest FS, indicating things like if this is chrooted and so on
