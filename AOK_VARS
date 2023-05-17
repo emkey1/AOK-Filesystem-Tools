@@ -104,9 +104,9 @@ ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
 #
 #  Always installed packages
 #
-tzdata findutils pkgs_tools="busybox-extras coreutils util-linux sudo \
-    shadow shadow-login tzdata findutils sed tar file gawk grep less \
-    git py3-pip"
+pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
+    shadow-login tzdata findutils sed tar file gawk grep less git \
+    py3-pip"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh rsync curl elinks ncftp mosh"
