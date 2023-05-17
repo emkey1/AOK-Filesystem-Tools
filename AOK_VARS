@@ -109,7 +109,7 @@ pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
     py3-pip"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
-pkgs_net_tools="ssl_client openssh rsync curl elinks ncftp mosh"
+pkgs_net_tools="ssl_client openssh rsync curl elinks mosh"
 pkgs_editing="vim nano"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
@@ -171,6 +171,14 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6
 #
 #  Additional debs for Debian image
 #
-CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages \
-    whiptail rsync tmux mosh git build-essential automake python3-pip \
-    python3-minimal curl elinks ncftp openssl nano fortune-mod"
+pkgs_tools="psmisc tzdata file gawk less git manpages man-db \
+    python3-pip python3-minimal"
+pkgs_shells="zsh "
+pkgs_devel="build-essential automake"
+pkgs_net_tools="openssl openssh-client rsync curl elinks mosh"
+pkgs_editing="nano"
+pkgs_text_ui="whiptail tmux"
+pkgs_other="fortune-mod"
+
+CORE_DEB_PKGS="$pkgs_tools $pkgs_shells $pkgs_devel $pkgs_net_tools \
+    $pkgs_editing $pkgs_text_ui $pkgs_other"
