@@ -94,7 +94,11 @@ replace_key_files() {
         if [ "$ALPINE_VERSION" = "edge" ]; then
             msg_3 "Adding apk repositories containing testing"
             cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-        elif [ "$alpine_release" = "3.17" ]; then
+        elif min_release 3.17; then
+	    #
+	    #  Only works for fairly recent releases, otherwise dependencies won't
+	    #  work.
+	    #
             msg_3 "Adding edge/testing as a restricted repo"
             msg_3 " in order to install testing apks do apk add foo@testing"
             msg_3 " in case of incompatible dependencies an error will be displayed"
