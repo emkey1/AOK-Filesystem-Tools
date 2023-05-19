@@ -112,7 +112,6 @@ replace_key_files() {
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
     # msg_3 "replace_key_files() done"
-    error_msg "ABORT BUILD"
 }
 
 setup_login() {
