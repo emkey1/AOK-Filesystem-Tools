@@ -91,25 +91,28 @@ replace_key_files() {
     fi
 
     if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        msg_3 "Adding apk repository - testing"
         if [ "$ALPINE_VERSION" = "edge" ]; then
-            msg_3 "Adding apk repositories containing testing"
             cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
         elif min_release 3.17; then
-	    #
-	    #  Only works for fairly recent releases, otherwise dependencies won't
-	    #  work.
-	    #
-            msg_3 "Adding edge/testing as a restricted repo"
-            msg_3 " in order to install testing apks do apk add foo@testing"
-            msg_3 " in case of incompatible dependencies an error will be displayed"
-            msg_3 " and nothing bad will happen."
+            #
+            #  Only works for fairly recent releases, otherwise dependencies won't
+            #  work.
+            #
+            msg_3 "  edge/testing is setup as a restricted repo, in order"
+            msg_3 "  to install testing apks do apk add foo@testing"
+            msg_3 "  In case of incompatible dependencies an error will"
+            msg_3 "  be displayed, and nothing bad will happen."
             echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+        else
+            msg_3 "  Release to old, testing repo commented out"
+            echo "# @testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
         fi
     else
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
-
-    msg_3 "replace_key_files() done"
+    # msg_3 "replace_key_files() done"
+    error_msg "ABORT BUILD"
 }
 
 setup_login() {
@@ -132,7 +135,7 @@ setup_login() {
     #  Opens for inconsistency, but since aok doesnt depend on
     #  /opt/AOK/tools/utils.sh not much to be done at the moment.
     #
-    echo "disabled" > /etc/opt/AOK-login_method
+    echo "disabled" >/etc/opt/AOK-login_method
 }
 
 #===============================================================
