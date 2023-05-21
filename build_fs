@@ -141,7 +141,7 @@ display_build_target() { # Multi OK 1
     if [ "$(find "$build_root_d"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
         echo "ERROR: Active chroot session detected!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
-        echo "         sudo ./tools/do_chroot.sh -c"
+        echo "         sudo tools/do_chroot.sh -c"
         echo
         exit 1
     fi
