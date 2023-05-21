@@ -11,7 +11,7 @@ use posix script for Debian/Devuan
 xloem provided this snippet, I have not yet fully understood what the
 script parts are supposed to do, but I saved it here for further inspection
 
-```
+```bash
 sudo apt -y install build-essential cmake git gcc-8-multilib
 git clone https://github.com/xloem/mimalloc
 cd mimalloc
