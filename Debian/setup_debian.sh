@@ -94,6 +94,20 @@ setup_login() {
     cp -a /bin/login /bin/login.original
 }
 
+mimalloc_install() {
+    msg_2 "mimalloc_install()"
+    apt -y install cmake gcc-8-multilib
+    cd /tmp || error_msg "mimalloc_install() Failed: cd /tmp"
+    git clone https://github.com/xloem/mimalloc
+    cd mimalloc || error_msg "mimalloc_install() Failed: cd mimalloc"
+    git checkout vmem
+    mkdir build
+    cd build || error_msg "mimalloc_install() Failed: cd build"
+    cmake ..
+    make install
+    msg_3 "mimalloc_install() - done"
+}
+
 #===============================================================
 #
 #   Main
@@ -211,6 +225,8 @@ fi
 
 setup_login
 
+mimalloc_install
+
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
 #  on first boot or now.
@@ -224,7 +240,7 @@ fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - $tsd_start))"
+duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 
 if [ "$not_prebuilt" = 1 ]; then
