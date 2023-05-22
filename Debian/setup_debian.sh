@@ -105,6 +105,7 @@ mimalloc_install() {
     cd build || error_msg "mimalloc_install() Failed: cd build"
     cmake ..
     make install
+    cp -av "$aok_content"/Debian/mimalloc_patch/mimalloc /usr/local/bin
     msg_3 "mimalloc_install() - done"
 }
 
@@ -225,7 +226,11 @@ fi
 
 setup_login
 
-mimalloc_install
+if [ "$USE_MIMALLOC" = "YES" ]; then
+    mimalloc_install
+else
+    msg_2 "Skipping MIMALLOC patch"
+fi
 
 #
 #  Depending on if prebuilt or not, either setup final tasks to run

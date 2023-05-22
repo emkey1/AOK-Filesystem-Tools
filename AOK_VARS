@@ -163,6 +163,11 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
 ########################################################################
 
 #
+#  Use alternate malloc suggested by xloem, still in development
+#
+# USE_MIMALLOC="YES"
+
+#
 #  If a Debian install is selected, this tarball will be used as base image
 #
 DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/uzga9vf2rc2w2wg/Debian10-ish-base-v29.tgz"
