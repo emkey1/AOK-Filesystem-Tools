@@ -12,7 +12,8 @@
 #
 #  Completes the setup of Alpine.
 #  On normal installs, this runs at the end of the install.
-#  On pre-builds this will be run on first boot at destination device
+#  On pre-builds this will be run on first boot at destination device,
+#  so it can be assumed this is running on deploy destination
 #
 
 #
@@ -69,6 +70,9 @@ fi
 bldstat_clear_all
 
 select_profile "$aok_content"/Alpine/etc/profile
+
+# Deploy user custom files, if defined
+"$aok_content"/custom/custom_files.sh
 
 run_additional_tasks_if_found
 

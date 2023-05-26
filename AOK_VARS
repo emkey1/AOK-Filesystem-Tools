@@ -86,6 +86,14 @@ INITIAL_LOGIN_MODE="enable"
 #
 QUICK_DEPLOY=0
 
+#
+#  If you run both aok and regular iSH on the same device
+#  this setting modifies the hostname for aok kernels to have -aok suffix
+#  So my iPad JacPad would be calling itself JacPad-aok if you check
+#  `hostname` on iSH-AOK
+#
+# AOK_HOSTNAME_SUFFIX="Y"
+
 ########################################################################
 #
 #                   Alpine Specific
@@ -100,6 +108,11 @@ ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.3 # End of Alpine support 2024-11-22
 # ALPINE_VERSION=3.18.0 # End of Alpine support 2025-05-09
 # ALPINE_VERSION=edge # Current development tree
+
+#
+#  Use this if you want to deploy your own /etc/hosts file etc
+#
+# ALPINE_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
 
 #
 #  Always installed packages
@@ -187,3 +200,5 @@ pkgs_other="fortune-mod"
 
 CORE_DEB_PKGS="$pkgs_tools $pkgs_shells $pkgs_devel $pkgs_net_tools \
     $pkgs_editing $pkgs_text_ui $pkgs_other"
+
+# DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
