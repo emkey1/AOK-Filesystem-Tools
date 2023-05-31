@@ -36,6 +36,9 @@ capture_keypress() {
     # Capture the second character if available
     if [ "$peek_char" != "" ]; then
         char2="$peek_char"
+
+        # Consume the peeked character
+        read -t 0.1 -n 1
     fi
 
     # Enable terminal line buffering and input echoing
