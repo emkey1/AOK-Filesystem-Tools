@@ -57,7 +57,10 @@ bldstat_clear_all
 
 select_profile "$aok_content"/Debian/etc/profile
 
-# Deploy user custom files, if defined
+#
+# custom actions
+#
+. "$aok_content"/custom/home_dirs.sh
 "$aok_content"/custom/custom_files.sh
 
 run_additional_tasks_if_found

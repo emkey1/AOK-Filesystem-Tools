@@ -94,6 +94,12 @@ QUICK_DEPLOY=0
 #
 # AOK_HOSTNAME_SUFFIX="Y"
 
+#
+#  Replaces /root and user home dir with pre-defined content, if defined
+#
+# HOME_DIR_USER="/iCloud/ist_config/home_user.tgz"
+# HOME_DIR_ROOT="/iCloud/ist_config/home_root.tgz"
+
 ########################################################################
 #
 #                   Alpine Specific
