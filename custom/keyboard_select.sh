@@ -30,15 +30,12 @@ capture_keypress() {
     # Capture the first character
     IFS= read -r -n 1 char1
 
-    # Capture the second character, if available, with a timeout
-    IFS= read -r -t 0.1 -n 1 char2
+    # Check if there's more input available
+    read -t 0.1 -n 1 peek_char
 
-    # Capture additional characters if only one character is captured
-    if [ -z "$char2" ]; then
-        while IFS= read -r -t 0.1 -n 1 char; do
-            char2="$char"
-            break
-        done
+    # Capture the second character if available
+    if [ "$peek_char" != "" ]; then
+        char2="$peek_char"
     fi
 
     # Enable terminal line buffering and input echoing
