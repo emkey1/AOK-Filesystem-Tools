@@ -5,7 +5,7 @@
 #
 
 # Function to capture keypress
-capture_keypress() {
+not_capture_keypress() {
     # Disable terminal line buffering and input echoing
     stty -echo -icanon
 
@@ -23,6 +23,24 @@ capture_keypress() {
     # echo "Octal representation: $octal"
 }
 
+capture_keypress() {
+    # Disable terminal line buffering and input echoing
+    stty -echo -icanon
+
+    # Read a single character
+    IFS= read -r -n 1 key1
+
+    # Check if a second key event exists within a short time interval
+    read -r -t 0.1 -n 1 key2
+
+    # Enable terminal line buffering and input echoing
+    stty echo icanon
+
+    # Print the captured keys
+    echo "Key 1: $key1"
+    echo "Key 2: $key2"
+}
+
 select_keyboard() {
     text="
 Since most iOS keyboards do not havededicated PageUp, PageDn, Home and End
@@ -32,12 +50,8 @@ Be aware that the drawback of using this is that in order to generate Escape
 inside tmux, you need to hit Esc twice. If this outweighs the benefit of
 having the additional navigation keys only you can decide.
 
-To make it slightly more cumbersome, there is no way to detect what
-keyboard is connected from within iSH, but typically You wont change keyboard
-between deploys of iSH, so just pick the one you used before.
-
 If you want to enable this feature, hit the key you would use as Esc on your
-keyboard. If you do not want to use this feature, hit enter
+keyboard. If you do not want to use this feature, hit space
 
 "
     # Brydge 10.2 MAX+
