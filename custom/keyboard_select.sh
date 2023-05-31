@@ -91,8 +91,3 @@ keyboard. If you do not want to use this feature, hit space
 
 # - Explain why and ask if any but keyb should be selected, if yes store in /etc/opt/BT-keyboard
 select_keyboard
-
-# Check if two characters were captured
-Yoozon 3.0 Keyboard
-# Check if two characters were captured
-Yoozon 3.0 Keyboard
