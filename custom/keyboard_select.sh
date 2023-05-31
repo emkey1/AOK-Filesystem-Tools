@@ -27,20 +27,21 @@ capture_keypress() {
     # Disable terminal line buffering and input echoing
     stty -echo -icanon
 
-    # Use dd command to capture two characters
-    input=$(dd bs=2 count=1 2>/dev/null)
+    # Use dd command to capture up to two characters
+    input=$(dd bs=1 count=2 2>/dev/null)
 
     # Enable terminal line buffering and input echoing
     stty echo icanon
 
-    # Check if two characters were captured
-    if [ ${#input} -eq 2 ]; then
-        # Print the octal representation of both characters
+    # Check the length of the captured input
+    input_length=${#input}
+
+    # Print the octal representation of the captured key(s)
+    if [ $input_length -eq 1 ]; then
+        printf "Key (Octal): %o\n" "'$input'"
+    elif [ $input_length -eq 2 ]; then
         printf "Key 1 (Octal): %o\n" "'${input:0:1}'"
         printf "Key 2 (Octal): %o\n" "'${input:1:1}'"
-    elif [ ${#input} -eq 1 ]; then
-        # Print the octal representation of the single character
-        printf "Key (Octal): %o\n" "'$input'"
     fi
 }
 
@@ -90,3 +91,8 @@ keyboard. If you do not want to use this feature, hit space
 
 # - Explain why and ask if any but keyb should be selected, if yes store in /etc/opt/BT-keyboard
 select_keyboard
+
+# Check if two characters were captured
+Yoozon 3.0 Keyboard
+# Check if two characters were captured
+Yoozon 3.0 Keyboard
