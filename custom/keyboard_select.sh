@@ -27,21 +27,31 @@ capture_keypress() {
     # Disable terminal line buffering and input echoing
     stty -echo -icanon
 
-    # Use dd command to capture up to two characters
-    input=$(dd bs=1 count=2 2>/dev/null)
+    # Capture the first character
+    IFS= read -r -n 1 char1
+
+    # Capture the second character, if available, with a timeout
+    IFS= read -r -t 0.1 -n 1 char2
+
+    # Capture additional characters if only one character is captured
+    if [ -z "$char2" ]; then
+        while IFS= read -r -t 0.1 -n 1 char; do
+            char2="$char"
+            break
+        done
+    fi
 
     # Enable terminal line buffering and input echoing
     stty echo icanon
 
-    # Check the length of the captured input
-    input_length=${#input}
-
-    # Print the octal representation of the captured key(s)
-    if [ $input_length -eq 1 ]; then
-        printf "Key (Octal): %o\n" "'$input'"
-    elif [ $input_length -eq 2 ]; then
-        printf "Key 1 (Octal): %o\n" "'${input:0:1}'"
-        printf "Key 2 (Octal): %o\n" "'${input:1:1}'"
+    # Check if both characters were captured
+    if [ -n "$char1" ] && [ -n "$char2" ]; then
+        # Print the octal representation of both characters
+        printf "Key 1 (Octal): %o\n" "'$char1'"
+        printf "Key 2 (Octal): %o\n" "'$char2'"
+    elif [ -n "$char1" ]; then
+        # Print the octal representation of the single character
+        printf "Key (Octal): %o\n" "'$char1'"
     fi
 }
 
