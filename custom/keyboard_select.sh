@@ -49,9 +49,8 @@ keyboard. If you do not want to use this feature, hit enter
     echo "$text"
 
     capture_keypress
-    abort_keys=(15 40) # enter or space
 
-    if [[ " ${abort_keys[*]} " == *" $octal "* ]]; then
+    if [[ "$octal" -eq 40 ]]; then
         echo "No special tmux Escape handling requested"
         exit 0
     fi
