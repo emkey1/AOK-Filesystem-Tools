@@ -33,12 +33,15 @@ capture_keypress() {
     # Check if a second key event exists within a short time interval
     read -r -t 0.1 -n 1 key2
 
+    # Get the octal representation of the captured key
+    octal1=$(printf "%o" "'$key1'")
+    octal2=$(printf "%o" "'$key2'")
+
     # Enable terminal line buffering and input echoing
     stty echo icanon
 
     # Print the captured keys
-    echo "Key 1: $key1"
-    echo "Key 2: $key2"
+    echo "octals: [$octal1] [$octal2]"
 }
 
 select_keyboard() {
