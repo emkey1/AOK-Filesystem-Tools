@@ -4,33 +4,14 @@
 #  Select BT keyb if so desired
 #
 
-# Function to capture keypress
-not_capture_keypress() {
-    # Disable terminal line buffering and input echoing
-    stty -echo -icanon
-
-    # Read a single character
-    IFS= read -r -n 1 key
-
-    # Enable terminal line buffering and input echoing
-    stty echo icanon
-
-    # Get the octal representation of the captured key
-    octal=$(printf "%o" "'$key'")
-
-    # Print the captured key and its octal representation
-    # echo "Key pressed: $key"
-    # echo "Octal representation: $octal"
-}
-
 add_to_sequence() {
     new_char="$1"
     if [ -z "$new_char" ]; then
         echo "ERROR: add_to_sequence() - no param"
     fi
     if [[ ! "$new_char" =~ [[:print:]] ]]; then
+        #  Use three digit octal notation for non printables
         octal="$(printf "%o" "'$new_char'")"
-	echo "octal [$octal]"
         if [ $octal -lt 100 ]; then
             new_char="\\0$octal"
         else
@@ -91,8 +72,8 @@ capture_keypress() {
     stty raw -echo
 
     # Capture a single character
-    char1=$(dd bs=1 count=1 2>/dev/null)
-    add_to_sequence "$char1"
+    char=$(dd bs=1 count=1 2>/dev/null)
+    add_to_sequence "$char"
 
     # Check if more characters were generated
     IFS= read -rsn1 -t 0.1 peek_char
@@ -125,7 +106,7 @@ keyboard. If you do not want to use this feature, hit space
     # Bluetooth Keyboard
 
     echo
-    # echo "$text"
+    echo "$text"
 
     capture_keypress
 
@@ -135,6 +116,7 @@ keyboard. If you do not want to use this feature, hit space
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
+    echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
 
 #===============================================================

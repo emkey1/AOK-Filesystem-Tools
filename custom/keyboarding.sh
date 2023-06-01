@@ -10,27 +10,33 @@ define_tmux_esc() {
     #   Esc-Right  End
     #   Esc-Esc    Esc
     #
-    esc_shar_oct="$1"
+    esc_sequence="$1"
 
-    if [ -z "$esc_shar_oct" ]; then
+    if [ -z "$esc_sequence" ]; then
         echo "ERROR: define_tmux_esc() - no param"
         exit 1
     fi
 
-    tmux set -s user-keys[200] "$esc_shar_oct" # multiKeyBT
+    $TMUX_BIN set -s user-keys[200] "$esc_sequence" # multiKeyBT
 
-    tmux bind -T multiKeyBT User200 send Escape
-    tmux bind -T multiKeyBT Down send PageDown
-    tmux bind -T multiKeyBT Up send PageUp
-    tmux bind -T multiKeyBT Left send Home
-    tmux bind -T multiKeyBT Right send End
+    $TMUX_BIN bind -T multiKeyBT User200 send Escape
+    $TMUX_BIN bind -T multiKeyBT Down send PageDown
+    $TMUX_BIN bind -T multiKeyBT Up send PageUp
+    $TMUX_BIN bind -T multiKeyBT Left send Home
+    $TMUX_BIN bind -T multiKeyBT Right send End
 
-    tmux bind -n User200 switch-client -T multiKeyBT
+    $TMUX_BIN bind -n User200 switch-client -T multiKeyBT
 }
 
-ios_bt_keyboard=/etc/opt/BT_keyb
+#===============================================================
+#
+#   Main
+#
+#===============================================================
 
-if [ ! -f "$ios_bt_keyboard" ]; then
+ios_keyboard=/etc/opt/tmux_esc_prefix
+
+if [ ! -f "$ios_keyboard" ]; then
     #  No BT keyb defined for Escape handling
     exit 0
 fi
@@ -40,7 +46,7 @@ if [ -z "$TMUX_BIN" ]; then
     exit 0
 fi
 
-. "$ios_bt_keyboard"
+. "$ios_keyboard"
 
 #  Only run if esc is defined
-[ -n "$esc_char_oct" ] && define_tmux_esc "$esc_char_oct"
+[ -n "$tmux_esc_char" ] && define_tmux_esc "$tmux_esc_char"
