@@ -28,14 +28,15 @@ add_to_sequence() {
     if [ -z "$new_char" ]; then
         echo "ERROR: add_to_sequence() - no param"
     fi
-    if [[ "$new_char" =~ [[:print:]] ]]; then
-        octal="$octal$new_char"
-    else
-        octal="$octal\\0$(printf "%o" "'$new_char'")"
+    if [[ ! "$new_char" =~ [[:print:]] ]]; then
+        octal="$(printf "%o" "'$new_char'")"
+        if [ $octal -lt 100 ]; then
+            new_char="\\0$octal"
+        else
+            new_char="\\$octal"
+        fi
     fi
-
-    # [ "$(printf "%o" "'$new_char'")" = "33" ] && new_char="\033"
-
+    sequence="$sequence$new_char"
 }
 
 # Function to capture keypress
@@ -127,12 +128,12 @@ keyboard. If you do not want to use this feature, hit space
 
     capture_keypress
 
-    if [[ "$octal" = "\\040" ]]; then
+    if [[ "$sequence" = "\\040" ]]; then
         echo "No special tmux Escape handling requested"
         exit 0
     fi
 
-    echo "Escape prefixing will be mapped to: $octal"
+    echo "Escape prefixing will be mapped to: $sequence"
 }
 
 #===============================================================
