@@ -28,14 +28,18 @@ add_to_sequence() {
     if [ -z "$new_char" ]; then
         echo "ERROR: add_to_sequence() - no param"
     fi
-    [ "$(printf "%o" "'$new_char'")" = "33" ] && new_char="\033"
-    # octal="$octal\\0$(printf "%o" "'$new_char'")"
-    octal="$octal$new_char"
+    if [[ "$new_char" =~ [[:print:]] ]]; then
+        octal="$octal$new_char"
+    else
+        octal="$octal\\0$(printf "%o" "'$new_char'")"
+    fi
+
+    # [ "$(printf "%o" "'$new_char'")" = "33" ] && new_char="\033"
 
 }
 
 # Function to capture keypress
-capture_keypress() {
+not_capture_keypress() {
     # Set terminal settings to raw mode
     stty raw -echo
 
@@ -74,6 +78,27 @@ capture_keypress() {
         # add_to_sequence "$char3"
         printf "Key 3 (Octal): %o\n" "'$char3'"
     fi
+
+    # Restore terminal settings
+    stty sane
+}
+
+# Function to capture keypress
+capture_keypress() {
+    # Set terminal settings to raw mode
+    stty raw -echo
+
+    # Capture a single character
+    char1=$(dd bs=1 count=1 2>/dev/null)
+    add_to_sequence "$char1"
+
+    # Check if more characters were generated
+    IFS= read -rsn1 -t 0.1 peek_char
+    while [ -n "$peek_char" ]; do
+        char=$peek_char
+        add_to_sequence "$char"
+        IFS= read -rsn1 -t 0.1 peek_char
+    done
 
     # Restore terminal settings
     stty sane
