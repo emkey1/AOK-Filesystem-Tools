@@ -41,38 +41,39 @@ capture_keypress() {
 
     # Capture a single character
     char1=$(dd bs=1 count=1 2>/dev/null)
-    add_to_sequence "$char1"
     # # Check if a second character is available
-    # IFS= read -rsn1 -t 0.1 peek_char
-    # if [ -n "$peek_char" ]; then
-    #     char2=$peek_char
-    #     IFS= read -rsn1 -t 0.1 peek_char
-    #     if [ -n "$peek_char" ]; then
-    #         char3=$peek_char
-    #         IFS= read -rsn1 -t 0.1 -s
-    #     fi
-    # fi
-    # Check if a second character is available
-    IFS= read -rsn1 -t 0.2 peek_char
-    while [ -n "$peek_char" ]; do
-        char=$peek_char
-        add_to_sequence "$char"
-        IFS= read -rsn1 -t 0.2 peek_char
-    done
+    IFS= read -rsn1 -t 0.1 peek_char
+    if [ -n "$peek_char" ]; then
+        char2=$peek_char
+        IFS= read -rsn1 -t 0.1 peek_char
+        if [ -n "$peek_char" ]; then
+            char3=$peek_char
+            IFS= read -rsn1 -t 0.1 -s
+        fi
+    fi
 
-    # # Print the octal representation of the captured characters
-    # if [ -n "$char1" ]; then
-    #     add_to_sequence "$char1"
-    #     # printf "Key 1 (Octal): %o\n" "'$char1'"
-    # fi
-    # if [ -n "$char2" ]; then
-    #     add_to_sequence "$char2"
-    #     # printf "Key 2 (Octal): %o\n" "'$char2'"
-    # fi
-    # if [ -n "$char3" ]; then
-    #     add_to_sequence "$char3"
-    #     # printf "Key 3 (Octal): %o\n" "'$char3'"
-    # fi
+    # add_to_sequence "$char1"
+    # Check if a second character is available
+    # IFS= read -rsn1 -t 0.1 peek_char
+    # while [ -n "$peek_char" ]; do
+    #     char=$peek_char
+    #     add_to_sequence "$char"
+    #     IFS= read -rsn1 -t 0.1 peek_char
+    # done
+
+    # Print the octal representation of the captured characters
+    if [ -n "$char1" ]; then
+        add_to_sequence "$char1"
+        # printf "Key 1 (Octal): %o\n" "'$char1'"
+    fi
+    if [ -n "$char2" ]; then
+        add_to_sequence "$char2"
+        # printf "Key 2 (Octal): %o\n" "'$char2'"
+    fi
+    if [ -n "$char3" ]; then
+        add_to_sequence "$char3"
+        # printf "Key 3 (Octal): %o\n" "'$char3'"
+    fi
 
     # Restore terminal settings
     stty sane
