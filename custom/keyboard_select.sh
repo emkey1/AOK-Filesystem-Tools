@@ -23,36 +23,38 @@ not_capture_keypress() {
     # echo "Octal representation: $octal"
 }
 
+# Function to capture keypress
 capture_keypress() {
-    # Disable terminal line buffering and input echoing
-    stty -echo -icanon
+    # Set terminal settings to raw mode
+    stty raw -echo
 
-    # Capture the first character
-    IFS= read -r -n 1 char1
+    # Capture a single character
+    char1=$(dd bs=1 count=1 2>/dev/null)
 
-    # Check if there's more input available
-    read -t 0.1 -n 1 peek_char
-
-    # Capture the second character if available
-    if [ "$peek_char" != "" ]; then
-        char2="$peek_char"
-
-        # Consume the peeked character
-        read -t 0.1 -n 1
+    # Check if a second character is available
+    IFS= read -rsn1 -t 0.1 peek_char
+    if [ -n "$peek_char" ]; then
+        char2=$peek_char
+        IFS= read -rsn1 -t 0.1 peek_char
+        if [ -n "$peek_char" ]; then
+            char3=$peek_char
+            IFS= read -rsn1 -t 0.1 -s
+        fi
     fi
 
-    # Enable terminal line buffering and input echoing
-    stty echo icanon
-
-    # Check if both characters were captured
-    if [ -n "$char1" ] && [ -n "$char2" ]; then
-        # Print the octal representation of both characters
+    # Print the octal representation of the captured characters
+    if [ -n "$char1" ]; then
         printf "Key 1 (Octal): %o\n" "'$char1'"
-        printf "Key 2 (Octal): %o\n" "'$char2'"
-    elif [ -n "$char1" ]; then
-        # Print the octal representation of the single character
-        printf "Key (Octal): %o\n" "'$char1'"
     fi
+    if [ -n "$char2" ]; then
+        printf "Key 2 (Octal): %o\n" "'$char2'"
+    fi
+    if [ -n "$char3" ]; then
+        printf "Key 3 (Octal): %o\n" "'$char3'"
+    fi
+
+    # Restore terminal settings
+    stty sane
 }
 
 select_keyboard() {
@@ -74,9 +76,11 @@ keyboard. If you do not want to use this feature, hit space
     # Bluetooth Keyboard
 
     echo
-    echo "$text"
+    # echo "$text"
 
     capture_keypress
+
+    exit 0
 
     if [[ "$octal" -eq 40 ]]; then
         echo "No special tmux Escape handling requested"
