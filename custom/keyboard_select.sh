@@ -30,6 +30,7 @@ add_to_sequence() {
     fi
     if [[ ! "$new_char" =~ [[:print:]] ]]; then
         octal="$(printf "%o" "'$new_char'")"
+	echo "octal [$octal]"
         if [ $octal -lt 100 ]; then
             new_char="\\0$octal"
         else
@@ -128,7 +129,7 @@ keyboard. If you do not want to use this feature, hit space
 
     capture_keypress
 
-    if [[ "$sequence" = "\\040" ]]; then
+    if [[ "$sequence" = " " ]]; then
         echo "No special tmux Escape handling requested"
         exit 0
     fi
