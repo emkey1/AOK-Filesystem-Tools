@@ -101,11 +101,6 @@ If you want to enable this feature, hit the key you would use as Esc on your
 keyboard. If you do not want to use this feature, hit space
 
 "
-    # Brydge 10.2 MAX+
-    # Jac Omnitype Keyboard
-    # Yoozon 3.0 Keyboard
-    # Bluetooth Keyboard
-
     echo
     echo "$text"
 
@@ -117,7 +112,7 @@ keyboard. If you do not want to use this feature, hit space
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
-    echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
+    # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
 
 #===============================================================
