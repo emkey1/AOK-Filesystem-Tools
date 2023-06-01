@@ -63,16 +63,16 @@ capture_keypress() {
 
     # Print the octal representation of the captured characters
     if [ -n "$char1" ]; then
-        add_to_sequence "$char1"
-        # printf "Key 1 (Octal): %o\n" "'$char1'"
+        # add_to_sequence "$char1"
+        printf "Key 1 (Octal): %o\n" "'$char1'"
     fi
     if [ -n "$char2" ]; then
-        add_to_sequence "$char2"
-        # printf "Key 2 (Octal): %o\n" "'$char2'"
+        # add_to_sequence "$char2"
+        printf "Key 2 (Octal): %o\n" "'$char2'"
     fi
     if [ -n "$char3" ]; then
-        add_to_sequence "$char3"
-        # printf "Key 3 (Octal): %o\n" "'$char3'"
+        # add_to_sequence "$char3"
+        printf "Key 3 (Octal): %o\n" "'$char3'"
     fi
 
     # Restore terminal settings
