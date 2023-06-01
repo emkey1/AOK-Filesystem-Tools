@@ -89,12 +89,13 @@ capture_keypress() {
 
 select_keyboard() {
     text="
-Since most iOS keyboards do not havededicated PageUp, PageDn, Home and End
+Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
 keys, this is a workarround to map Escape + arrows to those keys.
 Currently this selection is only active inside tmux.
 Be aware that the drawback of using this is that in order to generate Escape
-inside tmux, you need to hit Esc twice. If this outweighs the benefit of
-having the additional navigation keys only you can decide.
+inside tmux, you need to hit Esc twice.
+If this outweighs the benefit of having the additional navigation keys
+only you can decide.
 
 If you want to enable this feature, hit the key you would use as Esc on your
 keyboard. If you do not want to use this feature, hit space
