@@ -52,6 +52,11 @@ inside tmux, you need to hit Esc twice.
 If this outweighs the benefit of having the additional navigation keys
 only you can decide.
 
+In most cases, if you have selected 'External Keyboard - Backtic -> Escape'
+This key would actually generate Esc, but this is not always the case,
+for example the keyboard 'Yoozon 3.0 Keyboard' generates (octal) \302\247
+for the key, even with this setting.
+
 If you want to enable this feature, hit the key you would use as Esc on your
 keyboard. If you do not want to use this feature, hit space
 
