@@ -68,10 +68,12 @@ keyboard. If you do not want to use this feature, hit space
 
     if [[ "$sequence" = " " ]]; then
         echo "No special tmux Escape handling requested"
+	rm -f "$tmux_esc_indicator"
         exit 0
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
+    echo "$sequence" > "$tmux_esc_indicator"
     # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
 
@@ -81,6 +83,7 @@ keyboard. If you do not want to use this feature, hit space
 #
 #===============================================================
 
+tmux_esc_indicator="/etc/opt/tmux_esc_prefix"
 # RVV
 
 # add bt-keyb script to .tmux.conf if /etc/opt/BT-keyboard found, run it to bind esc as prefix for PgUp/PgDn/Home/End via arrows

@@ -16,6 +16,8 @@ define_tmux_esc() {
         echo "ERROR: define_tmux_esc() - no param"
         exit 1
     fi
+    
+    echo "tmux Using [$esc_sequence]"
 
     $TMUX_BIN set -s user-keys[200] "$esc_sequence" # multiKeyBT
 
@@ -34,9 +36,11 @@ define_tmux_esc() {
 #
 #===============================================================
 
+tmux_esc_indicator="/etc/opt/tmux_esc_prefix"
+
 ios_keyboard=/etc/opt/tmux_esc_prefix
 
-if [ ! -f "$ios_keyboard" ]; then
+if [ ! -f "$tmux_esc_indicator" ]; then
     #  No BT keyb defined for Escape handling
     exit 0
 fi
@@ -46,7 +50,7 @@ if [ -z "$TMUX_BIN" ]; then
     exit 0
 fi
 
-. "$ios_keyboard"
+tmux_esc_char="$(cat $tmux_esc_indicator)"
 
 #  Only run if esc is defined
 [ -n "$tmux_esc_char" ] && define_tmux_esc "$tmux_esc_char"
