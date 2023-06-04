@@ -1,18 +1,21 @@
 #!/bin/sh
-# dummy shebang, helping linters, this file is sourced
 
-if [ -n "$USER_HOME_DIR" ]; then
-    [ ! -f "$USER_HOME_DIR" ] && error_msg "USER_HOME_DIR file not found: $USER_HOME_DIR"
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
+if [ -n "$HOME_DIR_USER" ]; then
+    [ ! -f "$HOME_DIR_USER" ] && error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER"
     [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-    cd "~$USER_NAME"
-    cd ..
+    msg_2 "Replacing /home/$USER_NAME"
+    cd "/home"
     rm -rf "$USER_NAME"
-    tar xvfz "$USER_HOME_DIR" || error_msg "Failed to extract USER_HOME_DIR"
+    tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
 fi
 
-if [ -n "$ROOT_HOME_DIR" ]; then
-    [ ! -f "$ROOT_HOME_DIR" ] && error_msg "ROOT_HOME_DIR file not found: $ROOT_HOME_DIR"
+if [ -n "$HOME_DIR_ROOT" ]; then
+    [ ! -f "$HOME_DIR_ROOT" ] && error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT"
+    msg_2 "Replacing /root"
     rm /root -rf
     cd /
-    tar xvfz "$ROOT_HOME_DIR" || error_msg "Failed to extract USER_HOME_DIR"
+    tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
 fi
