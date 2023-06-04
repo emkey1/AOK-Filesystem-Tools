@@ -71,6 +71,9 @@ bldstat_clear_all
 
 select_profile "$aok_content"/Alpine/etc/profile
 
+msg_2 "Configure nav-key handling"
+/usr/local/bin/nav_keys.sh
+
 #
 # custom actions
 #
