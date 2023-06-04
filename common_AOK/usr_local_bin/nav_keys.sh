@@ -42,40 +42,91 @@ capture_keypress() {
     stty sane
 }
 
-select_keyboard() {
+select_esc_key() {
     text="
-Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
-keys, this is a workarround to map Escape + arrows to those keys.
-Currently this selection is only active inside tmux.
+This is a workarround to map Escape + arrows to the nav keys.
 Be aware that the drawback of using this is that in order to generate Escape
 inside tmux, you need to hit Esc twice.
 If this outweighs the benefit of having the additional navigation keys
 only you can decide.
 
-In most cases, if you have selected 'External Keyboard - Backtic -> Escape'
-This key would actually generate Esc, but this is not always the case,
-for example the keyboard 'Yoozon 3.0 Keyboard' generates (octal) \302\247
-for the key, even with this setting.
-
 If you want to enable this feature, hit the key you would use as Esc on your
 keyboard. If you do not want to use this feature, hit space
 
+In most cases, if you have selected 'External Keyboard - Backtic -> Escape'
+This key would actually generate Esc, but this is not always the case,
+for example the keyboard 'Yoozon 3.0 Keyboard' generates (octal) \302\247
+for the key, even with the backtick setting.
+
+For such keyboards, this will also enable the intended key to generate Escape
+in the first place.
+
 "
-    echo
     echo "$text"
 
     capture_keypress
 
     if [[ "$sequence" = " " ]]; then
         echo "No special tmux Escape handling requested"
-	rm -f "$tmux_esc_indicator"
+	rm -f "$f_tmux_nav_key_handling"
         exit 0
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
-    echo "$sequence" > "$tmux_esc_indicator"
+    echo "$sequence" > "$f_tmux_nav_key_handling"
     # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
+
+select_nav_key_type(){
+    text="
+With the iSH-AOK kernel, you can use modifiers for the arrow keys.
+
+Select modifier:
+ 0 - Do not use a nav-key work-arround
+ 1 - Shift arrows
+ 2 - Ctrl  arrows
+ 3 - Escape prefix, then arrows, actual Escape requires Escape double tap
+
+"
+#  3 - Alt(Meta) arrows
+
+    echo "$text"
+    read -r selection
+
+    case "$selection" in
+
+	0)
+	    echo "Do not use a nav-key work-arround"
+	    rm -f "$f_tmux_nav_key_handling"
+	    ;;
+
+	1)
+	    echo "Use Shift-Arrows for nav-keys"
+	    echo "Shift" > "$f_tmux_nav_key_handling"
+	    ;;
+	2)
+	    echo "Use Ctrl-Arrows for nav-keys"
+	    echo "Ctrl" > "$f_tmux_nav_key_handling"
+	    ;;
+	#3)
+	#    echo "Use Alt-Arrows for nav-keys"
+	#    echo "Meta" > "$f_tmux_nav_key_handling"
+	#    ;;
+	#4)
+	3)
+	    echo "Use Escape as prefix"
+	    select_esc_key
+	    ;;
+	*)
+	    echo "*****   Invalid selection   *****"
+	    sleep 1
+	    select_nav_key_type
+	    ;;
+    esac
+
+
+}
+
 
 #===============================================================
 #
@@ -83,7 +134,25 @@ keyboard. If you do not want to use this feature, hit space
 #
 #===============================================================
 
-tmux_esc_indicator="/etc/opt/tmux_esc_prefix"
+. /opt/AOK/tools/utils.sh
+
+f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
+
+text="
+Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
+keys, inside tmux this can be solved by using work-arrounds.
+Outside tmux, this setting will have no effect.
+"
+
+echo "$text"
+#if true; then
+if is_aok_kernel; then
+    select_nav_key_type
+else
+    select_esc_key
+fi
+
+
 # RVV
 
 # add bt-keyb script to .tmux.conf if /etc/opt/BT-keyboard found, run it to bind esc as prefix for PgUp/PgDn/Home/End via arrows
@@ -92,4 +161,3 @@ tmux_esc_indicator="/etc/opt/tmux_esc_prefix"
 # In case you use a BT keyboard and want to map Esc-arrows to PgUp/PgDn/Home/End inside tmux, select your keyboard from the list below. If you select none your keyb will still work, but no extra binding will happen inside tmux
 
 # - Explain why and ask if any but keyb should be selected, if yes store in /etc/opt/BT-keyboard
-select_keyboard
