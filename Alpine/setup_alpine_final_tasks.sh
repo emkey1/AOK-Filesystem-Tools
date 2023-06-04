@@ -66,9 +66,6 @@ if [ -n "$INITIAL_LOGIN_MODE" ]; then
     /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 fi
 
-#  Clear up build env
-bldstat_clear_all
-
 select_profile "$aok_content"/Alpine/etc/profile
 
 msg_2 "Configure nav-key handling"
@@ -76,10 +73,14 @@ msg_2 "Configure nav-key handling"
 
 /opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
 
-#. "$aok_content"/custom/home_dirs.sh
-#"$aok_content"/custom/custom_files.sh
+"$aok_content"/custom/home_dirs.sh
+"$aok_content"/custom/custom_files.sh
 
 run_additional_tasks_if_found
 
+#  Clear up build env
+bldstat_clear_all
+
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo
+cd
