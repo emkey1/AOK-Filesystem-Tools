@@ -36,6 +36,12 @@ USER_NAME="ish"
 USER_SHELL="/bin/bash"
 
 #
+#  Replaces /root and user home dir with pre-defined content, if defined
+#
+# HOME_DIR_USER="/iCloud/ish_config/home_user.tgz"
+# HOME_DIR_ROOT="/iCloud/ish_config/home_root.tgz"
+
+#
 #  Alternatives are: enable disable once
 #
 INITIAL_LOGIN_MODE="enable"
@@ -49,14 +55,31 @@ INITIAL_LOGIN_MODE="enable"
 # AOK_TIMEZONE="Europe/Berlin"
 
 #
+#  If you run both iSH-AOK and regular iSH on the same device
+#  this setting modifies the hostname for aok kernels to have -aok suffix
+#  So my iPad JacPad would be calling itself JacPad-aok if you check
+#  `hostname` on iSH-AOK and JacPad if you check on regular iSH
+#
+# AOK_HOSTNAME_SUFFIX="Y"
+
+#
+#  If you manually want to add something to the new FS, before deploy
+#  begins. Remember that from the outside, the new FS is located at
+#  /tmp/AOK/FS
+#  I use this when I want to simulate a mounted /iCloud env like what I
+#  would have on my iPad, whilst testing the FS on a linux host chrooted
+#
+# POPULATE_FS="rsync -ah /home/jaclu/iCloud /tmp/AOK/FS"
+
+#
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time
 #  when it should be running inside a full AOK FS
 #  If this is a script, it must be available with this PATH on the new
 #  FS, that means it most likely needs to be in the iCloud mount.
-#  This one is also better to define in .AOK_VARS
+#  This one it is better to define in .AOK_VARS
 #
-# FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
+# FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
 
 #
 #  Should normally not be changed! Enabling his will create a limited env
@@ -85,20 +108,6 @@ INITIAL_LOGIN_MODE="enable"
 #      fi
 #
 QUICK_DEPLOY=0
-
-#
-#  If you run both aok and regular iSH on the same device
-#  this setting modifies the hostname for aok kernels to have -aok suffix
-#  So my iPad JacPad would be calling itself JacPad-aok if you check
-#  `hostname` on iSH-AOK and JacPad if you check on regular iSH
-#
-# AOK_HOSTNAME_SUFFIX="Y"
-
-#
-#  Replaces /root and user home dir with pre-defined content, if defined
-#
-# HOME_DIR_USER="/iCloud/ist_config/home_user.tgz"
-# HOME_DIR_ROOT="/iCloud/ist_config/home_root.tgz"
 
 ########################################################################
 #
