@@ -489,6 +489,7 @@ fi
 
 cache_fs_image
 create_fs "${src_img_cache_d}/$src_tarball" "$build_root_d" "$verbose"
+
 copy_AOK_to_dest
 msg_3 "Deployed $aok_content on new filesystem"
 
@@ -503,6 +504,11 @@ rm "$build_root_d"/etc/motd
 # Should always happen
 msg_2 "Create directory /iCloud inside new filesystem"
 mkdir "$build_root_d"/iCloud
+
+if [ -n "$POPULATE_FS" ]; then
+    msg_1 "POPULATE_FS cmd: $POPULATE_FS"
+    $POPULATE_FS
+fi
 
 if [ "$build_target" = "$target_debian" ]; then
     setup_Debian_on_1st_boot
