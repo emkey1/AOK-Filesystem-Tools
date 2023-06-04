@@ -54,13 +54,12 @@ If you want to enable this feature, hit the key you would use as Esc on your
 keyboard. If you do not want to use this feature, hit space
 
 In most cases, if you have selected 'External Keyboard - Backtic -> Escape'
-This key would actually generate Esc, but this is not always the case,
-for example the keyboard 'Yoozon 3.0 Keyboard' generates (octal) \302\247
-for the key, even with the backtick setting.
+This key would actually generate Esc, but this is not always the case.
+For example the keyboard identified in BT settings as 'Yoozon 3.0 Keyboard'
+generates (octal) \302\247 for the key, even with the backtick setting.
 
 For such keyboards, this will also enable the intended key to generate Escape
-in the first place.
-
+in the first place inside tmux.
 "
     echo "$text"
 
@@ -142,6 +141,9 @@ text="
 Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
 keys, inside tmux this can be solved by using work-arrounds.
 Outside tmux, this setting will have no effect.
+
+This setting can be changed at any time by running /usr/local/bin/nav_keys.sh
+And will take effect next time you start tmux.
 "
 
 echo "$text"
