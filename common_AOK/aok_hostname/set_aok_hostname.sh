@@ -7,8 +7,11 @@
 #  `hostname`
 #
 
+#  shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
 ! is_aok_kernel && return #  Only relevant for aok kernels
-[ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && return
+[ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
 
 msg_1 "Setting -aok suffix for hostname"
 
@@ -24,15 +27,12 @@ if is_debian; then
     rm -f /etc/systemd/system/hostname.service
 fi
 
-msg_2 "Changing hostname into: $new_hostname"
-sed s/NEW_HOSTNAME/"$new_hostname"/ "$DEPLOY_PATH"/files/init.d/aok-hostname-service >"$initd_hostname"
+msg_2 "Using service to set hostname as: $new_hostname"
+rm -f "$initd_hostname"
+sed s/NEW_HOSTNAME/"$new_hostname"/ "$aok_content"/common_AOK/aok_hostname/aok-hostname-service >"$initd_hostname"
 chmod 755 "$initd_hostname"
-ensure_service_is_added hostname boot
-"$initd_hostname" restart
-msg_3 "Hostname now is:$(hostname)"
-#
-#  Since hostname was changed, configs need to be read again,
-#  in order to pick up the config for this renamed hostname
-#
-msg_1 "Changed hostname - re-reading config"
-read_config
+
+sudo rc-update add hostname default
+sudo rc-service hostname start
+
+msg_3 "Hostname is now: $(hostname)"

@@ -74,11 +74,10 @@ select_profile "$aok_content"/Alpine/etc/profile
 msg_2 "Configure nav-key handling"
 /usr/local/bin/nav_keys.sh
 
-#
-# custom actions
-#
-. "$aok_content"/custom/home_dirs.sh
-"$aok_content"/custom/custom_files.sh
+/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+
+#. "$aok_content"/custom/home_dirs.sh
+#"$aok_content"/custom/custom_files.sh
 
 run_additional_tasks_if_found
 

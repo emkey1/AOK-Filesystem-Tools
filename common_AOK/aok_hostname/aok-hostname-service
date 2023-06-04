@@ -1,0 +1,17 @@
+#!/sbin/openrc-run
+
+#
+#  Needed on iSH-AOK to use my hostname convention with -aok suffix
+#
+description="Sets the -aok hostname of the machine."
+
+depend() {
+	keyword -prefix -lxc -docker
+}
+
+start() {
+	echo "NEW_HOSTNAME" >/etc/hostname
+	ebegin "Setting hostname"
+	hostname -F /etc/hostname
+	eend $?
+}
