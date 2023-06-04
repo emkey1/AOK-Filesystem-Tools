@@ -90,7 +90,7 @@ QUICK_DEPLOY=0
 #  If you run both aok and regular iSH on the same device
 #  this setting modifies the hostname for aok kernels to have -aok suffix
 #  So my iPad JacPad would be calling itself JacPad-aok if you check
-#  `hostname` on iSH-AOK
+#  `hostname` on iSH-AOK and JacPad if you check on regular iSH
 #
 # AOK_HOSTNAME_SUFFIX="Y"
 
