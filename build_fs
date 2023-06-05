@@ -370,6 +370,11 @@ consider_generating_tarball() {
             #  give a hint this was pre-built
             cgt_label="${cgt_label}-pb"
         fi
+
+        if [ -n "$build_root_d" ] && ls -A "$build_root_d"/iCloud/* >/dev/null 2>&1; then
+            msg_2 "Clearing /iCloud before generating image"
+            rm "$build_root_d"/iCloud/* -rf
+        fi
         #  shellcheck disable=SC2086,SC2248
         if ! "$aok_content"/compress_image -l $cgt_label $cgt_extra_params; then
             error_msg "detected in compress_image"
