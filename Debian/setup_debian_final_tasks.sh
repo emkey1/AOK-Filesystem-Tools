@@ -59,7 +59,7 @@ select_profile "$aok_content"/Debian/etc/profile
 
 /opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
 
-"$aok_content"/custom/home_dirs.sh
+replace_home_dirs
 "$aok_content"/custom/custom_files.sh
 
 run_additional_tasks_if_found
