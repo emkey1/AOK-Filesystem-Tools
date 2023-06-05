@@ -68,6 +68,9 @@ INITIAL_LOGIN_MODE="enable"
 #  /tmp/AOK/FS
 #  I use this when I want to simulate a mounted /iCloud env like what I
 #  would have on my iPad, whilst testing the FS on a linux host chrooted
+#  If the FS is being compressed its /iCloud is first cleared, so
+#  anything you put in /iCloud will only be available for chrooted
+#  sessions on the build host.
 #
 # POPULATE_FS="rsync -ah /home/jaclu/iCloud /tmp/AOK/FS"
 
