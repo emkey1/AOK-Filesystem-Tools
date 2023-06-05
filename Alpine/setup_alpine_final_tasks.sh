@@ -72,9 +72,8 @@ select_profile "$aok_content"/Alpine/etc/profile
 # /usr/local/bin/nav_keys.sh
 
 /opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
-
+/opt/AOK/common_AOK/custom/custom_files.sh
 replace_home_dirs
-"$aok_content"/custom/custom_files.sh
 
 run_additional_tasks_if_found
 

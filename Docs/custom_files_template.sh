@@ -2,12 +2,13 @@
 # dummy shebang, helping linters, this file is sourced
 
 #
-#  This is a template, If you copy this to /iCloud or other location
-#  available on the destination device, you dont have to mess with the
-#  git repo
+#  This is a template, It needs to be located so that both this, and
+#  any files listed below can be accessed on first boot on destination
+#  device, so typically inside /iCloud
 #
 # Each item is: src_file dest_file owner
 # if owner is "" then owner is not set
+#  owner: is a shorthand for setting both user and group id
 #
 #  shellcheck disable=SC2034
 file_list=(

@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
-# Must be bash, uses arrays...
-
-#
-#  Copy user-custom files into selected location
-#
 
 #  shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
+source /opt/AOK/tools/utils.sh
 
 process_custom_file_list() {
     files_template="$1"
     [ -z "$files_template" ] && error_msg "process_custom_file_list() no param"
 
     msg_2 "process_custom_file_list($files_template)"
+    #  shellcheck disable=SC1090
     source "$files_template"
 
     # Iterate over the array
@@ -30,7 +26,7 @@ process_custom_file_list() {
         fi
         cp -av "$src_file" "$dst_file"
         if [ -n "$owner" ]; then
-            msg_3 "Changing ownership for $dst_file to: $owner"
+            msg_3 "Changing ownership for $dst_file - $owner"
             chown "$owner" "$dst_file"
         fi
 
