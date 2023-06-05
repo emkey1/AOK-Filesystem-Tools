@@ -216,4 +216,9 @@ pkgs_other="fortune-mod"
 CORE_DEB_PKGS="$pkgs_tools $pkgs_shells $pkgs_devel $pkgs_net_tools \
     $pkgs_editing $pkgs_text_ui $pkgs_other"
 
+#
+#  Use this if you want to deploy your own /etc/hosts file etc
+#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
+#  template file.
+#
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
