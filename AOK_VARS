@@ -137,10 +137,10 @@ ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
 #
 pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep less git \
-    py3-pip"
+    sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
-pkgs_net_tools="ssl_client openssh rsync curl elinks mosh"
+pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
 pkgs_editing="vim nano"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
@@ -207,8 +207,8 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6
 #
 #  Additional debs for Debian image
 #
-pkgs_tools="psmisc tzdata file gawk less git manpages man-db \
-    python3-pip python3-minimal"
+pkgs_tools="psmisc tzdata file gawk less git manpages man-db sqlite \
+    fzf python3-pip python3-minimal ncdu"
 pkgs_shells="zsh "
 pkgs_devel="build-essential automake"
 pkgs_net_tools="openssl openssh-client rsync curl elinks mosh"
