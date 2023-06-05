@@ -68,8 +68,8 @@ fi
 
 select_profile "$aok_content"/Alpine/etc/profile
 
-msg_2 "Configure nav-key handling"
-/usr/local/bin/nav_keys.sh
+# msg_2 "Configure nav-key handling"
+# /usr/local/bin/nav_keys.sh
 
 /opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
 
