@@ -67,16 +67,16 @@ in the first place inside tmux.
 
     if [[ "$sequence" = " " ]]; then
         echo "No special tmux Escape handling requested"
-	rm -f "$f_tmux_nav_key_handling"
+        rm -f "$f_tmux_nav_key_handling"
         exit 0
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
-    echo "$sequence" > "$f_tmux_nav_key_handling"
+    echo "$sequence" >"$f_tmux_nav_key_handling"
     # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
 
-select_nav_key_type(){
+select_nav_key_type() {
     text="
 With the iSH-AOK kernel, you can use modifiers for the arrow keys.
 
@@ -87,45 +87,43 @@ Select modifier:
  3 - Escape prefix, then arrows, actual Escape requires Escape double tap
 
 "
-#  3 - Alt(Meta) arrows
+    #  3 - Alt(Meta) arrows
 
     echo "$text"
     read -r selection
 
     case "$selection" in
 
-	0)
-	    echo "Do not use a nav-key work-arround"
-	    rm -f "$f_tmux_nav_key_handling"
-	    ;;
+    0)
+        echo "Do not use a nav-key work-arround"
+        rm -f "$f_tmux_nav_key_handling"
+        ;;
 
-	1)
-	    echo "Use Shift-Arrows for nav-keys"
-	    echo "Shift" > "$f_tmux_nav_key_handling"
-	    ;;
-	2)
-	    echo "Use Ctrl-Arrows for nav-keys"
-	    echo "Ctrl" > "$f_tmux_nav_key_handling"
-	    ;;
-	#3)
-	#    echo "Use Alt-Arrows for nav-keys"
-	#    echo "Meta" > "$f_tmux_nav_key_handling"
-	#    ;;
-	#4)
-	3)
-	    echo "Use Escape as prefix"
-	    select_esc_key
-	    ;;
-	*)
-	    echo "*****   Invalid selection   *****"
-	    sleep 1
-	    select_nav_key_type
-	    ;;
+    1)
+        echo "Use Shift-Arrows for nav-keys"
+        echo "Shift" >"$f_tmux_nav_key_handling"
+        ;;
+    2)
+        echo "Use Ctrl-Arrows for nav-keys"
+        echo "Ctrl" >"$f_tmux_nav_key_handling"
+        ;;
+    #3)
+    #    echo "Use Alt-Arrows for nav-keys"
+    #    echo "Meta" > "$f_tmux_nav_key_handling"
+    #    ;;
+    #4)
+    3)
+        echo "Use Escape as prefix"
+        select_esc_key
+        ;;
+    *)
+        echo "*****   Invalid selection   *****"
+        sleep 1
+        select_nav_key_type
+        ;;
     esac
 
-
 }
-
 
 #===============================================================
 #
@@ -144,6 +142,8 @@ Outside tmux, this setting will have no effect.
 
 This setting can be changed at any time by running /usr/local/bin/nav_keys.sh
 And will take effect next time you start tmux.
+
+If you do not use a seperate keyboard, this setting can be ignored.
 "
 
 echo "$text"
@@ -153,7 +153,6 @@ if is_aok_kernel; then
 else
     select_esc_key
 fi
-
 
 # RVV
 
