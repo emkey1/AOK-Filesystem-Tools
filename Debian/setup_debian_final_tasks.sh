@@ -23,6 +23,8 @@
 #
 sleep 2
 
+tsdft_start="$(date +%s)"
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
@@ -65,6 +67,9 @@ run_additional_tasks_if_found
 
 #  Clear up build env
 bldstat_clear_all
+
+duration="$(($(date +%s) - tsdft_start))"
+display_time_elapsed "$duration" "Setup Debian - Final tasks"
 
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo
