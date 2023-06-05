@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
+#!/bin/sh
 #
-#  Select BT keyb if so desired
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Set nav key workaround for tmux
 #
 
 add_to_sequence() {
@@ -143,7 +148,7 @@ Outside tmux, this setting will have no effect.
 This setting can be changed at any time by running /usr/local/bin/nav_keys.sh
 And will take effect next time you start tmux.
 
-If you do not use a seperate keyboard, this setting can be ignored.
+If you do not use a seperate keyboard, this setting has no effect.
 "
 
 echo "$text"
