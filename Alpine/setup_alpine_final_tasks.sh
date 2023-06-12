@@ -87,4 +87,4 @@ display_time_elapsed "$duration" "Setup Alpine - Final tasks"
 
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo
-cd
+cd || error_msg "Failed to cd home"
