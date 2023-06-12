@@ -13,25 +13,6 @@
 #  This modifies a Debian Linux FS with the AOK changes
 #
 
-install_sshd() {
-    #
-    #  Install sshd, then remove the service, in order to not leave it running
-    #  unless requested to: with enable_sshd / disable_sshd
-    #
-    msg_1 "Installing openssh-server"
-
-    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
-    rm -f /etc/ssh/ssh_host*key*
-
-    openrc_might_trigger_errors
-
-    msg_3 "Install sshd and sftp-server (scp server part)"
-    apt install -y openssh-server openssh-sftp-server
-
-    msg_3 "Disable sshd for now, enable it with: enable_sshd"
-    rc-update del ssh default
-}
-
 # should be renamed to prepare_env_etc
 prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
@@ -59,6 +40,10 @@ debian_services() {
     #  Setting up suitable services, and removing those not meaningfull
     #  on iSH
     #
+    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
+    msg_3 "will be replaced if need-be by enable_sshd"
+    rm -f /etc/ssh/ssh_host*key*
+
     msg_2 "Add boot init.d items suitable for iSH"
     rc-update add urandom boot
 
@@ -173,7 +158,7 @@ if ! bldstat_get "$status_prebuilt_fs"; then
 fi
 
 #
-#  Should be run before installing CORE_DEB_PKGS to minimize amount of
+#  Should be run before installing DEB_PKGS to minimize amount of
 #  warnings displayed due to no locale being set
 #
 # if [ "$QUICK_DEPLOY" -eq 0 ]; then
@@ -189,14 +174,13 @@ if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
-    if [ -n "$CORE_DEB_PKGS" ]; then
-        msg_1 "Add core Debian packages"
-        echo "$CORE_DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+    if [ -n "$DEB_PKGS" ]; then
+        msg_1 "Add Debian packages"
+        echo "$DEB_PKGS"
+        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
     fi
-    install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
 
 debian_services
