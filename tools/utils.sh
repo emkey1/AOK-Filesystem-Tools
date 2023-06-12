@@ -309,7 +309,13 @@ create_fs() {
         error_msg "Failed to cd into: $cf_fs_location"
     }
 
-    msg_3 "Extracting $cf_tarball (will take upto a few mins)"
+    case "$src_tarball" in
+    *alpine*) cf_time_estimate="3" ;;
+    *) cf_time_estimate="7" ;;
+    esac
+    msg_3 "Extracting $cf_tarball (will take up to $cf_time_estimate mins on an iPad 7th Gen)"
+    unset cf_time_estimate
+
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
         cf_filter="z"
     else
@@ -498,7 +504,7 @@ replace_home_dirs() {
         [ ! -f "$HOME_DIR_USER" ] && error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER"
         [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
         msg_2 "Replacing /home/$USER_NAME"
-        cd "/home"
+        cd "/home" || error_msg "Failed cd /home"
         rm -rf "$USER_NAME"
         tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
     fi
