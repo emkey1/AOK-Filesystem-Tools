@@ -28,11 +28,18 @@ if is_debian; then
 fi
 
 msg_2 "Using service to set hostname as: $new_hostname"
+msg_3 "This might fail during deploy if system wasnt booted with openrc"
+msg_3 "Will work normally on next boot."
+
 rm -f "$initd_hostname"
-sed s/NEW_HOSTNAME/"$new_hostname"/ "$aok_content"/common_AOK/aok_hostname/aok-hostname-service >"$initd_hostname"
+sed s/NEW_HOSTNAME/"$new_hostname"/ /opt/AOK/common_AOK/aok_hostname/aok-hostname-service >"$initd_hostname"
 chmod 755 "$initd_hostname"
 
 sudo rc-update add hostname default
 sudo rc-service hostname start
+
+msg_2 "Manually setting hostname, so that it is valid during rest of deploy"
+echo "$new_hostname" >/etc/hostname
+hostname -F /etc/hostname
 
 msg_3 "Hostname is now: $(hostname)"
