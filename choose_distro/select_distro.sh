@@ -21,6 +21,9 @@ It should be fine for testing Debian with the AOK FS extensions under iSH-AOK.
 Devuan is still experimental. It has DNS issues, enough is in /etc/hosts
 for basic apt actions
 
+Only iSH-AOK is known to be able to run Debian/Devuan, for other iSH
+Alpine is the safe bet.
+
 Select distro:
  1 - Alpine $ALPINE_VERSION
  2 - Debian 10
@@ -90,5 +93,5 @@ msg_2 "Running fix_dev"
 
 select_distro
 
-duration="$(($(date +%s) - $tcd_start))"
+duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
