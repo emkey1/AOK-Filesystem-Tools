@@ -10,22 +10,6 @@
 #  This modifies an Alpine Linux FS with the AOK changes
 #
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-sleep 2
-
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
 install_apks() {
     if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
         msg_1 "Install core packages"
@@ -143,13 +127,29 @@ setup_login() {
 #
 #===============================================================
 
-tsa_start="$(date +%s)"
-
-msg_script_title "setup_alpine.sh - Setup Alpine"
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 2
 
 #  Ensure important devices are present
-msg_2 "Running fix_dev"
+echo "-> Running fix_dev <-"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
+
+tsa_start="$(date +%s)"
+
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
+msg_script_title "setup_alpine.sh - Setup Alpine"
 
 start_setup Alpine "$ALPINE_VERSION"
 

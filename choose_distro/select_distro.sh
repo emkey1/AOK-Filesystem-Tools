@@ -76,20 +76,20 @@ Select distro:
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
 
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
 tcd_start="$(date +%s)"
 
-#  Ensure important devices are present
-msg_2 "Running fix_dev"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
 
 select_distro
 

@@ -107,11 +107,17 @@ mimalloc_install() {
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
+
+tsd_start="$(date +%s)"
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -123,13 +129,7 @@ if [ "$build_env" -eq 0 ]; then
     echo
 fi
 
-tsd_start="$(date +%s)"
-
 msg_script_title "setup_debian.sh  Debian specific AOK env"
-
-#  Ensure important devices are present
-msg_2 "Running fix_dev"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
