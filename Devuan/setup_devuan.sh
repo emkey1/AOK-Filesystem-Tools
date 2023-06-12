@@ -143,10 +143,10 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
-    if [ -n "$CORE_DEB_PKGS" ]; then
+    if [ -n "$DEB_PKGS" ]; then
         msg_1 "Add core Debian packages"
-        echo "$CORE_DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+        echo "$DEB_PKGS"
+        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
     fi
     #
     # Devuan draws in some 91 packages if openssh-server is installed
@@ -155,7 +155,7 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     #
     # install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
 
 # msg_2 "Add boot init.d items suitable for iSH"
@@ -213,7 +213,7 @@ fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - $tsd_start))"
+duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Devuan"
 
 if [ "$not_prebuilt" = 1 ]; then
