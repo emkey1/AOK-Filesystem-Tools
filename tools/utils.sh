@@ -310,10 +310,10 @@ create_fs() {
     }
 
     case "$src_tarball" in
-    *alpine*) cf_time_estimate="3" ;;
-    *) cf_time_estimate="7" ;;
+    *alpine*) cf_time_estimate="Should not take that long" ;;
+    *) cf_time_estimate="will take up to (iPad 7th: 15 iPad 9th: 7) minutes" ;;
     esac
-    msg_3 "Extracting $cf_tarball (will take up to $cf_time_estimate mins on an iPad 7th Gen)"
+    msg_3 "Extracting $cf_tarball $cf_time_estimate"
     unset cf_time_estimate
 
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
