@@ -194,30 +194,21 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
 ########################################################################
 
 #
+#  If this type of install is selected, this tarball will be used as base image
+#
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/7n9occsozk7pkko/Debian10-ish-base-v34.tgz"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
+
+#
 #  Use alternate malloc suggested by xloem, still in development
 #
 # USE_MIMALLOC="YES"
 
 #
-#  If a Debian install is selected, this tarball will be used as base image
+#  All the basics are installed, here one can add any additional
+#  packages to be installed during setup
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/uzga9vf2rc2w2wg/Debian10-ish-base-v29.tgz"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
-
-#
-#  Additional debs for Debian image
-#
-pkgs_tools="psmisc tzdata file gawk less git manpages man-db sqlite \
-    fzf python3-pip python3-minimal ncdu"
-pkgs_shells="zsh "
-pkgs_devel="build-essential automake"
-pkgs_net_tools="openssl openssh-client rsync curl elinks mosh"
-pkgs_editing="nano"
-pkgs_text_ui="whiptail tmux"
-pkgs_other="fortune-mod"
-
-CORE_DEB_PKGS="$pkgs_tools $pkgs_shells $pkgs_devel $pkgs_net_tools \
-    $pkgs_editing $pkgs_text_ui $pkgs_other"
+DEB_PKGS=""
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
