@@ -9,6 +9,49 @@
 #  Set nav key workaround for tmux
 #
 
+tmux_mod_arrow() {
+    mod="$1"
+    case $mod in
+    ctrl) mod="C" ;;
+    shift) mod="S" ;;
+
+    *) error_msg "arrow_mod - param must be shift/ctrl" ;;
+    esac
+    {
+        echo "bind -n  ${mod}-Up     send-keys PageUp"
+        echo "bind -n  ${mod}-Down   send-keys PageUp"
+        echo "bind -n  ${mod}-Left   send-keys PageUp"
+        echo "bind -n  ${mod}-Right  send-keys PageUp"
+    } >"$f_tmux_nav_key_handling"
+}
+
+tmux_esc_prefix() {
+    sequence="$1"
+    if [ "$sequence" = " " ]; then
+        echo "No special tmux Escape handling requested"
+        rm -f "$f_tmux_nav_key_handling"
+        exit 0
+    fi
+
+    echo "Escape prefixing will be mapped to: $sequence"
+    {
+        echo
+        echo "# Using Esc prefix for nav keys"
+        echo
+        echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
+
+        echo "bind -n User200 switch-client -T multiKeyBT"
+
+        echo "bind -T multiKeyBT  Down     send PageDown"
+        echo "bind -T multiKeyBT  Up       send PageUp"
+        echo "bind -T multiKeyBT  Left     send Home"
+        echo "bind -T multiKeyBT  Right    send End"
+        echo
+        echo "# Double tap for actual Esc"
+        echo "bind -T multiKeyBT  User200  send Escape"
+    } >"$f_tmux_nav_key_handling"
+}
+
 add_to_sequence() {
     new_char="$1"
     if [ -z "$new_char" ]; then
@@ -26,7 +69,6 @@ add_to_sequence() {
     sequence="$sequence$new_char"
 }
 
-# Function to capture keypress
 capture_keypress() {
     # Set terminal settings to raw mode
     stty raw -echo
@@ -70,14 +112,12 @@ in the first place inside tmux.
 
     capture_keypress
 
-    if [[ "$sequence" = " " ]]; then
-        echo "No special tmux Escape handling requested"
-        rm -f "$f_tmux_nav_key_handling"
-        exit 0
-    fi
+    # if [[ "$sequence" = " " ]]; then
+    #     echo "No special tmux Escape handling requested"
+    # fi
 
-    echo "Escape prefixing will be mapped to: $sequence"
-    echo "$sequence" >"$f_tmux_nav_key_handling"
+    tmux_esc_prefix "$sequence"
+
     # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
 
@@ -86,10 +126,10 @@ select_nav_key_type() {
 With the iSH-AOK kernel, you can use modifiers for the arrow keys.
 
 Select modifier:
- 0 - Do not use a nav-key work-arround
- 1 - Shift arrows
- 2 - Ctrl  arrows
- 3 - Escape prefix, then arrows, actual Escape requires Escape double tap
+0 - Do not use a nav-key work-arround
+1 - Shift arrows
+2 - Ctrl  arrows
+3 - Escape prefix, then arrows, actual Escape requires Escape double tap
 
 "
     #  3 - Alt(Meta) arrows
@@ -106,11 +146,11 @@ Select modifier:
 
     1)
         echo "Use Shift-Arrows for nav-keys"
-        echo "Shift" >"$f_tmux_nav_key_handling"
+        tmux_mod_arrow "shift"
         ;;
     2)
         echo "Use Ctrl-Arrows for nav-keys"
-        echo "Ctrl" >"$f_tmux_nav_key_handling"
+        tmux_mod_arrow "ctrl"
         ;;
     #3)
     #    echo "Use Alt-Arrows for nav-keys"
