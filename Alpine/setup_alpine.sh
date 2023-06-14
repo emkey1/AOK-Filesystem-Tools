@@ -10,22 +10,6 @@
 #  This modifies an Alpine Linux FS with the AOK changes
 #
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-sleep 2
-
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
 install_apks() {
     if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
         msg_1 "Install core packages"
@@ -91,21 +75,27 @@ replace_key_files() {
     fi
 
     if [ "$QUICK_DEPLOY" -eq 0 ]; then
+        msg_3 "Adding apk repository - testing"
         if [ "$ALPINE_VERSION" = "edge" ]; then
-            msg_3 "Adding apk repositories containing testing"
             cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-        elif [ "$alpine_release" = "3.17" ]; then
-            msg_3 "Adding edge/testing as a restricted repo"
-            msg_3 " in order to install testing apks do apk add foo@testing"
-            msg_3 " in case of incompatible dependencies an error will be displayed"
-            msg_3 " and nothing bad will happen."
+        elif min_release 3.17; then
+            #
+            #  Only works for fairly recent releases, otherwise dependencies won't
+            #  work.
+            #
+            msg_3 "  edge/testing is setup as a restricted repo, in order"
+            msg_3 "  to install testing apks do apk add foo@testing"
+            msg_3 "  In case of incompatible dependencies an error will"
+            msg_3 "  be displayed, and nothing bad will happen."
             echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+        else
+            msg_3 "  Release to old, testing repo commented out"
+            echo "# @testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
         fi
     else
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
-
-    msg_3 "replace_key_files() done"
+    # msg_3 "replace_key_files() done"
 }
 
 setup_login() {
@@ -128,7 +118,7 @@ setup_login() {
     #  Opens for inconsistency, but since aok doesnt depend on
     #  /opt/AOK/tools/utils.sh not much to be done at the moment.
     #
-    echo "disabled" > /etc/opt/AOK-login_method
+    echo "disabled" >/etc/opt/AOK-login_method
 }
 
 #===============================================================
@@ -137,13 +127,29 @@ setup_login() {
 #
 #===============================================================
 
-tsa_start="$(date +%s)"
-
-msg_script_title "setup_alpine.sh - Setup Alpine"
+#
+#  Since this is run as /etc/profile during deploy, and this wait is
+#  needed for /etc/profile (see Alpine/etc/profile for details)
+#  we also put it here
+#
+sleep 2
 
 #  Ensure important devices are present
-msg_2 "Running fix_dev"
+echo "-> Running fix_dev <-"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
+if [ ! -d "/opt/AOK" ]; then
+    echo "ERROR: This is not an AOK File System!"
+    echo
+    exit 1
+fi
+
+tsa_start="$(date +%s)"
+
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
+msg_script_title "setup_alpine.sh - Setup Alpine"
 
 start_setup Alpine "$ALPINE_VERSION"
 

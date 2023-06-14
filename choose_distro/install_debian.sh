@@ -30,7 +30,7 @@ msg_2 "Downloading $src_image"
 wget "$src_image"
 
 t_extract="$(date +%s)"
-msg_1 "Extracting Debian (will show unpack time)"
+msg_1 "Extracting Debian (will show unpack time, once done)"
 distro_tmp_dir="/Debian"
 create_fs "$src_tarball" "$distro_tmp_dir"
 duration="$(($(date +%s) - t_extract))"

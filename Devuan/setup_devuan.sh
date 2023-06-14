@@ -23,12 +23,13 @@ install_sshd() {
     msg_2 "Remove previous ssh host keys if present in FS to ensure not using known keys"
     rm -f /etc/ssh/ssh_host*key*
 
-    # openrc_might_trigger_errors
+    openrc_might_trigger_errors
 
-    # apt install -y openssh-server
+    msg_3 "Install sshd and sftp-server (scp server part)"
+    apt install -y openssh-server openssh-sftp-server
 
-    # msg_3 "Disable sshd for now, enable it with: enable_sshd"
-    # rc-update del ssh default
+    msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    rc-update del ssh default
 }
 
 prepare_env_etc() {
@@ -88,11 +89,17 @@ setup_login() {
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
+
+tsd_start="$(date +%s)"
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -104,13 +111,7 @@ if [ "$build_env" -eq 0 ]; then
     echo
 fi
 
-tsd_start="$(date +%s)"
-
 msg_script_title "setup_devuan.sh  Devuan specific AOK env"
-
-#  Ensure important devices are present
-msg_2 "Running fix_dev"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 start_setup Devuan "$(cat /etc/debian_version)"
 
@@ -142,14 +143,19 @@ if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
-    if [ -n "$CORE_DEB_PKGS" ]; then
+    if [ -n "$DEB_PKGS" ]; then
         msg_1 "Add core Debian packages"
-        echo "$CORE_DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+        echo "$DEB_PKGS"
+        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
     fi
-    install_sshd
+    #
+    # Devuan draws in some 91 packages if openssh-server is installed
+    # seems a bit much, also I havent figured out how to disable sshd
+    # initially, so not active ATM
+    #
+    # install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
 
 # msg_2 "Add boot init.d items suitable for iSH"
@@ -207,7 +213,7 @@ fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - $tsd_start))"
+duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Devuan"
 
 if [ "$not_prebuilt" = 1 ]; then

@@ -16,6 +16,10 @@
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo

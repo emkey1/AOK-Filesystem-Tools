@@ -26,11 +26,20 @@ else
     exit 1
 fi
 
+#  Generate ssh host keys if needed
+sudo ssh-keygen -A
+
 sudo rc-update add "$srvc_name" default
 
 sudo rc-service "$srvc_name" start
 
 echo
-echo "Remember to set a password for the ish user if you haven't already"
-echo "Do this by typing 'passwd' and following the prompts"
+echo "Remember to set a password for the user [USERNAME] if you haven't already"
+echo "Do this by typing 'passwd [USERNAME]' (if your root) or just 'passwd' (if you are the user)"
+echo " and follow the prompts"
 echo
+
+if [ -f /etc/debian_version ]; then
+    echo "Debian notice: sshd should now be running, but won't show up in rc-status"
+    echo "right away. After a reboot sshd will indicate run status."
+fi

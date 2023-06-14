@@ -12,7 +12,8 @@
 #
 #  Completes the setup of Alpine.
 #  On normal installs, this runs at the end of the install.
-#  On pre-builds this will be run on first boot at destination device
+#  On pre-builds this will be run on first boot at destination device,
+#  so it can be assumed this is running on deploy destination
 #
 
 #
@@ -22,11 +23,17 @@
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
+
+tsaft_start="$(date +%s)"
 
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -65,12 +72,23 @@ if [ -n "$INITIAL_LOGIN_MODE" ]; then
     /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 fi
 
-#  Clear up build env
-bldstat_clear_all
-
 select_profile "$aok_content"/Alpine/etc/profile
+
+# msg_2 "Configure nav-key handling"
+# /usr/local/bin/nav_keys.sh
+
+/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+/opt/AOK/common_AOK/custom/custom_files.sh
+replace_home_dirs
 
 run_additional_tasks_if_found
 
+#  Clear up build env
+bldstat_clear_all
+
+duration="$(($(date +%s) - tsaft_start))"
+display_time_elapsed "$duration" "Setup Alpine - Final tasks"
+
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo
+cd || error_msg "Failed to cd home"

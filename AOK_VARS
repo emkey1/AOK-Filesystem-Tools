@@ -36,6 +36,12 @@ USER_NAME="ish"
 USER_SHELL="/bin/bash"
 
 #
+#  Replaces /root and user home dir with pre-defined content, if defined
+#
+# HOME_DIR_USER="/iCloud/ish_config/home_user.tgz"
+# HOME_DIR_ROOT="/iCloud/ish_config/home_root.tgz"
+
+#
 #  Alternatives are: enable disable once
 #
 INITIAL_LOGIN_MODE="enable"
@@ -49,14 +55,34 @@ INITIAL_LOGIN_MODE="enable"
 # AOK_TIMEZONE="Europe/Berlin"
 
 #
+#  If you run both iSH-AOK and regular iSH on the same device
+#  this setting modifies the hostname for aok kernels to have -aok suffix
+#  So my iPad JacPad would be calling itself JacPad-aok if you check
+#  `hostname` on iSH-AOK and JacPad if you check on regular iSH
+#
+# AOK_HOSTNAME_SUFFIX="Y"
+
+#
+#  If you manually want to add something to the new FS, before deploy
+#  begins. Remember that from the outside, the new FS is located at
+#  /tmp/AOK/FS
+#  I use this when I want to simulate a mounted /iCloud env like what I
+#  would have on my iPad, whilst testing the FS on a linux host chrooted
+#  If the FS is being compressed its /iCloud is first cleared, so
+#  anything you put in /iCloud will only be available for chrooted
+#  sessions on the build host.
+#
+# POPULATE_FS="rsync -ah /home/jaclu/iCloud /tmp/AOK/FS"
+
+#
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time
 #  when it should be running inside a full AOK FS
 #  If this is a script, it must be available with this PATH on the new
 #  FS, that means it most likely needs to be in the iCloud mount.
-#  This one is also better to define in .AOK_VARS
+#  This one it is better to define in .AOK_VARS
 #
-# FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/spd/bin/deploy-ish"
+# FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
 
 #
 #  Should normally not be changed! Enabling his will create a limited env
@@ -102,14 +128,19 @@ ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=edge # Current development tree
 
 #
+#  Use this if you want to deploy your own /etc/hosts file etc
+#
+# ALPINE_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
+
+#
 #  Always installed packages
 #
 pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep less git \
-    py3-pip"
+    sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
-pkgs_net_tools="ssl_client openssh rsync curl elinks ncftp mosh"
+pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
 pkgs_editing="vim nano"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
@@ -163,14 +194,25 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
 ########################################################################
 
 #
-#  If a Debian install is selected, this tarball will be used as base image
+#  If this type of install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/uzga9vf2rc2w2wg/Debian10-ish-base-v29.tgz"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/7n9occsozk7pkko/Debian10-ish-base-v34.tgz"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
 
 #
-#  Additional debs for Debian image
+#  Use alternate malloc suggested by xloem, still in development
 #
-CORE_DEB_PKGS="openssh-client psmisc tzdata zsh file gawk less manpages \
-    whiptail rsync tmux mosh git build-essential automake python3-pip \
-    python3-minimal curl elinks ncftp openssl nano fortune-mod"
+# USE_MIMALLOC="YES"
+
+#
+#  All the basics are installed, here one can add any additional
+#  packages to be installed during setup
+#
+DEB_PKGS=""
+
+#
+#  Use this if you want to deploy your own /etc/hosts file etc
+#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
+#  template file.
+#
+# DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"

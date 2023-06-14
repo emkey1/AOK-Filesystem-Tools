@@ -21,6 +21,9 @@ It should be fine for testing Debian with the AOK FS extensions under iSH-AOK.
 Devuan is still experimental. It has DNS issues, enough is in /etc/hosts
 for basic apt actions
 
+Only iSH-AOK is known to be able to run Debian/Devuan, for other iSH
+Alpine is the safe bet.
+
 Select distro:
  1 - Alpine $ALPINE_VERSION
  2 - Debian 10
@@ -73,22 +76,22 @@ Select distro:
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
 
+tcd_start="$(date +%s)"
+
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-tcd_start="$(date +%s)"
-
-#  Ensure important devices are present
-msg_2 "Running fix_dev"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
-
 select_distro
 
-duration="$(($(date +%s) - $tcd_start))"
+duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"

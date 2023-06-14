@@ -13,25 +13,6 @@
 #  This modifies a Debian Linux FS with the AOK changes
 #
 
-install_sshd() {
-    #
-    #  Install sshd, then remove the service, in order to not leave it running
-    #  unless requested to: with enable_sshd / disable_sshd
-    #
-    msg_1 "Installing openssh-server"
-
-    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
-    rm -f /etc/ssh/ssh_host*key*
-
-    openrc_might_trigger_errors
-
-    msg_3 "Install sshd"
-    apt install -y openssh-server
-
-    msg_3 "Disable sshd for now, enable it with: enable_sshd"
-    rc-update del ssh default
-}
-
 # should be renamed to prepare_env_etc
 prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
@@ -59,6 +40,10 @@ debian_services() {
     #  Setting up suitable services, and removing those not meaningfull
     #  on iSH
     #
+    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
+    msg_3 "will be replaced if need-be by enable_sshd"
+    rm -f /etc/ssh/ssh_host*key*
+
     msg_2 "Add boot init.d items suitable for iSH"
     rc-update add urandom boot
 
@@ -94,6 +79,21 @@ setup_login() {
     cp -a /bin/login /bin/login.original
 }
 
+mimalloc_install() {
+    msg_2 "mimalloc_install()"
+    apt -y install cmake gcc-8-multilib
+    cd /tmp || error_msg "mimalloc_install() Failed: cd /tmp"
+    git clone https://github.com/xloem/mimalloc
+    cd mimalloc || error_msg "mimalloc_install() Failed: cd mimalloc"
+    git checkout vmem
+    mkdir build
+    cd build || error_msg "mimalloc_install() Failed: cd build"
+    cmake ..
+    make install
+    cp -av "$aok_content"/Debian/mimalloc_patch/mimalloc /usr/local/bin
+    msg_3 "mimalloc_install() - done"
+}
+
 #===============================================================
 #
 #   Main
@@ -107,11 +107,17 @@ setup_login() {
 #
 sleep 2
 
+#  Ensure important devices are present
+echo "-> Running fix_dev <-"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
+
+tsd_start="$(date +%s)"
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -123,13 +129,7 @@ if [ "$build_env" -eq 0 ]; then
     echo
 fi
 
-tsd_start="$(date +%s)"
-
 msg_script_title "setup_debian.sh  Debian specific AOK env"
-
-#  Ensure important devices are present
-msg_2 "Running fix_dev"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
@@ -158,7 +158,7 @@ if ! bldstat_get "$status_prebuilt_fs"; then
 fi
 
 #
-#  Should be run before installing CORE_DEB_PKGS to minimize amount of
+#  Should be run before installing DEB_PKGS to minimize amount of
 #  warnings displayed due to no locale being set
 #
 # if [ "$QUICK_DEPLOY" -eq 0 ]; then
@@ -174,14 +174,13 @@ if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
-    if [ -n "$CORE_DEB_PKGS" ]; then
-        msg_1 "Add core Debian packages"
-        echo "$CORE_DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $CORE_DEB_PKGS"
+    if [ -n "$DEB_PKGS" ]; then
+        msg_1 "Add Debian packages"
+        echo "$DEB_PKGS"
+        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
     fi
-    install_sshd
 else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and CORE_DEB_PKGS"
+    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
 
 debian_services
@@ -211,6 +210,12 @@ fi
 
 setup_login
 
+if [ "$USE_MIMALLOC" = "YES" ]; then
+    mimalloc_install
+else
+    msg_2 "Skipping MIMALLOC patch"
+fi
+
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
 #  on first boot or now.
@@ -224,7 +229,7 @@ fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - $tsd_start))"
+duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 
 if [ "$not_prebuilt" = 1 ]; then
