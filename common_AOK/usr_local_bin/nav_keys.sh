@@ -144,8 +144,6 @@ in the first place inside tmux.
     # fi
 
     tmux_esc_prefix "$sequence"
-
-    final_notice
 }
 
 select_nav_key_type() {
@@ -194,8 +192,6 @@ Select modifier:
         select_nav_key_type
         ;;
     esac
-
-    final_notice
 }
 
 #===============================================================
@@ -229,11 +225,4 @@ else
     select_esc_key
 fi
 
-# RVV
-
-# add bt-keyb script to .tmux.conf if /etc/opt/BT-keyboard found, run it to bind esc as prefix for PgUp/PgDn/Home/End via arrows
-
-# install, last steps
-# In case you use a BT keyboard and want to map Esc-arrows to PgUp/PgDn/Home/End inside tmux, select your keyboard from the list below. If you select none your keyb will still work, but no extra binding will happen inside tmux
-
-# - Explain why and ask if any but keyb should be selected, if yes store in /etc/opt/BT-keyboard
+final_notice
