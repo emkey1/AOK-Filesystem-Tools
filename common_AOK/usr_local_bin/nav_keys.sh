@@ -56,7 +56,7 @@ tmux_esc_prefix() {
     if [ "$sequence" = " " ]; then
         echo "No special tmux Escape handling requested"
         clear_nav_key_usage
-        exit 0
+        return
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
