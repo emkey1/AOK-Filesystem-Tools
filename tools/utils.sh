@@ -309,7 +309,13 @@ create_fs() {
         error_msg "Failed to cd into: $cf_fs_location"
     }
 
-    msg_3 "Extracting $cf_tarball (will take upto a few mins)"
+    case "$src_tarball" in
+    *alpine*) cf_time_estimate="Should not take that long" ;;
+    *) cf_time_estimate="will take up to (iPad 7th: 15 iPad 9th: 7) minutes" ;;
+    esac
+    msg_3 "Extracting $cf_tarball $cf_time_estimate"
+    unset cf_time_estimate
+
     if test "${cf_tarball#*tgz}" != "$cf_tarball" || test "${cf_tarball#*tar.gz}" != "$cf_tarball"; then
         cf_filter="z"
     else
@@ -491,6 +497,25 @@ run_additional_tasks_if_found() {
         echo
     fi
     # msg_3 "run_additional_tasks_if_found()  done"
+}
+
+replace_home_dirs() {
+    if [ -n "$HOME_DIR_USER" ]; then
+        [ ! -f "$HOME_DIR_USER" ] && error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER"
+        [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
+        msg_2 "Replacing /home/$USER_NAME"
+        cd "/home" || error_msg "Failed cd /home"
+        rm -rf "$USER_NAME"
+        tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
+    fi
+
+    if [ -n "$HOME_DIR_ROOT" ]; then
+        [ ! -f "$HOME_DIR_ROOT" ] && error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT"
+        msg_2 "Replacing /root"
+        rm /root -rf
+        cd /
+        tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
+    fi
 }
 
 #===============================================================
