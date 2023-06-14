@@ -21,12 +21,6 @@ clear_nav_key_usage() {
     rm -f "$f_tmux_nav_key_handling"
 }
 
-final_notice() {
-    echo
-    echo "In order for this to take full effect, you need to logout"
-    echo "and login again."
-}
-
 tmux_mod_arrow() {
     mod="$1"
 
@@ -203,7 +197,16 @@ Select modifier:
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
+#
+#  If a nav-key is defined, this file will contain a tmux config snippet
+#  that the default .tmux.conf (/etc/skel/.tmux.conf) will source
+#
 f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
+#
+#  This is not used directly by AOK, it just indicates the current nav-key
+#  It can be used to inform remote nodes about iSH nav-key handling.
+#  For more details check Docs/NavKey.md
+#
 f_tmux_nav_key="/etc/opt/tmux_nav_key"
 
 text="
@@ -225,4 +228,5 @@ else
     select_esc_key
 fi
 
-final_notice
+echo
+echo "In order for this to take full effect, you need to logout and login again."
