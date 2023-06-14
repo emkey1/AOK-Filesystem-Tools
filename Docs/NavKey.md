@@ -56,6 +56,6 @@ run-shell "[ -n "$ISH_NAV_KEY" ] && tmux source /path/to/tmux_nav_key_handling"
 
 If you want somewhat over the top dynamic handling, so that the remote
 tmux will honour the actual current navkey setting, you can check
-![my_tmux_conf](https://github.com/jaclu/my_tmux_conf)
+![jaclu/my_tmux_conf](https://github.com/jaclu/my_tmux_conf)
 
 the relevant stuff is in the file `ish_console.py`
