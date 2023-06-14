@@ -60,12 +60,17 @@ fi
 
 select_profile "$aok_content"/Debian/etc/profile
 
-# msg_2 "Configure nav-key handling"
-# /usr/local/bin/nav_keys.sh
-
 /opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
-/opt/AOK/common_AOK/custom/custom_files.sh
+
 replace_home_dirs
+
+/opt/AOK/common_AOK/custom/custom_files.sh
+
+#
+#  Ensure hostname is in hosts, run after custom_files.sh, in case
+#  /etc/hosts is replaced
+#
+/usr/local/sbin/ensure_hostname_in_host_file.sh
 
 run_additional_tasks_if_found
 
@@ -77,4 +82,4 @@ display_time_elapsed "$duration" "Setup Debian - Final tasks"
 
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo
-cd
+cd || error_msg "Failed to cd home"

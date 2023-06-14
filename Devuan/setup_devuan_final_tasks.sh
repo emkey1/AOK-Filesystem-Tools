@@ -32,6 +32,8 @@ if [ ! -d "/opt/AOK" ]; then
     exit 1
 fi
 
+tsdvft_start="$(date +%s)"
+
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
@@ -55,12 +57,28 @@ if [ -n "$INITIAL_LOGIN_MODE" ]; then
     /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
 fi
 
-#  Clear up build env
-bldstat_clear_all
-
 select_profile "$aok_content"/Devuan/etc/profile
+
+/opt/AOK/common_AOK/custom/custom_files.sh
+
+#
+#  Ensure hostname is in hosts, run after custom_files.sh, in case
+#  /etc/hosts is replaced
+#
+/usr/local/sbin/ensure_hostname_in_host_file.sh
+
+replace_home_dirs
+
+/opt/AOK/common_AOK/custom/custom_files.sh
 
 run_additional_tasks_if_found
 
-msg_1 "This system has completed the last deploy steps and is ready"
+#  Clear up build env
+bldstat_clear_all
+
+duration="$(($(date +%s) - tsdvft_start))"
+display_time_elapsed "$duration" "Setup Devuan - Final tasks"
+
+msg_1 "This system has completed the last deploy steps and is ready!"
 echo
+cd || error_msg "Failed to cd home"
