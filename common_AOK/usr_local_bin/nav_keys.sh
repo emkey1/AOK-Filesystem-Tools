@@ -8,20 +8,40 @@
 #
 #  Set nav key workaround for tmux
 #
+#   1 Creates a tmux config snippet that can be sourced from local tmux
+#
+#   2 Defines the nav key used, so in more advanced personalized usage
+#     scenarios one can use env variables & SendKeys informing remote
+#     hosts connected to via ssh that this session is run from iSH and
+#     should be set up accordingly
+#
+
+clear_nav_key_usage() {
+    rm -f "$f_tmux_nav_key"
+    rm -f "$f_tmux_nav_key_handling"
+}
 
 tmux_mod_arrow() {
     mod="$1"
-    case $mod in
-    ctrl) mod="C" ;;
-    shift) mod="S" ;;
 
-    *) error_msg "arrow_mod - param must be shift/ctrl" ;;
+    case $mod in
+
+    ctrl) t_mod="C" ;;
+    shift) t_mod="S" ;;
+
+    *)
+        clear_nav_key_usage
+        error_msg "arrow_mod - param must be shift/ctrl"
+        ;;
     esac
+
+    echo "$mod" >"$f_tmux_nav_key"
+
     {
-        echo "bind -n  ${mod}-Up     send-keys PageUp"
-        echo "bind -n  ${mod}-Down   send-keys PageUp"
-        echo "bind -n  ${mod}-Left   send-keys PageUp"
-        echo "bind -n  ${mod}-Right  send-keys PageUp"
+        echo "bind -n  ${t_mod}-Up     send-keys PageUp"
+        echo "bind -n  ${t_mod}-Down   send-keys PageUp"
+        echo "bind -n  ${t_mod}-Left   send-keys PageUp"
+        echo "bind -n  ${t_mod}-Right  send-keys PageUp"
     } >"$f_tmux_nav_key_handling"
 }
 
@@ -29,7 +49,7 @@ tmux_esc_prefix() {
     sequence="$1"
     if [ "$sequence" = " " ]; then
         echo "No special tmux Escape handling requested"
-        rm -f "$f_tmux_nav_key_handling"
+        clear_nav_key_usage
         exit 0
     fi
 
@@ -50,6 +70,7 @@ tmux_esc_prefix() {
         echo "# Double tap for actual Esc"
         echo "bind -T multiKeyBT  User200  send Escape"
     } >"$f_tmux_nav_key_handling"
+    echo "$sequence" >"$f_tmux_nav_key"
 }
 
 add_to_sequence() {
@@ -60,7 +81,7 @@ add_to_sequence() {
     if [[ ! "$new_char" =~ [[:print:]] ]]; then
         #  Use three digit octal notation for non printables
         octal="$(printf "%o" "'$new_char'")"
-        if [ $octal -lt 100 ]; then
+        if [ "$octal" -lt 100 ]; then
             new_char="\\0$octal"
         else
             new_char="\\$octal"
@@ -141,7 +162,7 @@ Select modifier:
 
     0)
         echo "Do not use a nav-key work-arround"
-        rm -f "$f_tmux_nav_key_handling"
+        clear_nav_key_usage
         ;;
 
     1)
@@ -176,9 +197,11 @@ Select modifier:
 #
 #===============================================================
 
+#  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
 f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
+f_tmux_nav_key="/etc/opt/tmux_nav_key"
 
 text="
 Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
