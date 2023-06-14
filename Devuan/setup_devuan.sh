@@ -187,15 +187,6 @@ if ! "$setup_common_aok"; then
 fi
 
 #
-#  This is installed by $setup_common_aok, so must come after that!
-#  Ensure hostname is in /etc/hosts
-#  This will be run from inittab each time this boots, so if name is
-#  changed in iOS, the new name will be bound to 127.0.0.1
-#  on next restart, or right away if you run this manually
-#
-/usr/local/sbin/ensure_hostname_in_host_file.sh
-
-#
 #  Overriding common runbg with Debian specific, work in progress...
 #
 # msg_2 "Adding runbg service"

@@ -21,6 +21,12 @@ clear_nav_key_usage() {
     rm -f "$f_tmux_nav_key_handling"
 }
 
+final_notice() {
+    echo
+    echo "In order for this to take full effect, you need to logout"
+    echo "and login again."
+}
+
 tmux_mod_arrow() {
     mod="$1"
 
@@ -139,7 +145,7 @@ in the first place inside tmux.
 
     tmux_esc_prefix "$sequence"
 
-    # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
+    final_notice
 }
 
 select_nav_key_type() {
@@ -189,6 +195,7 @@ Select modifier:
         ;;
     esac
 
+    final_notice
 }
 
 #===============================================================
