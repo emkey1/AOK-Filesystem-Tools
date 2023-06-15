@@ -56,6 +56,10 @@ tmux_esc_prefix() {
     echo "Escape prefixing will be mapped to: $sequence"
     {
         echo
+        echo "# For this to work, escape-time needs to be zero, or at least pretty low"
+        echo
+        echo "set -s escape-time 0"
+
         echo "# Using Esc prefix for nav keys"
         echo
         echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
