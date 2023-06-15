@@ -8,7 +8,8 @@
 #
 # Each item is: src_file dest_file owner
 # if owner is "" then owner is not set
-#  owner: is a shorthand for setting both user and group id
+#  owner: is a shorthand for setting group id to the users default group
+#  owner:group  gives full control over ownership settings
 #
 #  shellcheck disable=SC2034
 file_list=(

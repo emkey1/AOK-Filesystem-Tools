@@ -91,6 +91,11 @@ tcd_start="$(date +%s)"
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
+if ! is_chrooted; then
+    cat /dev/location >/dev/null &
+    msg_1 "iSH now able to run in the background"
+fi
+
 select_distro
 
 duration="$(($(date +%s) - tcd_start))"

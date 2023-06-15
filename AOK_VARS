@@ -121,14 +121,17 @@ QUICK_DEPLOY=0
 #
 #  ALPINE_VERSION defines what Alpine release will be used
 #
-# ALPINE_VERSION=3.15.8 # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.5 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.3 # End of Alpine support 2024-11-22
-# ALPINE_VERSION=3.18.0 # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.15.9 # End of Alpine support 2023-11-01
+ALPINE_VERSION=3.16.6 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.4 # End of Alpine support 2024-11-22
+# ALPINE_VERSION=3.18.2 # End of Alpine support 2025-05-09
 # ALPINE_VERSION=edge # Current development tree
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
+#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
+#  template file.
+#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
 #
 # ALPINE_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
 
@@ -196,7 +199,7 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
 #
 #  If this type of install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/7n9occsozk7pkko/Debian10-ish-base-v34.tgz"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/4ub9pqvizo1iwtr/Debian10-ish-base-v35.tgz"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
 
 #
@@ -214,5 +217,6 @@ DEB_PKGS=""
 #  Use this if you want to deploy your own /etc/hosts file etc
 #  If the file(-s) are relevant both for Alpine and Debian, point it to the same
 #  template file.
+#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"

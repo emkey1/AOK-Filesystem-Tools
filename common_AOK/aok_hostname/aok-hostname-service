@@ -13,5 +13,11 @@ start() {
 	echo "NEW_HOSTNAME" >/etc/hostname
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
+	#
+	#  This one is run from /etc/inittab, so most likely before this
+	#  has started, running it again here ensures that the now active
+	#  hostname is in /etc/hosts
+	#
+	/usr/local/sbin/ensure_hostname_in_host_file.sh
 	eend $?
 }

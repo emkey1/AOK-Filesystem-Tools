@@ -39,9 +39,9 @@ tmux_mod_arrow() {
 
     {
         echo "bind -n  ${t_mod}-Up     send-keys PageUp"
-        echo "bind -n  ${t_mod}-Down   send-keys PageUp"
-        echo "bind -n  ${t_mod}-Left   send-keys PageUp"
-        echo "bind -n  ${t_mod}-Right  send-keys PageUp"
+        echo "bind -n  ${t_mod}-Down   send-keys PageDown"
+        echo "bind -n  ${t_mod}-Left   send-keys Home"
+        echo "bind -n  ${t_mod}-Right  send-keys End"
     } >"$f_tmux_nav_key_handling"
 }
 
@@ -50,12 +50,16 @@ tmux_esc_prefix() {
     if [ "$sequence" = " " ]; then
         echo "No special tmux Escape handling requested"
         clear_nav_key_usage
-        exit 0
+        return
     fi
 
     echo "Escape prefixing will be mapped to: $sequence"
     {
         echo
+        echo "# For this to work, escape-time needs to be zero, or at least pretty low"
+        echo
+        echo "set -s escape-time 0"
+
         echo "# Using Esc prefix for nav keys"
         echo
         echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
@@ -138,8 +142,6 @@ in the first place inside tmux.
     # fi
 
     tmux_esc_prefix "$sequence"
-
-    # echo "tmux_esc_char=$sequence" >/etc/opt/tmux_esc_prefix
 }
 
 select_nav_key_type() {
@@ -188,7 +190,6 @@ Select modifier:
         select_nav_key_type
         ;;
     esac
-
 }
 
 #===============================================================
@@ -200,7 +201,16 @@ Select modifier:
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
+#
+#  If a nav-key is defined, this file will contain a tmux config snippet
+#  that the default .tmux.conf (/etc/skel/.tmux.conf) will source
+#
 f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
+#
+#  This is not used directly by AOK, it just indicates the current nav-key
+#  It can be used to inform remote nodes about iSH nav-key handling.
+#  For more details check Docs/NavKey.md
+#
 f_tmux_nav_key="/etc/opt/tmux_nav_key"
 
 text="
@@ -222,11 +232,5 @@ else
     select_esc_key
 fi
 
-# RVV
-
-# add bt-keyb script to .tmux.conf if /etc/opt/BT-keyboard found, run it to bind esc as prefix for PgUp/PgDn/Home/End via arrows
-
-# install, last steps
-# In case you use a BT keyboard and want to map Esc-arrows to PgUp/PgDn/Home/End inside tmux, select your keyboard from the list below. If you select none your keyb will still work, but no extra binding will happen inside tmux
-
-# - Explain why and ask if any but keyb should be selected, if yes store in /etc/opt/BT-keyboard
+echo
+echo "In order for this to take full effect, you need to logout and login again."
