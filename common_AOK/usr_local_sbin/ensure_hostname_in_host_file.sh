@@ -32,8 +32,7 @@ msg_2 "Ensuring hostname is in $host_file"
 #  iSH-AOK on the same device.
 #
 if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
-    \T msg_3 "adding hostname: $host_name to $host_file"
-
+    msg_3 "adding hostname: $host_name to $host_file"
     printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
 fi
 
