@@ -39,9 +39,9 @@ tmux_mod_arrow() {
 
     {
         echo "bind -n  ${t_mod}-Up     send-keys PageUp"
-        echo "bind -n  ${t_mod}-Down   send-keys PageUp"
-        echo "bind -n  ${t_mod}-Left   send-keys PageUp"
-        echo "bind -n  ${t_mod}-Right  send-keys PageUp"
+        echo "bind -n  ${t_mod}-Down   send-keys PageDown"
+        echo "bind -n  ${t_mod}-Left   send-keys Home"
+        echo "bind -n  ${t_mod}-Right  send-keys End"
     } >"$f_tmux_nav_key_handling"
 }
 
