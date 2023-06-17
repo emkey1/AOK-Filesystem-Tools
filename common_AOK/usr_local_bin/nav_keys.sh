@@ -46,7 +46,11 @@ tmux_mod_arrow() {
 }
 
 tmux_esc_prefix() {
-    sequence="$1"
+    #
+    #  At least Esc must be converted from octal to special char
+    #  for older tmux versions. Doesnt hurt on newer
+    #
+    sequence="$(echo $1 | sed 's/\\033/\\e/g')"
     if [ "$sequence" = " " ]; then
         echo "No special tmux Escape handling requested"
         clear_nav_key_usage
