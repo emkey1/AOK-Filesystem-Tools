@@ -46,7 +46,11 @@ tmux_mod_arrow() {
 }
 
 tmux_esc_prefix() {
-    sequence="$1"
+    #
+    #  At least Esc must be converted from octal to special char
+    #  for older tmux versions. Doesnt hurt on newer
+    #
+    sequence="$(echo $1 | sed 's/\\033/\\e/g')"
     if [ "$sequence" = " " ]; then
         echo "No special tmux Escape handling requested"
         clear_nav_key_usage
@@ -57,15 +61,13 @@ tmux_esc_prefix() {
     {
         echo
         echo "# For this to work, escape-time needs to be zero, or at least pretty low"
-        echo
         echo "set -s escape-time 0"
+        echo
 
         echo "# Using Esc prefix for nav keys"
-        echo
         echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
-
         echo "bind -n User200 switch-client -T multiKeyBT"
-
+        echo
         echo "bind -T multiKeyBT  Down     send PageDown"
         echo "bind -T multiKeyBT  Up       send PageUp"
         echo "bind -T multiKeyBT  Left     send Home"
