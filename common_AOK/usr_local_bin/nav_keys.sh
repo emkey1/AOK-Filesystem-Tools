@@ -61,15 +61,13 @@ tmux_esc_prefix() {
     {
         echo
         echo "# For this to work, escape-time needs to be zero, or at least pretty low"
-        echo
         echo "set -s escape-time 0"
+        echo
 
         echo "# Using Esc prefix for nav keys"
-        echo
         echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
-
         echo "bind -n User200 switch-client -T multiKeyBT"
-
+        echo
         echo "bind -T multiKeyBT  Down     send PageDown"
         echo "bind -T multiKeyBT  Up       send PageUp"
         echo "bind -T multiKeyBT  Left     send Home"
