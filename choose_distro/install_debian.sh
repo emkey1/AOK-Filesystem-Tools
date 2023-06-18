@@ -21,11 +21,19 @@ src_image="$DEBIAN_SRC_IMAGE"
 src_tarball="$debian_download_location/$debian_src_tb"
 
 mkdir -p "$debian_download_location"
+
 cd "$debian_download_location" || {
     error_msg "Failed to cd into: $debian_download_location"
 }
 
 ensure_usable_wget
+
+#
+#  If install was aborted and re-attempted, ensure there is no
+#  half downloaded image pressent.
+#
+rm "$debian_download_location"/* -f
+
 msg_2 "Downloading $src_image"
 wget "$src_image"
 

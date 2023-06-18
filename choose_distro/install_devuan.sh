@@ -26,6 +26,13 @@ cd "$devuan_download_location" || {
 }
 
 ensure_usable_wget
+
+#
+#  If install was aborted and re-attempted, ensure there is no
+#  half downloaded image pressent.
+#
+rm "$debian_download_location"/* -f
+
 msg_2 "Downloading $src_image"
 wget "$src_image"
 
