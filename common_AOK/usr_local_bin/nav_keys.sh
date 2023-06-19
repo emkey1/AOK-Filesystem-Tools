@@ -64,16 +64,16 @@ tmux_esc_prefix() {
         echo
 
         echo "# Using Esc prefix for nav keys"
-        echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
-        echo "bind -n User200 switch-client -T multiKeyBT"
+        echo "set -s user-keys[200]  \"$sequence\"" # escPrefix
+        echo "bind -n User200 switch-client -T escPrefix"
         echo
-        echo "bind -T multiKeyBT  Down     send PageDown"
-        echo "bind -T multiKeyBT  Up       send PageUp"
-        echo "bind -T multiKeyBT  Left     send Home"
-        echo "bind -T multiKeyBT  Right    send End"
+        echo "bind -T escPrefix  Down     send PageDown"
+        echo "bind -T escPrefix  Up       send PageUp"
+        echo "bind -T escPrefix  Left     send Home"
+        echo "bind -T escPrefix  Right    send End"
         echo
         echo "# Double tap for actual Esc"
-        echo "bind -T multiKeyBT  User200  send Escape"
+        echo "bind -T escPrefix  User200  send Escape"
     } >"$f_tmux_nav_key_handling"
     echo "$sequence" >"$f_tmux_nav_key"
 }
