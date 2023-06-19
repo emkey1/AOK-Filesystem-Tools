@@ -30,7 +30,6 @@ tmux_mod_arrow() {
     shift) t_mod="S" ;;
 
     *)
-        clear_nav_key_usage
         error_msg "arrow_mod - param must be shift/ctrl"
         ;;
     esac
@@ -47,8 +46,7 @@ tmux_mod_arrow() {
 
 tmux_esc_prefix() {
     if [ "$sequence" = " " ]; then
-        echo "No special tmux Escape handling requested"
-        clear_nav_key_usage
+        echo "Do not use a nav-key work-arround"
         return
     fi
 
@@ -140,10 +138,6 @@ in the first place inside tmux.
 
     capture_keypress
 
-    # if [[ "$sequence" = " " ]]; then
-    #     echo "No special tmux Escape handling requested"
-    # fi
-
     tmux_esc_prefix "$sequence"
 }
 
@@ -167,7 +161,6 @@ Select modifier:
 
     0)
         echo "Do not use a nav-key work-arround"
-        clear_nav_key_usage
         ;;
 
     1)
@@ -215,6 +208,8 @@ f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
 #  For more details check Docs/NavKey.md
 #
 f_tmux_nav_key="/etc/opt/tmux_nav_key"
+
+clear_nav_key_usage
 
 text="
 Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
