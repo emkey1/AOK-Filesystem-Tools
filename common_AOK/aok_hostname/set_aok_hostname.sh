@@ -43,6 +43,3 @@ echo "$new_hostname" >/etc/hostname
 hostname -F /etc/hostname
 
 msg_3 "Hostname is now: $(hostname)"
-
-# Ensure new hostname is in hosts
-/usr/local/sbin/ensure_hostname_in_host_file.sh
