@@ -41,7 +41,6 @@ tsaft_start="$(date +%s)"
 msg_script_title "setup_alpine_final_tasks.sh - Final part of setup"
 
 if bldstat_get "$status_prebuilt_fs"; then
-
     if [ "$QUICK_DEPLOY" -eq 0 ]; then
         user_interactions
     else
@@ -76,15 +75,11 @@ select_profile "$aok_content"/Alpine/etc/profile
 
 /opt/AOK/common_AOK/custom/custom_files.sh
 
-#
-#  Ensure hostname is in hosts, run after custom_files.sh, in case
-#  /etc/hosts is replaced
-#
+/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 replace_home_dirs
-
-/opt/AOK/common_AOK/custom/custom_files.sh
 
 run_additional_tasks_if_found
 
