@@ -28,6 +28,7 @@ tmux_mod_arrow() {
 
     ctrl) t_mod="C" ;;
     shift) t_mod="S" ;;
+    alt) t_mod="M" ;;
 
     *)
         error_msg "arrow_mod - param must be shift/ctrl"
@@ -149,7 +150,8 @@ Select modifier:
 0 - Do not use a nav-key work-arround
 1 - Shift arrows
 2 - Ctrl  arrows
-3 - Escape prefix, then arrows, actual Escape requires Escape double tap
+3 - Alt arrows (only with iSH-AOK released after June 24th)
+4 - Escape prefix, then arrows, actual Escape requires Escape double tap
 
 "
     #  3 - Alt(Meta) arrows
@@ -171,12 +173,11 @@ Select modifier:
         echo "Use Ctrl-Arrows for nav-keys"
         tmux_mod_arrow "ctrl"
         ;;
-    #3)
-    #    echo "Use Alt-Arrows for nav-keys"
-    #    echo "Meta" > "$f_tmux_nav_key_handling"
-    #    ;;
-    #4)
     3)
+        echo "Use Alt-Arrows for nav-keys"
+        tmux_mod_arrow "alt"
+        ;;
+    4)
         echo "Use Escape as prefix"
         select_esc_key
         ;;
@@ -231,4 +232,4 @@ else
 fi
 
 echo
-echo "In order for this to take full effect, you need to logout and login again."
+echo "You need to restart tmux in order for this to take effect."
