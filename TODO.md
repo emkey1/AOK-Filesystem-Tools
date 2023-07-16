@@ -2,6 +2,11 @@
 
 - Alpine/etc/motd_template, the embedded urls doesnt seem to work
 
+## INITIAL_LOGIN_MODE
+
+its set to enable, yet ends up being: disable - investigate
+
+
 ## runbg
 
 use posix script for Debian/Devuan
