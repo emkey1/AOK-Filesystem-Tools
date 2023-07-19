@@ -110,7 +110,8 @@ setup_login() {
     cp "$aok_content"/Alpine/bin/login.once /bin
     chmod +x /bin/login.once
 
-    cp -a /bin/login /bin/login.original
+    mv /bin/login /bin/login.original
+    ln -sf /bin/login.original /bin/login
 
     #
     #  Not entirely ideal, here the target file is hardcoded
@@ -135,7 +136,7 @@ setup_login() {
 sleep 2
 
 #  Ensure important devices are present
-echo "-> Running fix_dev <-"
+msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 if [ ! -d "/opt/AOK" ]; then

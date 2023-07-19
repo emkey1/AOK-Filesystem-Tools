@@ -76,7 +76,8 @@ setup_login() {
 
     cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
 
-    cp -a /bin/login /bin/login.original
+    mv /bin/login /bin/login.original
+    ln -sf /bin/login.original /bin/login
 }
 
 mimalloc_install() {
@@ -108,7 +109,7 @@ mimalloc_install() {
 sleep 2
 
 #  Ensure important devices are present
-echo "-> Running fix_dev <-"
+msg_2 "Running fix_dev"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 if [ ! -d "/opt/AOK" ]; then
@@ -183,6 +184,8 @@ else
     msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
 
+setup_login
+
 debian_services
 
 #
@@ -198,8 +201,6 @@ fi
 # msg_2 "Adding runbg service"
 # cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
 # ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
-
-setup_login
 
 if [ "$USE_MIMALLOC" = "YES" ]; then
     mimalloc_install
