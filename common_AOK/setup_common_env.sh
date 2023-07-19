@@ -38,6 +38,11 @@ setup_environment() {
 
     copy_local_bins common_AOK
 
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
+
     #
     #  Need full path to handle that this path is not correctly cached at
     #  this point if Debian is being installed, probably due to switching
