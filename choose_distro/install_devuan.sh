@@ -34,7 +34,8 @@ ensure_usable_wget
 rm "$debian_download_location"/* -f
 
 msg_2 "Downloading $src_image"
-wget "$src_image"
+#  Ensure basename for tar ball is used
+wget "$src_image" -O "$devuan_src_tb"
 
 t_extract="$(date +%s)"
 msg_1 "Extracting Devuan (will show unpack time)"

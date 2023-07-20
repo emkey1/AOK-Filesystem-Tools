@@ -589,8 +589,8 @@ icloud_archive_d="/iCloud/AOK_Archive"
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
-devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | grep -oE '[^/]+$')"
+debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | cut -d'?' -f1 | grep -oE '[^/]+$')"
+devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | cut -d'?' -f1 | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,
