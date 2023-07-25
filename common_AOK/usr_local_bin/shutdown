@@ -1,2 +1,27 @@
 #!/bin/sh
-sudo /etc/init.d/killprocs restart
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Shuts dowwn iSH nodes
+#
+
+echo
+echo "WARNING!"
+echo
+echo "This machine will be shutdown in 10 seconds, unless you hit Ctrl-C"
+echo
+sleep 10
+
+if test -f /etc/alpine-release; then
+    sudo /etc/init.d/killprocs restart
+else
+    #
+    #  Debian / Deuvan does not support restart
+    #  so a stop start sequence must be done
+    #
+    sudo /etc/init.d/killprocs restart
+fi
