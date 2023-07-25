@@ -23,5 +23,6 @@ else
     #  Debian / Deuvan does not support restart
     #  so a stop start sequence must be done
     #
-    sudo /etc/init.d/killprocs restart
+    sudo /etc/init.d/killprocs stop
+    sudo /etc/init.d/killprocs start
 fi
