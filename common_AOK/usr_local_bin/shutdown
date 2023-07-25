@@ -8,11 +8,16 @@
 #
 #  Shuts dowwn iSH nodes
 #
+#  Using restart / stop - start
+#  to ensure the process is taking place
+#  Just doing start is not 100% to take effect
+#  depending on service states
+#
 
 echo
 echo "WARNING!"
 echo
-echo "This machine will be shutdown in 10 seconds, unless you hit Ctrl-C"
+echo "This machine will be shut down in 10 seconds, unless you hit Ctrl-C"
 echo
 sleep 10
 
