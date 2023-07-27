@@ -1,10 +1,5 @@
 #!/bin/sh
 
-#
-#  Limited wall equivalent, allows scripts to print to console
-#  but nothing shows up inside tmux panes - to be investigated
-#
-
 for pts in /dev/pts/*
 do
     sudo ash -c "echo $1 > $pts"
