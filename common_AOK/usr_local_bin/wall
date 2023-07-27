@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -13,8 +13,7 @@
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
 for pts in /dev/pts/* ;do
-    #  shellcheck disable=SC2086
-    if [ "$uid" -ne 0 ] && [ "$(stat -c %u $pts)" -ne $uid ]; then
+    if [ "$uid" -ne 0 ] && [ "$(stat -c %u "$pts")" -ne "$uid" ]; then
         # to avoid "Permission denied" errors if run as user
         # for ttys not owned by current user
         continue
