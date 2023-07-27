@@ -133,7 +133,7 @@ setup_login() {
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 2
+# sleep 2
 
 #  Ensure important devices are present
 msg_2 "Running fix_dev"
