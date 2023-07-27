@@ -1,6 +1,29 @@
 #!/bin/sh
+#  shellcheck disable=SC2154
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Replaces the Alpine wall that doesn't work in iSH
+#  Be aware that unless you sudo wall, messages will most likely
+#  not be displayed on the console, but inside tmux all panes
+#  will be notified without sudo
+#
 
-for pts in /dev/pts/*
-do
-    sudo ash -c "echo $1 > $pts"
+uid="$(id | awk -F'[(=]' '{print $2}')"
+
+for pts in /dev/pts/* ;do
+    if [ "$uid" -ne 0 ] && [ "$(stat -c %u $pts)" -ne $uid ]; then
+        # to avoid "Permission denied" errors if run as user
+        # for ttys not owned by current user
+        continue
+    fi
+    (
+        echo
+        echo "Broadcast message from $(whoami)@$(hostname) ($(date)):"
+        echo
+        echo "$1"
+	echo
+    ) > "$pts"
 done
