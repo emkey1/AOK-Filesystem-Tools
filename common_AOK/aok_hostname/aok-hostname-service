@@ -10,10 +10,10 @@ depend() {
 }
 
 start() {
-	echo "NEW_HOSTNAME" >/etc/hostname
+	echo "$(hostname)-aok" >/etc/hostname
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
-	wall "hostname is now: $(hostname)"
+	/usr/local/bin/wall "hostname is now: $(hostname)"
 	#
 	#  This one is run from /etc/inittab, so most likely before this
 	#  has started, running it again here ensures that the now active

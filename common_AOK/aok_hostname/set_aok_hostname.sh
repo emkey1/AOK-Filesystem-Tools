@@ -15,9 +15,11 @@
 
 msg_1 "Setting -aok suffix for hostname"
 
-orig_hostname="$(hostname)"
-new_hostname="${orig_hostname}-aok"
-initd_hostname="/etc/init.d/hostname"
+new_hostname="${hostname}-aok"
+hostname_service="/etc/init.d/hostname"
+
+echo "new name $new_hostname"
+exit 1
 
 if is_debian; then
     msg_3 "Removing previous service files"
@@ -27,13 +29,13 @@ if is_debian; then
     rm -f /etc/systemd/system/hostname.service
 fi
 
-msg_2 "Using service to set hostname as: $new_hostname"
+msg_2 "Using service to set hostname with -aok suffix"
 msg_3 "This might fail during deploy if system wasnt booted with openrc"
 msg_3 "Will work normally on next boot."
 
 rm -f "$initd_hostname"
-sed s/NEW_HOSTNAME/"$new_hostname"/ /opt/AOK/common_AOK/aok_hostname/aok-hostname-service >"$initd_hostname"
-chmod 755 "$initd_hostname"
+cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
+chmod 755 "$hostname_service"
 
 sudo rc-update add hostname default
 sudo rc-service hostname start
