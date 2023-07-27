@@ -1,5 +1,4 @@
 #!/bin/sh
-#  shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -14,6 +13,7 @@
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
 for pts in /dev/pts/* ;do
+    #  shellcheck disable=SC2086
     if [ "$uid" -ne 0 ] && [ "$(stat -c %u $pts)" -ne $uid ]; then
         # to avoid "Permission denied" errors if run as user
         # for ttys not owned by current user
