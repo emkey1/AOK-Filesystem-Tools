@@ -15,11 +15,8 @@
 
 msg_1 "Setting -aok suffix for hostname"
 
-new_hostname="${hostname}-aok"
+new_hostname="$(hostname)-aok"
 hostname_service="/etc/init.d/hostname"
-
-echo "new name $new_hostname"
-exit 1
 
 if is_debian; then
     msg_3 "Removing previous service files"
