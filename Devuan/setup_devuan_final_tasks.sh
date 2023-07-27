@@ -20,7 +20,7 @@
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 2
+# sleep 2
 
 #  Ensure important devices are present
 echo "-> Running fix_dev <-"
@@ -61,15 +61,11 @@ select_profile "$aok_content"/Devuan/etc/profile
 
 /opt/AOK/common_AOK/custom/custom_files.sh
 
-#
-#  Ensure hostname is in hosts, run after custom_files.sh, in case
-#  /etc/hosts is replaced
-#
+/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 replace_home_dirs
-
-/opt/AOK/common_AOK/custom/custom_files.sh
 
 run_additional_tasks_if_found
 

@@ -190,7 +190,14 @@ cache_fs_image() {
         error_msg "Failed to cd to $src_img_cache_d"
     }
     if [ ! -f "$src_img_cache_d/$src_tarball" ]; then
-        wget "$src_image" || {
+        cmd="wget $src_image"
+        #  Ensure basename for tar ball is used
+        case "$build_target" in
+        "$target_alpine") cmd="$cmd -O $alpine_src_tb" ;;
+        "$target_debian") cmd="$cmd -O $debian_src_tb" ;;
+        "$target_devuan") cmd="$cmd -O $devuan_src_tb" ;;
+        esac
+        $cmd || {
             echo "ERROR: Failed to download $src_image"
             exit 1
         }

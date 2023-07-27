@@ -244,16 +244,23 @@ start_setup() {
         echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
     fi
 
-    if ! is_chrooted; then
-        cat /dev/location >/dev/null &
-        msg_3 "iSH now able to run in the background"
-    fi
+    manual_runbg
 
     copy_local_bins "$ss_distro_name"
 
     unset ss_distro_name
     unset ss_vers_info
     # msg_3 "start_setup() done"
+}
+
+manual_runbg() {
+    #
+    #  Only start if not running
+    #
+    if ! is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
+	cat /dev/location >/dev/null &
+	msg_1 "iSH now able to run in the background"
+    fi
 }
 
 #  shellcheck disable=SC2120
@@ -589,8 +596,8 @@ icloud_archive_d="/iCloud/AOK_Archive"
 #
 #  Names of the rootfs tarballs used for initial population of FS
 #
-debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | grep -oE '[^/]+$')"
-devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | grep -oE '[^/]+$')"
+debian_src_tb="$(echo "$DEBIAN_SRC_IMAGE" | cut -d'?' -f1 | grep -oE '[^/]+$')"
+devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | cut -d'?' -f1 | grep -oE '[^/]+$')"
 
 #
 #  Extract the release/branch/major version, from the requested Alpine,

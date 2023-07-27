@@ -74,7 +74,7 @@ Select distro:
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 2
+# sleep 2
 
 #  Ensure important devices are present
 echo "-> Running fix_dev <-"
@@ -91,7 +91,9 @@ tcd_start="$(date +%s)"
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-if ! is_chrooted; then
+manual_runbg
+
+if ! is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
     cat /dev/location >/dev/null &
     msg_1 "iSH now able to run in the background"
 fi
@@ -100,3 +102,9 @@ select_distro
 
 duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
+
+#
+#  Mostly needed in case nav_keys.sh or some other config task
+#  would be run before the first re-boot
+#
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin

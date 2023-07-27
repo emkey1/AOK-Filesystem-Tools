@@ -16,7 +16,7 @@
 #  but could be that the Launch cmd (triggering /etc/profile) is run
 #  before the OS is ready?
 #
-sleep 2
+# sleep 2
 
 if [ "$(id -u)" -eq 0 ]; then
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

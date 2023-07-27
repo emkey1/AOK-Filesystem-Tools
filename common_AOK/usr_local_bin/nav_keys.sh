@@ -28,9 +28,9 @@ tmux_mod_arrow() {
 
     ctrl) t_mod="C" ;;
     shift) t_mod="S" ;;
+    alt) t_mod="M" ;;
 
     *)
-        clear_nav_key_usage
         error_msg "arrow_mod - param must be shift/ctrl"
         ;;
     esac
@@ -46,16 +46,16 @@ tmux_mod_arrow() {
 }
 
 tmux_esc_prefix() {
+    if [ "$sequence" = " " ]; then
+        echo "Do not use a nav-key work-arround"
+        return
+    fi
+
     #
     #  At least Esc must be converted from octal to special char
     #  for older tmux versions. Doesnt hurt on newer
     #
     sequence="$(echo $1 | sed 's/\\033/\\e/g')"
-    if [ "$sequence" = " " ]; then
-        echo "No special tmux Escape handling requested"
-        clear_nav_key_usage
-        return
-    fi
 
     echo "Escape prefixing will be mapped to: $sequence"
     {
@@ -65,16 +65,16 @@ tmux_esc_prefix() {
         echo
 
         echo "# Using Esc prefix for nav keys"
-        echo "set -s user-keys[200]  \"$sequence\"" # multiKeyBT
-        echo "bind -n User200 switch-client -T multiKeyBT"
+        echo "set -s user-keys[200]  \"$sequence\"" # escPrefix
+        echo "bind -n User200 switch-client -T escPrefix"
         echo
-        echo "bind -T multiKeyBT  Down     send PageDown"
-        echo "bind -T multiKeyBT  Up       send PageUp"
-        echo "bind -T multiKeyBT  Left     send Home"
-        echo "bind -T multiKeyBT  Right    send End"
+        echo "bind -T escPrefix  Down     send PageDown"
+        echo "bind -T escPrefix  Up       send PageUp"
+        echo "bind -T escPrefix  Left     send Home"
+        echo "bind -T escPrefix  Right    send End"
         echo
         echo "# Double tap for actual Esc"
-        echo "bind -T multiKeyBT  User200  send Escape"
+        echo "bind -T escPrefix  User200  send Escape"
     } >"$f_tmux_nav_key_handling"
     echo "$sequence" >"$f_tmux_nav_key"
 }
@@ -139,10 +139,6 @@ in the first place inside tmux.
 
     capture_keypress
 
-    # if [[ "$sequence" = " " ]]; then
-    #     echo "No special tmux Escape handling requested"
-    # fi
-
     tmux_esc_prefix "$sequence"
 }
 
@@ -154,7 +150,8 @@ Select modifier:
 0 - Do not use a nav-key work-arround
 1 - Shift arrows
 2 - Ctrl  arrows
-3 - Escape prefix, then arrows, actual Escape requires Escape double tap
+3 - Alt arrows (only with iSH-AOK released after June 24th)
+4 - Escape prefix, then arrows, actual Escape requires Escape double tap
 
 "
     #  3 - Alt(Meta) arrows
@@ -166,7 +163,6 @@ Select modifier:
 
     0)
         echo "Do not use a nav-key work-arround"
-        clear_nav_key_usage
         ;;
 
     1)
@@ -177,12 +173,11 @@ Select modifier:
         echo "Use Ctrl-Arrows for nav-keys"
         tmux_mod_arrow "ctrl"
         ;;
-    #3)
-    #    echo "Use Alt-Arrows for nav-keys"
-    #    echo "Meta" > "$f_tmux_nav_key_handling"
-    #    ;;
-    #4)
     3)
+        echo "Use Alt-Arrows for nav-keys"
+        tmux_mod_arrow "alt"
+        ;;
+    4)
         echo "Use Escape as prefix"
         select_esc_key
         ;;
@@ -215,6 +210,8 @@ f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
 #
 f_tmux_nav_key="/etc/opt/tmux_nav_key"
 
+clear_nav_key_usage
+
 text="
 Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
 keys, inside tmux this can be solved by using work-arrounds.
@@ -235,4 +232,4 @@ else
 fi
 
 echo
-echo "In order for this to take full effect, you need to logout and login again."
+echo "You need to restart tmux in order for this to take effect."

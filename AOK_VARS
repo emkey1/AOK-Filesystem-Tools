@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="Beta-003"
+AOK_VERSION="Beta-004"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -199,9 +199,8 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
 #
 #  If this type of install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/s/4ub9pqvizo1iwtr/Debian10-ish-base-v35.tgz"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/s/6om4wppspe1pno7/Devuan_4-ish-base-v6.tgz"
-
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/linuf2w3ugfw3cghmi29b/Debian10-ish-base-v37.tgz?rlkey=g0inmxdv8wia8iic1fqacfhtl"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/hk2sgmbvkfwge7ynsqnq4/Devuan_4-ish-base-v8.tgz?rlkey=cpb49k2whc2k8o2awm4ct44ww"
 #
 #  Use alternate malloc suggested by xloem, still in development
 #

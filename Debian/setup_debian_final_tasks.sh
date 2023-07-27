@@ -21,7 +21,7 @@
 #  needed for /etc/profile (see Alpine/etc/profile for details)
 #  we also put it here
 #
-sleep 2
+# sleep 2
 
 #  Ensure important devices are present
 echo "-> Running fix_dev <-"
@@ -48,7 +48,6 @@ if bldstat_get "$status_prebuilt_fs"; then
     fi
 fi
 
-# SKIP_LOGIN
 if [ -n "$INITIAL_LOGIN_MODE" ]; then
     #
     #  Now that final_tasks have run as root, the desired login method
@@ -60,17 +59,13 @@ fi
 
 select_profile "$aok_content"/Debian/etc/profile
 
-/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
-
-replace_home_dirs
-
 /opt/AOK/common_AOK/custom/custom_files.sh
 
-#
-#  Ensure hostname is in hosts, run after custom_files.sh, in case
-#  /etc/hosts is replaced
-#
+/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+
 /usr/local/sbin/ensure_hostname_in_host_file.sh
+
+replace_home_dirs
 
 run_additional_tasks_if_found
 

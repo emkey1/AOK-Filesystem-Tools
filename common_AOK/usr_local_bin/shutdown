@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Shuts dowwn iSH nodes
+#
+#  Using restart / stop - start
+#  to ensure the process is taking place
+#  Just doing start is not 100% to take effect
+#  depending on service states
+#
+
+echo
+echo "WARNING!"
+echo
+echo "This machine will be shut down in 10 seconds, unless you hit Ctrl-C"
+
+if  test -f /etc/debian_version; then
+    echo
+    echo "Be aware that if running Debian iSH-AOK will report the server has"
+    echo "crached once shutdown has happened, this is normal"
+fi
+
+echo
+sleep 10
+
+if test -f /etc/alpine-release; then
+    sudo /etc/init.d/killprocs restart
+else
+    #
+    #  Debian / Deuvan does not support restart
+    #  so a stop start sequence must be done
+    #
+    sudo /etc/init.d/killprocs stop
+    sudo /etc/init.d/killprocs start
+fi
