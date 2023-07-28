@@ -13,8 +13,12 @@
 #  Just doing start is not 100% to take effect
 #  depending on service states
 #
+#  Optional param 1 wall message
+#
 
-sudo /usr/local/bin/wall "This machine will be shutdown in 10 seconds"
+notification="${1:-This machine will be shutdown in 10 seconds}"
+
+sudo /usr/local/bin/wall "$notification"
 
 echo
 echo "WARNING! Abort shut down by hitting Ctrl-C"
