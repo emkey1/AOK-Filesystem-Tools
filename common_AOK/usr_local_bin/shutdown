@@ -14,10 +14,11 @@
 #  depending on service states
 #
 
+sudo /usr/local/bin/wall "This machine will be shutdown in 10 seconds"
+
 echo
-echo "WARNING!"
+echo "WARNING! Abort shut down by hitting Ctrl-C"
 echo
-echo "This machine will be shut down in 10 seconds, unless you hit Ctrl-C"
 
 if  test -f /etc/debian_version; then
     echo
