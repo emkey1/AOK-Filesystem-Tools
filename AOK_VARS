@@ -125,7 +125,9 @@ QUICK_DEPLOY=0
 ALPINE_VERSION=3.16.6 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.4 # End of Alpine support 2024-11-22
 # ALPINE_VERSION=3.18.2 # End of Alpine support 2025-05-09
-# ALPINE_VERSION=edge # Current development tree
+#
+# 2023-07-28 edge doesn't work ATM, will investigate...
+# #ALPINE_VERSION=edge # Current development tree
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
