@@ -136,7 +136,7 @@ setup_login() {
 # sleep 2
 
 #  Ensure important devices are present
-msg_2 "Running fix_dev"
+echo  "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 if [ ! -d "/opt/AOK" ]; then
