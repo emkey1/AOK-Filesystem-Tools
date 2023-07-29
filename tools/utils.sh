@@ -294,6 +294,7 @@ user_interactions() {
 
     ! is_iCloud_mounted && should_icloud_be_mounted
     if [ -z "$AOK_TIMEZONE" ]; then
+	msg_1 "TZ selection"
         [ -z "$(command -v bash)" ] && apk add bash
         /opt/AOK/common_AOK/usr_local_bin/set-timezone
     fi
