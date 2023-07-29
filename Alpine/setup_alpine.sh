@@ -10,6 +10,12 @@
 #  This modifies an Alpine Linux FS with the AOK changes
 #
 
+find_fastest_mirror() {
+    msg_1 "Find fastest mirror"
+    apk add alpine-conf
+    setup-apkrepos -f
+}
+
 install_apks() {
     if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
         msg_1 "Install core packages"
@@ -135,9 +141,12 @@ setup_login() {
 #
 # sleep 2
 
+
 #  Ensure important devices are present
 echo  "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
+tsa_start="$(date +%s)"
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
@@ -145,10 +154,13 @@ if [ ! -d "/opt/AOK" ]; then
     exit 1
 fi
 
-tsa_start="$(date +%s)"
-
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
+
+msg_1 "apk update"
+apk update
+
+find_fastest_mirror
 
 msg_script_title "setup_alpine.sh - Setup Alpine"
 
@@ -170,9 +182,6 @@ if ! min_release "3.16"; then
 fi
 
 replace_key_files
-
-msg_1 "apk update"
-apk update
 
 #
 #  Doing some user interactions as early as possible, unless this is
