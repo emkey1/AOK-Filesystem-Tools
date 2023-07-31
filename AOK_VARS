@@ -184,13 +184,13 @@ DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
 NODEJS_APKS='nodejs nodejs-dev'
 # BLOAT3_APKS='emacs neofetch'
 
-DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
+DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
     tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc \
     elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc \
     tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc \
     util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc \
     i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc \
-    strace-doc procps-doc rsync-doc htop-doc"
+    strace-doc procps-doc rsync-doc"
 
 ########################################################################
 #
