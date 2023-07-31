@@ -66,7 +66,7 @@ install_aok_apks() {
     echo
 }
 
-replace_key_files() {
+replace_key_etc_files() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
     msg_3 "Our inittab"
@@ -94,14 +94,11 @@ replace_key_files() {
             msg_3 "  In case of incompatible dependencies an error will"
             msg_3 "  be displayed, and nothing bad will happen."
             echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
-        else
-            msg_3 "  Release to old, testing repo commented out"
-            echo "# @testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
         fi
     else
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
-    # msg_3 "replace_key_files() done"
+    # msg_3 "replace_key_etc_files() done"
 }
 
 setup_login() {
@@ -160,7 +157,8 @@ fi
 msg_1 "apk update"
 apk update
 
-find_fastest_mirror
+#  Switches over into edge, so skip for now
+#find_fastest_mirror
 
 msg_script_title "setup_alpine.sh - Setup Alpine"
 
@@ -181,7 +179,7 @@ if ! min_release "3.16"; then
     fi
 fi
 
-replace_key_files
+replace_key_etc_files
 
 #
 #  Doing some user interactions as early as possible, unless this is
