@@ -16,6 +16,32 @@
 #  so it can be assumed this is running on deploy destination
 #
 
+install_aok_apks() {
+    if ! is_aok_kernel; then
+        msg_1 "Skipping AOK only packages on non AOK kernel"
+        return
+    elif [ "$QUICK_DEPLOY" -ne 0 ]; then
+        msg_1 "QUICK_DEPLOY - skipping AOK_APKS"
+        return
+    elif [ -z "$AOK_APKS" ]; then
+        msg_1 "No AOK_APKS defined"
+        return
+    fi
+
+    msg_1 "Install packages only for AOK kernel"
+
+    # In this case we want the variable to expand into its components
+    # shellcheck disable=SC2086
+    apk add $AOK_APKS
+    echo
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 #
 #  Since this is run as /etc/profile during deploy, and this wait is
 #  needed for /etc/profile (see Alpine/etc/profile for details)
@@ -48,19 +74,7 @@ if bldstat_get "$status_prebuilt_fs"; then
     fi
 fi
 
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    if ! is_aok_kernel && [ -n "$AOK_APKS" ]; then
-        msg_2 "Removing apps that depend on the iSH-AOK kernel"
-        #
-        #  aok dependent bins wont work on regular iSH,
-        #  delete if any defined
-        #
-        # shellcheck disable=SC2086
-        apk del $AOK_APKS
-    fi
-else
-    msg_2 "QUICK_DEPLOY - skipping removal of AOK kernel packages"
-fi
+install_aok_apks
 
 if [ -n "$INITIAL_LOGIN_MODE" ]; then
     #

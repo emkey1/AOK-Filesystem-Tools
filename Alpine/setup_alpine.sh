@@ -41,31 +41,6 @@ install_apks() {
     fi
 }
 
-install_aok_apks() {
-    if [ -z "$AOK_APKS" ]; then
-        msg_1 "No AOK_APKS defined"
-        return
-    elif [ "$QUICK_DEPLOY" -ne 0 ]; then
-        msg_1 "QUICK_DEPLOY - skipping AOK_APKS"
-        return
-    elif ! bldstat_get "$status_prebuilt_fs" && ! is_aok_kernel; then
-        msg_1 "Skipping AOK only packages on non AOK kernel"
-        return
-    fi
-
-    msg_1 "Install packages only for AOK kernel"
-    #
-    #  This might not be deployed on a system with the AOK kernel, but we cant
-    #  know at this point in time, so play it safe and install them
-    #  setup_alpine_final_tasks.sh will remove them, if run on a non-AOK kernel
-    #
-
-    # In this case we want the variable to expand into its components
-    # shellcheck disable=SC2086
-    apk add $AOK_APKS
-    echo
-}
-
 replace_key_etc_files() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
@@ -138,9 +113,8 @@ setup_login() {
 #
 # sleep 2
 
-
 #  Ensure important devices are present
-echo  "-->  Running fix_dev  <--"
+echo "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
 
 tsa_start="$(date +%s)"
@@ -193,7 +167,6 @@ msg_1 "apk upgrade"
 apk upgrade
 
 install_apks
-install_aok_apks
 
 setup_login
 
