@@ -55,7 +55,7 @@ cp -av /opt/AOK/common_AOK/usr_local_sbin/* /usr/local/sbin
 #
 #  Copy distro specific stuff
 #
-if [ -f /etc/alpine-release ]; then
+if [ -f "$file_alpine_release" ]; then
     cp -av /opt/AOK/Alpine/usr_local_bin/* /usr/local/bin
     cp -av /opt/AOK/Alpine/usr_local_sbin/* /usr/local/sbin
 elif [ -f /etc/devuan_version ]; then

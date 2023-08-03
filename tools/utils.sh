@@ -111,9 +111,8 @@ is_debian() {
 }
 
 is_alpine() {
-    test -f "$build_root_d"/etc/alpine-release
+    test -f "$file_alpine_release"
 }
-test -f /etc/alpine-release || test -f /etc/debian_version
 
 is_iCloud_mounted() {
     mount | grep -wq iCloud
@@ -348,10 +347,10 @@ create_fs() {
 }
 
 iCloud_mount_prompt_notification() {
-    msg_2 "iCloud_mount_prompt_notification()"
     # abort if not running on iSH
     ! test -d /proc/ish && return
 
+    msg_2 "iCloud_mount_prompt_notification()"
     echo "
  |  There is a prompt about mounting  |
  |  /iCloud, right after repository   |
@@ -383,7 +382,7 @@ should_icloud_be_mounted() {
             sibm_dependency="newt"
         fi
 
-        if [ -f "$file_alpine_release" ]; then
+        if is_alpine; then
             apk add "$sibm_dependency"
         elif [ -f "$file_debian_version" ]; then
             apt install "$sibm_dependency"
@@ -674,7 +673,6 @@ elif test -f "$build_status_raw/$status_being_built"; then
     # msg_3 "This is running on dest platform"
     build_root_d=""
 elif test -f /etc/opt/AOK-login_method; then
-    # elif     test -f /etc/alpine-release || test -f /etc/debian_version
     # on dest platform
     build_root_d=""
 else
