@@ -76,6 +76,8 @@ fi
 
 install_aok_apks
 
+/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+
 if [ -n "$INITIAL_LOGIN_MODE" ]; then
     #
     #  Now that final_tasks have run as root, the desired login method
@@ -88,8 +90,6 @@ fi
 select_profile "$aok_content"/Alpine/etc/profile
 
 /opt/AOK/common_AOK/custom/custom_files.sh
-
-/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
 
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 

@@ -113,6 +113,7 @@ is_debian() {
 is_alpine() {
     test -f "$build_root_d"/etc/alpine-release
 }
+test -f /etc/alpine-release || test -f /etc/debian_version
 
 is_iCloud_mounted() {
     mount | grep -wq iCloud
@@ -259,8 +260,8 @@ manual_runbg() {
     #
     #  shellcheck disable=SC2009
     if ! is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
-	cat /dev/location >/dev/null &
-	msg_1 "iSH now able to run in the background"
+        cat /dev/location >/dev/null &
+        msg_1 "iSH now able to run in the background"
     fi
 }
 
@@ -294,7 +295,7 @@ user_interactions() {
 
     ! is_iCloud_mounted && should_icloud_be_mounted
     if [ -z "$AOK_TIMEZONE" ]; then
-	msg_1 "Timezone selection"
+        msg_1 "Timezone selection"
         [ -z "$(command -v bash)" ] && apk add bash
         /opt/AOK/common_AOK/usr_local_bin/set-timezone
     fi
@@ -320,7 +321,7 @@ create_fs() {
 
     case "$src_tarball" in
     *alpine*) cf_time_estimate="Should not take that long" ;;
-    *) cf_time_estimate="will take up to (iPad 7th: 15 iPad 9th: 7) minutes" ;;
+    *) cf_time_estimate="will take a while (iPad 7th:14 iPad 9th:6 minutes)" ;;
     esac
     msg_3 "Extracting $cf_tarball $cf_time_estimate"
     unset cf_time_estimate
@@ -501,11 +502,11 @@ notification_additional_tasks() {
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
     if [ -x "$additional_tasks_script" ]; then
-        msg_1 "Running additional setup tasks"
+        msg_1 "Running additional setup tasks [$additional_tasks_script]"
         "$additional_tasks_script" && rm "$additional_tasks_script"
         echo
     fi
-    # msg_3 "run_additional_tasks_if_found()  done"
+    msg_3 "run_additional_tasks_if_found()  done"
 }
 
 replace_home_dirs() {
@@ -671,6 +672,10 @@ if is_chrooted; then
     build_root_d=""
 elif test -f "$build_status_raw/$status_being_built"; then
     # msg_3 "This is running on dest platform"
+    build_root_d=""
+elif test -f /etc/opt/AOK-login_method; then
+    # elif     test -f /etc/alpine-release || test -f /etc/debian_version
+    # on dest platform
     build_root_d=""
 else
     # msg_3 "Not chrooted, not dest platform"

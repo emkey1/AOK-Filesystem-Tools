@@ -13,7 +13,6 @@
 #  This modifies a Debian Linux FS with the AOK changes
 #
 
-# should be renamed to prepare_env_etc
 prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
@@ -40,14 +39,14 @@ debian_services() {
     #  Setting up suitable services, and removing those not meaningfull
     #  on iSH
     #
-    msg_3 "Remove previous ssh host keys if present in FS to ensure not using known keys"
-    msg_3 "will be replaced if need-be by enable_sshd"
+    msg_2 "debian_services()"
+    msg_3 "Remove previous ssh host keys if present"
     rm -f /etc/ssh/ssh_host*key*
 
-    msg_2 "Add boot init.d items suitable for iSH"
+    msg_2 "Add services for runlevel boot"
     rc-update add urandom boot
 
-    msg_3 "Add shutdown init.d items suitable for iSH"
+    msg_3 "Add services for runlevel off"
     rc-update add sendsigs off
     rc-update add umountroot off
     rc-update add urandom off
@@ -109,16 +108,16 @@ mimalloc_install() {
 # sleep 2
 
 #  Ensure important devices are present
-msg_2 "Running fix_dev"
+echo "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
+tsd_start="$(date +%s)"
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
-
-tsd_start="$(date +%s)"
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -158,20 +157,7 @@ if ! bldstat_get "$status_prebuilt_fs"; then
     user_interactions
 fi
 
-#
-#  Should be run before installing DEB_PKGS to minimize amount of
-#  warnings displayed due to no locale being set
-#
-# if [ "$QUICK_DEPLOY" -eq 0 ]; then
-#     msg_2 "Setup locale"
-#     msg_3 "locale warnings during this process can be ignored"
-#     apt install -y locales
-# else
-#     msg_2 "QUICK_DEPLOY - skipping locales"
-# fi
-
 if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
-    openrc_might_trigger_errors
     msg_1 "apt upgrade"
     apt upgrade -y
 
@@ -180,6 +166,7 @@ if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
         echo "$DEB_PKGS"
         bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
     fi
+    echo
 else
     msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi

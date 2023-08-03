@@ -10,7 +10,9 @@ depend() {
 }
 
 start() {
-	echo "$(hostname)-aok" >/etc/hostname
+	h_suffix="aok"
+	#  Ensure suffix is not added multiple times if this is restarted
+	hostname | grep -qv "\-$h_suffix" && echo "$(hostname)-$h_suffix" >/etc/hostname
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
 	/usr/local/bin/wall "hostname is now: $(hostname)"

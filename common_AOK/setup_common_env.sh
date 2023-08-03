@@ -115,10 +115,10 @@ copy_skel_files() {
 user_root() {
     msg_2 "Setting up root user env"
 
-    #
-    #  Change roots shell
-    #
-    sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
+    if ! is_debian; then
+        msg_3 "Alpine - root shell -> /bin/ash"
+        sed -i "s|^root:[^:]*:|root:/bin/bash:|" /etc/passwd
+    fi
 
     #
     #  root user env
@@ -142,7 +142,7 @@ create_user() {
     groupadd -g 501 "$USER_NAME"
 
     if is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
-        msg_2 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
+        msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
         USER_SHELL="/bin/bash"
     fi
 

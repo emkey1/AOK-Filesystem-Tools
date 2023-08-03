@@ -91,16 +91,16 @@ setup_login() {
 # sleep 2
 
 #  Ensure important devices are present
-msg_2 "Running fix_dev"
+echo "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev
+
+tsd_start="$(date +%s)"
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo
     exit 1
 fi
-
-tsd_start="$(date +%s)"
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh

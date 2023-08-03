@@ -41,10 +41,10 @@ install_apks() {
     fi
 }
 
-replace_key_etc_files() {
+prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
-    msg_3 "Our inittab"
+    msg_3 "AOK inittab"
     cp "$aok_content"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
@@ -128,9 +128,6 @@ fi
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-msg_1 "apk update"
-apk update
-
 #  Switches over into edge, so skip for now
 #find_fastest_mirror
 
@@ -153,7 +150,10 @@ if ! min_release "3.16"; then
     fi
 fi
 
-replace_key_etc_files
+prepare_env_etc
+
+msg_1 "apk update"
+apk update
 
 #
 #  Doing some user interactions as early as possible, unless this is

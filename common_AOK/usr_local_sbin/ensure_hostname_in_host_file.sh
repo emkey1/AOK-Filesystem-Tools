@@ -35,6 +35,3 @@ if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
     msg_3 "adding hostname: $host_name to $host_file"
     printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
 fi
-
-rm -f /etc/hostname
-echo "$host_name" >/etc/hostname
