@@ -106,8 +106,11 @@ is_aok_kernel() {
     grep -qi aok /proc/ish/version 2>/dev/null
 }
 
+is_devuan() {
+    test -f "$build_root_d"/etc/devuan_version
+}
 is_debian() {
-    test -f "$build_root_d"/etc/debian_version
+    test -f "$build_root_d"/etc/debian_version && ! is_devuan
 }
 
 is_alpine() {
@@ -460,7 +463,8 @@ copy_local_bins() {
     fi
 
     clb_src_dir="${aok_content}/${clb_base_dir}/usr_local_sbin"
-    if [ -z "$(find "$clb_src_dir" -type d -empty)" ]; then
+    # if [ -z "$(find "$clb_src_dir" -type d -empty)" ]; then
+    if [ -d "$clb_src_dir" ]; then
         msg_3 "Add $clb_base_dir AOK-FS stuff to /usr/local/sbin"
         mkdir -p /usr/local/sbin
         cp "$clb_src_dir"/* /usr/local/sbin
