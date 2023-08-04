@@ -201,10 +201,11 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 #
 #  If this type of install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/linuf2w3ugfw3cghmi29b/Debian10-ish-base-v37.tgz?rlkey=g0inmxdv8wia8iic1fqacfhtl"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/hk2sgmbvkfwge7ynsqnq4/Devuan_4-ish-base-v8.tgz?rlkey=cpb49k2whc2k8o2awm4ct44ww"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/ywlpd62ekroxlc16kc8uq/Debian10-ish-base-v40.tgz?rlkey=70pj8lqtj8g3fc927vnp7kxkp"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/xg5vpeetoahr5epqto6nl/Devuan_4-ish-base-v9.tgz?rlkey=5a10beu5joazykh6lgm1cvhxz"
+
 #
-#  Use alternate malloc suggested by xloem, still in development
+#  Use alternate malloc suggested by xloem for Debian, still in development
 #
 # USE_MIMALLOC="YES"
 
