@@ -18,7 +18,14 @@
 
 notification="${1:-This machine will be shutdown in 10 seconds}"
 
-sudo /usr/local/bin/wall "$notification"
+if test -f /etc/alpine-release; then
+    wall_cmd="/usr/local/bin/wall"
+else
+    #  Debians built-in wall works on iSH
+    wall_cmd="wall"
+fi
+
+sudo "$wall_cmd" "$notification"
 
 echo
 echo "WARNING! Abort shut down by hitting Ctrl-C"
@@ -28,6 +35,7 @@ if test -f /etc/debian_version; then
     echo
     echo "Be aware that if running Debian iSH-AOK will report the server has"
     echo "crached once shutdown has happened, this is normal"
+    echo "since iSH-AOK has no clue why it terminated"
 fi
 
 echo
