@@ -25,7 +25,7 @@ show_help() {
 }
 
 show_version() {
-    echo "wall inspired by util-linux 2.39.1"
+    echo "AOK-FS wall inspired by util-linux 2.39.1"
 }
 
 use_banner=1
