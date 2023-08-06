@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Replaces the Alpine wall that doesn't work in iSH
+#  Be aware that unless you sudo wall, messages will most likely
+#  not be displayed on the console, but inside tmux all panes
+#  will be notified without sudo
+#
+
+show_help() {
+    echo
+    echo "Usage:"
+    echo " wall [options] [<file> | <message>]"
+    echo
+    echo "Write a message to all users."
+    echo
+    echo "Options:"
+    echo " -n, --nobanner          do not print banner, works only for root"
+    echo
+    echo " -h, --help              display this help"
+    echo " -V, --version           display version"
+}
+
+show_version() {
+    echo "wall inspired by util-linux 2.39.1"
+}
+
+use_banner=1
+
+uid="$(id | awk -F'[(=]' '{print $2}')"
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+    "-n" | "--nobanner")
+        if [ "$uid" -ne 0 ]; then
+            echo "wall: --nobanner is available only for root"
+            exit 1
+        fi
+        use_banner=0
+        ;;
+
+    "-h" | "--help")
+        show_help
+        exit 0
+        ;;
+
+    "-V" | "--version")
+        show_version
+        exit 0
+        ;;
+
+    *) msg="$1" ;;
+    esac
+    shift
+done
+
+for pts in /dev/pts/*; do
+    if [ "$uid" -ne 0 ] && [ "$(stat -c %u "$pts")" -ne "$uid" ]; then
+        # to avoid "Permission denied" errors if run as user
+        # for ttys not owned by current user
+        continue
+    fi
+    (
+        if [ "$use_banner" -eq 1 ]; then
+            echo
+            echo "Broadcast message from $(whoami)@$(hostname) ($(date)):"
+        fi
+        echo
+        if [ -f "$msg" ]; then
+            cat "$msg"
+        else
+            echo "$msg"
+        fi
+        echo
+    ) >"$pts"
+done
