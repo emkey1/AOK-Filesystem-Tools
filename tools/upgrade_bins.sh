@@ -61,7 +61,7 @@ if is_alpine; then
 elif is_devuan; then
     cp -av /opt/AOK/Devuan/usr_local_bin/* /usr/local/bin
     cp -av /opt/AOK/Devuan/usr_local_sbin/* /usr/local/sbin
-elif is_devuan; then
+elif is_debian; then
     cp -av /opt/AOK/Debian/usr_local_bin/* /usr/local/bin
     cp -av /opt/AOK/Debian/usr_local_sbin/* /usr/local/sbin
 else
