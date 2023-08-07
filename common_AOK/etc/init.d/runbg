@@ -50,6 +50,7 @@ start_post() {
 
 
 stop_post() {
+    echo "[$(date)] $RC_SVCNAME stopped" >>/var/log/services.log
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
         ewarn "WARNING: Other processes polling GPS [ $other_pids]"
