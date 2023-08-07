@@ -9,31 +9,39 @@
 #  Fixes /dev entries in one go, suitable for cut-paste
 #
 
+log_it() {
+    echo "[$(date] $1" >>"$log_file"
+    
+    if [ -n "$2" ]; then
+        echo "$1"
+        exit $2
+    fi
+}
+
+
 log_file="/var/log/fix_dev.log"
-echo "[$(date) fix_dev starting" >>"$log_file"
+
+log_it "fix_dev starting"
 
 is_ish() {
     test -d /proc/ish
 }
 
 if [ "$(uname)" = "Darwin" ]; then
-    echo "Don't run this on MacOS!!"
-    exit 1
+    log_it "Don't run this on MacOS!!" 1
 fi
 
 if ! is_ish; then
-    echo "ERROR: Not iSH kernel, skipping fix_dev"
-    exit 0
+    log_it "ERROR: Not iSH kernel, skipping fix_dev" 0
 fi
 
 #  shellcheck disable=SC2154
 if [ -e /etc/opt/AOK/is_chrooted ]; then
-    echo  "WARN: Skipping fix_dev when chrooted" >>"$log_file"
-    exit 0
+    log_it "WARN: Skipping fix_dev when chrooted" 0
 fi
 
 while true; do
-    echo "fixing devs" >>"$log_file"
+    log_it "fixing devs"
     # parenthesis, so this can be copy pasted into a single action
     (
         rm -f /dev/null && mknod -m 666 /dev/null c 1 3
@@ -54,10 +62,8 @@ while true; do
     #
     [ -c /dev/null ] && break
 
-    (
-        ls -l /dev/null
-	echo "ERROR: /dev/null seems wrong, trying to fix devs again"
-    )  >>"$log_file"
+    log_it "$(ls -l /dev/null)"
+    log_it "WARN: /dev/null seems wrong, trying to fix devs again!"
     sleep 0.1
 done
 
@@ -66,5 +72,6 @@ if [ ! -L /dev/fd ]; then
     ln -sf /proc/self/fd /dev/fd
 fi
 
+
 # Debug log
-echo "[$(date)]  fix_dev" >>/var/log/debug.log
+log_it "fix_dev - done"
