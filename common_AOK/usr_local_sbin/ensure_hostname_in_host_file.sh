@@ -12,15 +12,6 @@
 host_file="/etc/hosts"
 host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
 
-msg_2() {
-    echo "---  $1"
-}
-
-msg_3() {
-    echo "  -  $1"
-}
-msg_2 "Ensuring hostname is in $host_file"
-
 #
 #  Since this will be run from inittab before /etc/init.d/hostname
 #  has started, you most likely will end up with both variants of the
@@ -32,6 +23,6 @@ msg_2 "Ensuring hostname is in $host_file"
 #  iSH-AOK on the same device.
 #
 if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
-    msg_3 "adding hostname: $host_name to $host_file"
+    echo "adding hostname: $host_name to $host_file" >>/var/log/syslog
     printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
 fi
