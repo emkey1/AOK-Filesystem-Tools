@@ -44,6 +44,11 @@ start_pre() {
     fi
 }
 
+start_post() {
+    echo "[$(date)] $RC_SVCNAME started" >>/var/log/services.log
+}
+
+
 stop_post() {
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
