@@ -62,8 +62,8 @@ while true; do
     [ -c /dev/null ] && break
 
     log_it "$(ls -l /dev/null)"
-    log_it "WARN: /dev/null seems wrong, trying to fix devs again!"
-    sleep 0.1
+    log_it "WARN: /dev/null seems wrong, will try to again!"
+    sleep 1
 done
 
 # The following is needed for upstream PR #1716
