@@ -9,6 +9,8 @@
 #  Fixes /dev entries in one go, suitable for cut-paste
 #
 
+log_file="/var/log/fix_dev.log"
+
 log_it() {
     echo "[$(date)] $1" >>"$log_file"
     
@@ -19,9 +21,6 @@ log_it() {
 }
 
 
-log_file="/var/log/fix_dev.log"
-
-log_it "fix_dev starting"
 
 is_ish() {
     test -d /proc/ish
