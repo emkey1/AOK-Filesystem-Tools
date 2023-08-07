@@ -39,8 +39,7 @@ if [ -e /etc/opt/AOK/is_chrooted ]; then
     exit 0
 fi
 
-
-while true ; do
+while true; do
     echo "fixing devs" >>"$log_file"
     # parenthesis, so this can be copy pasted into a single action
     (
@@ -56,8 +55,13 @@ while true ; do
         rm -f /dev/clipboard && mknod -m 666 /dev/clipboard c 240 0
         rm -f /dev/location && mknod -m 666 /dev/location c 240 1
     )
+    #
+    #  hard to check every one, when fix_dev fails for me it tends to
+    #  leave /dev/null as a regular file, so perhaps this is enough?
+    #
+    [ -c /dev/null ] && break
+
     sleep 0.1
-    ls -l /dev/null | grep -q 'crw' && break
 done
 
 # The following is needed for upstream PR #1716
