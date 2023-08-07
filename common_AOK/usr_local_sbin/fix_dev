@@ -39,9 +39,8 @@ if [ -e /etc/opt/AOK/is_chrooted ]; then
     exit 0
 fi
 
-null_is_ok=0
 
-while [ $null_is_ok -ne 1 ]; do
+while true ; do
     echo "fixing devs" >>"$log_file"
     # parenthesis, so this can be copy pasted into a single action
     (
@@ -58,7 +57,7 @@ while [ $null_is_ok -ne 1 ]; do
         rm -f /dev/location && mknod -m 666 /dev/location c 240 1
     )
     sleep 0.1
-    ls -l /dev/null | grep -q 'crw' && null_is_ok=1
+    ls -l /dev/null | grep -q 'crw' && break
 done
 
 # The following is needed for upstream PR #1716
