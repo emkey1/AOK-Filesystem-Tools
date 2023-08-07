@@ -61,6 +61,7 @@ while true; do
     #
     [ -c /dev/null ] && break
 
+    ls -l /dev/null >>"$log_file"
     sleep 0.1
 done
 
@@ -68,8 +69,6 @@ done
 if [ ! -L /dev/fd ]; then
     ln -sf /proc/self/fd /dev/fd
 fi
-
-ls -l /dev/null >>"$log_file"
 
 # Debug log
 echo "[$(date)]  fix_dev" >>/var/log/debug.log
