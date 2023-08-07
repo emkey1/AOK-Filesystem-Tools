@@ -10,14 +10,7 @@
 #
 
 log_file="/var/log/fix_dev.log"
-date >>"$log_file"
-
-msg_1() {
-    (
-        echo
-        echo "===  $1  ==="
-    ) >>"$log_file"
-}
+echo "[$(date) fix_dev starting" >>"$log_file"
 
 is_ish() {
     test -d /proc/ish
@@ -29,13 +22,13 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
 
 if ! is_ish; then
-    msg_1 "Not iSH kernel, skipping fix_dev"
+    echo "ERROR: Not iSH kernel, skipping fix_dev"
     exit 0
 fi
 
 #  shellcheck disable=SC2154
 if [ -e /etc/opt/AOK/is_chrooted ]; then
-    msg_1 "Skipping fix_dev when chrooted"
+    echo  "WARN: Skipping fix_dev when chrooted" >>"$log_file"
     exit 0
 fi
 
@@ -61,7 +54,10 @@ while true; do
     #
     [ -c /dev/null ] && break
 
-    ls -l /dev/null >>"$log_file"
+    (
+        ls -l /dev/null
+	echo "ERROR: /dev/null seems wrong, trying to fix devs again"
+    )  >>"$log_file"
     sleep 0.1
 done
 
