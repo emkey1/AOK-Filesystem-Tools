@@ -10,11 +10,11 @@
 #
 
 log_it() {
-    echo "[$(date] $1" >>"$log_file"
+    echo "[$(date)] $1" >>"$log_file"
     
     if [ -n "$2" ]; then
         echo "$1"
-        exit $2
+        exit "$2"
     fi
 }
 
