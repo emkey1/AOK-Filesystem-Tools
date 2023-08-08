@@ -37,11 +37,15 @@ msg_3 "This might fail during deploy if system wasnt booted with openrc"
 msg_3 "Will work normally on next boot."
 
 cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
-wall_cmd="$(command -v wall)"
+
+wall_cmd="/usr/bin/wall"
+wc="/usr/local/bin/wall"
+[ -x "$wc" ] && wall_cmd="$wc"
 [ -z "$wall_cmd" ] && error_msg "Command wall not found"
 sed -i "s#PATH_TO_WALL#$wall_cmd##" "$hostname_service"
-chmod 755 "$hostname_service"
+msg_3 "hostname service will announce new hostname using: $wall_cmd"
 
+chmod 755 "$hostname_service"
 rc-update add hostname default
 rc-service hostname start
 
