@@ -1,5 +1,12 @@
 # AOK-Filesystems-Tools
 
+This creates a consistent iSH environment aimed at giving a mostly normal Linux experience, minus the obvious lack of a GUI.
+
+It can be based on several distros, primarily Alpine & Debian, and should give a very similar user experience on either.
+Alpine uses fewer resources, so things will be a bit "faster", but in the iSH universe faster is a very relative concept.
+
+## Installation
+
 It is assumed this is cloned into /opt/AOK
 
 Since various parts of this is both used in the initial build process on
