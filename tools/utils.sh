@@ -299,7 +299,7 @@ user_interactions() {
     if [ -z "$AOK_TIMEZONE" ]; then
         msg_1 "Timezone selection"
         [ -z "$(command -v bash)" ] && apk add bash
-        /opt/AOK/common_AOK/usr_local_bin/set-timezone
+        "$aok_content"/common_AOK/usr_local_bin/set-timezone
     fi
     # msg_3 "user_interactions()  - done"
 }
