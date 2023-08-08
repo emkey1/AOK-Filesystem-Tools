@@ -17,8 +17,8 @@ env_prepare() {
 
     # msg_3 "Mounting system resources"
 
-    if mount | grep -q "$CHROOT_TO" ; then
-	error_msg "This is already chrooted!"
+    if mount | grep -q "$CHROOT_TO"; then
+        error_msg "This is already chrooted!"
     fi
 
     mount -t proc proc "$CHROOT_TO"/proc
@@ -82,19 +82,9 @@ EOF
 #
 #===============================================================
 
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
-#
-cd /opt/AOK || {
-    echo
-    echo "ERROR: The AOK file tools needs to be saved to /opt/AOK for things to work!".
-    echo
-    exit 1
-}
-
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
+current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+#  shellcheck disable=SC1091
+. "$current_dir"/utils.sh
 
 run_as_root "$@"
 

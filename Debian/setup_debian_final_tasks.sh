@@ -48,7 +48,7 @@ if bldstat_get "$status_prebuilt_fs"; then
     fi
 fi
 
-/opt/AOK/common_AOK/aok_hostname/set_aok_hostname.sh
+"$aok_content"/common_AOK/aok_hostname/set_aok_hostname.sh
 
 if [ -n "$INITIAL_LOGIN_MODE" ]; then
     #
@@ -61,7 +61,7 @@ fi
 
 select_profile "$aok_content"/Debian/etc/profile
 
-/opt/AOK/common_AOK/custom/custom_files.sh
+"$aok_content"/common_AOK/custom/custom_files.sh
 
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
