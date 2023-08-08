@@ -39,7 +39,7 @@ msg_3 "Will work normally on next boot."
 cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
 wall_cmd="$(command -v wall)"
 msg_2 "wall cmd:$wall_cmd"
-sed_action="s|PATH_TO_WALL|$wall_cmd||"
+sed_action="s#PATH_TO_WALL#$wall_cmd##"
 msg_2 "sed action:$sed_action"
 
 sed -i "$sed_action" "$hostname_service"
