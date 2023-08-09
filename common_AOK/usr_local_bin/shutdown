@@ -16,14 +16,20 @@
 #  Optional param 1 wall message
 #
 
-notification="${1:-This machine will be shutdown in 10 seconds}"
+notification="${1:-This machine ($hostname) will be shutdown in 10 seconds}"
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
 if [ $uid -ne 0 ]; then
-    echo "ERROR $0 requires root privileges!"
+    echo "ERROR: shutdown requires root privileges!"
     exit 1
 fi
+
+if ! mount | grep -qw "/"; then
+    echo "WARNING: No / mounted, this seems to be chrooted, aborting"
+    exit 2
+fi
+
 if test -f /etc/alpine-release; then
     wall_cmd="/usr/local/bin/wall"
 else
@@ -48,12 +54,12 @@ echo
 sleep 10
 
 if test -f /etc/alpine-release; then
-    sudo /etc/init.d/killprocs restart
+    /etc/init.d/killprocs restart
 else
     #
     #  Debian / Deuvan does not support restart
     #  so a stop start sequence must be done
     #
-    sudo /etc/init.d/killprocs stop
-    sudo /etc/init.d/killprocs start
+    /etc/init.d/killprocs stop
+    /etc/init.d/killprocs start
 fi
