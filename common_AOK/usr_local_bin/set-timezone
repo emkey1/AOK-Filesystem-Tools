@@ -11,7 +11,7 @@
 #
 
 log_it() {
-    echo "$1" >>/tmp/tzlog
+    echo "$1" >>"$TMPDIR/tzlog"
 }
 
 check_dependencies() {
@@ -141,6 +141,8 @@ main() {
 
 # dialog_app="dialog"
 dialog_app="whiptail"
+
+TMPDIR="${TMPDIR:-/tmp}"
 
 # execute again as root
 if [[ "$(whoami)" != "root" ]]; then

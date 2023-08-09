@@ -16,7 +16,7 @@ msg_script_title "install_devuan.sh  Downloading & Installing Devuan"
 #  Step 1  Download and upack Devuan
 #
 
-devuan_download_location="/tmp/devuan_fs"
+devuan_download_location="$TMPDIR/devuan_fs"
 src_image="$DEVUAN_SRC_IMAGE"
 src_tarball="$devuan_download_location/$devuan_src_tb"
 

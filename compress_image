@@ -82,7 +82,7 @@ else
     #  If no tarball name was given, try to identify what is prepared
     #  and give it a name  based on this.
     #
-    distro_name_file="$build_root_d/tmp/distro_name"
+    distro_name_file="${build_root_d}$TMPDIR/distro_name"
     if [ -f "$distro_name_file" ]; then
         distro_name="$(cat "$distro_name_file")"
         msg_2 "It seems the prepared distro is: $distro_name"

@@ -7,6 +7,8 @@
 # Start vnc-server if not running
 #
 
+TMPDIR="${TMPDIR:-/tmp}"
+
 CHECK="$(pgrep startx)"
 
 # Do minimal sanity check to see if vnc/X11 are installed
@@ -17,7 +19,7 @@ fi
 
 # Only run once.  The grep causes CHECK to equal 1
 if [ -z "$CHECK" ]; then # Nothing running, clear stale locks
-    rm -rf /tmp/.X*
+    rm -rf "$TMPDIR/.X*"
 else
     echo "startx is already running.  We're done here."
     exit 1

@@ -207,15 +207,15 @@ distro_name_set() {
     if [ -z "$dns_name" ]; then
         error_msg "distro_name_set() - no param"
     fi
-    echo "$dns_name" >"$build_root_d"/tmp/distro_name
+    echo "$dns_name" >"${build_root_d}$TMPDIR/distro_name"
     unset dns_name
 }
 
 distro_name_get() {
-    if [ ! -f /tmp/distro_name ]; then
+    if [ ! -f "$TMPDIR/distro_name" ]; then
         error_msg "/tmo/distro_name not found!"
     fi
-    cat /tmp/distro_name
+    cat "$TMPDIR/distro_name"
 }
 
 start_setup() {
@@ -425,7 +425,7 @@ run_as_root() {
     if [ "$(whoami)" != "root" ]; then
         msg_2 "Executing $0 as root"
         # using $0 instead of full path makes location not hardcoded
-        if ! sudo "$0" "$@"; then
+        if ! sudo TMPDIR=$TMPDIR "$0" "$@"; then
             error_msg "Failed to sudo run: $0"
         fi
         # terminate the user initiated instance
@@ -567,6 +567,10 @@ fi
 unset conf_overrides
 # fi
 
+echo ">> TMPDIR was:$TMPDIR"
+TMPDIR="${TMPDIR:-/tmp}"
+echo ">> setting TMPDIR to $TMPDIR"
+
 #
 #  Used for keeping track of deploy / chroot status
 #
@@ -591,7 +595,7 @@ fi
 #
 
 #  Location for src images
-src_img_cache_d="/tmp/cache_AOK_images"
+src_img_cache_d="$TMPDIR/cache_AOK_images"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
@@ -658,7 +662,7 @@ status_select_distro_prepared="select_distro_prepared"
 status_prebuilt_fs="prebuilt_fs_first_boot"
 
 #  Locations for building File systems
-build_base_d="/tmp/AOK"
+build_base_d="$TMPDIR/AOK"
 
 #
 #  temp value until we know if this is dest FS, so that build_root_d can
