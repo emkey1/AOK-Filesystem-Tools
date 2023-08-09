@@ -40,10 +40,11 @@ if test -f /etc/alpine-release; then
     wall_cmd="/usr/local/bin/wall"
 else
     #  Debians built-in wall works on iSH
-    wall_cmd="wall"
+    wall_cmd="/usr/bin/wall"
 fi
 
-sudo "$wall_cmd" "$notification"
+"$wall_cmd" "$notification"
+
 
 echo
 echo "WARNING! Abort shut down by hitting Ctrl-C"
