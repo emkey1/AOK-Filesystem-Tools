@@ -5,6 +5,8 @@
 #  License: MIT
 #
 #  Replaces the Alpine wall that doesn't work in iSH
+#  and the Debian wall, that only parially work in iSH-AOK
+#
 #  Be aware that unless you sudo wall, messages will most likely
 #  not be displayed on the console, but inside tmux all panes
 #  will be notified without sudo

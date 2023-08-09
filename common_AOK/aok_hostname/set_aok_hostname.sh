@@ -38,14 +38,6 @@ msg_3 "Will work normally on next boot."
 
 cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
 
-#
-# using AOK wall seems to work on Debian, will continue to evaluate
-# wall_cmd="/usr/bin/wall"
-# wc="/usr/local/bin/wall"
-# [ -x "$wc" ] && wall_cmd="$wc"
-# [ -z "$wall_cmd" ] && error_msg "Command wall not found"
-#
-# sed -i "s#PATH_TO_WALL#${wall_cmd}##" "$hostname_service"
 msg_3 "hostname service will announce new hostname using: wall -n"
 
 chmod 755 "$hostname_service"
