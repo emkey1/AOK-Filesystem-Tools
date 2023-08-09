@@ -16,7 +16,7 @@
 #  Optional param 1 wall message
 #
 
-notification="${1:-This machine [$(hostname)] will be shutdown in 10 seconds}"
+notification="${1:-This machine [$(hostname)] will be shutdown in 10 seconds!!}"
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
@@ -53,8 +53,10 @@ fi
 echo
 sleep 10
 
+echo "Commencing shutdown..."
+
 if test -f /etc/alpine-release; then
-    /etc/init.d/killprocs restart
+    /etc/init.d/killprocs restart 2>/dev/null
 else
     #
     #  Debian / Deuvan does not support restart
