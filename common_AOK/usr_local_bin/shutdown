@@ -36,20 +36,18 @@ if ! mount | grep -qw "/"; then
     exit 2
 fi
 
-if test -f /etc/alpine-release; then
-    wall_cmd="/usr/local/bin/wall"
-else
-    #
-    #  At first it seemed Debian struggled with my
-    #  wall, but further testing indicates it seems
-    #  to work. For now keep it separate, but use
-    #  the common one also for Debian
-    #
-    #wall_cmd="/usr/bin/wall"
-    wall_cmd="/opt/AOK/Alpine/usr_local_bin/wall"
-fi
-"$wall_cmd" "$notification"
-
+#
+#  At first it seemed Debian struggled with my
+#  wall, but further testing indicates it seems
+#  to work. For now keep it separate, but use
+#  the common one also for Debian
+#
+# if test -f /etc/alpine-release; then
+#     wall_cmd="/usr/local/bin/wall"
+# else
+#     wall_cmd="/usr/bin/wall"
+# fi
+/usr/local/bin/wall "$notification"
 
 echo
 echo "WARNING! Abort shut down by hitting Ctrl-C"
