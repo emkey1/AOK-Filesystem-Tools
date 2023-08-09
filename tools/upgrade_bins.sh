@@ -45,21 +45,21 @@ echo
 #
 #  Always copy common stuff
 #
-cp -av "$aok_content"/common_AOK/usr_local_bin/* /usr/local/bin
-cp -av "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
+rsync -ahP "$aok_content"/common_AOK/usr_local_bin/* /usr/local/bin
+rsync -ahP "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
 
 #
 #  Copy distro specific stuff
 #
 if is_alpine; then
-    cp -av "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
-    cp -av "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
+    rsync -ahP "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
+    rsync -ahP "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
 elif is_devuan; then
-    cp -av "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
-    cp -av "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
+    rsync -ahP "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
+    rsync -ahP "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
 elif is_debian; then
-    cp -av "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
-    cp -av "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
+    rsync -ahP "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
+    rsync -ahP "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
 else
     echo "ERROR: Failed to recognize Distro, aborting."
     exit 1
