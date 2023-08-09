@@ -45,9 +45,8 @@ cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
 # [ -x "$wc" ] && wall_cmd="$wc"
 # [ -z "$wall_cmd" ] && error_msg "Command wall not found"
 #
-wall_cmd="/usr/local/bin/wall"
-sed -i "s#PATH_TO_WALL#${wall_cmd}##" "$hostname_service"
-msg_3 "hostname service will announce new hostname using: $wall_cmd"
+# sed -i "s#PATH_TO_WALL#${wall_cmd}##" "$hostname_service"
+msg_3 "hostname service will announce new hostname using: wall -n"
 
 chmod 755 "$hostname_service"
 rc-update add hostname default
