@@ -18,6 +18,12 @@
 
 notification="${1:-This machine will be shutdown in 10 seconds}"
 
+uid="$(id | awk -F'[(=]' '{print $2}')"
+
+if [ $uid -ne 0 ]; then
+    echo "ERROR $0 requires root privileges!"
+    exit 1
+fi
 if test -f /etc/alpine-release; then
     wall_cmd="/usr/local/bin/wall"
 else
