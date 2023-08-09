@@ -6,14 +6,14 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  Shuts dowwn iSH nodes
+#  Shuts dowwn openrc based systems
 #
 #  Using restart / stop - start
 #  to ensure the process is taking place
 #  Just doing start is not 100% to take effect
 #  depending on service states
 #
-#  Optional param 1 wall message
+#  Optional param 1 is appended to the system shutdown notice
 #
 
 # Define a function to handle Ctrl+C
@@ -24,17 +24,17 @@ interrupt_handler() {
     exit 1
 }
 
-# Set the interrupt_handler function to be called when Ctrl+C is pressed
-trap interrupt_handler INT
-
-def_notif=$(
+notification=$(
     cat <<'EOF'
-     *** SYSTEM SHUTDOWN NOTICE ***
+
+    *** SYSTEM SHUTDOWN NOTICE ***
 
 This machine will be shutdown in 10 seconds!!
 EOF
 )
-notification="${1:-$def_notif}"
+
+[ -n "$1" ] && notification="$notification\n\n$1"
+
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
 if [ "$uid" -ne 0 ]; then
@@ -48,6 +48,13 @@ if ! mount | grep -qw "/"; then
 fi
 
 /usr/local/bin/wall "$notification"
+
+#
+#  Set the interrupt_handler function to be called when Ctrl+C is pressed
+#  Since this will wall announcing shutdown is cancelled, it is better
+#  to activate after the initial wall is made
+#
+trap interrupt_handler INT
 
 echo
 echo "Abort shut down by hitting Ctrl-C within 10 secoonds"
