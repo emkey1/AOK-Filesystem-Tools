@@ -20,7 +20,7 @@
 interrupt_handler() {
     echo "Ctrl+C (SIGINT) received. Cancelling shutdown..."
 
-    /usr/local/bin/wall "shutdown was canceled, the notice can be ignored"
+    /usr/local/bin/wall "shutdown was canceled, the shutdown notice can be ignored"
     exit 1
 }
 
