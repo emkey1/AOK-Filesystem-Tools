@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="Beta-004"
+AOK_VERSION="Beta-004-C14"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -44,7 +44,7 @@ USER_SHELL="/bin/bash"
 #
 #  Alternatives are: enable disable once
 #
-INITIAL_LOGIN_MODE="enable"
+INITIAL_LOGIN_MODE="disable"
 
 #
 #  Should normally not be set! If you want to hard-code timezone,
@@ -52,7 +52,7 @@ INITIAL_LOGIN_MODE="enable"
 #  During testing its a convenient thing to set, not having to select a TZ
 #  for every install.
 #
-# AOK_TIMEZONE="Europe/Berlin"
+AOK_TIMEZONE="Europe/Berlin"
 
 #
 #  If you run both iSH-AOK and regular iSH on the same device
@@ -65,14 +65,14 @@ INITIAL_LOGIN_MODE="enable"
 #
 #  If you manually want to add something to the new FS, before deploy
 #  begins. Remember that from the outside, the new FS is located at
-#  /tmp/AOK/FS
+#  $TMPDIR/AOK/FS
 #  I use this when I want to simulate a mounted /iCloud env like what I
 #  would have on my iPad, whilst testing the FS on a linux host chrooted
 #  If the FS is being compressed its /iCloud is first cleared, so
 #  anything you put in /iCloud will only be available for chrooted
 #  sessions on the build host.
 #
-# POPULATE_FS="rsync -ah /home/jaclu/iCloud /tmp/AOK/FS"
+# POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/AOK/FS"
 
 #
 #  Use this if you have your own restore procedure.
@@ -180,7 +180,7 @@ VNC_APKS="x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status \
 DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
     ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
     bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev \
-    ncurses-dev python3-dev"
+    libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
 # BLOAT3_APKS='emacs neofetch'
 
@@ -202,7 +202,7 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 #  If this type of install is selected, this tarball will be used as base image
 #
 DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/ywlpd62ekroxlc16kc8uq/Debian10-ish-base-v40.tgz?rlkey=70pj8lqtj8g3fc927vnp7kxkp"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/xg5vpeetoahr5epqto6nl/Devuan_4-ish-base-v9.tgz?rlkey=5a10beu5joazykh6lgm1cvhxz"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
 
 #
 #  Use alternate malloc suggested by xloem for Debian, still in development
