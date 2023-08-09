@@ -61,7 +61,7 @@ fi
 /usr/local/bin/wall "$notification"
 
 echo
-echo "WARNING! Abort shut down by hitting Ctrl-C"
+echo "Abort shut down by hitting Ctrl-C within 10 secoonds"
 echo
 
 #
