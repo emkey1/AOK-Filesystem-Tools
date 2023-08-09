@@ -580,7 +580,7 @@ aok_content_etc="/etc$aok_content"
 #
 if is_ish; then
     build_env=1
-elif uname -a | grep -qi linux && uname -a | grep -q x86; then
+elif uname -a | grep -qi linux && uname -a | grep -q -e x86 -e i686; then
     build_env=2
 else
     build_env=0 # chroot not possible
