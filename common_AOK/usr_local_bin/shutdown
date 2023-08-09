@@ -16,8 +16,14 @@
 #  Optional param 1 wall message
 #
 
-notification="${1:-This machine [$(hostname)] will be shutdown in 10 seconds!!}"
+def_notif=$(
+    cat <<'EOF'
+     *** SYSTEM SHUTDOWN NOTICE ***
 
+This machine will be shutdown in 10 seconds!!
+EOF
+)
+notification="${1:-$def_notif}"
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
 if [ "$uid" -ne 0 ]; then
