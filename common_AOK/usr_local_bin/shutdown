@@ -16,11 +16,11 @@
 #  Optional param 1 wall message
 #
 
-notification="${1:-This machine ($hostname) will be shutdown in 10 seconds}"
+notification="${1:-This machine [$(hostname)] will be shutdown in 10 seconds}"
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
-if [ $uid -ne 0 ]; then
+if [ "$uid" -ne 0 ]; then
     echo "ERROR: shutdown requires root privileges!"
     exit 1
 fi
