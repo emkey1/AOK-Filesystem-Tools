@@ -16,6 +16,17 @@
 #  Optional param 1 wall message
 #
 
+# Define a function to handle Ctrl+C
+interrupt_handler() {
+    echo "Ctrl+C (SIGINT) received. Cancelling shutdown..."
+
+    /usr/local/bin/wall "shutdown was canceled, the notice can be ignored"
+    exit 1
+}
+
+# Set the interrupt_handler function to be called when Ctrl+C is pressed
+trap interrupt_handler INT
+
 def_notif=$(
     cat <<'EOF'
      *** SYSTEM SHUTDOWN NOTICE ***
