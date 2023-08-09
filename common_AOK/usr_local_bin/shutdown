@@ -33,7 +33,11 @@ This machine will be shutdown in 10 seconds!!
 EOF
 )
 
-[ -n "$1" ] && notification="$notification\n\n$1"
+#
+#  Append param 1 if pressent on new line
+#
+[ -n "$1" ] && notification="${notification}
+$1"
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
 
