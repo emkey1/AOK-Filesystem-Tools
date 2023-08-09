@@ -49,12 +49,14 @@ echo
 echo "WARNING! Abort shut down by hitting Ctrl-C"
 echo
 
-if test -f /etc/debian_version; then
-    echo
-    echo "Be aware that if running Debian iSH-AOK will report the server has"
-    echo "crached once shutdown has happened, this is normal"
-    echo "since iSH-AOK has no clue why it terminated"
-fi
+#
+#  2023 August - Doesnt seem to be the case any more
+# if test -f /etc/debian_version; then
+#     echo
+#     echo "Be aware that if running Debian iSH-AOK will report the server has"
+#     echo "crached once shutdown has happened, this is normal"
+#     echo "since iSH-AOK has no clue why it terminated"
+# fi
 
 echo
 sleep 10
