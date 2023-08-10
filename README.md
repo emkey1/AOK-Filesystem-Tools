@@ -7,11 +7,81 @@ Alpine uses fewer resources, so things will be a bit "faster", but in the iSH un
 
 ## Installation
 
-It is assumed this is cloned into /opt/AOK
+### Get the repo
 
-Since various parts of this is both used in the initial build process on
-the host platform, and also for finalizing the setup on the destination
-platform. It must be located in a known location to be found.
+```bash
+git clone https://github.com/jaclu/AOK-Filesystem-Tools.git 
+sudo mv AOK-Filesystem-Tools /opt/AOK
+```
+
+It is assumed this is located at /opt/AOK
+
+Since various parts of this are both used in the initial build process on the host platform, 
+and also for finalizing the setup on the destination platform. 
+It must be located in a known location for it to be found.
+
+### To prebuild your FS or not
+
+The reason you might want to prebuild your FS is that the processing speed in the iSH family of apps is ridiculously slow,
+even a low-end Linux node would prepare the FS perhaps 100 times faster than a modern iPad.
+By prebuilding, almost everything needed to set up the environment is done in advance. And only the final steps that must be done on the destination device have to be performed during 1st boot. Things like selecting a timezone, deciding if /iCloud should be mounted, and detecting if this is iSH-AOK or iSH. In the case of iSH, all packets only supported by iSH-AOK are removed.
+
+One potential drawback is that a prebuilt FS will be much larger, but you would not save any download time, since by doing the full deployment on the iOS device, it would have to download the same content anyhow.
+
+The end result is the same regardless if you prebuild or not. 
+However, the deployment of a prebuilt FS is significantly faster. 
+If your build env can't do it, this is not the end of things. 
+
+### Test to see if your env can do pre-build
+
+This just tries to prepare an Alpine FS without compressing it, if you get no error msg your system supports pre build
+
+```bash
+/opt/AOK/build_fs -N -p
+```
+
+If you see a build happening, your environment is able to prebuild file systems. 
+Add -p to build_fs whenever you want to use prebuilding.
+
+If you see this, then prebuilding is not an option in this system
+
+```bash
+Unfortunately, you can not chroot into the image on this device
+This is only supported on iSH and Linux(x86)
+Use another build option (try -h for help)
+
+ERROR: Failed to sudo run: /opt/AOK/build_fs
+```
+
+## Experimenting with generating your own FS
+
+First, create your local config file, this will not collide with the git repo, and if you update it will not be touched
+
+```bash
+cp /opt/AOK/AOK_VARS /opt/AOK/.AOK_VARS
+```
+
+Next Edit /opt/AOK/.AOK_VARS to your liking,  like selecting what Alpine release should be installed, etc. 
+Everything should hopefully be explained, if anything is unclear file an issue.
+
+### Building Alpine
+
+```bash
+/opt/AOK/build_fs -p
+```
+
+### Building Debian
+
+```bash
+/opt/AOK/build_fs -p -d
+```
+
+### Choose distro
+
+Convenient in the sense that this delays Distro selection, however, install times will be significantly longer for Debian
+```bash
+/opt/AOK/build_fs -s
+```
 
 ## Recent changes
 
