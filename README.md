@@ -11,6 +11,7 @@ Alpine uses fewer resources, so things will be a bit "faster", but in the iSH un
 
 ```bash
 git clone https://github.com/jaclu/AOK-Filesystem-Tools.git 
+sudo rm -rf /opt/AOK  # remove the previous instance if present
 sudo mv AOK-Filesystem-Tools /opt/AOK
 ```
 
