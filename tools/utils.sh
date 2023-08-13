@@ -29,7 +29,7 @@ error_msg() {
     echo "ERROR: $_em_msg"
     echo
     [ -n "$LOG_FILE" ] && echo "ERROR: $_em_msg" >>"$LOG_FILE" 2>&1
-    [ "$_em_exit_code" -ne 0 ] && exit "$_em_exit_code"
+    [ "$_em_exit_code" -gt -1 ] && exit "$_em_exit_code"
     unset _em_msg
     unset _em_exit_code
 }
@@ -703,12 +703,22 @@ destfs_is_debian() {
 }
 
 destfs_is_alpine() {
-    test -f "$file_alpine_release"
+    ! destfs_is_select && test -f "$file_alpine_release"
+}
+
+destfs_is_select() {
+    grep -q select_distro "$build_root_d"/etc/profile
 }
 
 destfs_detect() {
+    #
+    #  Since a select env also looks like Alpine, this must fist
+    #  test if it matches the test criteria
+    #
     if destfs_is_alpine; then
         echo "$destfs_alpine"
+    elif destfs_is_select; then
+        echo "$destfs_select"
     elif destfs_is_debian; then
         echo "$destfs_debian"
     elif destfs_is_devuan; then
