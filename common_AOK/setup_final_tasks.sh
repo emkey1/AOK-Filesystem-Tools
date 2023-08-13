@@ -98,6 +98,8 @@ run_additional_tasks_if_found
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
 
+deploy_state_clear
+
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo
 cd || error_msg "Failed to cd home"
