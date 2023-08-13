@@ -36,12 +36,17 @@ setup_environment() {
     copy_local_bins common_AOK
 
     #
-    #  Need full path to handle that this path is not correctly cached at
-    #  this point if Debian is being installed, probably due to switching
-    #  from Alpine to Debian without having rebooted yet.
+    #  If AOK_TIMEZONE is defined, TZ can be set as early as the tools
+    #  needed for it are in. If it is not set, there will be a dialog
+    #  at the end of the deploy where TZ can be selected
     #
-    msg_2 "Setitng time zone"
     if [ -n "$AOK_TIMEZONE" ]; then
+        #
+        #  Need full path to handle that this path is not correctly cached at
+        #  this point if Debian is being installed, probably due to switching
+        #  from Alpine to Debian without having rebooted yet.
+        #
+        msg_2 "Setitng time zone"
         msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
         ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
     fi
