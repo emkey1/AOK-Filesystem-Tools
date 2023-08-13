@@ -64,6 +64,13 @@ rm -rf "$devuan_download_location"
 #  Step 2, Get rid of Alpine FS
 #
 msg_2 "Deleting most of Alpine FS"
+
+if [ -n "$LOG_FILE" ]; then
+    msg_2 "Disabling LOG_FILE until Debian FS has been deployed"
+    orig_log_file="$LOG_FILE"
+    LOG_FILE=""
+fi
+
 #
 #  Removing anything but musl from /lib
 #  Doing this before moving busybox to make things simpler
@@ -110,6 +117,12 @@ msg_3 "Putting Devuan stuff into place"
 /busybox mv "$distro_tmp_dir"/etc /
 
 #  From now on Devuan should be fully available
+
+if [ -n "$orig_log_file" ]; then
+    LOG_FILE="$orig_log_file"
+    unset orig_log_file
+    msg_3 "LOG_FILE restored"
+fi
 
 msg_3 "Removing tmp area $distro_tmp_dir"
 rm -rf "$distro_tmp_dir" || {
