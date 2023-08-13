@@ -234,4 +234,4 @@ DEB_PKGS=""
 
 INITIAL_LOGIN_MODE="disable"
 AOK_TIMEZONE="Europe/Berlin"
-LOG_FILE=/var/log/aokfs-build.log
+# LOG_FILE=/var/log/aokfs-build.log
