@@ -683,6 +683,7 @@ destfs_alpine="Alpine"
 destfs_debian="Debian"
 destfs_devuan="Devuan"
 destfs_select="select"
+destfs_select_hint="$build_root_d"/etc/opt/select_distro
 
 destfs_is_devuan() {
     test -f "$build_root_d"/etc/devuan_version
@@ -696,7 +697,8 @@ destfs_is_alpine() {
 }
 
 destfs_is_select() {
-    [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
+    [ -f "$destfs_select_hint" ]
+    # [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
 }
 
 destfs_detect() {

@@ -128,6 +128,8 @@ msg_3 "Replacing /lib with a soft-link to /usr/lib"
 
 #  From now on Debian should be fully available
 
+rm -f "$destfs_select_hint"
+
 if [ -n "$orig_log_file" ]; then
     LOG_FILE="$orig_log_file"
     unset orig_log_file

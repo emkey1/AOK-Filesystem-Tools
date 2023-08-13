@@ -41,6 +41,7 @@ Select distro:
         echo "Alpine selected"
         echo
         msg_1 "running $setup_alpine_scr"
+        rm -f "$destfs_select_hint"
         "$setup_alpine_scr"
         ;;
 

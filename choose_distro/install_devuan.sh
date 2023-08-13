@@ -118,6 +118,8 @@ msg_3 "Putting Devuan stuff into place"
 
 #  From now on Devuan should be fully available
 
+rm -f "$destfs_select_hint"
+
 if [ -n "$orig_log_file" ]; then
     LOG_FILE="$orig_log_file"
     unset orig_log_file

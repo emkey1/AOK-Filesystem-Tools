@@ -282,6 +282,8 @@ select_distro_on_1st_boot() {
 
     # buildtype_set "$destfs_select"
 
+    touch "$destfs_select_hint"
+
     set_new_etc_profile "$setup_select_distro_prepare"
 
     #
