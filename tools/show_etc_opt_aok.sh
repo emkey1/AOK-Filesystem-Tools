@@ -4,28 +4,36 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #  shellcheck disable=SC1091
 . "$current_dir"/utils.sh
 
-if [ -n "$build_root_d" ]; then
-    echo "dest FS"
-    #  shellcheck disable=SC2154
-    ls -lR "$build_root_d"/etc/opt
+destfs="$(destfs_detect)"
+if [ -n "$destfs" ]; then
+    echo
+    echo "Dest FS type: $destfs"
+fi
+
+if [ -d "$build_root_d/etc/opt/AOK" ]; then
+    echo "----"
+    inspect_files=(
+        "deploy_state"
+    )
+    for rel_fname in "${inspect_files[@]}"; do
+        fname="$build_root_d/etc/opt/AOK/$rel_fname"
+        if [[ -f "$fname" ]]; then
+            echo "$fname  - $(cat "$fname")"
+        else
+            echo "$fname  <<  missing"
+        fi
+    done
+    echo "----"
     echo
 fi
 
-echo "Host FS - Ensure nothing ends up here!"
-ls -lR /etc/opt
-echo
+if [ -n "$build_root_d" ] && [ -d "$build_root_d/etc/opt" ]; then
+    echo "=====   Dest FS"
+    find "$build_root_d"/etc/opt | tail -n +2
+    echo
+fi
 
-echo "----"
-inspect_files=(
-    "deploy_state"
-)
-for rel_fname in "${inspect_files[@]}"; do
-    fname="$build_root_d/etc/opt/AOK/$rel_fname"
-    if [[ -f "$fname" ]]; then
-        echo "$fname  - $(cat "$fname")"
-    else
-        echo "$fname  <<  missing"
-    fi
-done
-echo "----"
-echo
+if [ "$(find /etc/opt | wc -l)" -gt 1 ]; then
+    echo "=====   Host FS - Nothing should be here!"
+    find /etc/opt | tail -n +2
+fi
