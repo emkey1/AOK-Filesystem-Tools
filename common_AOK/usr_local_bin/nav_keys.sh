@@ -46,7 +46,7 @@ tmux_mod_arrow() {
 }
 
 tmux_esc_prefix() {
-    if [ "$sequence" = " " ]; then
+    if [[ "$sequence" = " " ]]; then
         echo "Do not use a nav-key work-arround"
         return
     fi
@@ -55,7 +55,8 @@ tmux_esc_prefix() {
     #  At least Esc must be converted from octal to special char
     #  for older tmux versions. Doesnt hurt on newer
     #
-    sequence="$(echo $1 | sed 's/\\033/\\e/g')"
+    # sequence="$(echo $1 | sed 's/\\033/\\e/g')"
+    sequence="${1//\\033/\\e}"
 
     echo "Escape prefixing will be mapped to: $sequence"
     {
@@ -81,13 +82,13 @@ tmux_esc_prefix() {
 
 add_to_sequence() {
     new_char="$1"
-    if [ -z "$new_char" ]; then
+    if [[ -z "$new_char" ]]; then
         echo "ERROR: add_to_sequence() - no param"
     fi
     if [[ ! "$new_char" =~ [[:print:]] ]]; then
         #  Use three digit octal notation for non printables
         octal="$(printf "%o" "'$new_char'")"
-        if [ "$octal" -lt 100 ]; then
+        if [[ "$octal" -lt 100 ]]; then
             new_char="\\0$octal"
         else
             new_char="\\$octal"
@@ -106,7 +107,7 @@ capture_keypress() {
 
     # Check if more characters were generated
     IFS= read -rsn1 -t 0.1 peek_char
-    while [ -n "$peek_char" ]; do
+    while [[ -n "$peek_char" ]]; do
         char=$peek_char
         add_to_sequence "$char"
         IFS= read -rsn1 -t 0.1 peek_char
@@ -225,7 +226,7 @@ If you do not use a seperate keyboard, this setting has no effect.
 
 echo "$text"
 #if true; then
-if is_aok_kernel; then
+if this_is_aok_kernel; then
     select_nav_key_type
 else
     select_esc_key

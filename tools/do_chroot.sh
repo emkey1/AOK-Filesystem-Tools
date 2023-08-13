@@ -82,13 +82,20 @@ EOF
 #
 #===============================================================
 
+#  Allowing this to be run from anywhere using path
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Automatic sudo if run by a user account, do this before
+#  sourcing tools/utils.sh !!
+#
+#  shellcheck disable=SC1091
+. "$current_dir"/run_as_root.sh
+
 #  shellcheck disable=SC1091
 . "$current_dir"/utils.sh
 
-run_as_root "$@"
-
-prog_name=$(basename "$0")
+prog_name="$(basename "$0")"
 
 CHROOT_TO="$build_root_d"
 
@@ -156,14 +163,14 @@ fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-bldstat_set "$status_is_chrooted"
+destfs_set_is_chrooted
 
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
 exit_code="$?"
 
-bldstat_clear "$status_is_chrooted"
+destfs_clear_chrooted
 
 env_cleanup
 

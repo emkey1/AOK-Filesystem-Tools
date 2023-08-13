@@ -31,11 +31,18 @@ Available options:
 #
 #===============================================================
 
+#  Allowing this to be run from anywhere using path
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+
+#
+#  Automatic sudo if run by a user account, do this before
+#  sourcing tools/utils.sh !!
+#
+#  shellcheck disable=SC1091
+. "$current_dir"/tools/run_as_root.sh
+
 #  shellcheck disable=SC1091
 . "$current_dir"/tools/utils.sh
-
-run_as_root "$@"
 
 prog_name=$(basename "$0")
 use_bzip2=false
@@ -80,32 +87,25 @@ if [ -n "$tar_name" ]; then
 else
     #
     #  If no tarball name was given, try to identify what is prepared
-    #  and give it a name  based on this.
-    #
-    distro_name_file="${build_root_d}$TMPDIR/distro_name"
-    if [ -f "$distro_name_file" ]; then
-        distro_name="$(cat "$distro_name_file")"
-        msg_2 "It seems the prepared distro is: $distro_name"
+    #  and give it a name  based on this with versions added.
+    case "$(destfs_detect)" in
+    "$destfs_alpine") tarball_fn="AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION" ;;
 
-        case "$distro_name" in
+    "$destfs_debian") tarball_fn="AOK-Debian-10-$AOK_VERSION" ;;
 
-        "Alpine") tarball_fn="$alpine_tb" ;;
+    "$destfs_devuan") tarball_fn="AOK-Devuan-4-$AOK_VERSION" ;;
 
-        "Debian") tarball_fn="$debian_tb" ;;
+    "$destfs_select") tarball_fn="AOK-SelectDistro-$AOK_VERSION" ;;
 
-        "Devuan") tarball_fn="$devuan_tb" ;;
+    *)
+        error_msg "Failed to identify prepared distro"
+        ;;
 
-        "SelectDistro") tarball_fn="$select_distro_tb" ;;
-
-        *)
-            error_msg "Failed to identify prepared distro: [$distro_name]"
-            ;;
-
-        esac
-    else
-        error_msg "Did not find a prepared distro $distro_name_file"
-    fi
+    esac
+    deploy_state_is_it "$deploy_state_pre_build" && tarball_fn="$tarball_fn-pb"
 fi
+
+#  Clear logged build-states etc, no longer needed
 
 # set location
 tarball="$build_base_d/$tarball_fn"
@@ -130,18 +130,26 @@ else
     tarball_fn="${tarball_fn}.tgz"
 fi
 
-msg_1 "Creating image $tarball"
-
 if $verbose; then
     opts="v$opts"
 fi
 
+msg_3 "Clearing some log files on client FS"
+rm -f "${build_root_d}/var/log/fix_dev.log"
+if [ -n "$LOG_FILE" ]; then
+    msg_3 "Found a LOG_FILE, renamed to .old to give dest-system a fresh start"
+    [ -f "${build_root_d}$LOG_FILE" ] && mv "${build_root_d}$LOG_FILE" \
+        "${build_root_d}${LOG_FILE}.old"
+fi
+
+msg_1 "Creating image $tarball"
 tar "$opts" "$tarball" .
 
 #
 # copy it to /iCloud if this runs on iSH
 #
-if is_ish && [ "$(ls /iCloud | wc -l)" -gt 0 ]; then
+
+if this_is_ish && [ "$(find /iCloud/ -maxdepth 1 | wc -l)" -gt 1 ]; then
     msg_2 "Creating additional copy: $icloud_archive_d/$tarball_fn"
     mkdir -p "$icloud_archive_d"
     cp "$tarball" "$icloud_archive_d"

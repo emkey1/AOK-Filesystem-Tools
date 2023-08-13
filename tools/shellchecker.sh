@@ -25,74 +25,8 @@ cd /opt/AOK || {
     exit 1
 }
 
-checkables=(
-    tools/do_chroot.sh
-    tools/shellchecker.sh # obviously self-check :)
-    tools/utils.sh
-
-    # Alpine/cron/15min/dmesg_save
-    Alpine/etc/profile
-    Alpine/usr_local_bin/aok_groups
-    Alpine/usr_local_bin/apt
-    Alpine/usr_local_bin/disable_vnc
-    Alpine/usr_local_bin/do_fix_services
-    Alpine/usr_local_bin/enable_vnc
-    # Alpine/usr_local_bin/idev_ip  binary
-    Alpine/usr_local_bin/update
-    Alpine/usr_local_bin/vnc_start
-    Alpine/usr_local_bin/what_owns
-    Alpine/usr_local_sbin/update_motd
-    Alpine/setup_alpine_final_tasks.sh
-    Alpine/setup_alpine.sh
-
-    choose_distro/install_debian.sh
-    choose_distro/select_distro_prepare.sh
-    choose_distro/select_distro.sh
-
-    ## common_AOK/etc/skel/.bash_profile
-    common_AOK/usr_local_bin/aok
-    common_AOK/usr_local_bin/disable_sshd
-    # common_AOK/usr_local_bin/dmesg  perl
-    common_AOK/usr_local_bin/elock
-    common_AOK/usr_local_bin/enable_sshd
-    # common_AOK/usr_local_bin/finger  perl
-    common_AOK/usr_local_bin/fix_services
-    common_AOK/usr_local_bin/iCloud
-    common_AOK/usr_local_bin/installed
-    common_AOK/usr_local_bin/ipad_tmux
-    common_AOK/usr_local_bin/iphone_tmux
-    common_AOK/usr_local_bin/myip
-    common_AOK/usr_local_bin/pbcopy
-    common_AOK/usr_local_bin/set-timezone
-    common_AOK/usr_local_bin/showip
-    common_AOK/usr_local_bin/toggle_multicore
-    common_AOK/usr_local_bin/version
-    common_AOK/usr_local_sbin/ensure_hostname_in_host_file.sh
-    common_AOK/usr_local_sbin/fix_dev
-    common_AOK/setup_common_env.sh
-
-    # Weird, if this is used, I get shellcheck issues listed in /etc/bash.bashrc
-    # Debian/etc/profile
-    Debian/etc/update-motd.d/11-aok-a-deb-vers
-    Debian/etc/update-motd.d/11-aok-b-aok-release
-    Debian/etc/update-motd.d/11-aok-c-ish-release
-    Debian/etc/update-motd.d/11-aok-d-aok-logo
-    Debian/usr_local_sbin/reset-run-dir.sh
-    Debian/setup_debian.sh
-
-    Devuan/etc/update-motd.d/11-aok-a-deb-vers
-    Devuan/etc/update-motd.d/11-aok-b-aok-release
-    Devuan/etc/update-motd.d/11-aok-c-ish-release
-    Devuan/etc/update-motd.d/11-aok-d-aok-logo
-    Devuan/setup_devuan.sh
-
-    AOK_VARS
-    build_fs
-    compress_image
-)
-
 do_shellcheck="$(command -v shellcheck)"
-# do_checkbashisms="$(command -v checkbashisms)"
+do_checkbashisms="$(command -v checkbashisms)"
 
 if [[ "${do_shellcheck}" = "" ]] && [[ "${do_checkbashisms}" = "" ]]; then
     echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
@@ -116,13 +50,176 @@ if [[ -n "${do_checkbashisms}" ]]; then
 fi
 printf "\n\n"
 
-for script in "${checkables[@]}"; do
-    #  abort as soon as one lists issues
-    echo "Checking: ${script}"
-    if [[ "${do_shellcheck}" != "" ]]; then
-        shellcheck -x -a -o all -e SC2250,SC2312 "${script}" || exit 1
+#!/bin/bash
+
+# Function to check if a string is in an array
+string_in_array() {
+    local target="$1"
+    shift
+    local array=("$@")
+
+    for element in "${array[@]}"; do
+        if [[ "$element" == "$target" ]]; then
+            return 0 # Found the string in the array
+        fi
+    done
+
+    return 1 # String not found in the array
+}
+
+do_posix_check() {
+    echo "checking posix: $fname"
+    if [[ -n "${do_shellcheck}" ]]; then
+        # -x follow source
+        shellcheck -a -o all -e SC2250,SC2312 "${fname}" || exit 1
     fi
-    if [[ "${do_checkbashisms}" != "" ]]; then
-        checkbashisms -n -e -x "${script}" || exit 1
+    if [[ -n "${do_checkbashisms}" ]]; then
+        checkbashisms -n -e -x "${fname}" || exit 1
     fi
+}
+
+do_bash_check() {
+    echo "checking bash: $fname"
+    if [[ -n "${do_shellcheck}" ]]; then
+        shellcheck -a -o all -e SC2250,SC2312 "${fname}" || exit 1
+    fi
+}
+
+do_posix() {
+    echo
+    echo "---  Posix  ---"
+    for fname in "${items_posix[@]}"; do
+        do_posix_check "$fname"
+    done
+}
+
+do_bash() {
+    echo
+    echo "---  Bash  ---"
+    for fname in "${items_bash[@]}"; do
+        do_bash_check "$fname"
+    done
+}
+
+do_c() {
+    echo
+    echo "---  C  ---"
+    for fname in "${items_c[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_openrc() {
+    echo
+    echo "---  openrc  ---"
+    for fname in "${items_openrc[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_json() {
+    echo
+    echo "---  json  ---"
+    for fname in "${items_json[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_perl() {
+    echo
+    echo "---  perl  ---"
+    for fname in "${items_perl[@]}"; do
+        echo "$fname"
+    done
+}
+
+list_file_types() {
+    echo
+    echo "---  File types found  ---"
+    for f_type in "${file_types[@]}"; do
+        echo "$f_type"
+        echo
+    done
+}
+
+mapfile -t all_files < <(find .)
+excludes=(
+    ./Alpine/cron/15min/dmesg_save
+    ./Debian/etc/profile
+    ./common_AOK/usr_local_bin/aok
+    ./tools/not_used.sh
+)
+
+prefixes=(
+    ./.git
+    ./.vscode
+    ./Devuan/etc/update-motd.d
+)
+
+suffixes=(
+    \~
+)
+
+file_types=()
+items_posix=()
+items_bash=()
+items_c=()
+items_openrc=()
+items_json=()
+items_perl=()
+
+for fname in "${all_files[@]}"; do
+    [[ -d "$fname" ]] && continue
+
+    for exclude in "${excludes[@]}"; do
+        [[ "$fname" == "$exclude" ]] && continue 2
+    done
+
+    for prefix in "${prefixes[@]}"; do
+        [[ "$fname" == "$prefix"* ]] && continue 2
+    done
+
+    for suffix in "${suffixes[@]}"; do
+        [[ "$fname" == *"$suffix" ]] && continue 2
+    done
+
+    f_type="$(file -b "$fname")"
+
+    if [[ "$f_type" == *"POSIX shell script"* ]]; then
+        items_posix+=("$fname")
+        continue
+    elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
+        items_bash+=("$fname")
+        continue
+    elif [[ "$f_type" == *"C source"* ]]; then
+        items_c+=("$fname")
+        continue
+    elif [[ "$f_type" == *"openrc-run"* ]]; then
+        items_openrc+=("$fname")
+        continue
+    elif [[ "$f_type" == *"JSON data"* ]]; then
+        items_json+=("$fname")
+        continue
+    elif [[ "$f_type" == *"Perl script"* ]]; then
+        items_perl+=("$fname")
+        continue
+    elif ! string_in_array "$f_type" "${file_types[@]}"; then
+        file_types+=("$f_type")
+    fi
+    #
+    # Display uncathegorized
+    #
+    #[[ "$f_type" != *"ELF"* ]] && {
+    # 	file "$fname"
+    #	echo
+    #}
 done
+
+do_posix
+do_bash
+# do_c
+# do_openrc
+#do_json
+# do_perl
+
+# list_file_types

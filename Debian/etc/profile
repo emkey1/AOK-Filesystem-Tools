@@ -10,14 +10,6 @@
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
 
-#
-#  Don't know why but without this delay, profile occationally fails
-#  to complete under iSH, leaving just a blank screen. Just a guess,
-#  but could be that the Launch cmd (triggering /etc/profile) is run
-#  before the OS is ready?
-#
-# sleep 2
-
 if [ "$(id -u)" -eq 0 ]; then
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 else

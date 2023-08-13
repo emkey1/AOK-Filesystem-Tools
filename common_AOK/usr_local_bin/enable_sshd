@@ -12,7 +12,7 @@ if [ ! -d /proc/ish ]; then
     exit 1
 fi
 
-if [ -f /etc/opt/AOK/is_chrooted ]; then
+if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
     echo "This can't be run when chrooted!"
     exit 1
 fi

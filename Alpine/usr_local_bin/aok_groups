@@ -16,9 +16,9 @@ force_mode=0
 #  I can edit this on my workstation
 #
 if [ -d "/proc/ish" ]; then
-    is_iSH=1
+    this_is_ish=1
 else
-    is_iSH=0
+    this_is_ish=0
 fi
 
 check_for_option() {
@@ -55,7 +55,7 @@ check_for_option() {
 
     "-f" | "--force")
         force_mode=1
-        is_iSH=1
+        this_is_ish=1
         ;;
 
     *) ;;
@@ -98,7 +98,7 @@ pkg_handling() {
 
     cmd="sudo apk $action $packages"
 
-    if [ "$is_iSH" -eq 1 ]; then
+    if [ "$this_is_ish" -eq 1 ]; then
         $cmd
     else
         #

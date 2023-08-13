@@ -6,9 +6,9 @@
 #
 #  License: MIT
 #
-#  setup_debian.sh
-#
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  setup_debian.sh
 #
 #  This modifies a Debian Linux FS with the AOK changes
 #
@@ -76,7 +76,22 @@ setup_login() {
     cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
 
     mv /bin/login /bin/login.original
-    ln -sf /bin/login.original /bin/login
+
+    # ln -sf /bin/login.original /bin/login
+
+    #
+    #  In order to ensure 1st boot will be able to run, for now
+    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
+    #  method will be activated at the end of the setup
+    #
+    /usr/local/bin/aok -l disable >/dev/null || {
+        error_msg "Failed to disable login during deploy"
+    }
+
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
 }
 
 mimalloc_install() {
@@ -100,27 +115,19 @@ mimalloc_install() {
 #
 #===============================================================
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-# sleep 2
-
-#  Ensure important devices are present
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
-
 tsd_start="$(date +%s)"
 
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
+#
+#  Ensure important devices are present.
+#  this is not yet in inittab, so run it from here on 1st boot
+#
+echo "-->  Running fix_dev  <--"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
 
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
+
+deploy_starting
 
 if [ "$build_env" -eq 0 ]; then
     echo
@@ -134,28 +141,12 @@ msg_script_title "setup_debian.sh  Debian specific AOK env"
 msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
 
-start_setup Debian "$(cat /etc/debian_version)"
-
-if test -f /AOK; then
-    msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
-    rm -rf /AOK
-fi
+initiate_deploy Debian "$(cat /etc/debian_version)"
 
 prepare_env_etc
 
-#
-#  This must run before any task doing apt actions
-#
 msg_1 "apt update"
 apt update -y
-
-#
-#  Doing some user interactions as early as possible, unless this is
-#  pre-built, then this happens on first boot during final_tasks
-#
-if ! bldstat_get "$status_prebuilt_fs"; then
-    user_interactions
-fi
 
 if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
     msg_1 "apt upgrade"
@@ -171,16 +162,16 @@ else
     msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
 
-setup_login
-
-debian_services
-
 #
 #  Common deploy, used both for Alpine & Debian
 #
 if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
+
+setup_login
+
+debian_services
 
 #
 #  Overriding common runbg with Debian specific, work in progress...
@@ -199,10 +190,10 @@ fi
 #  Depending on if prebuilt or not, either setup final tasks to run
 #  on first boot or now.
 #
-if bldstat_get "$status_prebuilt_fs"; then
-    select_profile "$setup_debian_final"
+if deploy_state_is_it "$deploy_state_pre_build"; then
+    set_new_etc_profile "$setup_final"
 else
-    "$setup_debian_final"
+    "$setup_final"
     not_prebuilt=1
 fi
 

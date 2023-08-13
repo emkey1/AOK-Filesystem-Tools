@@ -6,19 +6,14 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
+#  select_distro_prepare.sh
+#
 #  Prepares the Alpine image to show Distribution selection dialog
 #
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-# sleep 2
-
 #  Ensure important devices are present
 echo "-> Running fix_dev <-"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
 
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
@@ -41,13 +36,10 @@ msg_3 "Installing wget (needed for Debian download)"
 apk add wget
 
 # shellcheck disable=SC2154
-bldstat_set "$status_select_distro_prepared"
+set_new_etc_profile "$setup_select_distro"
 
 # shellcheck disable=SC2154
-select_profile "$setup_select_distro"
-
-# shellcheck disable=SC2154
-if is_chrooted; then
+if this_fs_is_chrooted; then
     msg_1 "This is chrooted"
     echo "It doesn't make sense to select Distro at this time"
     exit

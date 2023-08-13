@@ -10,9 +10,6 @@
 #  Common setup tasks for both Alpine & Debian
 #
 
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
 setup_environment() {
 
     #  Announce what AOK release this is
@@ -21,7 +18,7 @@ setup_environment() {
 
     msg_2 "copy some /etc files"
 
-    echo "This is an iSH node, running $(distro_name_get)" >/etc/issue
+    echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
     if [ -n "$USER_NAME" ]; then
         echo "Default user is: $USER_NAME" >>/etc/issue
@@ -37,11 +34,6 @@ setup_environment() {
     fi
 
     copy_local_bins common_AOK
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
 
     #
     #  Need full path to handle that this path is not correctly cached at
@@ -115,7 +107,7 @@ copy_skel_files() {
 user_root() {
     msg_2 "Setting up root user env"
 
-    if ! is_debian; then
+    if ! destfs_is_debian; then
         msg_3 "Alpine - root shell -> /bin/ash"
         sed -i "s|^root:[^:]*:|root:/bin/bash:|" /etc/passwd
     fi
@@ -141,7 +133,7 @@ create_user() {
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
 
-    if is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
+    if destfs_is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
         msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
         USER_SHELL="/bin/bash"
     fi
@@ -186,6 +178,9 @@ create_user() {
 #
 #===============================================================
 
+# shellcheck disable=SC1091
+. /opt/AOK/tools/utils.sh
+
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
@@ -198,3 +193,5 @@ else
 fi
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
+
+exit 0 # indicate no error

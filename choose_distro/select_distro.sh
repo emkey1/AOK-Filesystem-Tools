@@ -7,6 +7,8 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
+#  select_distro.sh
+#
 #  Setup Distro choice
 #
 
@@ -69,24 +71,14 @@ Select distro:
 #
 #===============================================================
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-# sleep 2
-
-#  Ensure important devices are present
-echo "-> Running fix_dev <-"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
-
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
 tcd_start="$(date +%s)"
+
+#
+#  Ensure important devices are present.
+#  this is not yet in inittab, so run it from here on 1st boot
+#
+echo "-->  Running fix_dev  <--"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
 
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
@@ -94,7 +86,7 @@ tcd_start="$(date +%s)"
 manual_runbg
 
 #  shellcheck disable=SC2009
-if ! is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
+if ! this_fs_is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
     cat /dev/location >/dev/null &
     msg_1 "iSH now able to run in the background"
 fi

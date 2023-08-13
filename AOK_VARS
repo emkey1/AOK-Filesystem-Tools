@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="Beta-004-C14"
+AOK_VERSION="0.7.15-a42"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -33,7 +33,7 @@ USER_NAME="ish"
 #
 # Shell for user USER_NAME (if defined)
 #
-USER_SHELL="/bin/bash"
+USER_SHELL="/bin/ash"
 
 #
 #  Replaces /root and user home dir with pre-defined content, if defined
@@ -44,7 +44,7 @@ USER_SHELL="/bin/bash"
 #
 #  Alternatives are: enable disable once
 #
-INITIAL_LOGIN_MODE="disable"
+INITIAL_LOGIN_MODE="enable"
 
 #
 #  Should normally not be set! If you want to hard-code timezone,
@@ -52,7 +52,7 @@ INITIAL_LOGIN_MODE="disable"
 #  During testing its a convenient thing to set, not having to select a TZ
 #  for every install.
 #
-AOK_TIMEZONE="Europe/Berlin"
+# AOK_TIMEZONE="Europe/Berlin"
 
 #
 #  If you run both iSH-AOK and regular iSH on the same device
@@ -112,6 +112,15 @@ AOK_TIMEZONE="Europe/Berlin"
 #
 QUICK_DEPLOY=0
 
+#
+#  If LOG_FILE is defined build progress printed is also logged to this
+#  file. This is mostly useful as a debugging tool, if during the deploy
+#  something goes wrong and iSH crashes. This way you can at least get
+#  an idea of how far things progressed before something broke.
+#  This one it is better to define in .AOK_VARS
+#
+# LOG_FILE=/var/log/aokfs-build.log
+
 ########################################################################
 #
 #                   Alpine Specific
@@ -121,10 +130,10 @@ QUICK_DEPLOY=0
 #
 #  ALPINE_VERSION defines what Alpine release will be used
 #
-# ALPINE_VERSION=3.15.9 # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.6 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.4 # End of Alpine support 2024-11-22
-# ALPINE_VERSION=3.18.2 # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
+# ALPINE_VERSION=3.16.7 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
+ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #
 # 2023-07-28 edge doesn't work ATM, will investigate...
 # #ALPINE_VERSION=edge # Current development tree
@@ -201,7 +210,7 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 #
 #  If this type of install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/ywlpd62ekroxlc16kc8uq/Debian10-ish-base-v40.tgz?rlkey=70pj8lqtj8g3fc927vnp7kxkp"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/90a9s46b3qtox36wttre5/Debian10-ish-base-v42.tgz?rlkey=8pzeulj2zmnlg6wz0rq64xeio"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
 
 #
@@ -222,3 +231,7 @@ DEB_PKGS=""
 #  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
+
+INITIAL_LOGIN_MODE="disable"
+AOK_TIMEZONE="Europe/Berlin"
+LOG_FILE=/var/log/aokfs-build.log

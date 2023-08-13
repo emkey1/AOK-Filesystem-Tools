@@ -24,7 +24,7 @@ Available options:
     exit 0
 }
 
-is_alpine() {
+destfs_is_alpine() {
     test -f /etc/alpine-release
 }
 
@@ -72,7 +72,7 @@ change_login_procedure() {
             #  is installed
             #
             ln -sf "$login_original" /bin/login
-        elif is_alpine; then
+        elif destfs_is_alpine; then
             ln -sf "/bin/busybox" /bin/login
         else
             echo "ERROR: not Alpine and no $login_original"
@@ -174,7 +174,7 @@ if [ "$(whoami)" != "root" ]; then
     exit 0
 fi
 
-if is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
+if destfs_is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
     #
     #  If /bin/login has been updated, ie is a file, this would indicate
     #  shadow-login or similar has been updated. Update $login_original

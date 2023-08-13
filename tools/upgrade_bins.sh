@@ -22,7 +22,7 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #  shellcheck disable=SC1091
 . "$current_dir"/utils.sh
 
-if ! is_ish; then
+if ! this_is_ish; then
     error_msg "This should only be run on an iSH platform!"
 fi
 
@@ -51,13 +51,13 @@ rsync -ahP "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
 #
 #  Copy distro specific stuff
 #
-if is_alpine; then
+if destfs_is_alpine; then
     rsync -ahP "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
     rsync -ahP "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
-elif is_devuan; then
+elif destfs_is_devuan; then
     rsync -ahP "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
     rsync -ahP "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
-elif is_debian; then
+elif destfs_is_debian; then
     rsync -ahP "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
     rsync -ahP "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
 else

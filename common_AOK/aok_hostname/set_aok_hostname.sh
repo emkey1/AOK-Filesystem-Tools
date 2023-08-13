@@ -10,8 +10,9 @@
 #  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-#  Only relevant for aok kernels
-! is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
+#  Only relevant for aok kernels and if AOK_HOSTNAME_SUFFIX is "Y"
+#  shellcheck disable=SC2154
+! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
 
 msg_1 "Setting -aok suffix for hostname"
 
@@ -24,7 +25,7 @@ fi
 new_hostname="$(hostname)-aok"
 hostname_service="/etc/init.d/hostname"
 
-if is_debian; then
+if destfs_is_debian; then
     msg_3 "Debian - removing previous service files"
     rm -f /etc/init.d/hostname
     rm -f /etc/init.d/hostname.sh
