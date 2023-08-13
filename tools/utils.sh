@@ -425,6 +425,11 @@ run_additional_tasks_if_found() {
 #
 #===============================================================
 
+while [ -f "/run/fixdev.pid" ]; do
+    msg_3 "Waiting for fix_dev to complete"
+    sleep 1
+done
+
 #
 #  Might be activated in AOK_VARS or .AOK_VARS
 #  initial state is disabled
@@ -482,32 +487,14 @@ aok_content_etc="/etc$aok_content"
 
 f_this_fs_is_chrooted_raw="/etc/opt/this_fs_is_chrooted"
 f_deploy_state_raw="${aok_content_etc}/deploy_state"
+# echo "this is ch [$f_this_fs_is_chrooted_raw] dep state [$f_deploy_state_raw]"
 
-#
-#  status_being_built and build_status, used by bldstat_get()
-#  must be defined before this
-#
-# if this_fs_is_chrooted; then
-#     msg_1 "This is chrooted"
-#     :
-# elif test -f /etc/opt/AOK-login_method; then
-#     msg_1 "On installed dest platform"
-#     :
-
-while [ -f "/run/fixdev.pid" ]; do
-    msg_3 "Waiting for fix_dev to complete"
-    sleep 1
-done
-
-# if [ -f "$f_this_fs_is_chrooted_raw" ] ||
-#     [ -f "$f_deploy_state_raw" ]; then
-#     msg_3 "dest platform FS"
-#     :
-# else
-#     build_root_d="$build_base_d/FS"
-
-#     msg_3 "build host FS"
-# fi
+if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
+    msg_3 "running inside dest platform FS"
+else
+    build_root_d="$build_base_d/FS"
+    msg_3 "running on build host FS"
+fi
 
 f_this_fs_is_chrooted="${build_root_d}${f_this_fs_is_chrooted_raw}"
 f_deploy_state="${build_root_d}${f_deploy_state_raw}"
@@ -709,7 +696,7 @@ destfs_is_alpine() {
 }
 
 destfs_is_select() {
-    grep -q select_distro "$build_root_d"/etc/profile
+    [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
 }
 
 destfs_detect() {
@@ -726,6 +713,7 @@ destfs_detect() {
     elif destfs_is_devuan; then
         echo "$destfs_devuan"
     else
-        error_msg "destfs_detect() - Failed to detect dest FS"
+        # error_msg "destfs_detect() - Failed to detect dest FS"
+        echo
     fi
 }
