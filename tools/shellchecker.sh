@@ -18,13 +18,12 @@
 #  completed
 #
 
-
 #
 #  Display error, and exit if exit code > -1
 #
 error_msg() {
     local em_msg="$1"
-     local em_exit_code="${2:-1}"
+    local em_exit_code="${2:-1}"
     if [[ -z "$em_msg" ]]; then
         echo
         echo "error_msg() no param"
@@ -37,12 +36,11 @@ error_msg() {
     [[ "$em_exit_code" -gt -1 ]] && exit "$em_exit_code"
 }
 
-
 #
 #  Function to sort an array in ascending order
 #
 sort_array() {
-    local input_array=("$@")  # Convert arguments into an array
+    local input_array=("$@") # Convert arguments into an array
     local sorted_array=()
 
     # Use a loop to add each eOBlement to the sorted array
@@ -51,7 +49,8 @@ sort_array() {
     done
 
     # Use the POSIX sort utility to sort the array in place
-    IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
+    #IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
+    mapfile -t sorted_array < <(printf "%s\n" "${sorted_array[@]}" | sort)
 
     echo "${sorted_array[@]}"
 }
@@ -73,7 +72,6 @@ string_in_array() {
     return 1 # String not found in the array
 }
 
-
 #
 #  Scan for and define usable linters
 #
@@ -82,28 +80,78 @@ identify_available_linters() {
     do_checkbashisms="$(command -v checkbashisms)"
 
     if [[ "${do_shellcheck}" = "" ]] && [[ "${do_checkbashisms}" = "" ]]; then
-	echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
-	exit 1
+        echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
+        exit 1
     fi
 
     printf "Using: "
     if [[ -n "${do_shellcheck}" ]]; then
-	printf "%s " "shellcheck"
+        printf "%s " "shellcheck"
     fi
     if [[ -n "${do_checkbashisms}" ]]; then
-	printf "%s " "checkbashisms"
-	#  shellcheck disable=SC2154
-	if [[ "$build_env" -eq 1 ]]; then
+        printf "%s " "checkbashisms"
+        #  shellcheck disable=SC2154
+        if [[ "$build_env" -eq 1 ]]; then
             if checkbashisms --version | grep -q 2.21; then
-		echo
-		echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
-		echo "         close to a minute/script"
+                echo
+                echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
+                echo "         close to a minute/script"
             fi
-	fi
+        fi
     fi
     printf "\n\n"
 }
 
+#===============================================================
+#
+#   Lint specific file types
+#
+#===============================================================
+
+lint_posix() {
+    local f="$1"
+    lnt_p=1
+    [[ -z "$f" ]] && error_msg "lint_posix() - no paran given!" 1
+    echo "checking posix: $f"
+    if [[ -n "${do_shellcheck}" ]]; then
+        lnt_p1=1
+        # -x follow source
+        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
+    fi
+    if [[ -n "${do_checkbashisms}" ]]; then
+        lnt_p2=1
+        checkbashisms -n -e -x "$f" || exit 1
+    fi
+}
+
+lnt_p=0
+lnt_p1=0
+lnt_p2=0
+
+lint_bash() {
+    local f="$1"
+    lnt_b=1
+    [[ -z "$f" ]] && error_msg "lint_bash() - no paran given!" 1
+    echo "checking bash: $f"
+    if [[ -n "${do_shellcheck}" ]]; then
+        lnt_b1=1
+        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
+    else
+        echo "shellcheck not available"
+    fi
+}
+lnt_b=0
+lnt_b1=0
+
+lint_usage() {
+    echo
+    [[ $lnt_p -eq 0 ]] && echo "Warning lint_posix() never called"
+    [[ $lnt_p1 -eq 0 ]] && echo "posix shellcheck never called"
+    [[ $lnt_p2 -eq 0 ]] && echo "posix checkbashisms never called"
+
+    [[ $lnt_b -eq 0 ]] && echo "Warning lint_bash() never called"
+    [[ $lnt_b1 -eq 0 ]] && echo "bash shellcheck never called"
+}
 
 #===============================================================
 #
@@ -127,112 +175,84 @@ process_file_tree() {
     mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
 
     for fname in "${all_files[@]}"; do
-	[[ -d "$fname" ]] && continue
+        #[[ "$fname" =
+        [[ -d "$fname" ]] && continue
 
-	for exclude in "${excludes[@]}"; do
+        for exclude in "${excludes[@]}"; do
             [[ "$fname" == "$exclude" ]] && continue 2
-	done
+        done
 
-	for prefix in "${prefixes[@]}"; do
+        for prefix in "${prefixes[@]}"; do
             [[ "$fname" == "$prefix"* ]] && continue 2
-	done
+        done
 
-	for suffix in "${suffixes[@]}"; do
+        for suffix in "${suffixes[@]}"; do
             [[ "$fname" == *"$suffix" ]] && continue 2
-	done
+        done
 
-	f_type="$(file -b "$fname")"
+        f_type="$(file -b "$fname")"
 
-	#
-	#  To handle a new file type, just repeat one of the below blocs
-	#  lets say you identify Python files and want to track them
-	#  add the file to something like items_python  in order to pressent
-	#  them just make a call like this:
-	#    list_item_group "Python" "${items_python[@]}"
-	#
-	if [[ "$f_type" == *"POSIX shell script"* ]]; then
+        #
+        #  To handle a new file type, just repeat one of the below blocs
+        #  lets say you identify Python files and want to track them
+        #  add the file to something like items_python  in order to pressent
+        #  them just make a call like this:
+        #    list_item_group "Python" "${items_python[@]}"
+        #
+        if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-	    lint_posix "$fname"
+            lint_posix "$fname"
             continue
-	elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
+        elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-	    #lint_bash "$fname"
+            lint_bash "$fname"
             continue
-	elif [[ "$f_type" == *"C source"* ]]; then
+        elif [[ "$f_type" == *"C source"* ]]; then
             items_c+=("$fname")
             continue
-	elif [[ "$f_type" == *"openrc-run"* ]]; then
+        elif [[ "$f_type" == *"openrc-run"* ]]; then
             items_openrc+=("$fname")
             continue
-	elif [[ "$f_type" == *"Perl script"* ]]; then
+        elif [[ "$f_type" == *"Perl script"* ]]; then
             items_perl+=("$fname")
             continue
-	elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]]; then
+        elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]]; then
             items_ucode_esc+=("$fname")
             continue
-	elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]]; then
+        elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_ucode+=("$fname")
             continue
-	elif [[ "$f_type" == *"makefile script"* ]]; then
+        elif [[ "$f_type" == *"makefile script"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_makefile+=("$fname")
             continue
-	elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
+        elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_bin64+=("$fname")
             continue
-	elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
+        elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_bin32_linux_so+=("$fname")
             continue
-	elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
+        elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_bin32_musl+=("$fname")
             continue
-	elif [[ "$f_type" == *"ASCII text"* ]]; then
+        elif [[ "$f_type" == *"ASCII text"* ]]; then
             #  This must come after items_ucode_esc, otherwise this
-	    #  very generic string would match most files
+            #  very generic string would match most files
             items_ascii+=("$fname")
             continue
-	elif ! string_in_array "$f_type" "${file_types[@]}"; then
-	    #
-	    #  For unhandled file types, ignore the file, just store the new file type
-	    #  to a list.
-	    #
-	    echo ">>> Unhandled file: $fname - $f_type"
+        elif ! string_in_array "$f_type" "${file_types[@]}"; then
+            #
+            #  For unhandled file types, ignore the file, just store the new file type
+            #  to a list.
+            #
+            echo ">>> Unhandled file: $fname - $f_type"
             file_types+=("$f_type")
-	fi
+        fi
     done
-}
-
-
-#===============================================================
-#
-#   Lint specific file types
-#
-#===============================================================
-
-lint_posix() {
-    local f="$1"
-    [[ -z "$f" ]] && error_msg "lint_posix() - no paran given!" 1
-    echo "checking posix: $f"
-    if [[ -n "${do_shellcheck}" ]]; then
-        # -x follow source
-        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
-    fi
-    if [[ -n "${do_checkbashisms}" ]]; then
-        checkbashisms -n -e -x "$f" || exit 1
-    fi
-}
-
-lint_bash() {
-    local f="$1"
-    [[ -z "$f" ]] && error_msg "lint_bash() - no paran given!" 1
-    echo "checking bash: $f"
-    if [[ -n "${do_shellcheck}" ]]; then
-        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
-    fi
 }
 
 #===============================================================
@@ -245,14 +265,13 @@ list_item_group() {
     local lbl="$1"
     shift
     local items=("$@")
-    [[ -z "$items" ]] && return
+    [[ ${#items[@]} -eq 0 ]] && return
     echo
     echo "---  $lbl  ---"
     for item in $(sort_array "${items[@]}"); do
-	echo "$item"
+        echo "$item"
     done
 }
-
 
 #===============================================================
 #
@@ -271,12 +290,11 @@ echo
 #
 cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for things to work!" 1
 
-
-
 #
 #  Specifix excludes
 #
 excludes=(
+    ./Alpine/cron/15min/dmesg_save
     ./tools/not_used.sh
 )
 
@@ -291,23 +309,23 @@ suffixes=(
     \~
 )
 
+identify_available_linters
 process_file_tree
 
 #
 #  Display selected file types
 #
 
+list_item_group posix "${items_posix[@]}"
+list_item_group bash "${items_bash[@]}"
 
-#list_item_group bash      "${items_bash[@]}"
-#list_item_group posix     "${items_posix[@]}"
-
-#list_item_group "ASCII text"  "${items_ascii[@]}"
-#list_item_group perl      "${items_perl[@]}"
-#list_item_group C         "${items_c[@]}"
-#list_item_group makefile  "${items_makefile[@]}"
-#list_item_group openrc    "${items_openrc[@]}"
-#list_item_group "Unicode text, UTF-8 text"     "${items_ucode[@]}"
-#list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+# list_item_group "ASCII text" "${items_ascii[@]}"
+# list_item_group perl "${items_perl[@]}"
+# list_item_group C "${items_c[@]}"
+# list_item_group makefile "${items_makefile[@]}"
+# list_item_group openrc "${items_openrc[@]}"
+# list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
+# list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
 
 #list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
 #list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
@@ -315,12 +333,14 @@ process_file_tree
 #
 #  Make sure no bin64 items are pressent!
 #
-if [[ -n "$items_bin64" ]]; then
+if [[ ${#items_bin64[@]} -gt 0 ]]; then
     echo
     echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
     list_item_group "ELF 64-bit LSB executable" "${items_bin64[@]}"
 fi
 
-if [[ -n "$file_types" ]]; then
+if [[ ${#file_types[@]} -gt 0 ]]; then
     list_item_group "Unclassified file types" "${file_types[@]}"
 fi
+
+lint_usage
