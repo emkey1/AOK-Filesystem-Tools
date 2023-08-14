@@ -155,7 +155,7 @@ pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
-pkgs_editing="vim nano"
+pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
 CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
@@ -234,4 +234,5 @@ DEB_PKGS=""
 
 INITIAL_LOGIN_MODE="disable"
 AOK_TIMEZONE="Europe/Berlin"
-# LOG_FILE=/var/log/aokfs-build.log
+LOG_FILE=/var/log/aokfs-build.log
+DEB_PKGS="jed"
