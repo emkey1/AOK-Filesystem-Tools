@@ -114,7 +114,6 @@ setup_login() {
 
 tsa_start="$(date +%s)"
 
-
 #
 #  Ensure important devices are present.
 #  this is not yet in inittab, so run it from here on 1st boot
@@ -126,16 +125,9 @@ echo
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-
-
-echo ">>>  Debug, dropping into ash"
-/bin/ash
-error_msg "aborting buil after ash" 1
-
-
-
-
-
+# echo ">>>  Debug, dropping into ash"
+# /bin/ash
+# error_msg "aborting buil after ash" 1
 
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
