@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Fake bangpath to trick linters and editors
+#  shellcheck disable=SC2292
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
