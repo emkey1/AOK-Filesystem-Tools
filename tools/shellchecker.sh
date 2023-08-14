@@ -143,22 +143,26 @@ process_file_tree() {
 
 	f_type="$(file -b "$fname")"
 
+	#
+	#  To handle a new file type, just repeat one of the below blocs
+	#  lets say you identify Python files and want to track them
+	#  add the file to something like items_python  in order to pressent
+	#  them just make a call like this:
+	#    list_item_group "Python" "${items_python[@]}"
+	#
 	if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-	    #do_posix_check "$fname"
+	    lint_posix "$fname"
             continue
 	elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-	    #do_bash_check "$fname"
+	    #lint_bash "$fname"
             continue
 	elif [[ "$f_type" == *"C source"* ]]; then
             items_c+=("$fname")
             continue
 	elif [[ "$f_type" == *"openrc-run"* ]]; then
             items_openrc+=("$fname")
-            continue
-	elif [[ "$f_type" == *"JSON data"* ]]; then
-            items_json+=("$fname")
             continue
 	elif [[ "$f_type" == *"Perl script"* ]]; then
             items_perl+=("$fname")
@@ -187,17 +191,17 @@ process_file_tree() {
             items_bin32_musl+=("$fname")
             continue
 	elif [[ "$f_type" == *"ASCII text"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
+            #  This must come after items_ucode_esc, otherwise this
+	    #  very generic string would match most files
             items_ascii+=("$fname")
             continue
-
 	elif ! string_in_array "$f_type" "${file_types[@]}"; then
 	    #
 	    #  For unhandled file types, ignore the file, just store the new file type
 	    #  to a list.
 	    #
+	    echo ">>> Unhandled file: $fname - $f_type"
             file_types+=("$f_type")
-	    echo "Unhandled file: $fname"
 	fi
     done
 }
@@ -209,9 +213,9 @@ process_file_tree() {
 #
 #===============================================================
 
-do_posix_check() {
+lint_posix() {
     local f="$1"
-    [[ -z "$f" ]] && error_msg "do_posix_check() - no paran given!" 1
+    [[ -z "$f" ]] && error_msg "lint_posix() - no paran given!" 1
     echo "checking posix: $f"
     if [[ -n "${do_shellcheck}" ]]; then
         # -x follow source
@@ -222,9 +226,9 @@ do_posix_check() {
     fi
 }
 
-do_bash_check() {
+lint_bash() {
     local f="$1"
-    [[ -z "$f" ]] && error_msg "do_bash_check() - no paran given!" 1
+    [[ -z "$f" ]] && error_msg "lint_bash() - no paran given!" 1
     echo "checking bash: $f"
     if [[ -n "${do_shellcheck}" ]]; then
         shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
@@ -250,16 +254,6 @@ list_item_group() {
 }
 
 
-list_file_types() {
-    [[ -z "$file_types" ]] && return
-    echo
-    echo "---  File types found  ---"
-    for f_type in "${file_types[@]}"; do
-        echo "$f_type"
-        echo
-    done
-}
-
 #===============================================================
 #
 #   Main
@@ -283,9 +277,6 @@ cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for t
 #  Specifix excludes
 #
 excludes=(
-    ./Alpine/cron/15min/dmesg_save
-    ./Debian/etc/profile
-    ./common_AOK/usr_local_bin/aok
     ./tools/not_used.sh
 )
 
@@ -295,15 +286,12 @@ excludes=(
 prefixes=(
     ./.git
     ./.vscode
-    ./Devuan/etc/update-motd.d
 )
 suffixes=(
     \~
 )
 
 process_file_tree
-
-echo "---------------------------------------------------------------"
 
 #
 #  Display selected file types
@@ -315,9 +303,8 @@ echo "---------------------------------------------------------------"
 
 #list_item_group "ASCII text"  "${items_ascii[@]}"
 #list_item_group perl      "${items_perl[@]}"
-#list_item_group c         "${items_c[@]}"
+#list_item_group C         "${items_c[@]}"
 #list_item_group makefile  "${items_makefile[@]}"
-#list_item_group json    "${items_json[@]}"
 #list_item_group openrc    "${items_openrc[@]}"
 #list_item_group "Unicode text, UTF-8 text"     "${items_ucode[@]}"
 #list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
@@ -328,13 +315,12 @@ echo "---------------------------------------------------------------"
 #
 #  Make sure no bin64 items are pressent!
 #
-#if [[ -n "$items_bin64" ]]; then
-#    echo
-#    echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
-#    list_item_group "ELF 64-bit LSB executable" "${items_bin64[@]}"
-#fi
+if [[ -n "$items_bin64" ]]; then
+    echo
+    echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
+    list_item_group "ELF 64-bit LSB executable" "${items_bin64[@]}"
+fi
 
-list_file_types
-#if [[ -n "$file_types" ]]; then
-#    list_item_group "ELF 64-bit LSB executable" "${file_types[@]}"
-#fi
+if [[ -n "$file_types" ]]; then
+    list_item_group "Unclassified file types" "${file_types[@]}"
+fi
