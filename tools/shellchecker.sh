@@ -174,7 +174,7 @@ process_file_tree() {
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_makefile+=("$fname")
             continue
-	elif [[ "$f_type" == *"ELF 64-bit LSB executable"* ]]; then
+	elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_bin64+=("$fname")
             continue
@@ -237,35 +237,11 @@ do_bash_check() {
 #
 #===============================================================
 
-do_posix() {
-    echo
-    echo "---  Posix  ---"
-    sorted_items=($(sort_array "${items_posix[@]}"))
-    for item in "${sorted_items[@]}"; do
-	echo "$item"
-    done
-}
-
-do_bash() {
-    echo
-    echo "---  Bash  ---"
-    sorted_items=($(sort_array "${items_bash[@]}"))
-    for item in "${sorted_items[@]}"; do
-	echo "$item"
-    done
-}
-
-ok_list_item_group() {
-    local items=("$@")
-    for item in $(sort_array "${items[@]}"); do
-	echo "$item"
-    done
-}
-
 list_item_group() {
     local lbl="$1"
     shift
     local items=("$@")
+    [[ -z "$items" ]] && return
     echo
     echo "---  $lbl  ---"
     for item in $(sort_array "${items[@]}"); do
@@ -273,99 +249,6 @@ list_item_group() {
     done
 }
 
-
-do_openrc() {
-    [[ -z "$items_openrc" ]] && return
-    echo
-    echo "---  openrc  ---"
-    for fname in "${items_openrc[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_json() {
-    [[ -z "$items_json" ]] && return
-    echo
-    echo "---  json  ---"
-    for fname in "${items_json[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_perl() {
-    [[ -z "$items_perl" ]] && return
-    echo
-    echo "---  perl  ---"
-    for fname in "${items_perl[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_ucode_esc() {
-    echo
-    echo "---  Unicode text, UTF-8 text, with escape  ---"
-    for fname in "${items_ucode_esc[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_ucode() {
-    echo
-    echo "---  Unicode text, UTF-8 text  ---"
-    for fname in "${items_ucode[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_c() {
-    echo
-    echo "---  C  ---"
-    for fname in "${items_c[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_makefile() {
-    echo
-    echo "---  makefile script  ---"
-    for fname in "${items_makefile[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_ascii() {
-    echo
-    echo "---  ASCII text  ---"
-    for fname in "${items_ascii[@]}"; do
-        echo "$fname"
-    done
-}
-do_bin32_linux_so() {
-    echo
-    echo "---  ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2  ---"
-    for fname in "${items_bin32_linux_so[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_bin32_musl() {
-    echo
-    echo "---  ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386  ---"
-    for fname in "${items_bin32_musl[@]}"; do
-        echo "$fname"
-    done
-}
-
-do_bin64() {
-    [[ -z "$items_bin64" ]] && return
-    echo
-    echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
-    echo
-    echo "---  ELF 64-bit LSB executable  ---"
-    for fname in "${items_bin64[@]}"; do
-        echo "$fname"
-    done
-}
 
 list_file_types() {
     [[ -z "$file_types" ]] && return
@@ -426,25 +309,32 @@ echo "---------------------------------------------------------------"
 #  Display selected file types
 #
 
-do_json
 
-list_item_group bash      "${items_bash[@]}"
-list_item_group posix     "${items_posix[@]}"
+#list_item_group bash      "${items_bash[@]}"
+#list_item_group posix     "${items_posix[@]}"
 
-list_item_group ascii     "${items_ascii[@]}"
-list_item_group perl      "${items_perl[@]}"
-list_item_group c         "${items_c[@]}"
-list_item_group makefile  "${items_makefile[@]}"
-list_item_group openrc    "${items_openrc[@]}"
-list_item_group ucode     "${items_ucode[@]}"
-list_item_group ucode_esc "${items_ucode_esc[@]}"
+#list_item_group "ASCII text"  "${items_ascii[@]}"
+#list_item_group perl      "${items_perl[@]}"
+#list_item_group c         "${items_c[@]}"
+#list_item_group makefile  "${items_makefile[@]}"
+#list_item_group json    "${items_json[@]}"
+#list_item_group openrc    "${items_openrc[@]}"
+#list_item_group "Unicode text, UTF-8 text"     "${items_ucode[@]}"
+#list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
 
-list_item_group bin32_linux_so "${items_bin32_linux_so[@]}"
-list_item_group bin32_musl "${items_bin32_musl[@]}"
+#list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+#list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
 
 #
 #  Make sure no bin64 items are pressent!
 #
-list_item_group bin64 "${items_bin64[@]}"
+#if [[ -n "$items_bin64" ]]; then
+#    echo
+#    echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
+#    list_item_group "ELF 64-bit LSB executable" "${items_bin64[@]}"
+#fi
 
 list_file_types
+#if [[ -n "$file_types" ]]; then
+#    list_item_group "ELF 64-bit LSB executable" "${file_types[@]}"
+#fi
