@@ -83,6 +83,14 @@ identify_available_linters() {
         echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
         exit 1
     fi
+    if [[ -n "$do_shellcheck" ]]; then
+        v_sc="$(shellcheck -o all -V | grep version: | awk '{ print $2 }')"
+        if [[ "$v_sc" = "0.5.0" ]]; then
+            sc_adv_opts=""
+        else
+            sc_adv_opts="-o all"
+        fi
+    fi
 
     printf "Using: "
     if [[ -n "${do_shellcheck}" ]]; then
@@ -116,7 +124,8 @@ lint_posix() {
     if [[ -n "${do_shellcheck}" ]]; then
         lnt_p1=1
         # -x follow source
-        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
+        # -o all
+        shellcheck -a "$sc_adv_opts" -e SC2250,SC2312 "$f" || exit 1
     fi
     if [[ -n "${do_checkbashisms}" ]]; then
         lnt_p2=1
@@ -172,7 +181,9 @@ process_file_tree() {
     #
     #  Reads in all files, globally reverse sorted by file age
     #
-    mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+    # mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+
+    all_files=($(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2))
 
     for fname in "${all_files[@]}"; do
         #[[ "$fname" =
