@@ -80,6 +80,7 @@ tcd_start="$(date +%s)"
 #
 echo "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
+echo
 
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
