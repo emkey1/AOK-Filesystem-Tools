@@ -55,7 +55,7 @@ is_char_dev() {
         # log_it "ok_dev: $_d" -1
         return 0
     else
-        log_it "WARNING: $_d seems wrong, will try to again!" -1
+        log_it "WARNING: $_d not a chardev, will run this  again!" -1
         log_it "$(ls -l "$_d")" -1
         return 1
     fi
@@ -94,6 +94,7 @@ if [ -e /etc/opt/AOK/this_fs_is_chrooted ]; then
 fi
 
 if [ "$1" != "ignore_init_check" ]; then
+    pstree -p >>"$log_file"
     #
     #  In AOK FS running on Debian this is started from a secondary init
     #  (investigating) so minimum 3, sometimes it gets 4
@@ -102,7 +103,6 @@ if [ "$1" != "ignore_init_check" ]; then
     #         `-login(2)---sh(6)---run-parts(8)
     #
     if [ "$PPID" -gt 4 ]; then
-        pstree -p >>"$log_file"
         log_it "ERROR: Not started from init, parent is ($PPID) exiting" 1
     fi
 fi
