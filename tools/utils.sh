@@ -490,11 +490,11 @@ f_deploy_state_raw="${aok_content_etc}/deploy_state"
 # echo "this is ch [$f_this_fs_is_chrooted_raw] dep state [$f_deploy_state_raw]"
 
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
-    # msg_3 "running inside dest platform FS"
+    msg_3 "running inside dest platform FS"
     :
 else
     build_root_d="$build_base_d/FS"
-    # msg_3 "running on build host FS"
+    msg_3 "running on build host FS"
 fi
 
 f_this_fs_is_chrooted="${build_root_d}${f_this_fs_is_chrooted_raw}"
