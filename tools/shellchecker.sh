@@ -101,14 +101,6 @@ do_bash() {
     done
 }
 
-do_c() {
-    echo
-    echo "---  C  ---"
-    for fname in "${items_c[@]}"; do
-        echo "$fname"
-    done
-}
-
 do_openrc() {
     echo
     echo "---  openrc  ---"
@@ -133,7 +125,74 @@ do_perl() {
     done
 }
 
+do_ucode_esc() {
+    echo
+    echo "---  Unicode text, UTF-8 text, with escape  ---"
+    for fname in "${items_ucode_esc[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_ucode() {
+    echo
+    echo "---  Unicode text, UTF-8 text  ---"
+    for fname in "${items_ucode[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_c() {
+    echo
+    echo "---  C  ---"
+    for fname in "${items_c[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_makefile() {
+    echo
+    echo "---  makefile script  ---"
+    for fname in "${items_makefile[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_ascii() {
+    echo
+    echo "---  ASCII text  ---"
+    for fname in "${items_ascii[@]}"; do
+        echo "$fname"
+    done
+}
+do_bin32_linux_so() {
+    echo
+    echo "---  ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2  ---"
+    for fname in "${items_bin32_linux_so[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_bin32_musl() {
+    echo
+    echo "---  ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386  ---"
+    for fname in "${items_bin32_musl[@]}"; do
+        echo "$fname"
+    done
+}
+
+do_bin64() {
+    [ -z "$items_bin64" ] && return
+    echo
+    echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
+    echo
+    echo "---  ELF 64-bit LSB executable  ---"
+    for fname in "${items_bin64[@]}"; do
+        echo "$fname"
+    done
+}
+
 list_file_types() {
+    [ -z "$file_types" ] && return
     echo
     echo "---  File types found  ---"
     for f_type in "${file_types[@]}"; do
@@ -142,7 +201,7 @@ list_file_types() {
     done
 }
 
-mapfile -t all_files < <(find .)
+mapfile -t all_files < <(find . | sort)
 excludes=(
     ./Alpine/cron/15min/dmesg_save
     ./Debian/etc/profile
@@ -159,14 +218,6 @@ prefixes=(
 suffixes=(
     \~
 )
-
-file_types=()
-items_posix=()
-items_bash=()
-items_c=()
-items_openrc=()
-items_json=()
-items_perl=()
 
 for fname in "${all_files[@]}"; do
     [[ -d "$fname" ]] && continue
@@ -203,6 +254,34 @@ for fname in "${all_files[@]}"; do
     elif [[ "$f_type" == *"Perl script"* ]]; then
         items_perl+=("$fname")
         continue
+    elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]]; then
+        items_ucode_esc+=("$fname")
+        continue
+    elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]]; then
+        #  This must come after items_ucode_esc, otherwise that would eat this
+        items_ucode+=("$fname")
+        continue
+    elif [[ "$f_type" == *"makefile script"* ]]; then
+        #  This must come after items_ucode_esc, otherwise that would eat this
+        items_makefile+=("$fname")
+        continue
+    elif [[ "$f_type" == *"ELF 64-bit LSB executable"* ]]; then
+        #  This must come after items_ucode_esc, otherwise that would eat this
+        items_bin64+=("$fname")
+        continue
+    elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
+        #  This must come after items_ucode_esc, otherwise that would eat this
+        items_bin32_linux_so+=("$fname")
+        continue
+    elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
+        #  This must come after items_ucode_esc, otherwise that would eat this
+        items_bin32_musl+=("$fname")
+        continue
+    elif [[ "$f_type" == *"ASCII text"* ]]; then
+        #  This must come after items_ucode_esc, otherwise that would eat this
+        items_ascii+=("$fname")
+        continue
+
     elif ! string_in_array "$f_type" "${file_types[@]}"; then
         file_types+=("$f_type")
     fi
@@ -215,11 +294,19 @@ for fname in "${all_files[@]}"; do
     #}
 done
 
-do_posix
-do_bash
-# do_c
-# do_openrc
-#do_json
-# do_perl
+# do_bash
+# do_posix
 
-# list_file_types
+do_c
+do_openrc
+do_json
+do_perl
+do_ucode
+do_ucode_esc
+do_ascii
+do_makefile
+do_bin32_linux_so
+do_bin32_musl
+do_bin64
+
+list_file_types
