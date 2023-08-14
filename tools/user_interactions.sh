@@ -29,7 +29,7 @@ thisfs_is_iCloud_mounted() {
 user_interactions() {
     msg_2 "user_interactions()"
 
-    ! thisfs_is_iCloud_mounted && should_icloud_be_mounted
+    should_icloud_be_mounted
 
     if [ -z "$AOK_TIMEZONE" ]; then
         msg_1 "Timezone selection"
@@ -82,6 +82,9 @@ should_icloud_be_mounted() {
 
     if [ "$_sibm_exitstatus" -eq 0 ]; then
         mount -t ios x /iCloud
+        msg_1 "/iCloud has been mounted!"
+    else
+        msg_3 "mount rejected"
     fi
 
     unset _sibm_dlg_app
