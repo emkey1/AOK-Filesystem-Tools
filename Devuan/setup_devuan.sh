@@ -115,8 +115,7 @@ fi
 
 msg_script_title "setup_devuan.sh  Devuan specific AOK env"
 
-initiate_deploy Devuan </etc/debian_version
-
+initiate_deploy Devuan "$(cat /etc/devuan_version)"
 prepare_env_etc
 
 #
