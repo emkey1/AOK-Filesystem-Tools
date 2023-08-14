@@ -115,13 +115,6 @@ setup_login() {
 tsa_start="$(date +%s)"
 
 
-
-echo ">>>  Debug, dropping into ash"
-/bin/ash
-error_msg "aborting buil after ash"
-
-
-
 #
 #  Ensure important devices are present.
 #  this is not yet in inittab, so run it from here on 1st boot
@@ -132,6 +125,14 @@ echo
 
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
+
+
+
+echo ">>>  Debug, dropping into ash"
+/bin/ash
+error_msg "aborting buil after ash" 1
+
+
 
 
 
