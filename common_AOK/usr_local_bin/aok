@@ -99,9 +99,9 @@ change_login_procedure() {
 }
 
 check_login_method() {
-    if ls -l /bin/login 2>/dev/null | grep -q login.loop; then
+    if [ "$(readlink -f /bin/login)" = "/bin/login.loop" ]; then
         echo "enabled"
-    elif ls -l /bin/login 2>/dev/null | grep -q login.once; then
+    elif [ "$(readlink -f /bin/login)" = "/bin/login.once" ]; then
         echo "once"
     else
         echo "disabled"
@@ -110,7 +110,7 @@ check_login_method() {
 
 display_login_method() {
     mthd_active="$(check_login_method)"
-    mthd_intended="$(cat $login_method_stored 2>/dev/null)"
+    mthd_intended="$(cat "$login_method_stored" 2>/dev/null)"
 
     if [ "$mthd_active" = "$mthd_intended" ]; then
         echo "$mthd_active"
@@ -143,6 +143,7 @@ display_login_method() {
     "disabled") mthd="disable" ;;
     "once") mthd="once" ;;
     "enabled") mthd="enable" ;;
+    *) mthd="$mthd_active" ;; # not sure how this works, my attempt for a deault
     esac
 
     change_login_procedure "$mthd"
