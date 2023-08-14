@@ -127,3 +127,7 @@ argh need to figure out how to get  should_icloud_be_mounted()
 to detect that it is called late on a prebuild in order to decide
 to investigate if a mount should happen
 unsre not onnly root gets selected shell
+
+## iSH Debian
+
+When prebuilding /etc/opt/AOK is created in the host FS prior to chroot
