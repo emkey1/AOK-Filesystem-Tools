@@ -487,7 +487,7 @@ aok_content_etc="/etc$aok_content"
 
 f_this_fs_is_chrooted_raw="/etc/opt/this_fs_is_chrooted"
 f_deploy_state_raw="${aok_content_etc}/deploy_state"
-# echo "this is ch [$f_this_fs_is_chrooted_raw] dep state [$f_deploy_state_raw]"
+echo ">>> this is ch [$f_this_fs_is_chrooted_raw] dep state [$f_deploy_state_raw]"
 
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
     msg_3 "running inside dest platform FS"
