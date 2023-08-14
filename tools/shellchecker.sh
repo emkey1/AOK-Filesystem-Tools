@@ -255,6 +255,25 @@ do_bash() {
     done
 }
 
+ok_list_item_group() {
+    local items=("$@")
+    for item in $(sort_array "${items[@]}"); do
+	echo "$item"
+    done
+}
+
+list_item_group() {
+    local lbl="$1"
+    shift
+    local items=("$@")
+    echo
+    echo "---  $lbl  ---"
+    for item in $(sort_array "${items[@]}"); do
+	echo "$item"
+    done
+}
+
+
 do_openrc() {
     [[ -z "$items_openrc" ]] && return
     echo
@@ -396,7 +415,7 @@ prefixes=(
     ./Devuan/etc/update-motd.d
 )
 suffixes=(
-    #\~
+    \~
 )
 
 process_file_tree
@@ -407,24 +426,25 @@ echo "---------------------------------------------------------------"
 #  Display selected file types
 #
 
-do_bash
-do_posix
-
-do_ascii
-do_perl
 do_json
-do_c
-do_makefile
-do_openrc
-do_ucode
-do_ucode_esc
 
-#do_bin32_linux_so
-#do_bin32_musl
+list_item_group bash      "${items_bash[@]}"
+list_item_group posix     "${items_posix[@]}"
+
+list_item_group ascii     "${items_ascii[@]}"
+list_item_group perl      "${items_perl[@]}"
+list_item_group c         "${items_c[@]}"
+list_item_group makefile  "${items_makefile[@]}"
+list_item_group openrc    "${items_openrc[@]}"
+list_item_group ucode     "${items_ucode[@]}"
+list_item_group ucode_esc "${items_ucode_esc[@]}"
+
+list_item_group bin32_linux_so "${items_bin32_linux_so[@]}"
+list_item_group bin32_musl "${items_bin32_musl[@]}"
 
 #
 #  Make sure no bin64 items are pressent!
 #
-do_bin64
+list_item_group bin64 "${items_bin64[@]}"
 
 list_file_types
