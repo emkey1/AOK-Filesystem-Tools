@@ -209,7 +209,8 @@ list_file_types() {
 #  are often edited and most likely to have issues
 #
 #   find . -type f | sort  -r 
-mapfile -t all_files < <(find . | sort -r)
+#mapfile -t all_files < <(find . | sort -r)
+mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
 excludes=(
     ./Alpine/cron/15min/dmesg_save
     ./Debian/etc/profile
