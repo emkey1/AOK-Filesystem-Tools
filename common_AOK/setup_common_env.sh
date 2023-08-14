@@ -138,7 +138,7 @@ create_user() {
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
 
-    if destfs_is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
+    if (destfs_is_debian || destfs_is_devuan) && [ "$USER_SHELL" = "/bin/ash" ]; then
         msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
         USER_SHELL="/bin/bash"
     fi
