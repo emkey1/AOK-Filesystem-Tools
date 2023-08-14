@@ -39,7 +39,7 @@ if [ -n "$build_root_d" ] && [ -d "$build_root_d/etc/opt" ]; then
     echo
 fi
 
-if [ "$(find /etc/opt | wc -l)" -gt 1 ]; then
+if [ "$(find /etc/opt/AOK 2>/dev/null | wc -l)" -gt 0 ]; then
     echo "=====   Host FS - Nothing should be here!"
-    find /etc/opt | tail -n +2
+    find /etc/opt/AOK | tail -n +2
 fi
