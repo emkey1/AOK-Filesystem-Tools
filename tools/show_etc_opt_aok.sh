@@ -16,12 +16,12 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 echo "Show status for /etc/opt for Host and Dest FS"
 
 destfs="$(destfs_detect)"
-if [ -n "$destfs" ]; then
+if [[ -n "$destfs" ]]; then
     echo
     echo "Dest FS type: $destfs"
 fi
 
-if [ -d "$build_root_d/etc/opt/AOK" ]; then
+if [[ -d "$build_root_d/etc/opt/AOK" ]]; then
     echo "----"
     inspect_files=(
         "deploy_state"
@@ -38,13 +38,13 @@ if [ -d "$build_root_d/etc/opt/AOK" ]; then
     echo
 fi
 
-if [ -n "$build_root_d" ] && [ -d "$build_root_d/etc/opt" ]; then
+if [[ -n "$build_root_d" ]] && [[ -d "$build_root_d/etc/opt" ]]; then
     echo "=====   Dest FS"
     find "$build_root_d"/etc/opt | tail -n +2
     echo
 fi
 
-if [ "$(find /etc/opt/AOK 2>/dev/null | wc -l)" -gt 1 ]; then
+if [[ "$(find /etc/opt/AOK 2>/dev/null | wc -l)" -gt 1 ]]; then
     echo "=====   Host FS - Nothing should be here!"
     find /etc/opt/AOK | tail -n +2
 fi

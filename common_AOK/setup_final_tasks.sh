@@ -44,11 +44,6 @@ install_aok_apks() {
 
 tsaft_start="$(date +%s)"
 
-echo
-echo ">>> Path for setup_final_tasks.sh"
-echo $PATH
-echo
-
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 # shellcheck disable=SC1091

@@ -48,7 +48,7 @@ destfs_is_devuan && echo "is devuan" || echo "NOT devuan"
 destfs_is_debian && echo "is debian" || echo "NOT debian"
 echo "Detected: [$(destfs_detect)]"
 
-exit 1
+# exit 1
 
 #
 #  Always copy common stuff
