@@ -165,6 +165,11 @@ msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
 destfs_set_is_chrooted
 
+echo ">>> -----  displaying host fs status"
+find /etc/opt
+echo ">>> -----"
+echo
+
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
