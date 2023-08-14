@@ -102,6 +102,7 @@ do_bash() {
 }
 
 do_openrc() {
+    [[ -z "$items_openrc" ]] && return
     echo
     echo "---  openrc  ---"
     for fname in "${items_openrc[@]}"; do
@@ -110,6 +111,7 @@ do_openrc() {
 }
 
 do_json() {
+    [[ -z "$items_json" ]] && return
     echo
     echo "---  json  ---"
     for fname in "${items_json[@]}"; do
@@ -118,6 +120,7 @@ do_json() {
 }
 
 do_perl() {
+    [[ -z "$items_perl" ]] && return
     echo
     echo "---  perl  ---"
     for fname in "${items_perl[@]}"; do
@@ -181,7 +184,7 @@ do_bin32_musl() {
 }
 
 do_bin64() {
-    [ -z "$items_bin64" ] && return
+    [[ -z "$items_bin64" ]] && return
     echo
     echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
     echo
@@ -192,7 +195,7 @@ do_bin64() {
 }
 
 list_file_types() {
-    [ -z "$file_types" ] && return
+    [[ -z "$file_types" ]] && return
     echo
     echo "---  File types found  ---"
     for f_type in "${file_types[@]}"; do
@@ -201,7 +204,11 @@ list_file_types() {
     done
 }
 
-mapfile -t all_files < <(find . | sort)
+#
+#  reverse sort so tools comes first, those files
+#  are often edited and most likely to have issues
+#
+mapfile -t all_files < <(find . | sort -r)
 excludes=(
     ./Alpine/cron/15min/dmesg_save
     ./Debian/etc/profile
@@ -294,19 +301,21 @@ for fname in "${all_files[@]}"; do
     #}
 done
 
-# do_bash
-# do_posix
+do_bash
+do_posix
 
-do_c
-do_openrc
-do_json
+do_ascii
 do_perl
+do_json
+do_c
+do_makefile
+do_openrc
 do_ucode
 do_ucode_esc
-do_ascii
-do_makefile
-do_bin32_linux_so
-do_bin32_musl
+
+#do_bin32_linux_so
+#do_bin32_musl
+# Make sure no bin64 items are pressent!
 do_bin64
 
 list_file_types
