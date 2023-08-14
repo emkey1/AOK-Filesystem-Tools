@@ -487,7 +487,7 @@ aok_content_etc="/etc$aok_content"
 
 f_this_fs_is_chrooted_raw="/etc/opt/this_fs_is_chrooted"
 f_deploy_state_raw="${aok_content_etc}/deploy_state"
-echo ">>> --- Raw states
+echo ">>> --- Raw states"
 echo ">>> this is f_this_fs_is_chrooted [$f_this_fs_is_chrooted_raw] f_deploy_state [$f_deploy_state_raw]"
 
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
