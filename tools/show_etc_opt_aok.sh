@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+
+#  shellcheck disable=SC1091
+. "$current_dir"/run_as_root.sh
 #  shellcheck disable=SC1091
 . "$current_dir"/utils.sh # >/dev/null
 
