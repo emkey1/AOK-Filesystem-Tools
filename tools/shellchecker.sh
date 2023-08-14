@@ -208,6 +208,7 @@ list_file_types() {
 #  reverse sort so tools comes first, those files
 #  are often edited and most likely to have issues
 #
+#   find . -type f | sort  -r 
 mapfile -t all_files < <(find . | sort -r)
 excludes=(
     ./Alpine/cron/15min/dmesg_save
