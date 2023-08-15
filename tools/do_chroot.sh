@@ -69,7 +69,8 @@ chroot with env setup so this works on both Linux & iSH
 Available options:
 
 -h  --help     Print this help and exit
--c  --cleanup  Cleanup env
+-c  --cleanup  Cleanup env if something crashed whilst sudoed
+-C  --clear    First do a --cleanup, then remove the build_root ($build_root_d)
 -p, --path     What dir to chroot into, defaults to: $build_root_d
 command        What to run, defaults to "bash -l", command and params must be quoted!
 EOF
@@ -141,6 +142,18 @@ case "$1" in
 
 "-c" | "--cleanup")
     env_cleanup
+    exit 0
+    ;;
+
+"-C" | "--clear")
+    if [ -z "$build_root_d" ]; then
+        error_msg "build_root_d undefined, cant clear build env" 1
+    fi
+
+    env_cleanup
+    msg_1 "Will clear [$build_root_d] in 3 seconds..."
+    sleep 3
+    rm -rf "$build_root_d"
     exit 0
     ;;
 
