@@ -352,7 +352,7 @@ this_is_aok_kernel() {
 this_fs_is_chrooted() {
     #  Check this _ACTUAL_ fs
     msg_2 "this_fs_is_chrooted() [$f_this_fs_is_chrooted_raw]"
-    [ -f "f_this_fs_is_chrooted_raw" ]
+    [ -f "$f_this_fs_is_chrooted_raw" ]
 }
 dest_fs_is_chrooted() {
     msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted]"
