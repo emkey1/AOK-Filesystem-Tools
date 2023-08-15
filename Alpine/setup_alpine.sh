@@ -137,9 +137,9 @@ fi
 echo "build_root_d [$build_root_d]"
 echo "Detected: [$(destfs_detect)]"
 
-# echo ">>>  Debug, dropping into ash"
-# /bin/ash
-# error_msg "aborting buil after ash" 1
+echo ">>>  Debug, dropping into ash"
+/bin/ash
+error_msg "aborting buil after ash" 1
 
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
