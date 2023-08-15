@@ -515,11 +515,10 @@ if [ -n "$DEBUG_BUILD" ]; then
 fi
 
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
-    msg_3 "running inside dest platform FS"
-    :
+    [ -n "$DEBUG_BUILD" ] && msg_3 "running inside dest FS"
 else
     build_root_d="$build_base_d/FS"
-    msg_3 "running on build host FS"
+    [ -n "$DEBUG_BUILD" ] && msg_3 "running on build host FS"
 fi
 
 f_this_fs_is_chrooted="${build_root_d}${f_this_fs_is_chrooted_raw}"
