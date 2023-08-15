@@ -271,19 +271,15 @@ process_file_tree() {
         elif [[ "$f_type" == *"Perl script"* ]]; then
             items_perl+=("$fname")
             continue
-        elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]]; then
+        elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
+                 [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
+            #  Who might have guessed on MacOS file -b output looks different...
             items_ucode_esc+=("$fname")
             continue
-        elif [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
-            items_ucode_esc2+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]]; then
+        elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
+                 [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_ucode+=("$fname")
-            continue
-        elif [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_ucode2+=("$fname")
             continue
         elif [[ "$f_type" == *"makefile script"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
@@ -361,6 +357,12 @@ if [[ "$1" = "-F" ]]; then
     hour_limit=6
 fi
 
+if [[ "$1" = "-q" ]]; then
+    echo "Will skip any linting, only list files by type"
+    echo
+    hour_limit=0
+fi
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -397,18 +399,16 @@ process_file_tree
 list_item_group posix "${items_posix[@]}"
 list_item_group bash "${items_bash[@]}"
 
-# list_item_group "ASCII text" "${items_ascii[@]}"
-# list_item_group perl "${items_perl[@]}"
-# list_item_group C "${items_c[@]}"
-# list_item_group makefile "${items_makefile[@]}"
-# list_item_group openrc "${items_openrc[@]}"
+list_item_group "ASCII text" "${items_ascii[@]}"
+list_item_group perl "${items_perl[@]}"
+list_item_group C "${items_c[@]}"
+list_item_group makefile "${items_makefile[@]}"
+list_item_group openrc "${items_openrc[@]}"
 list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
-list_item_group "Unicode text, UTF-8 text - 2" "${items_ucode2[@]}"
 list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
-list_item_group "Unicode text, UTF-8 text, with escape - 2" "${items_ucode_esc2[@]}"
 
-# list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
-# list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
 
 #
 #  Make sure no bin64 items are pressent!
