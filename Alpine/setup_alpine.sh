@@ -135,10 +135,6 @@ else
 fi
 
 echo "build_root_d [$build_root_d]"
-destfs_is_alpine && echo "is alpine" || echo "NOT alpine"
-destfs_is_select && echo "is select" || echo "NOT select"
-destfs_is_devuan && echo "is devuan" || echo "NOT devuan"
-destfs_is_debian && echo "is debian" || echo "NOT debian"
 echo "Detected: [$(destfs_detect)]"
 
 echo ">>>  Debug, dropping into ash"
