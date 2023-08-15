@@ -163,13 +163,18 @@ fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-destfs_set_is_chrooted
+host_fs_is_chrooted
 
 msg_3 "Deploy state: $(deploy_state_get)"
 if this_fs_is_chrooted; then
-    msg_3 "This is chrooted"
+    msg_1 "Host IS chrooted!"
 else
-    msg_3 "NOT chrooted!"
+    msg_3 "Host not chrooted"
+fi
+if dest_fs_is_chrooted; then
+    msg_3 "dest chrooted (not yet, but flagged as such)"
+else
+    msg_1 "dest NOT flagged as chrooted!"
 fi
 
 msg_3 "build_root_d [$build_root_d]"

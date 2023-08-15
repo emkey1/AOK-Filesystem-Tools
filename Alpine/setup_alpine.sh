@@ -128,7 +128,7 @@ echo
 echo ">>> some debug statuses"
 
 echo "Deploy state: $(deploy_state_get)"
-if this_fs_is_chrooted; then
+if host_fs_is_chrooted; then
     echo "This is chrooted"
 else
     echo "NOT chrooted!"
