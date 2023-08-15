@@ -162,17 +162,19 @@ case "$1" in
     ;;
 
 "-C" | "--clear")
+    [ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
+
     if [ -z "$build_root_d" ]; then
         error_msg "build_root_d undefined, cant clear build env" 1
     fi
 
-    if env_cleanup; then
-        msg_1 "Will clear [$build_root_d] in 3 seconds..."
-        sleep 3
-        rm -rf "$build_root_d"
-    else
-        error_msg "cleanup failed!" 1
+    if ! env_cleanup; then
+        msg_1 "cleanup failed!"
     fi
+
+    msg_1 "Will clear [$build_root_d] in 3 seconds..."
+    sleep 3
+    rm -rf "$build_root_d"
     exit 0
     ;;
 
