@@ -199,7 +199,7 @@ env_prepare
 [ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
 
 if [ "$1" = "" ]; then
-    cmd="bash -l"
+    cmd="/usr/bin/env bash -l"
 else
     cmd="$1"
     if ! [ -f "${build_root_d}${cmd}" ]; then
@@ -236,7 +236,7 @@ fi
 
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
-chroot "$CHROOT_TO" "$cmd"
+chroot "$CHROOT_TO" $cmd
 exit_code="$?"
 
 [ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
