@@ -226,7 +226,7 @@ msg_1 "==========  doing chroot  =========="
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
 echo ">> about to run: chroot $CHROOT_TO $cmd"
-chroot "$CHROOT_TO" $cmd
+chroot "$CHROOT_TO" "$cmd"
 exit_code="$?"
 msg_1 "----------  back from chroot  ----------"
 
