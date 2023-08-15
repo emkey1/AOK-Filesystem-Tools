@@ -78,9 +78,9 @@ EOF
 }
 
 chroot_statuses() {
-    [ -n "$1" ] && msg_1 "$1"
+    [ -n "$1" ] && msg_1 "chroot_statuses - $1"
 
-    msg_1 "Displaying chroot statuses"
+    msg_2 "Displaying chroot statuses"
     if this_fs_is_chrooted; then
         msg_1 "Host IS"
     else
