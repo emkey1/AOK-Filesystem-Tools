@@ -125,19 +125,16 @@ echo
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-echo ">>> some debug statuses"
-
-echo "Deploy state: $(deploy_state_get)"
-if host_fs_is_chrooted; then
-    echo "This is chrooted"
+msg_2 ">>> some debug statuses"
+msg_3 "Deploy state: $(deploy_state_get)"
+if this_fs_is_chrooted; then
+    msg_3 "This is chrooted"
 else
-    echo "NOT chrooted!"
+    msg_3 "NOT chrooted!"
 fi
-
-echo "build_root_d [$build_root_d]"
-echo "Detected: [$(destfs_detect)]"
-
-echo ">>>  Debug, dropping into ash"
+msg_3 "build_root_d [$build_root_d]"
+msg_3 "Detected: [$(destfs_detect)]"
+msg_2 ">>>  Debug, dropping into ash"
 /bin/ash
 error_msg "aborting buil after ash" 1
 
