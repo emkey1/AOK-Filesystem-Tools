@@ -177,9 +177,10 @@ case "$1" in
     if ! env_cleanup; then
         msg_1 "cleanup failed!"
     fi
-
-    msg_1 "Will clear [$build_root_d] in 3 seconds..."
-    sleep 3
+    
+    clr_timeout=2
+    msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
+    sleep "$clr_timeout"    
     rm -rf "$build_root_d"
     [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
     exit 0
