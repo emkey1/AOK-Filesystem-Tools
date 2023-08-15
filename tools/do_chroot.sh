@@ -175,6 +175,7 @@ case "$1" in
     msg_1 "Will clear [$build_root_d] in 3 seconds..."
     sleep 3
     rm -rf "$build_root_d"
+    [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
     exit 0
     ;;
 
