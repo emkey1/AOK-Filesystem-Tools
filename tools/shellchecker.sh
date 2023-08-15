@@ -90,22 +90,25 @@ identify_available_linters() {
         fi
     fi
 
-    printf "Using: "
-    if [[ -n "${do_shellcheck}" ]]; then
-        printf "%s " "shellcheck"
-    fi
-    if [[ -n "${do_checkbashisms}" ]]; then
-        printf "%s " "checkbashisms"
-        #  shellcheck disable=SC2154
-        if [[ "$build_env" -eq 1 ]]; then
-            if checkbashisms --version | grep -q 2.21; then
-                echo
-                echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
-                echo "         close to a minute/script"
+    if [[ "$hour_limit" !=  "0" ]]; then
+
+        printf "Using: "
+        if [[ -n "${do_shellcheck}" ]]; then
+            printf "%s " "shellcheck"
+        fi
+        if [[ -n "${do_checkbashisms}" ]]; then
+            printf "%s " "checkbashisms"
+            #  shellcheck disable=SC2154
+            if [[ "$build_env" -eq 1 ]]; then
+                if checkbashisms --version | grep -q 2.21; then
+                    echo
+                    echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
+                    echo "         close to a minute/script"
+                fi
             fi
         fi
+        printf "\n\n"
     fi
-    printf "\n\n"
 }
 
 #===============================================================
@@ -151,6 +154,7 @@ lnt_b=0
 lnt_b1=0
 
 lint_usage() {
+    [[ "$hour_limit" = "0" ]] && return
     echo
     [[ $lnt_p -eq 0 ]] && echo "Warning lint_posix() never called"
     [[ $lnt_p1 -eq 0 ]] && echo "posix shellcheck never called"
