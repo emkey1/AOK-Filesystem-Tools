@@ -51,7 +51,7 @@ parse_arguments() { # Multi OK 1
                 echo "-d and -s can not be combined!"
                 exit 1
             fi
-            build_target="$destfs_debian"
+            build_target="$distro_debian"
             ;;
 
         "-D" | "--devuan")
@@ -59,12 +59,12 @@ parse_arguments() { # Multi OK 1
                 echo "-D and -s can not be combined!"
                 exit 1
             fi
-            build_target="$destfs_devuan"
+            build_target="$distro_devuan"
             ;;
 
         "-s" | "--select")
-            if [ "$build_target" = "$destfs_debian" ] ||
-                [ "$build_target" = "$destfs_devuan" ]; then
+            if [ "$build_target" = "$distro_debian" ] ||
+                [ "$build_target" = "$distro_devuan" ]; then
                 echo "-d/-D and -s can not be combined!"
                 exit 1
             fi
@@ -146,9 +146,9 @@ display_build_target() { # Multi OK 1
         exit 1
     fi
 
-    if [ "$build_target" = "$destfs_debian" ]; then
+    if [ "$build_target" = "$distro_debian" ]; then
         release_msg="Debian"
-    elif [ "$build_target" = "$destfs_devuan" ]; then
+    elif [ "$build_target" = "$distro_devuan" ]; then
         release_msg="Devuan"
     else
         release_msg="Alpine: $ALPINE_VERSION"
@@ -179,9 +179,9 @@ cache_fs_image() {
         cmd="wget $src_image"
         #  Ensure basename for tar ball is used
         case "$build_target" in
-        "$destfs_alpine") cmd="$cmd -O $alpine_src_tb" ;;
-        "$destfs_debian") cmd="$cmd -O $debian_src_tb" ;;
-        "$destfs_devuan") cmd="$cmd -O $devuan_src_tb" ;;
+        "$distro_alpine") cmd="$cmd -O $alpine_src_tb" ;;
+        "$distro_debian") cmd="$cmd -O $debian_src_tb" ;;
+        "$distro_devuan") cmd="$cmd -O $devuan_src_tb" ;;
         *)
             error_msg "Invalid build_target: $build_target"
             ;;
@@ -256,7 +256,7 @@ add_additional_tasks_if_defined() {
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
 
-    # buildtype_set "$destfs_alpine"
+    # buildtype_set "$distro_alpine"
     set_new_etc_profile "$setup_alpine_scr"
     # msg_3 "setup_Alpine_on_1st_boot() done"
 }
@@ -264,7 +264,7 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
-    # buildtype_set "$destfs_debian"
+    # buildtype_set "$distro_debian"
     set_new_etc_profile "$setup_debian_scr"
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
@@ -272,7 +272,7 @@ setup_Debian_on_1st_boot() {
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
-    # buildtype_set "$destfs_devuan"
+    # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"
     # msg_3 "setup_Devuan_on_1st_boot() done"
 }
@@ -346,9 +346,9 @@ consider_generating_tarball() {
         # #
         # #  Set name for tarball
         # #
-        # if [ "$build_target" = "$destfs_debian" ]; then
+        # if [ "$build_target" = "$distro_debian" ]; then
         #     cgt_label="$debian_tb"
-        # elif [ "$build_target" = "$destfs_devuan" ]; then
+        # elif [ "$build_target" = "$distro_devuan" ]; then
         #     cgt_label="$devuan_tb"
         # elif [ "$build_target" = "$destfs_select" ]; then
         #     cgt_label="$select_distro_tb"
@@ -374,7 +374,7 @@ consider_generating_tarball() {
     fi
 
     if [ "$build_env" -gt 0 ]; then
-        if [ "$build_target" = "$destfs_debian" ]; then
+        if [ "$build_target" = "$distro_debian" ]; then
             set_shell="/bin/sh"
         else
             set_shell="/bin/ash"
@@ -452,7 +452,7 @@ cd "$aok_content" || {
 #
 #  Default for options
 #
-build_target="$destfs_alpine" # default target
+build_target="$distro_alpine" # default target
 verbose=false                 # true displays tar/untar progress
 use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true meand generat4 pre-built FS
@@ -471,10 +471,10 @@ msg_2 "Preparing build environment"
 msg_3 "Clearing build root $build_root_d"
 rm -rf "$build_root_d"
 
-if [ "$build_target" = "$destfs_debian" ]; then
+if [ "$build_target" = "$distro_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
     src_tarball="$debian_src_tb"
-elif [ "$build_target" = "$destfs_devuan" ]; then
+elif [ "$build_target" = "$distro_devuan" ]; then
     src_image="$DEVUAN_SRC_IMAGE"
     src_tarball="$devuan_src_tb"
 else
@@ -505,9 +505,9 @@ if [ -n "$POPULATE_FS" ]; then
     $POPULATE_FS
 fi
 
-if [ "$build_target" = "$destfs_debian" ]; then
+if [ "$build_target" = "$distro_debian" ]; then
     setup_Debian_on_1st_boot
-elif [ "$build_target" = "$destfs_devuan" ]; then
+elif [ "$build_target" = "$distro_devuan" ]; then
     setup_Devuan_on_1st_boot
 elif [ "$build_target" = "$destfs_select" ]; then
     select_distro_on_1st_boot

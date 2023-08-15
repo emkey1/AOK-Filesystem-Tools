@@ -15,9 +15,9 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 
 echo "Show status for /etc/opt for Host and Dest FS"
 
+echo "Host is: $(hostfs_detect)"
 destfs="$(destfs_detect)"
 if [[ -n "$destfs" ]]; then
-    echo
     echo "Dest FS type: $destfs"
 fi
 

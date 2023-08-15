@@ -89,11 +89,11 @@ else
     #  If no tarball name was given, try to identify what is prepared
     #  and give it a name  based on this with versions added.
     case "$(destfs_detect)" in
-    "$destfs_alpine") tarball_fn="AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION" ;;
+    "$distro_alpine") tarball_fn="AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION" ;;
 
-    "$destfs_debian") tarball_fn="AOK-Debian-10-$AOK_VERSION" ;;
+    "$distro_debian") tarball_fn="AOK-Debian-10-$AOK_VERSION" ;;
 
-    "$destfs_devuan") tarball_fn="AOK-Devuan-4-$AOK_VERSION" ;;
+    "$distro_devuan") tarball_fn="AOK-Devuan-4-$AOK_VERSION" ;;
 
     "$destfs_select") tarball_fn="AOK-SelectDistro-$AOK_VERSION" ;;
 

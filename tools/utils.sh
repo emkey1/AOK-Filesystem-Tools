@@ -708,15 +708,16 @@ deploy_starting() {
 #
 #===============================================================
 
-destfs_alpine="Alpine"
-destfs_debian="Debian"
-destfs_devuan="Devuan"
+distro_alpine="Alpine"
+distro_debian="Debian"
+distro_devuan="Devuan"
 destfs_select="select"
 destfs_select_hint="$build_root_d"/etc/opt/select_distro
 
 destfs_is_devuan() {
     test -f "$build_root_d"/etc/devuan_version
 }
+
 destfs_is_debian() {
     test -f "$build_root_d"/etc/debian_version && ! destfs_is_devuan
 }
@@ -736,15 +737,48 @@ destfs_detect() {
     #  test if it matches the test criteria
     #
     if destfs_is_alpine; then
-        echo "$destfs_alpine"
+        echo "$distro_alpine"
     elif destfs_is_select; then
         echo "$destfs_select"
     elif destfs_is_debian; then
-        echo "$destfs_debian"
+        echo "$distro_debian"
     elif destfs_is_devuan; then
-        echo "$destfs_devuan"
+        echo "$distro_devuan"
     else
-        # error_msg "destfs_detect() - Failed to detect dest FS"
+        #  Failed to detect
+        echo
+    fi
+}
+
+#
+#  Some related functions for host FS
+#
+hostfs_is_alpine() {
+    test -f /etc/alpine-release
+}
+
+hostfs_is_debian() {
+    test -f /etc/debian_version && ! destfs_is_devuan
+}
+
+hostfs_is_devuan() {
+    test -f "/etc/devuan_version"
+}
+
+hostfs_detect() {
+    #
+    #
+    #  Since a select env also looks like Alpine, this must fist
+    #  test if it matches the test criteria
+    #
+    if hostfs_is_alpine; then
+        echo "$distro_alpine"
+    elif hostfs_is_debian; then
+        echo "$distro_debian"
+    elif hostfs_is_devuan; then
+        echo "$distro_devuan"
+    else
+        #  Failed to detect
         echo
     fi
 }

@@ -21,9 +21,9 @@ else
     #  Where to find native FS version
     file_alpine_release="$build_root_d"/etc/alpine-release
 
-    destfs_alpine="Alpine"
-    destfs_debian="Debian"
-    destfs_devuan="Devuan"
+    distro_alpine="Alpine"
+    distro_debian="Debian"
+    distro_devuan="Devuan"
     destfs_select="select"
     destfs_select_hint="$build_root_d"/etc/opt/select_distro
 
@@ -49,13 +49,13 @@ else
         #  test if it matches the test criteria
         #
         if destfs_is_alpine; then
-            echo "$destfs_alpine"
+            echo "$distro_alpine"
         elif destfs_is_select; then
             echo "$destfs_select"
         elif destfs_is_debian; then
-            echo "$destfs_debian"
+            echo "$distro_debian"
         elif destfs_is_devuan; then
-            echo "$destfs_devuan"
+            echo "$distro_devuan"
         else
             # error_msg "destfs_detect() - Failed to detect dest FS"
             echo

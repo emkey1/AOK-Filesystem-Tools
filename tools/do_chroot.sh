@@ -201,7 +201,7 @@ else
     fi
 fi
 
-msg_3 "Deploy state: $(deploy_state_get)"
+msg_2 "Deploy state: $(deploy_state_get)"
 msg_2 "chroot statuses before"
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
@@ -210,7 +210,7 @@ chroot_statuses "Before setting destfs"
 destfs_set_is_chrooted
 chroot_statuses "After setting destfs"
 
-msg_3 "build_root_d [$build_root_d]"
+msg_2 "build_root_d [$build_root_d]"
 msg_3 "Detected: [$(destfs_detect)]"
 echo
 echo ">>> -----  displaying host fs status"
