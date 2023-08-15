@@ -360,7 +360,12 @@ dest_fs_is_chrooted() {
 }
 
 destfs_set_is_chrooted() {
-    msg_2 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
+    msg_1 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
+    if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
+        msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
+        msg_3 "$f_this_fs_is_chrooted"
+        error_msg "flagging dest FS as chrooted NOT possible!"
+    fi
     mkdir -p "$(dirname "$f_this_fs_is_chrooted")"
     touch "$f_this_fs_is_chrooted"
 }
@@ -481,7 +486,7 @@ TMPDIR="${TMPDIR:-/tmp}"
 #  temp value until we know if this is dest FS, so that build_root_d can
 #  be selected
 #
-build_root_d=""
+build_ro1t_d=""
 #
 #  Locations build host for working on a client FS
 #

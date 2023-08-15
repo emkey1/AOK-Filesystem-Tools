@@ -174,11 +174,8 @@ else
     cmd="$1"
 fi
 
-msg_1 "chrooting: $CHROOT_TO ($cmd)"
-
-host_fs_is_chrooted
-
 msg_3 "Deploy state: $(deploy_state_get)"
+msg_2 "chroot statuses before"
 if this_fs_is_chrooted; then
     msg_1 "Host IS chrooted!"
 else
@@ -189,6 +186,9 @@ if dest_fs_is_chrooted; then
 else
     msg_1 "dest NOT flagged as chrooted!"
 fi
+
+msg_1 "chrooting: $CHROOT_TO ($cmd)"
+destfs_set_is_chrooted
 
 msg_3 "build_root_d [$build_root_d]"
 msg_3 "Detected: [$(destfs_detect)]"
