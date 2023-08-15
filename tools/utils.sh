@@ -354,6 +354,7 @@ this_fs_is_chrooted() {
 }
 
 destfs_set_is_chrooted() {
+    msg_2 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
     mkdir -p "$(dirname "$f_this_fs_is_chrooted")"
     touch "$f_this_fs_is_chrooted"
 }
