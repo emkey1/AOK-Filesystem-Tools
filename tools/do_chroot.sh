@@ -77,6 +77,22 @@ EOF
 
 }
 
+chroot_statuses() {
+    [ -n "$1" ] && msg_1 "$1"
+
+    msg_1 "Displaying chroot statuses"
+    if this_fs_is_chrooted; then
+        msg_1 "Host IS"
+    else
+        msg_3 "Host not"
+    fi
+    if dest_fs_is_chrooted; then
+        msg_3 "Dest is (not yet, but flagged as such)"
+    else
+        msg_3 "Dest not"
+    fi
+}
+
 #===============================================================
 #
 #   Main
@@ -171,6 +187,8 @@ esac
 
 env_prepare
 
+[ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
+
 if [ "$1" = "" ]; then
     cmd="bash -l"
 else
@@ -179,25 +197,22 @@ fi
 
 msg_3 "Deploy state: $(deploy_state_get)"
 msg_2 "chroot statuses before"
-if this_fs_is_chrooted; then
-    msg_1 "Host IS chrooted!"
-else
-    msg_3 "Host not chrooted"
-fi
-if dest_fs_is_chrooted; then
-    msg_3 "dest chrooted (not yet, but flagged as such)"
-else
-    msg_1 "dest NOT flagged as chrooted!"
-fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
+
+chroot_statuses "Before setting destfs"
 destfs_set_is_chrooted
+chroot_statuses "After setting destfs"
 
 msg_3 "build_root_d [$build_root_d]"
 msg_3 "Detected: [$(destfs_detect)]"
 echo
 echo ">>> -----  displaying host fs status"
 find /etc/opt
+echo ">>> -----"
+echo
+echo ">>> -----  displaying dest fs status"
+find "$build_root_d"/etc/opt
 echo ">>> -----"
 echo
 
