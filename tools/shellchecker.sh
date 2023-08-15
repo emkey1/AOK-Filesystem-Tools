@@ -50,7 +50,7 @@ sort_array() {
 
     # Use the POSIX sort utility to sort the array in place
     #IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
-    mapfile -t sorted_array < <(printf "%s\n" "${sorted_array[@]}" | sort)
+    mapfile -t sorted_array < <(printf "%s\n" "${sorted_array[@]}" | sort -f)
 
     echo "${sorted_array[@]}"
 }
