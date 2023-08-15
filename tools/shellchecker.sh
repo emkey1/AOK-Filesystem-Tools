@@ -160,6 +160,22 @@ lint_usage() {
     [[ $lnt_b1 -eq 0 ]] && echo "bash shellcheck never called"
 }
 
+
+should_it_be_linted() {
+    local current_time
+    local span_in_seconds
+
+    [[ -z "$hour_limit" ]] && return 0
+    if [[ -z "$cutoff_time" ]]; then
+	current_time=$(date +%s)  # Get current time in seconds since epoch
+	span_in_seconds="$(( 3600 * hour_limit ))"
+	cutoff_time="$((current_time - span_in_seconds))"
+    fi
+    file_mtime=$(stat -c %Y "$fname")
+    [[ $file_mtime -ge $cutoff_time ]]
+}
+
+
 #===============================================================
 #
 #   Process files
@@ -213,11 +229,11 @@ process_file_tree() {
         #
         if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-            lint_posix "$fname"
+	    should_it_be_linted && lint_posix "$fname"
             continue
         elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-            lint_bash "$fname"
+	    should_it_be_linted && lint_bash "$fname"
             continue
         elif [[ "$f_type" == *"C source"* ]]; then
             items_c+=("$fname")
@@ -295,6 +311,21 @@ prog_name=$(basename "$0")
 
 echo "This is $prog_name"
 echo
+
+# Only lint files changed last 24h
+
+if [[ "$1" = "-f" ]]; then
+    echo "Will only check files changed in the last 24h"
+    echo
+    hour_limit=24
+fi
+
+if [[ "$1" = "-F" ]]; then
+    echo "Will only check files changed in the last 6h"
+    echo
+    hour_limit=6
+fi
+
 
 #
 #  Ensure this is run in the intended location in case this was launched from
