@@ -47,16 +47,16 @@ env_cleanup() {
     msg_2 "Doing some post chroot cleanup"
 
     # msg_3 "Un-mounting system resources"
-    umount "$CHROOT_TO"/proc
+    umount "$CHROOT_TO"/proc || return 1
 
     if [ "$build_env" -eq 1 ]; then
         msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else
         msg_3 "Unmounting /sys & /dev"
-        umount "$CHROOT_TO"/sys
-        umount "$CHROOT_TO"/dev/pts
-        umount "$CHROOT_TO"/dev
+        umount "$CHROOT_TO"/sys || return 1
+        umount "$CHROOT_TO"/dev/pts || return 1
+        umount "$CHROOT_TO"/dev || return 1
     fi
 }
 
@@ -154,6 +154,8 @@ case "$1" in
         msg_1 "Will clear [$build_root_d] in 3 seconds..."
         sleep 3
         rm -rf "$build_root_d"
+    else
+        error_msg "cleanup failed!" 1
     fi
     exit 0
     ;;
