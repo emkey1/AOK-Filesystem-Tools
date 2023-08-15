@@ -202,6 +202,9 @@ process_file_tree() {
     #  But of course find in MacOS does not behave like the rest of them..
     #
     #  MacOS  all 27s
+    #  hetz1 linux mode 19s
+    #        mac mode
+    #
     if [[ $(uname) == "Darwin" ]]; then
         # macOS version
         mapfile -t all_files < <(find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-)
