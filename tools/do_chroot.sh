@@ -114,7 +114,7 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 
 if this_is_ish && hostfs_is_debian; then
     echo "************"
-    echo "ish running Debian, does not seem able to do chroot. You have been warned..."
+    echo "ish running Debian - this does not seem able to do chroot. You have been warned..."
     echo "************"
 fi
 
