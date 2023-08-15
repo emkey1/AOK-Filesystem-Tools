@@ -351,16 +351,16 @@ this_is_aok_kernel() {
 
 this_fs_is_chrooted() {
     #  Check this _ACTUAL_ fs
-    msg_2 "this_fs_is_chrooted() [$f_this_fs_is_chrooted_raw]"
+    [ -n "$DEBUG_BUILD" ] && msg_2 "this_fs_is_chrooted() [$f_this_fs_is_chrooted_raw]"
     [ -f "$f_this_fs_is_chrooted_raw" ]
 }
 dest_fs_is_chrooted() {
-    msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted]"
+    [ -n "$DEBUG_BUILD" ] && msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted]"
     [ -f "$f_this_fs_is_chrooted" ]
 }
 
 destfs_set_is_chrooted() {
-    msg_1 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
+    [ -n "$DEBUG_BUILD" ] && msg_1 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
     if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
         msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
         msg_3 "$f_this_fs_is_chrooted"
@@ -381,7 +381,6 @@ destfs_clear_chrooted() {
 
     if [ -f "$f_this_fs_is_chrooted" ]; then
         rm "$f_this_fs_is_chrooted"
-        msg_3 "was direct pointer: $f_this_fs_is_chrooted"
     else
         error_msg "destfs_clear_chrooted() - could not find chroot indicator"
     fi

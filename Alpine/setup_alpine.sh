@@ -125,18 +125,20 @@ echo
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-msg_2 ">>> some debug statuses"
-msg_3 "Deploy state: $(deploy_state_get)"
-if this_fs_is_chrooted; then
-    msg_3 "This is chrooted"
-else
-    msg_3 "NOT chrooted!"
+if [ -n "$DEBUG_BUILD" ]; then
+    msg_2 ">>> some debug statuses"
+    msg_3 "Deploy state: $(deploy_state_get)"
+    if this_fs_is_chrooted; then
+        msg_3 "This is chrooted"
+    else
+        msg_3 "NOT chrooted!"
+    fi
+    msg_3 "build_root_d [$build_root_d]"
+    msg_3 "Detected: [$(destfs_detect)]"
+    msg_2 ">>>  Debug, dropping into ash"
+    /bin/ash
+    error_msg "aborting buil after ash" 1
 fi
-msg_3 "build_root_d [$build_root_d]"
-msg_3 "Detected: [$(destfs_detect)]"
-msg_2 ">>>  Debug, dropping into ash"
-/bin/ash
-error_msg "aborting buil after ash" 1
 
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2

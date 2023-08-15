@@ -207,34 +207,39 @@ else
     fi
 fi
 
-msg_2 "Deploy state: $(deploy_state_get)"
-msg_2 "chroot statuses before"
-
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-chroot_statuses "Before setting destfs"
+if [ -n "$DEBUG_BUILD" ]; then
+    msg_2 "Deploy state: $(deploy_state_get)"
+    msg_2 "chroot statuses before"
+    chroot_statuses "Before setting destfs"
+fi
+
 destfs_set_is_chrooted
-chroot_statuses "After setting destfs"
 
-msg_2 "build_root_d [$build_root_d]"
-msg_3 "Detected: [$(destfs_detect)]"
-echo
-echo ">>> -----  displaying host fs status"
-find /etc/opt
-echo ">>> -----"
-echo
-echo ">>> -----  displaying dest fs status"
-find "$build_root_d"/etc/opt
-echo ">>> -----"
-echo
+if [ -n "$DEBUG_BUILD" ]; then
+    chroot_statuses "After setting destfs"
+    msg_2 "build_root_d [$build_root_d]"
+    msg_3 "Detected: [$(destfs_detect)]"
+    echo
+    echo ">>> -----  displaying host fs status"
+    find /etc/opt
+    echo ">>> -----"
+    echo
+    echo ">>> -----  displaying dest fs status"
+    find "$build_root_d"/etc/opt
+    echo ">>> -----"
+    echo
+    msg_1 "==========  doing chroot  =========="
+    echo ">> about to run: chroot $CHROOT_TO $cmd"
+fi
 
-msg_1 "==========  doing chroot  =========="
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
-echo ">> about to run: chroot $CHROOT_TO $cmd"
 chroot "$CHROOT_TO" "$cmd"
 exit_code="$?"
-msg_1 "----------  back from chroot  ----------"
+
+[ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
 
 destfs_clear_chrooted
 
