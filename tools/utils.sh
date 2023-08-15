@@ -347,6 +347,9 @@ this_is_aok_kernel() {
 #
 #   chroot handling
 #
+#  Theese are convenience hints that can be set in order for
+#  scipts to keep
+#
 #===============================================================
 
 this_fs_is_chrooted() {
@@ -432,6 +435,164 @@ run_additional_tasks_if_found() {
         echo
     fi
     # msg_3 "run_additional_tasks_if_found()  done"
+}
+
+#===============================================================
+#
+#   Host FS
+#
+#===============================================================
+
+hostfs_is_alpine() {
+    test -f /etc/alpine-release
+}
+
+hostfs_is_debian() {
+    test -f /etc/debian_version && ! destfs_is_devuan
+}
+
+hostfs_is_devuan() {
+    test -f "/etc/devuan_version"
+}
+
+hostfs_detect() {
+    #
+    #
+    #  Since a select env also looks like Alpine, this must fist
+    #  test if it matches the test criteria
+    #
+    if hostfs_is_alpine; then
+        echo "$distro_alpine"
+    elif hostfs_is_debian; then
+        echo "$distro_debian"
+    elif hostfs_is_devuan; then
+        echo "$distro_devuan"
+    else
+        #  Failed to detect
+        echo
+    fi
+}
+#===============================================================
+#
+#   Destination FS
+#
+#===============================================================
+
+destfs_is_devuan() {
+    test -f "$build_root_d"/etc/devuan_version
+}
+
+destfs_is_debian() {
+    test -f "$build_root_d"/etc/debian_version && ! destfs_is_devuan
+}
+
+destfs_is_alpine() {
+    ! destfs_is_select && test -f "$file_alpine_release"
+}
+
+destfs_is_select() {
+    [ -f "$destfs_select_hint" ]
+    # [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
+}
+
+destfs_detect() {
+    #
+    #  Since a select env also looks like Alpine, this must fist
+    #  test if it matches the test criteria
+    #
+    if destfs_is_alpine; then
+        echo "$distro_alpine"
+    elif destfs_is_select; then
+        echo "$destfs_select"
+    elif destfs_is_debian; then
+        echo "$distro_debian"
+    elif destfs_is_devuan; then
+        echo "$distro_devuan"
+    else
+        #  Failed to detect
+        echo
+    fi
+}
+
+#===============================================================
+#
+#   Deployment state
+#
+#  Kepps track on in what stage the deployment is
+#
+#   up to deploy_state_creating allways happens on build host
+#
+#===============================================================
+
+deploy_state_set() {
+    # msg_1 "===============   deploy_state_set($1)   ============="
+    _state="$1"
+    [ -z "$_state" ] && error_msg "buildstate_set() - no param!"
+
+    deploy_state_check_param deploy_state_set "$_state"
+
+    mkdir -p "$(dirname "$f_deploy_state")"
+    echo "$_state" >"$f_deploy_state"
+
+    unset _state
+}
+
+deploy_state_is_it() {
+    #
+    #  Checks if the current deployment state matches the requested
+    #
+    _state="$1"
+    [ -z "$_state" ] && error_msg "deploy_state_is_it() - no param!"
+
+    deploy_state_check_param deploy_state_is_it "$_state"
+
+    [ "$_state" = "$(deploy_state_get)" ]
+    # _state is not unset, but shouldnt be an issue
+}
+
+deploy_state_get() {
+    _state="$(cat "$f_deploy_state" 2>/dev/null)"
+    if [ -z "$_state" ]; then
+        # This will only be logged, that depends on LOG_FILE being set
+        msg_1 "deploy_state_get() did not find anything in [$f_deploy_state]" >/dev/null
+        echo ""
+    else
+        echo "$_state"
+    fi
+    unset _state
+}
+
+deploy_state_check_param() {
+    _func="$1"
+    [ -z "$_func" ] && error_msg "deploy_state_check_param() - no function param!"
+    _state="$2"
+    [ -z "$_state" ] && error_msg "deploy_state_check_param() - no deploy state param!"
+
+    case "$_state" in
+    "$deploy_state_na" | "$deploy_state_initializing" | \
+        "$deploy_state_pre_build" | "$deploy_state_dest_build" | \
+        "$deploy_state_finalizing") ;;
+    *) error_msg "${_func}($_state) - invalid param!" ;;
+    esac
+
+    unset _func
+    unset bspc_bs
+}
+
+deploy_state_clear() {
+    msg_2 "deploy_state_clear()"
+
+    rm "$f_deploy_state"
+
+    msg_3 "deploy_state_clear() - done"
+}
+
+deploy_starting() {
+    if deploy_state_is_it "$deploy_state_initializing"; then
+        deploy_state_set "$deploy_state_dest_build"
+    elif ! deploy_state_is_it "$deploy_state_pre_build"; then
+        error_msg "Dest FS in an unknown state [$(deploy_state_get)], can't continue"
+    fi
 }
 
 #===============================================================
@@ -613,170 +774,18 @@ setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.s
 setup_select_distro="$aok_content"/choose_distro/select_distro.sh
 setup_final="$aok_content"/common_AOK/setup_final_tasks.sh
 
-#===============================================================
 #
-#   Deployment state
+#  When reported what distro is used on Host or Dest FS uses this
 #
-#===============================================================
-#
-#  Kepps track on in what stage the deployment is
-#
-#   up to deploy_state_creating allways happens on build host
-#
+distro_alpine="Alpine"
+distro_debian="Debian"
+distro_devuan="Devuan"
+
 deploy_state_na="FS not awailable"       # FS has not yet been created
 deploy_state_initializing="initializing" # making FS ready for 1st boot
 deploy_state_pre_build="prebuild"        # building FS on buildhost, no details for dest are available
 deploy_state_dest_build="dest build"     # building FS on dest, dest details can be gathered
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
-deploy_state_set() {
-    # msg_1 "===============   deploy_state_set($1)   ============="
-    _state="$1"
-    [ -z "$_state" ] && error_msg "buildstate_set() - no param!"
-
-    deploy_state_check_param deploy_state_set "$_state"
-
-    mkdir -p "$(dirname "$f_deploy_state")"
-    echo "$_state" >"$f_deploy_state"
-
-    unset _state
-}
-
-deploy_state_is_it() {
-    #
-    #  Checks if the current deployment state matches the requested
-    #
-    _state="$1"
-    [ -z "$_state" ] && error_msg "deploy_state_is_it() - no param!"
-
-    deploy_state_check_param deploy_state_is_it "$_state"
-
-    [ "$_state" = "$(deploy_state_get)" ]
-    # _state is not unset, but shouldnt be an issue
-}
-
-deploy_state_get() {
-    _state="$(cat "$f_deploy_state" 2>/dev/null)"
-    if [ -z "$_state" ]; then
-        # This will only be logged, that depends on LOG_FILE being set
-        msg_1 "deploy_state_get() did not find anything in [$f_deploy_state]" >/dev/null
-        echo ""
-    else
-        echo "$_state"
-    fi
-    unset _state
-}
-
-deploy_state_check_param() {
-    _func="$1"
-    [ -z "$_func" ] && error_msg "deploy_state_check_param() - no function param!"
-    _state="$2"
-    [ -z "$_state" ] && error_msg "deploy_state_check_param() - no deploy state param!"
-
-    case "$_state" in
-    "$deploy_state_na" | "$deploy_state_initializing" | \
-        "$deploy_state_pre_build" | "$deploy_state_dest_build" | \
-        "$deploy_state_finalizing") ;;
-    *) error_msg "${_func}($_state) - invalid param!" ;;
-    esac
-
-    unset _func
-    unset bspc_bs
-}
-
-deploy_state_clear() {
-    msg_2 "deploy_state_clear()"
-
-    rm "$f_deploy_state"
-
-    msg_3 "deploy_state_clear() - done"
-}
-
-deploy_starting() {
-    if deploy_state_is_it "$deploy_state_initializing"; then
-        deploy_state_set "$deploy_state_dest_build"
-    elif ! deploy_state_is_it "$deploy_state_pre_build"; then
-        error_msg "Dest FS in an unknown state [$(deploy_state_get)], can't continue"
-    fi
-}
-
-#===============================================================
-#
-#   Destination FS
-#
-#===============================================================
-
-distro_alpine="Alpine"
-distro_debian="Debian"
-distro_devuan="Devuan"
 destfs_select="select"
 destfs_select_hint="$build_root_d"/etc/opt/select_distro
-
-destfs_is_devuan() {
-    test -f "$build_root_d"/etc/devuan_version
-}
-
-destfs_is_debian() {
-    test -f "$build_root_d"/etc/debian_version && ! destfs_is_devuan
-}
-
-destfs_is_alpine() {
-    ! destfs_is_select && test -f "$file_alpine_release"
-}
-
-destfs_is_select() {
-    [ -f "$destfs_select_hint" ]
-    # [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
-}
-
-destfs_detect() {
-    #
-    #  Since a select env also looks like Alpine, this must fist
-    #  test if it matches the test criteria
-    #
-    if destfs_is_alpine; then
-        echo "$distro_alpine"
-    elif destfs_is_select; then
-        echo "$destfs_select"
-    elif destfs_is_debian; then
-        echo "$distro_debian"
-    elif destfs_is_devuan; then
-        echo "$distro_devuan"
-    else
-        #  Failed to detect
-        echo
-    fi
-}
-
-#
-#  Some related functions for host FS
-#
-hostfs_is_alpine() {
-    test -f /etc/alpine-release
-}
-
-hostfs_is_debian() {
-    test -f /etc/debian_version && ! destfs_is_devuan
-}
-
-hostfs_is_devuan() {
-    test -f "/etc/devuan_version"
-}
-
-hostfs_detect() {
-    #
-    #
-    #  Since a select env also looks like Alpine, this must fist
-    #  test if it matches the test criteria
-    #
-    if hostfs_is_alpine; then
-        echo "$distro_alpine"
-    elif hostfs_is_debian; then
-        echo "$distro_debian"
-    elif hostfs_is_devuan; then
-        echo "$distro_devuan"
-    else
-        #  Failed to detect
-        echo
-    fi
-}
