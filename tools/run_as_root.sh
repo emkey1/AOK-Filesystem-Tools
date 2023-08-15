@@ -23,21 +23,24 @@
 #   # auto sudo this script if run by user
 #   . tools/run_as_root.sh
 #
+#  If you do not want to get the: Executing $app as root
+#  printout preceede your commant or the sourcing with: hide_run_as_root=1
+#
+
 app="$0"
 [ -z "$app" ] && {
     echo "ERROR: No param zero indicating what to run!"
     exit 1
 }
 if [ "$(whoami)" != "root" ]; then
-    echo "Executing $app as root"
-    echo
-    #  using $0 instead of full path makes location not hardcoded
-    if ! sudo TMPDIR="$TMPDIR" "$app" "$@"; then
+    if [ -z "$hide_run_as_root" ]; then
+        echo "Executing $app as root"
         echo
-        echo "Running $app as root returned an error!"
-        echo "If the program indeed experienced an error, this is normal"
-        exit 1
     fi
+    #  using $0 instead of full path makes location not hardcoded
+    sudo TMPDIR="$TMPDIR" "$app" "$@"
+    exit_code="$?"
+
     #  terminate the user initiated instance of the script
-    exit 0
+    exit "$exit_code"
 fi
