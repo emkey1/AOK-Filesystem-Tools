@@ -437,6 +437,11 @@ run_additional_tasks_if_found() {
 #
 #===============================================================
 
+#
+#  Only use if you want low-level debugging, in most cases not helpfull
+#
+# DEBUG_BUILD=1
+
 while [ -f "/run/fixdev.pid" ]; do
     msg_3 "Waiting for fix_dev to complete"
     sleep 1
@@ -499,8 +504,11 @@ aok_content_etc="/etc$aok_content"
 
 f_this_fs_is_chrooted_raw="/etc/opt/this_fs_is_chrooted"
 f_deploy_state_raw="${aok_content_etc}/deploy_state"
-echo ">>> --- Raw states"
-echo ">>> this is f_this_fs_is_chrooted [$f_this_fs_is_chrooted_raw] f_deploy_state [$f_deploy_state_raw]"
+
+if [ -n "$DEBUG_BUILD" ]; then
+    echo ">>> --- Raw states"
+    echo ">>> this is f_this_fs_is_chrooted [$f_this_fs_is_chrooted_raw] f_deploy_state [$f_deploy_state_raw]"
+fi
 
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
     msg_3 "running inside dest platform FS"
@@ -528,9 +536,11 @@ else
     build_env=0 # chroot not possible
 fi
 
-echo ">>> === defined states"
-echo ">>> f_this_fs_is_chrooted [$f_this_fs_is_chrooted]  f_deploy_state [$f_deploy_state]"
-echo ">>> build_env [$build_env]"
+if [ -n "$DEBUG_BUILD" ]; then
+    echo ">>> === defined states"
+    echo ">>> f_this_fs_is_chrooted [$f_this_fs_is_chrooted]  f_deploy_state [$f_deploy_state]"
+    echo ">>> build_env [$build_env]"
+fi
 
 #
 #  Locations for "other" stuff
@@ -624,9 +634,6 @@ deploy_state_set() {
 
     deploy_state_check_param deploy_state_set "$_state"
 
-    #  This state needs to be preserved, in case compress happens at a
-    #  later time
-    # echo "bts_type" >
     mkdir -p "$(dirname "$f_deploy_state")"
     echo "$_state" >"$f_deploy_state"
 
