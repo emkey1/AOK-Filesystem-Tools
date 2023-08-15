@@ -84,11 +84,9 @@ identify_available_linters() {
         exit 1
     fi
     if [[ -n "$do_shellcheck" ]]; then
-        v_sc="$(shellcheck -o all -V | grep version: | awk '{ print $2 }')"
+        v_sc="$(shellcheck -V | grep version: | awk '{ print $2 }')"
         if [[ "$v_sc" = "0.5.0" ]]; then
-            sc_adv_opts=""
-        else
-            sc_adv_opts="-o all"
+            error_msg "shellcheck to old to be usable" 1
         fi
     fi
 
@@ -124,8 +122,8 @@ lint_posix() {
     if [[ -n "${do_shellcheck}" ]]; then
         lnt_p1=1
         # -x follow source
-        # -o all
-        shellcheck -a "$sc_adv_opts" -e SC2250,SC2312 "$f" || exit 1
+        #
+        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
     fi
     if [[ -n "${do_checkbashisms}" ]]; then
         lnt_p2=1
@@ -181,9 +179,12 @@ process_file_tree() {
     #
     #  Reads in all files, globally reverse sorted by file age
     #
-    # mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+    mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
 
-    all_files=($(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2))
+    #
+    #  Works on older versions
+    #
+    # all_files=($(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2))
 
     for fname in "${all_files[@]}"; do
         #[[ "$fname" =
