@@ -112,6 +112,13 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #  shellcheck disable=SC1091
 . "$current_dir"/utils.sh
 
+if this_is_ish && hostfs_is_debian; then
+    echo
+    msg_1 "ish running Debian, does not seem able to do chroot"
+    msg_3 "You have been warned..."
+    echo
+fi
+
 prog_name="$(basename "$0")"
 
 CHROOT_TO="$build_root_d"
