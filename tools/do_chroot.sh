@@ -196,6 +196,9 @@ if [ "$1" = "" ]; then
     cmd="bash -l"
 else
     cmd="$1"
+    if ! [ -f "${build_root_d}${cmd}" ]; then
+        msg_1 "Might not work, cmd not found: ${build_root_d}${cmd}"
+    fi
 fi
 
 msg_3 "Deploy state: $(deploy_state_get)"
