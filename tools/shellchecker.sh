@@ -160,6 +160,16 @@ lint_usage() {
     [[ $lnt_b1 -eq 0 ]] && echo "bash shellcheck never called"
 }
 
+get_file_age() {
+    local fname="$1"
+    if [[ $(uname) == "Darwin" ]]; then
+        # macOS version
+        stat -f "%m" "$fname"
+    else
+        # Linux version
+        stat -c "%Y" "$fname"
+    fi
+}
 
 should_it_be_linted() {
     local current_time
@@ -171,8 +181,7 @@ should_it_be_linted() {
 	span_in_seconds="$(( 3600 * hour_limit ))"
 	cutoff_time="$((current_time - span_in_seconds))"
     fi
-    file_mtime=$(stat -c %Y "$fname")
-    [[ $file_mtime -ge $cutoff_time ]]
+    [[ $(get_file_age "$fname") -ge $cutoff_time ]]
 }
 
 
@@ -265,9 +274,16 @@ process_file_tree() {
         elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]]; then
             items_ucode_esc+=("$fname")
             continue
+        elif [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
+            items_ucode_esc2+=("$fname")
+            continue
         elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_ucode+=("$fname")
+            continue
+        elif [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
+            #  This must come after items_ucode_esc, otherwise that would eat this
+            items_ucode2+=("$fname")
             continue
         elif [[ "$f_type" == *"makefile script"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
@@ -295,7 +311,8 @@ process_file_tree() {
             #  For unhandled file types, ignore the file, just store the new file type
             #  to a list.
             #
-            echo ">>> Unhandled file: $fname - $f_type"
+            echo ">>> Unhandled file: $fname" # - $f_type"
+            echo ">>> Unhandled type: $f_type"
             file_types+=("$f_type")
         fi
     done
@@ -385,11 +402,13 @@ list_item_group bash "${items_bash[@]}"
 # list_item_group C "${items_c[@]}"
 # list_item_group makefile "${items_makefile[@]}"
 # list_item_group openrc "${items_openrc[@]}"
-# list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
-# list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
+list_item_group "Unicode text, UTF-8 text - 2" "${items_ucode2[@]}"
+list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+list_item_group "Unicode text, UTF-8 text, with escape - 2" "${items_ucode_esc2[@]}"
 
-#list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
-#list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+# list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+# list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
 
 #
 #  Make sure no bin64 items are pressent!
