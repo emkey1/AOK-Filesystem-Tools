@@ -355,7 +355,7 @@ this_fs_is_chrooted() {
     [ -f "f_this_fs_is_chrooted_raw" ]
 }
 dest_fs_is_chrooted() {
-    msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted_raw]"
+    msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted]"
     [ -f "$f_this_fs_is_chrooted" ]
 }
 
@@ -372,10 +372,14 @@ destfs_set_is_chrooted() {
 
 destfs_clear_chrooted() {
     msg_2 "destfs_clear_chrooted(()"
-    if [ -f "$f_this_fs_is_chrooted_raw" ]; then
-        rm "$f_this_fs_is_chrooted_raw"
-        msg_3 "was raw pointer: $f_this_fs_is_chrooted_raw"
-    elif [ -f "$f_this_fs_is_chrooted" ]; then
+
+    if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
+        msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
+        msg_3 "$f_this_fs_is_chrooted"
+        error_msg "clearing dest FS as chrooted NOT possible!"
+    fi
+
+    if [ -f "$f_this_fs_is_chrooted" ]; then
         rm "$f_this_fs_is_chrooted"
         msg_3 "was direct pointer: $f_this_fs_is_chrooted"
     else
