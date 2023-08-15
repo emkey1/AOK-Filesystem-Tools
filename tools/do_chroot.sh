@@ -161,7 +161,7 @@ else
     cmd="$1"
 fi
 
-msg_1 "chrooting: $CHROOT_TO ($cmd)"
+msg_1 "============= chrooting: $CHROOT_TO ($cmd)"
 
 destfs_set_is_chrooted
 
@@ -174,6 +174,8 @@ echo
 #  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
 exit_code="$?"
+
+msg_1 "---------------- back from chroot"
 
 destfs_clear_chrooted
 

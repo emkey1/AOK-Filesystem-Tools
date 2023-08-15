@@ -125,9 +125,9 @@ echo
 # shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-# echo ">>>  Debug, dropping into ash"
-# /bin/ash
-# error_msg "aborting buil after ash" 1
+echo ">>>  Debug, dropping into ash"
+/bin/ash
+error_msg "aborting buil after ash" 1
 
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
