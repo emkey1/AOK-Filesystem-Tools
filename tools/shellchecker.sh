@@ -195,8 +195,23 @@ process_file_tree() {
     #
     #  Reads in all files, globally reverse sorted by file age
     #
-    mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+    #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
 
+
+    #
+    #  But of course find in MacOS does not behave like the rest of them..
+    #
+    #  MacOS  all 27s
+    if [[ $(uname) == "Darwin" ]]; then
+        # macOS version
+        mapfile -t all_files < <(find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-)
+        # find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-
+    else
+        # Linux version
+        mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+    fi
+
+    
     #
     #  Works on older versions
     #
