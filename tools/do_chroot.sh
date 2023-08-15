@@ -150,10 +150,11 @@ case "$1" in
         error_msg "build_root_d undefined, cant clear build env" 1
     fi
 
-    env_cleanup
-    msg_1 "Will clear [$build_root_d] in 3 seconds..."
-    sleep 3
-    rm -rf "$build_root_d"
+    if env_cleanup; then
+        msg_1 "Will clear [$build_root_d] in 3 seconds..."
+        sleep 3
+        rm -rf "$build_root_d"
+    fi
     exit 0
     ;;
 
