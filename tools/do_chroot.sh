@@ -113,10 +113,9 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 . "$current_dir"/utils.sh
 
 if this_is_ish && hostfs_is_debian; then
-    echo
-    msg_1 "ish running Debian, does not seem able to do chroot"
-    msg_3 "You have been warned..."
-    echo
+    echo "************"
+    echo "ish running Debian, does not seem able to do chroot. You have been warned..."
+    echo "************"
 fi
 
 prog_name="$(basename "$0")"
