@@ -403,16 +403,16 @@ process_file_tree
 list_item_group posix "${items_posix[@]}"
 list_item_group bash "${items_bash[@]}"
 
-list_item_group "ASCII text" "${items_ascii[@]}"
-list_item_group perl "${items_perl[@]}"
-list_item_group C "${items_c[@]}"
-list_item_group makefile "${items_makefile[@]}"
-list_item_group openrc "${items_openrc[@]}"
-list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
-list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+#list_item_group "ASCII text" "${items_ascii[@]}"
+#list_item_group perl "${items_perl[@]}"
+#list_item_group C "${items_c[@]}"
+#list_item_group makefile "${items_makefile[@]}"
+#list_item_group openrc "${items_openrc[@]}"
+#list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
+#list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
 
-list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
-list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+#list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+#list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
 
 #
 #  Make sure no bin64 items are pressent!
