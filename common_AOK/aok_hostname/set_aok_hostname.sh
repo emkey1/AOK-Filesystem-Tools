@@ -9,6 +9,7 @@
 . /opt/AOK/tools/utils.sh
 
 #  Only relevant for aok kernels and if AOK_HOSTNAME_SUFFIX is "Y"
+#  shellcheck disable=SC2154
 ! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
 
 msg_1 "Setting -aok suffix for hostname"
