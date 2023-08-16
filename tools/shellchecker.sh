@@ -50,7 +50,7 @@ sort_array() {
 
     # Use the POSIX sort utility to sort the array in place
     # IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
-    mapfile -t sorted_array < <(printf "%s\n" "${sorted_array[@]}" | sort -f)
+    mapfile -t sorted_array < <(printf '%s\n' "${sorted_array[@]}" | sort -f)
 
     echo "${sorted_array[@]}"
 }
@@ -109,7 +109,7 @@ identify_available_linters() {
                 fi
             fi
         fi
-        printf "\n\n"
+        printf '\n\n'
     fi
 }
 
@@ -120,17 +120,18 @@ identify_available_linters() {
 #===============================================================
 
 do_shellcheck() {
-    local fn="$1"
-    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
+    local fn2="$1"
+    [[ -z "$fn2" ]] && error_msg "do_shellcheck() - no paran given!" 1
     if [[ -n "${shellcheck_p}" ]]; then
         # -x follow source
-        shellcheck -a "$sc_extra" -e SC2250,SC2312 "$fn" || exit 1
+	shellcheck -a -x -e SC2250,SC2312 $sc_extra "$fn2" || exit 1
+
     fi
 }
 
 do_checkbashisms() {
     local fn="$1"
-    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
+    [[ -z "$fn" ]] && error_msg "do_checkbashisms() - no paran given!" 1
     if [[ -n "${checkbashisms_p}" ]]; then
         checkbashisms -n -e -x "$fn" || exit 1
     fi
@@ -215,7 +216,7 @@ process_file_tree() {
         #  Works on older versions
         #
         # shellcheck disable=SC2207
-        all_files=($(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2))
+        all_files=($(find . -type f -printf '%T@ %p\n' | sort -n -r -k1,1 | cut -d' ' -f2))
 
     fi
 

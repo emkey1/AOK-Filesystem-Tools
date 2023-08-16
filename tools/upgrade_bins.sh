@@ -19,7 +19,8 @@
 #===============================================================
 
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-#  shellcheck disable=SC1091
+
+# shellcheck source=/opt/AOK/tools/utils.sh
 . "$current_dir"/utils.sh
 
 if ! this_is_ish; then

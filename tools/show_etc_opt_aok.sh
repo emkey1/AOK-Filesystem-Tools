@@ -2,9 +2,9 @@
 
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 
-#  shellcheck disable=SC1091
+#  shellcheck source=/opt/AOK/tools/run_as_root.sh
 . "$current_dir"/run_as_root.sh
-#  shellcheck disable=SC1091
+#  shellcheck source=/opt/AOK/tools/utils.sh
 . "$current_dir"/utils.sh # >/dev/null
 
 # destfs_is_alpine && echo "is alpine" || echo "NOT alpine"

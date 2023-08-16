@@ -631,7 +631,7 @@ aok_content="/opt/AOK"
 #
 #  Import default settings
 #
-#  shellcheck disable=SC1091
+#  shellcheck source=/opt/AOK/AOK_VARS
 . "$aok_content"/AOK_VARS || exit 1
 
 #
