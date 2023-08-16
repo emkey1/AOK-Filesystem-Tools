@@ -67,7 +67,7 @@ setup_environment() {
             # Move sshd to port 1022 to avoid issues
             sshd_port=1022
             msg_2 "sshd will use port: $sshd_port"
-            sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
+            sed -i "/Port /c\\Port $sshd_port" /etc/ssh/sshd_config
             #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
             unset sshd_port
         else
@@ -163,7 +163,7 @@ create_user() {
     useradd -m -s "$use_shell" -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
 
     # shadow with blank ish password
-    sed -i "s/${USER_NAME}:\!:/${USER_NAME}::/" /etc/shadow
+    sed -i "s/${USER_NAME}:\\!:/${USER_NAME}::/" /etc/shadow
 
     # Add dot files for ish
     copy_skel_files "$cu_home_dir"
