@@ -3,9 +3,8 @@
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
-#  shellcheck disable=SC2114,SC2154
+#  shellcheck disable=SC2114
 
-#  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
 tid_start="$(date +%s)"
@@ -16,7 +15,7 @@ msg_script_title "install_debian.sh  Downloading & Installing Debian"
 #  Step 1  Download and upack Debian
 #
 
-debian_download_location="/tmp/debian_fs"
+debian_download_location="$TMPDIR/debian_fs"
 src_image="$DEBIAN_SRC_IMAGE"
 src_tarball="$debian_download_location/$debian_src_tb"
 
@@ -25,8 +24,6 @@ mkdir -p "$debian_download_location"
 cd "$debian_download_location" || {
     error_msg "Failed to cd into: $debian_download_location"
 }
-
-ensure_usable_wget
 
 #
 #  If install was aborted and re-attempted, ensure there is no
@@ -48,7 +45,7 @@ unset duration
 
 msg_3 "Extracted Debian tarball"
 
-cd /
+cd / || error_msg "Failed to cd into: /"
 
 msg_3 "Maintaining resolv.conf"
 cp -a /etc/resolv.conf "$distro_tmp_dir"/etc
@@ -65,6 +62,13 @@ rm -rf "$debian_download_location"
 #  Step 2, Get rid of Alpine FS
 #
 msg_2 "Deleting most of Alpine FS"
+
+if [ -n "$LOG_FILE" ]; then
+    msg_2 "Disabling LOG_FILE until Debian FS has been deployed"
+    orig_log_file="$LOG_FILE"
+    LOG_FILE=""
+fi
+
 #
 #  Removing anything but musl from /lib
 #  Doing this before moving busybox to make things simpler
@@ -120,6 +124,14 @@ msg_3 "Replacing /lib with a soft-link to /usr/lib"
 "$aok_content"/choose_distro/bin/lib_fix
 
 #  From now on Debian should be fully available
+
+rm -f "$destfs_select_hint"
+
+if [ -n "$orig_log_file" ]; then
+    LOG_FILE="$orig_log_file"
+    unset orig_log_file
+    msg_3 "LOG_FILE restored"
+fi
 
 msg_3 "Removing tmp area $distro_tmp_dir"
 rm "$distro_tmp_dir" -rf || {

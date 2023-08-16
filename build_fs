@@ -1,4 +1,5 @@
 #!/bin/sh
+#
 #  shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
@@ -37,6 +38,45 @@ Available options:
     exit 0
 }
 
+check_dependencies() {
+
+    _deps=""
+    [ -z "$(command -v rsync)" ] && _deps="$_deps rsync"
+    _wget_cmd="$(command -v wget)"
+    if [ -n "$_wget_cmd" ] && readlink "$_wget_cmd" | grep -q busybox; then
+        _deps="$_deps wget"
+        _additional_msg="You need to install a real wget, the busybox one does not handle redirects"
+    fi
+    [ -z "$_wget_cmd" ] && _deps="$_deps wget"
+    [ -z "$_deps" ] && return
+
+    msg_1 "In order for this to work you need to install some dependencies"
+
+    if [ -n "$_additional_msg" ]; then
+        echo "$_additional_msg"
+        echo
+    fi
+
+    echo "Here are instructions how to install this on your platform:"
+    echo
+
+    case "$(hostfs_detect)" in
+
+    "$distro_alpine")
+        echo "apk add $_deps"
+        ;;
+    "$distro_debian" | "$distro_devuan")
+        echo "apt install $_deps"
+        ;;
+    *)
+        echo "Platform not recognized, can not suggest how to install"
+        echo "You need the following items: $_deps"
+        ;;
+    esac
+
+    error_msg "This needs to be resolved"
+}
+
 parse_arguments() { # Multi OK 1
     while [ -n "$1" ]; do
 
@@ -47,24 +87,24 @@ parse_arguments() { # Multi OK 1
         "-v" | "--verbose") verbose=true ;;
 
         "-d" | "--debian")
-            if [ "$build_target" = "$target_select" ]; then
+            if [ "$build_target" = "$destfs_select" ]; then
                 echo "-d and -s can not be combined!"
                 exit 1
             fi
-            build_target="$target_debian"
+            build_target="$distro_debian"
             ;;
 
         "-D" | "--devuan")
-            if [ "$build_target" = "$target_select" ]; then
+            if [ "$build_target" = "$destfs_select" ]; then
                 echo "-D and -s can not be combined!"
                 exit 1
             fi
-            build_target="$target_devuan"
+            build_target="$distro_devuan"
             ;;
 
         "-s" | "--select")
-            if [ "$build_target" = "$target_debian" ] ||
-                [ "$build_target" = "$target_devuan" ]; then
+            if [ "$build_target" = "$distro_debian" ] ||
+                [ "$build_target" = "$distro_devuan" ]; then
                 echo "-d/-D and -s can not be combined!"
                 exit 1
             fi
@@ -72,11 +112,11 @@ parse_arguments() { # Multi OK 1
                 echo "-p and -s can not be combined!"
                 exit 1
             fi
-            build_target="$target_select"
+            build_target="$destfs_select"
             ;;
 
         "-p" | "--prebuilt")
-            if [ "$build_target" = "$target_select" ]; then
+            if [ "$build_target" = "$destfs_select" ]; then
                 echo "-p and -s can not be combined!"
                 exit 1
             fi
@@ -119,7 +159,7 @@ display_build_target() { # Multi OK 1
     if ! $pre_build_FS; then
         dbt_run_mode="Will not chroot"
     elif [ "$build_env" -eq 0 ]; then
-        echo "Unfortunately you can not chroot into the image on this device"
+        echo "Unfortunately, you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
         echo "Use another build option (try -h for help)"
         exit 1
@@ -146,9 +186,9 @@ display_build_target() { # Multi OK 1
         exit 1
     fi
 
-    if [ "$build_target" = "$target_debian" ]; then
+    if [ "$build_target" = "$distro_debian" ]; then
         release_msg="Debian"
-    elif [ "$build_target" = "$target_devuan" ]; then
+    elif [ "$build_target" = "$distro_devuan" ]; then
         release_msg="Devuan"
     else
         release_msg="Alpine: $ALPINE_VERSION"
@@ -162,26 +202,10 @@ display_build_target() { # Multi OK 1
     echo
 }
 
-clear_build_target() { # Multi OK 1
-    msg_2 "clear_build_target()"
-    #
-    # Clear build env
-    #
-    if ! rm -rf "$build_base_d"; then
-        echo
-        echo "ERROR: Could not clear $build_base_d"
-        echo
-        exit 1
-    fi
-    # msg_3 "clear_build_target() done"
-}
-
 cache_fs_image() {
     msg_2 "cache_fs_image()"
     [ -z "$src_image" ] && error_msg "cache_fs_image() no src_image supplied"
     [ -z "$src_tarball" ] && error_msg "cache_fs_image() no src_taball supplied"
-
-    ensure_usable_wget
 
     if [ ! -d "$src_img_cache_d" ]; then
         mkdir -p "$src_img_cache_d"
@@ -193,9 +217,12 @@ cache_fs_image() {
         cmd="wget $src_image"
         #  Ensure basename for tar ball is used
         case "$build_target" in
-        "$target_alpine") cmd="$cmd -O $alpine_src_tb" ;;
-        "$target_debian") cmd="$cmd -O $debian_src_tb" ;;
-        "$target_devuan") cmd="$cmd -O $devuan_src_tb" ;;
+        "$distro_alpine" | "$destfs_select") cmd="$cmd -O $alpine_src_tb" ;;
+        "$distro_debian") cmd="$cmd -O $debian_src_tb" ;;
+        "$distro_devuan") cmd="$cmd -O $devuan_src_tb" ;;
+        *)
+            error_msg "Invalid build_target: $build_target"
+            ;;
         esac
         $cmd || {
             echo "ERROR: Failed to download $src_image"
@@ -213,7 +240,6 @@ copy_AOK_to_dest() {
 
     mkdir -p "$aok_files"
     mkdir -p "$build_root_d"/etc/opt
-    bldstat_set "$status_being_built"
 
     rsync -ah \
         --exclude=.git/ \
@@ -243,7 +269,8 @@ copy_AOK_to_dest() {
     unset io_conf_overrides
 
     chown -R root: "$aok_files"
-    # msg_3 "copy_AOK_to_dest() done"
+
+    msg_3 "copy_AOK_to_dest() done"
 }
 
 add_additional_tasks_if_defined() {
@@ -267,32 +294,35 @@ add_additional_tasks_if_defined() {
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
 
-    distro_name_set Alpine
-    select_profile "$setup_alpine_scr"
+    # buildtype_set "$distro_alpine"
+    set_new_etc_profile "$setup_alpine_scr"
     # msg_3 "setup_Alpine_on_1st_boot() done"
 }
 
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
-    distro_name_set Debian
-    select_profile "$setup_debian_scr"
+    # buildtype_set "$distro_debian"
+    set_new_etc_profile "$setup_debian_scr"
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
 
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
-    distro_name_set Devuan
-    select_profile "$setup_devuan_scr"
+    # buildtype_set "$distro_devuan"
+    set_new_etc_profile "$setup_devuan_scr"
     # msg_3 "setup_Devuan_on_1st_boot() done"
 }
 
 select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
 
-    distro_name_set SelectDistro
-    select_profile "$setup_select_distro_prepare"
+    # buildtype_set "$destfs_select"
+
+    touch "$destfs_select_hint"
+
+    set_new_etc_profile "$setup_select_distro_prepare"
 
     #
     #  If this build platform cant chroot, then the preparational steps
@@ -317,8 +347,7 @@ prebuild_fs() {
     msg_1 "prebuild_fs()"
 
     if [ "$build_env" -eq 0 ]; then
-        msg_1 "Not possible to pre-build on this environment!"
-        return
+        error_msg "Not possible to pre-build on this environment!"
     fi
 
     #
@@ -328,20 +357,12 @@ prebuild_fs() {
         error_msg "Failed to cd into: $aok_content"
     }
 
-    bldstat_set "$status_prebuilt_fs"
+    deploy_state_set "$deploy_state_pre_build"
 
-    "$aok_content"/tools/do_chroot.sh /etc/profile
+    "$aok_content"/tools/do_chroot.sh /etc/profile || {
+        error_msg "There was an error during prebuild"
+    }
     msg_1 "Returned from prebuild chroot"
-
-    if [ "$QUICK_DEPLOY" -eq 0 ]; then
-        if [ "$build_target" = "$target_alpine" ]; then
-            if [ -n "$AOK_APKS" ]; then
-                msg_3 "AOK_APKS will be deleted on first boot if not iSH-AOK kernel"
-            fi
-        fi
-    else
-        msg_3 "QUICK_DEPLOY - skipping removal of AOK kernel packages"
-    fi
 
     # msg_3 "prebuild_fs() done"
 }
@@ -360,30 +381,30 @@ consider_generating_tarball() {
             cgt_extra_params="$cgt_extra_params -j"
         fi
 
-        #
-        #  Set name for tarball
-        #
-        if [ "$build_target" = "$target_debian" ]; then
-            cgt_label="$debian_tb"
-        elif [ "$build_target" = "$target_devuan" ]; then
-            cgt_label="$devuan_tb"
-        elif [ "$build_target" = "$target_select" ]; then
-            cgt_label="$select_distro_tb"
-        else
-            cgt_label="$alpine_tb"
-        fi
+        # #
+        # #  Set name for tarball
+        # #
+        # if [ "$build_target" = "$distro_debian" ]; then
+        #     cgt_label="$debian_tb"
+        # elif [ "$build_target" = "$distro_devuan" ]; then
+        #     cgt_label="$devuan_tb"
+        # elif [ "$build_target" = "$destfs_select" ]; then
+        #     cgt_label="$select_distro_tb"
+        # else
+        #     cgt_label="$alpine_tb"
+        # fi
 
-        if $pre_build_FS; then
-            #  give a hint this was pre-built
-            cgt_label="${cgt_label}-pb"
-        fi
+        # if $pre_build_FS; then
+        #     #  give a hint this was pre-built
+        #     cgt_label="${cgt_label}-pb"
+        # fi
 
         if [ -n "$build_root_d" ] && ls -A "$build_root_d"/iCloud/* >/dev/null 2>&1; then
             msg_2 "Clearing /iCloud before generating image"
             rm "$build_root_d"/iCloud/* -rf
         fi
         #  shellcheck disable=SC2086,SC2248
-        if ! "$aok_content"/compress_image -l $cgt_label $cgt_extra_params; then
+        if ! "$aok_content"/compress_image $cgt_extra_params; then
             error_msg "detected in compress_image"
         fi
         unset cgt_extra_params
@@ -391,7 +412,7 @@ consider_generating_tarball() {
     fi
 
     if [ "$build_env" -gt 0 ]; then
-        if [ "$build_target" = "$target_debian" ]; then
+        if [ "$build_target" = "$distro_debian" ]; then
             set_shell="/bin/sh"
         else
             set_shell="/bin/ash"
@@ -437,26 +458,26 @@ display_build_time() {
 #
 #===============================================================
 
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
-#
-cd /opt/AOK || {
-    echo
-    echo "ERROR: The AOK file tools needs to be saved to /opt/AOK for things to work!".
-    echo
-    exit 1
-}
+#  Allowing this to be run from anywhere using path
+current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 
-#  shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
+#
+#  Automatic sudo if run by a user account, do this before
+#  sourcing tools/utils.sh !!
+#  hide_run_as_root=1  prevents this from showing: Executing $app as root
+#
+# shellcheck source=/opt/AOK/tools/run_as_root.sh
+. "$current_dir"/tools/run_as_root.sh
 
-run_as_root "$@"
+# shellcheck source=/opt/AOK/tools/utils.sh
+. "$current_dir"/tools/utils.sh
 
 t_start="$(date +%s)"
 
 # shellcheck disable=SC1007
 prog_name=$(basename "$0")
+
+deploy_state_set "$deploy_state_na" # Dest FS not yet created
 
 #
 #  Point to AOK-Filesystem-Tools dir, in case this was run with a path
@@ -470,7 +491,7 @@ cd "$aok_content" || {
 #
 #  Default for options
 #
-build_target="$target_alpine" # default target
+build_target="$distro_alpine" # default target
 verbose=false                 # true displays tar/untar progress
 use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true meand generat4 pre-built FS
@@ -480,18 +501,21 @@ aok_files="${build_root_d}${aok_content}"
 
 parse_arguments "$@"
 
+check_dependencies
+
 display_build_target
 
 test -f "$additional_tasks_script" && notification_additional_tasks
 
 msg_2 "Preparing build environment"
 
-clear_build_target
+msg_3 "Clearing build root $build_root_d"
+rm -rf "$build_root_d"
 
-if [ "$build_target" = "$target_debian" ]; then
+if [ "$build_target" = "$distro_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
     src_tarball="$debian_src_tb"
-elif [ "$build_target" = "$target_devuan" ]; then
+elif [ "$build_target" = "$distro_devuan" ]; then
     src_image="$DEVUAN_SRC_IMAGE"
     src_tarball="$devuan_src_tb"
 else
@@ -522,11 +546,11 @@ if [ -n "$POPULATE_FS" ]; then
     $POPULATE_FS
 fi
 
-if [ "$build_target" = "$target_debian" ]; then
+if [ "$build_target" = "$distro_debian" ]; then
     setup_Debian_on_1st_boot
-elif [ "$build_target" = "$target_devuan" ]; then
+elif [ "$build_target" = "$distro_devuan" ]; then
     setup_Devuan_on_1st_boot
-elif [ "$build_target" = "$target_select" ]; then
+elif [ "$build_target" = "$destfs_select" ]; then
     select_distro_on_1st_boot
 else
     setup_Alpine_on_1st_boot

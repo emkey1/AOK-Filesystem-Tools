@@ -6,13 +6,26 @@
 description="Sets the -aok hostname of the machine."
 
 depend() {
-	keyword -prefix -lxc -docker
+	if [ -f /etc/init.d/runbg ]; then
+		after runbg
+	fi
+}
+
+start_post() {
+	echo "[$(date)] $RC_SVCNAME started" >>/var/log/services.log
+}
+
+stop_post() {
+	echo "[$(date)] $RC_SVCNAME stopped" >>/var/log/services.log
 }
 
 start() {
-	echo "NEW_HOSTNAME" >/etc/hostname
+	h_suffix="aok"
+	#  Ensure suffix is not added multiple times if this is restarted
+	hostname | grep -qv "\-$h_suffix" && echo "$(hostname)-$h_suffix" >/etc/hostname
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
+	/usr/local/bin/wall -n "hostname is now: $(hostname)"
 	#
 	#  This one is run from /etc/inittab, so most likely before this
 	#  has started, running it again here ensures that the now active

@@ -16,9 +16,9 @@ force_mode=0
 #  I can edit this on my workstation
 #
 if [ -d "/proc/ish" ]; then
-    is_iSH=1
+    this_is_ish=1
 else
-    is_iSH=0
+    this_is_ish=0
 fi
 
 check_for_option() {
@@ -55,7 +55,7 @@ check_for_option() {
 
     "-f" | "--force")
         force_mode=1
-        is_iSH=1
+        this_is_ish=1
         ;;
 
     *) ;;
@@ -74,7 +74,7 @@ use_aok_groups() {
     #  Convert $var_file to my notation, so that it can be used without
     #  changing the rest of the code.
     #
-    # shellcheck disable=SC1090
+    # shellcheck source=/opt/AOK/AOK_VARS
     . "$conf_file"
     package_groups="$(
         set |
@@ -98,7 +98,7 @@ pkg_handling() {
 
     cmd="sudo apk $action $packages"
 
-    if [ "$is_iSH" -eq 1 ]; then
+    if [ "$this_is_ish" -eq 1 ]; then
         $cmd
     else
         #
@@ -154,7 +154,7 @@ process_items() {
                     [ "$group_lst" = "$g" ] && break # list done
                 done
             fi
-            printf "[%${max_len}s]  %s\n" "$name" "$packages"
+            printf "[%${max_len}s]  %s\\n" "$name" "$packages"
             ;;
 
         "install")

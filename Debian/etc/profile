@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Fake bangpath to trick linters and editors
+#  shellcheck disable=SC2292
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -9,14 +10,6 @@
 #
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
-
-#
-#  Don't know why but without this delay, profile occationally fails
-#  to complete under iSH, leaving just a blank screen. Just a guess,
-#  but could be that the Launch cmd (triggering /etc/profile) is run
-#  before the OS is ready?
-#
-# sleep 2
 
 if [ "$(id -u)" -eq 0 ]; then
     PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -30,7 +23,7 @@ if [ -n "${PS1-}" ]; then
         # The file bash.bashrc already sets the default PS1.
         # PS1='\h:\w\$ '
         if [ -f /etc/bash.bashrc ]; then
-            #  shellcheck disable=SC1091
+            #  shellcheck source=/dev/null
             . /etc/bash.bashrc
         fi
     else
@@ -45,7 +38,7 @@ fi
 if [ -d /etc/profile.d ]; then
     for i in /etc/profile.d/*.sh; do
         if [ -r "$i" ]; then
-            #  shellcheck disable=SC1090
+            # shellcheck source=/dev/null
             . "$i"
         fi
     done

@@ -16,16 +16,19 @@
 #                    ensure an iOS program continues to run in the background.
 ### END INIT INFO
 
+# shellcheck disable=SC2034
+
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DESC="runbg daemon"
 NAME=runbg
 DAEMON=/bin/cat
-EXTRA_OPTS="/dev/location > /dev/null \&"
+EXTRA_OPTS='/dev/location > /dev/null \&'
 PIDFILE=/var/run/runbg.pid
 SCRIPTNAME=/etc/init.d/"$NAME"
 
-test -f $DAEMON || exit 0
+test -f "$DAEMON" || exit 0
 
+# shellcheck source=/dev/null
 . /lib/lsb/init-functions
 
 case "$1" in
@@ -37,10 +40,10 @@ start)
     ;;
 stop)
     log_daemon_msg "Stopping periodic command scheduler" "runbg"
-    killproc -p $PIDFILE $DAEMON
+    killproc -p "$PIDFILE" "$DAEMON"
     RETVAL=$?
-    [ $RETVAL -eq 0 ] && [ -e "$PIDFILE" ] && rm -f $PIDFILE
-    log_end_msg $RETVAL
+    [ "$RETVAL" -eq 0 ] && [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
+    log_end_msg "$RETVAL"
     ;;
 restart)
     log_daemon_msg "Restarting periodic command scheduler" "runbg"
@@ -53,7 +56,7 @@ restart)
 #     log_end_msg 0
 #     ;;
 status)
-    status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+    status_of_proc -p "$PIDFILE" "$DAEMON" "$NAME" && exit 0 || exit $?
     ;;
 *)
     log_action_msg "Usage: /etc/init.d/runbg {start|stop|status|restart|reload|force-reload}"

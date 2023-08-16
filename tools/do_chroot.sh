@@ -1,6 +1,4 @@
 #!/bin/sh
-# shellcheck disable=SC2154
-
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -17,8 +15,8 @@ env_prepare() {
 
     # msg_3 "Mounting system resources"
 
-    if mount | grep -q "$CHROOT_TO" ; then
-	error_msg "This is already chrooted!"
+    if mount | grep -q "$CHROOT_TO"; then
+        error_msg "This is already chrooted!"
     fi
 
     mount -t proc proc "$CHROOT_TO"/proc
@@ -47,16 +45,16 @@ env_cleanup() {
     msg_2 "Doing some post chroot cleanup"
 
     # msg_3 "Un-mounting system resources"
-    umount "$CHROOT_TO"/proc
+    umount "$CHROOT_TO"/proc || return 1
 
     if [ "$build_env" -eq 1 ]; then
         msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else
         msg_3 "Unmounting /sys & /dev"
-        umount "$CHROOT_TO"/sys
-        umount "$CHROOT_TO"/dev/pts
-        umount "$CHROOT_TO"/dev
+        umount "$CHROOT_TO"/sys || return 1
+        umount "$CHROOT_TO"/dev/pts || return 1
+        umount "$CHROOT_TO"/dev || return 1
     fi
 }
 
@@ -69,11 +67,28 @@ chroot with env setup so this works on both Linux & iSH
 Available options:
 
 -h  --help     Print this help and exit
--c  --cleanup  Cleanup env
+-c  --cleanup  Cleanup env if something crashed whilst sudoed
+-C  --clear    First do a --cleanup, then remove the build_root ($build_root_d)
 -p, --path     What dir to chroot into, defaults to: $build_root_d
 command        What to run, defaults to "bash -l", command and params must be quoted!
 EOF
 
+}
+
+chroot_statuses() {
+    [ -n "$1" ] && msg_1 "chroot_statuses - $1"
+
+    msg_2 "Displaying chroot statuses"
+    if this_fs_is_chrooted; then
+        msg_1 "Host IS"
+    else
+        msg_3 "Host not"
+    fi
+    if dest_fs_is_chrooted; then
+        msg_3 "Dest is (not yet, but flagged as such)"
+    else
+        msg_3 "Dest not"
+    fi
 }
 
 #===============================================================
@@ -82,23 +97,26 @@ EOF
 #
 #===============================================================
 
+#  Allowing this to be run from anywhere using path
+current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+
 #
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
+#  Automatic sudo if run by a user account, do this before
+#  sourcing tools/utils.sh !!
 #
-cd /opt/AOK || {
-    echo
-    echo "ERROR: The AOK file tools needs to be saved to /opt/AOK for things to work!".
-    echo
-    exit 1
-}
+# shellcheck source=/opt/AOK/tools/run_as_root.sh
+. "$current_dir"/run_as_root.sh
 
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
+# shellcheck source=/opt/AOK/tools/utils.sh
+. "$current_dir"/utils.sh
 
-run_as_root "$@"
+if this_is_ish && hostfs_is_debian; then
+    echo "************"
+    echo "ish running Debian - this does not seem able to do chroot. You have been warned..."
+    echo "************"
+fi
 
-prog_name=$(basename "$0")
+prog_name="$(basename "$0")"
 
 CHROOT_TO="$build_root_d"
 
@@ -147,6 +165,25 @@ case "$1" in
     exit 0
     ;;
 
+"-C" | "--clear")
+    [ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
+
+    if [ -z "$build_root_d" ]; then
+        error_msg "build_root_d undefined, cant clear build env" 1
+    fi
+
+    if ! env_cleanup; then
+        msg_1 "cleanup failed!"
+    fi
+
+    clr_timeout=2
+    msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
+    sleep "$clr_timeout"
+    rm -rf "$build_root_d"
+    [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
+    exit 0
+    ;;
+
 *)
     firstchar="$(echo "$1" | cut -c1-1)"
     if [ "$firstchar" = "-" ]; then
@@ -158,22 +195,52 @@ esac
 
 env_prepare
 
+[ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
+
 if [ "$1" = "" ]; then
-    cmd="bash -l"
+    cmd="/usr/bin/env bash -l"
 else
     cmd="$1"
+    if ! [ -f "${build_root_d}${cmd}" ]; then
+        msg_1 "Might not work, cmd not found: ${build_root_d}${cmd}"
+    fi
 fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd)"
 
-bldstat_set "$status_is_chrooted"
+if [ -n "$DEBUG_BUILD" ]; then
+    msg_2 "Deploy state: $(deploy_state_get)"
+    msg_2 "chroot statuses before"
+    chroot_statuses "Before setting destfs"
+fi
+
+destfs_set_is_chrooted
+
+if [ -n "$DEBUG_BUILD" ]; then
+    chroot_statuses "After setting destfs"
+    msg_2 "build_root_d [$build_root_d]"
+    msg_3 "Detected: [$(destfs_detect)]"
+    echo
+    echo ">>> -----  displaying host fs status"
+    find /etc/opt
+    echo ">>> -----"
+    echo
+    echo ">>> -----  displaying dest fs status"
+    find "$build_root_d"/etc/opt
+    echo ">>> -----"
+    echo
+    msg_1 "==========  doing chroot  =========="
+    echo ">> about to run: chroot $CHROOT_TO $cmd"
+fi
 
 #  In this case we want the $cmd variable to expand into its components
 #  shellcheck disable=SC2086
 chroot "$CHROOT_TO" $cmd
 exit_code="$?"
 
-bldstat_clear "$status_is_chrooted"
+[ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
+
+destfs_clear_chrooted
 
 env_cleanup
 

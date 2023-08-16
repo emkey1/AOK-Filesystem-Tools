@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="Beta-004"
+AOK_VERSION="0.9.1b"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -65,14 +65,14 @@ INITIAL_LOGIN_MODE="enable"
 #
 #  If you manually want to add something to the new FS, before deploy
 #  begins. Remember that from the outside, the new FS is located at
-#  /tmp/AOK/FS
+#  $TMPDIR/AOK/FS
 #  I use this when I want to simulate a mounted /iCloud env like what I
 #  would have on my iPad, whilst testing the FS on a linux host chrooted
 #  If the FS is being compressed its /iCloud is first cleared, so
 #  anything you put in /iCloud will only be available for chrooted
 #  sessions on the build host.
 #
-# POPULATE_FS="rsync -ah /home/jaclu/iCloud /tmp/AOK/FS"
+# POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/AOK/FS"
 
 #
 #  Use this if you have your own restore procedure.
@@ -112,6 +112,15 @@ INITIAL_LOGIN_MODE="enable"
 #
 QUICK_DEPLOY=0
 
+#
+#  If LOG_FILE is defined build progress printed is also logged to this
+#  file. This is mostly useful as a debugging tool, if during the deploy
+#  something goes wrong and iSH crashes. This way you can at least get
+#  an idea of how far things progressed before something broke.
+#  This one it is better to define in .AOK_VARS
+#
+# LOG_FILE=/var/log/aokfs-build.log
+
 ########################################################################
 #
 #                   Alpine Specific
@@ -121,11 +130,13 @@ QUICK_DEPLOY=0
 #
 #  ALPINE_VERSION defines what Alpine release will be used
 #
-# ALPINE_VERSION=3.15.9 # End of Alpine support 2023-11-01
-ALPINE_VERSION=3.16.6 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.4 # End of Alpine support 2024-11-22
-# ALPINE_VERSION=3.18.2 # End of Alpine support 2025-05-09
-# ALPINE_VERSION=edge # Current development tree
+# ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
+# ALPINE_VERSION=3.16.7 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
+ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
+#
+# 2023-07-28 edge doesn't work ATM, will investigate...
+# #ALPINE_VERSION=edge # Current development tree
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
@@ -144,7 +155,7 @@ pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
-pkgs_editing="vim nano"
+pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
 CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
@@ -178,17 +189,17 @@ VNC_APKS="x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status \
 DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
     ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
     bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev \
-    ncurses-dev python3-dev"
+    libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
 # BLOAT3_APKS='emacs neofetch'
 
-DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
+DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
     tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc \
     elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc \
     tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc \
     util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc \
     i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc \
-    strace-doc procps-doc rsync-doc htop-doc"
+    strace-doc procps-doc rsync-doc"
 
 ########################################################################
 #
@@ -199,10 +210,11 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc htop-doc procps-doc \
 #
 #  If this type of install is selected, this tarball will be used as base image
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/linuf2w3ugfw3cghmi29b/Debian10-ish-base-v37.tgz?rlkey=g0inmxdv8wia8iic1fqacfhtl"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/hk2sgmbvkfwge7ynsqnq4/Devuan_4-ish-base-v8.tgz?rlkey=cpb49k2whc2k8o2awm4ct44ww"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/90a9s46b3qtox36wttre5/Debian10-ish-base-v42.tgz"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz"
+
 #
-#  Use alternate malloc suggested by xloem, still in development
+#  Use alternate malloc suggested by xloem for Debian, still in development
 #
 # USE_MIMALLOC="YES"
 

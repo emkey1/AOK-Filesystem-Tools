@@ -1,5 +1,4 @@
 #!/bin/sh
-#  shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -9,6 +8,12 @@
 #
 #  This modifies an Alpine Linux FS with the AOK changes
 #
+
+find_fastest_mirror() {
+    msg_1 "Find fastest mirror"
+    apk add alpine-conf
+    setup-apkrepos -f
+}
 
 install_apks() {
     if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
@@ -35,35 +40,10 @@ install_apks() {
     fi
 }
 
-install_aok_apks() {
-    if [ -z "$AOK_APKS" ]; then
-        msg_1 "No AOK_APKS defined"
-        return
-    elif [ "$QUICK_DEPLOY" -ne 0 ]; then
-        msg_1 "QUICK_DEPLOY - skipping AOK_APKS"
-        return
-    elif ! bldstat_get "$status_prebuilt_fs" && ! is_aok_kernel; then
-        msg_1 "Skipping AOK only packages on non AOK kernel"
-        return
-    fi
-
-    msg_1 "Install packages only for AOK kernel"
-    #
-    #  This might not be deployed on a system with the AOK kernel, but we cant
-    #  know at this point in time, so play it safe and install them
-    #  setup_alpine_final_tasks.sh will remove them, if run on a non-AOK kernel
-    #
-
-    # In this case we want the variable to expand into its components
-    # shellcheck disable=SC2086
-    apk add $AOK_APKS
-    echo
-}
-
-replace_key_files() {
+prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
-    msg_3 "Our inittab"
+    msg_3 "AOK inittab"
     cp "$aok_content"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
@@ -78,7 +58,7 @@ replace_key_files() {
         msg_3 "Adding apk repository - testing"
         if [ "$ALPINE_VERSION" = "edge" ]; then
             cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-        elif min_release 3.17; then
+        elif min_release 3.18; then
             #
             #  Only works for fairly recent releases, otherwise dependencies won't
             #  work.
@@ -88,21 +68,18 @@ replace_key_files() {
             msg_3 "  In case of incompatible dependencies an error will"
             msg_3 "  be displayed, and nothing bad will happen."
             echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
-        else
-            msg_3 "  Release to old, testing repo commented out"
-            echo "# @testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
         fi
     else
         msg_2 "QUICK_DEPLOY - not adding testing repository"
     fi
-    # msg_3 "replace_key_files() done"
+    # msg_3 "replace_key_etc_files() done"
 }
 
 setup_login() {
     #
     #  What login method will be used is setup during FIRST_BOOT,
     #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
+    #  will use the default login that should work on all platforms.
     #
     msg_2 "Install Alpine login methods"
     cp "$aok_content"/Alpine/bin/login.loop /bin
@@ -114,12 +91,18 @@ setup_login() {
     ln -sf /bin/login.original /bin/login
 
     #
-    #  Not entirely ideal, here the target file is hardcoded
-    #  separatedly from /usr/local/bin//aok where it is also used.
-    #  Opens for inconsistency, but since aok doesnt depend on
-    #  /opt/AOK/tools/utils.sh not much to be done at the moment.
+    #  In order to ensure 1st boot will be able to run, for now
+    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
+    #  method will be activated at the end of the setup
     #
-    echo "disabled" >/etc/opt/AOK-login_method
+    /usr/local/bin/aok -l disable >/dev/null || {
+        error_msg "Failed to disable login during deploy"
+    }
+
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
 }
 
 #===============================================================
@@ -128,38 +111,51 @@ setup_login() {
 #
 #===============================================================
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-# sleep 2
-
-#  Ensure important devices are present
-msg_2 "Running fix_dev"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
-
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
 tsa_start="$(date +%s)"
 
-# shellcheck disable=SC1091
+#
+#  Ensure important devices are present.
+#  this is not yet in inittab, so run it from here on 1st boot
+#
+echo "-->  Running fix_dev  <--"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
+echo
+
 . /opt/AOK/tools/utils.sh
+
+if [ -n "$DEBUG_BUILD" ]; then
+    msg_2 ">>> some debug statuses"
+    msg_3 "Deploy state: $(deploy_state_get)"
+    if this_fs_is_chrooted; then
+        msg_3 "This is chrooted"
+    else
+        msg_3 "NOT chrooted!"
+    fi
+    msg_3 "build_root_d [$build_root_d]"
+    msg_3 "Detected: [$(destfs_detect)]"
+    msg_2 ">>>  Debug, dropping into ash"
+    /bin/ash
+    error_msg "aborting buil after ash" 1
+fi
+
+if [ -n "$LOG_FILE" ]; then
+    debug_sleep "Since log file is defined, will pause before starting" 2
+fi
+
+deploy_starting
+
+#
+#  Switches over into edge, so skip for now
+#
+#find_fastest_mirror
 
 msg_script_title "setup_alpine.sh - Setup Alpine"
 
-start_setup Alpine "$ALPINE_VERSION"
+initiate_deploy Alpine "$ALPINE_VERSION"
 
 if [ -z "$alpine_release" ]; then
     error_msg "alpine_release param not supplied"
 fi
-
-msg_2 "Setting $file_alpine_release to $alpine_release"
-echo "$alpine_release" >"$file_alpine_release"
 
 if ! min_release "3.16"; then
     if [ -z "${CORE_APKS##*shadow-login*}" ]; then
@@ -169,32 +165,15 @@ if ! min_release "3.16"; then
     fi
 fi
 
-replace_key_files
+prepare_env_etc
 
 msg_1 "apk update"
 apk update
-
-#
-#  Doing some user interactions as early as possible, unless this is
-#  pre-built, then this happens on first boot via setup_alpine_final_tasks.sh
-#
-if ! bldstat_get "$status_prebuilt_fs"; then
-    user_interactions
-fi
 
 msg_1 "apk upgrade"
 apk upgrade
 
 install_apks
-install_aok_apks
-
-setup_login
-
-msg_2 "Copy /etc/motd_template"
-cp -a "$aok_content"/Alpine/etc/motd_template /etc
-
-msg_2 "Copy iSH compatible pam base-session"
-cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_2 "adding group sudo"
@@ -204,10 +183,22 @@ else
     msg_3 "QUICK_DEPLOY - skipping group sudo"
 fi
 
+if ! "$setup_common_aok"; then
+    error_msg "$setup_common_aok reported error"
+fi
+
+setup_login
+
+msg_2 "Copy /etc/motd_template"
+cp -a "$aok_content"/Alpine/etc/motd_template /etc
+
+msg_2 "Copy iSH compatible pam base-session"
+cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
+
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
 #
-if [ ! -x /bin/login ]; then
+if [ ! -x "$(readlink -f /bin/login)" ]; then
     error_msg "CRITICAL!! no run-able /bin/login present!"
 fi
 
@@ -232,9 +223,9 @@ fi
 # msg_2 "Installing dependencies for common setup"
 # apk add sudo openrc bash openssh-server
 
-if ! "$setup_common_aok"; then
-    error_msg "$setup_common_aok reported error"
-fi
+# if ! "$setup_common_aok"; then
+#     error_msg "$setup_common_aok reported error"
+# fi
 #
 #  Setup Initial login mode will be done by setup_alpine_final_tasks.sh
 #  If we do it now, final_tasks might not run as root
@@ -243,10 +234,10 @@ fi
 msg_2 "Preparing initial motd"
 /usr/local/sbin/update_motd
 
-if bldstat_get "$status_prebuilt_fs"; then
-    select_profile "$setup_alpine_final"
+if deploy_state_is_it "$deploy_state_pre_build"; then
+    set_new_etc_profile "$setup_final"
 else
-    "$setup_alpine_final"
+    "$setup_final"
     not_prebuilt=1
 fi
 

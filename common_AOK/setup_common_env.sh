@@ -1,5 +1,4 @@
 #!/bin/sh
-# shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -10,9 +9,6 @@
 #  Common setup tasks for both Alpine & Debian
 #
 
-# shellcheck disable=SC1091
-. /opt/AOK/tools/utils.sh
-
 setup_environment() {
 
     #  Announce what AOK release this is
@@ -21,7 +17,7 @@ setup_environment() {
 
     msg_2 "copy some /etc files"
 
-    echo "This is an iSH node, running $(distro_name_get)" >/etc/issue
+    echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
     if [ -n "$USER_NAME" ]; then
         echo "Default user is: $USER_NAME" >>/etc/issue
@@ -38,18 +34,18 @@ setup_environment() {
 
     copy_local_bins common_AOK
 
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
-
     #
-    #  Need full path to handle that this path is not correctly cached at
-    #  this point if Debian is being installed, probably due to switching
-    #  from Alpine to Debian without having rebooted yet.
+    #  If AOK_TIMEZONE is defined, TZ can be set as early as the tools
+    #  needed for it are in. If it is not set, there will be a dialog
+    #  at the end of the deploy where TZ can be selected
     #
-    msg_2 "Setitng time zone"
     if [ -n "$AOK_TIMEZONE" ]; then
+        #
+        #  Need full path to handle that this path is not correctly cached at
+        #  this point if Debian is being installed, probably due to switching
+        #  from Alpine to Debian without having rebooted yet.
+        #
+        msg_2 "Setitng time zone"
         msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
         ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
     fi
@@ -71,7 +67,7 @@ setup_environment() {
             # Move sshd to port 1022 to avoid issues
             sshd_port=1022
             msg_2 "sshd will use port: $sshd_port"
-            sed -i "/Port /c\Port $sshd_port" /etc/ssh/sshd_config
+            sed -i "/Port /c\\Port $sshd_port" /etc/ssh/sshd_config
             #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
             unset sshd_port
         else
@@ -97,6 +93,7 @@ setup_environment() {
 
 }
 
+# shellcheck disable=SC2317
 copy_skel_files() {
     csf_dest="$1"
     if [ -z "$csf_dest" ]; then
@@ -115,10 +112,10 @@ copy_skel_files() {
 user_root() {
     msg_2 "Setting up root user env"
 
-    #
-    #  Change roots shell
-    #
-    sed -i 's/\/bin\/ash$/\/bin\/bash/' /etc/passwd
+    if ! destfs_is_debian; then
+        msg_3 "Alpine - root shell -> /bin/ash"
+        sed -i "s|^root:[^:]*:|root:/bin/bash:|" /etc/passwd
+    fi
 
     #
     #  root user env
@@ -141,8 +138,8 @@ create_user() {
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
 
-    if is_debian && [ "$USER_SHELL" = "/bin/ash" ]; then
-        msg_2 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
+    if (destfs_is_debian || destfs_is_devuan) && [ "$USER_SHELL" = "/bin/ash" ]; then
+        msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
         USER_SHELL="/bin/bash"
     fi
 
@@ -166,7 +163,7 @@ create_user() {
     useradd -m -s "$use_shell" -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
 
     # shadow with blank ish password
-    sed -i "s/${USER_NAME}:\!:/${USER_NAME}::/" /etc/shadow
+    sed -i "s/${USER_NAME}:\\!:/${USER_NAME}::/" /etc/shadow
 
     # Add dot files for ish
     copy_skel_files "$cu_home_dir"
@@ -186,6 +183,8 @@ create_user() {
 #
 #===============================================================
 
+. /opt/AOK/tools/utils.sh
+
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 setup_environment
@@ -198,3 +197,5 @@ else
 fi
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
+
+exit 0 # indicate no error

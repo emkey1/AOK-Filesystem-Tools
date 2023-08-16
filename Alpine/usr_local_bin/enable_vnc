@@ -11,7 +11,6 @@ if [ ! -d /opt/AOK ]; then
 fi
 
 # Read important stuff
-# shellcheck disable=SC1091
 . /opt/AOK/AOK_VARS
 
 # execute again as root
@@ -27,7 +26,7 @@ if ! command -v x11vnc >/dev/null; then
     echo "Installing dependencies"
     echo
     # In this case we want the variable to split up into separate params...
-    # shellcheck disable=SC2154,SC2086
+    # shellcheck disable=SC2086
     apk add $VNC_APKS
 fi
 
@@ -80,8 +79,8 @@ chown ish.ish /home/ish/.xinitrc
 cat <<EVERYWHERE >/home/ish/.Xresources
 Xft.dpi: 264
 xterm*VT100.Translations: #override \
-    Ctrl <Key> minus: smaller-vt-font() \n\
-    Ctrl <Key> plus: larger-vt-font() \n\
+    Ctrl <Key> minus: smaller-vt-font() \\n\
+    Ctrl <Key> plus: larger-vt-font() \\n\
     Ctrl <Key> 0: set-vt-font(d)
 EVERYWHERE
 
