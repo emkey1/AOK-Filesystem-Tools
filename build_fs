@@ -425,6 +425,7 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #
 #  Automatic sudo if run by a user account, do this before
 #  sourcing tools/utils.sh !!
+#  hide_run_as_root=1  prevents this from showing: Executing $app as root
 #
 . "$current_dir"/tools/run_as_root.sh
 
