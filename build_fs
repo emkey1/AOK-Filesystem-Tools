@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+#  shellcheck disable=SC2154
+#
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
@@ -427,8 +429,10 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #  sourcing tools/utils.sh !!
 #  hide_run_as_root=1  prevents this from showing: Executing $app as root
 #
+# shellcheck source=/opt/AOK/tools/run_as_root.sh
 . "$current_dir"/tools/run_as_root.sh
 
+# shellcheck source=/opt/AOK/tools/utils.sh
 . "$current_dir"/tools/utils.sh
 
 t_start="$(date +%s)"
