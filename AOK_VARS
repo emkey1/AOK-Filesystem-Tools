@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.7.15-a42"
+AOK_VERSION="0.9.0"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -33,7 +33,7 @@ USER_NAME="ish"
 #
 # Shell for user USER_NAME (if defined)
 #
-USER_SHELL="/bin/ash"
+USER_SHELL="/bin/bash"
 
 #
 #  Replaces /root and user home dir with pre-defined content, if defined
@@ -231,8 +231,3 @@ DEB_PKGS=""
 #  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
-
-INITIAL_LOGIN_MODE="disable"
-AOK_TIMEZONE="Europe/Berlin"
-# LOG_FILE=/var/log/aokfs-build.log
-# DEB_PKGS="emacs-nox"
