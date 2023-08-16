@@ -49,7 +49,7 @@ sort_array() {
     done
 
     # Use the POSIX sort utility to sort the array in place
-    #IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
+    # IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
     mapfile -t sorted_array < <(printf "%s\n" "${sorted_array[@]}" | sort -f)
 
     echo "${sorted_array[@]}"
@@ -76,27 +76,29 @@ string_in_array() {
 #  Scan for and define usable linters
 #
 identify_available_linters() {
-    do_shellcheck="$(command -v shellcheck)"
-    do_checkbashisms="$(command -v checkbashisms)"
+    shellcheck_p="$(command -v shellcheck)"
+    checkbashisms_p="$(command -v checkbashisms)"
 
-    if [[ "${do_shellcheck}" = "" ]] && [[ "${do_checkbashisms}" = "" ]]; then
+    if [[ "${shellcheck_p}" = "" ]] && [[ "${checkbashisms_p}" = "" ]]; then
         echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
         exit 1
     fi
-    if [[ -n "$do_shellcheck" ]]; then
+    if [[ -n "$shellcheck_p" ]]; then
         v_sc="$(shellcheck -V | grep version: | awk '{ print $2 }')"
-        if [[ "$v_sc" = "0.5.0" ]]; then
-            error_msg "shellcheck to old to be usable" 1
+        if [[ "$v_sc" > "0.5.0" ]]; then
+            sc_extra="-o all"
+        else
+            sc_extra=""
         fi
     fi
 
-    if [[ "$hour_limit" !=  "0" ]]; then
+    if [[ "$hour_limit" != "0" ]]; then
 
         printf "Using: "
-        if [[ -n "${do_shellcheck}" ]]; then
+        if [[ -n "${shellcheck_p}" ]]; then
             printf "%s " "shellcheck"
         fi
-        if [[ -n "${do_checkbashisms}" ]]; then
+        if [[ -n "${checkbashisms_p}" ]]; then
             printf "%s " "checkbashisms"
             #  shellcheck disable=SC2154
             if [[ "$build_env" -eq 1 ]]; then
@@ -117,51 +119,36 @@ identify_available_linters() {
 #
 #===============================================================
 
-lint_posix() {
-    local f="$1"
-    lnt_p=1
-    [[ -z "$f" ]] && error_msg "lint_posix() - no paran given!" 1
-    echo "checking posix: $f"
-    if [[ -n "${do_shellcheck}" ]]; then
-        lnt_p1=1
+do_shellcheck() {
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
+    if [[ -n "${shellcheck_p}" ]]; then
         # -x follow source
-        #
-        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
-    fi
-    if [[ -n "${do_checkbashisms}" ]]; then
-        lnt_p2=1
-        checkbashisms -n -e -x "$f" || exit 1
+        shellcheck -a "$sc_extra" -e SC2250,SC2312 "$fn" || exit 1
     fi
 }
 
-lnt_p=0
-lnt_p1=0
-lnt_p2=0
+do_checkbashisms() {
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
+    if [[ -n "${checkbashisms_p}" ]]; then
+        checkbashisms -n -e -x "$fn" || exit 1
+    fi
+}
+
+lint_posix() {
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
+    echo "checking posix: $fn"
+    do_shellcheck "$fn"
+    do_checkbashisms "$fn"
+}
 
 lint_bash() {
-    local f="$1"
-    lnt_b=1
-    [[ -z "$f" ]] && error_msg "lint_bash() - no paran given!" 1
-    echo "checking bash: $f"
-    if [[ -n "${do_shellcheck}" ]]; then
-        lnt_b1=1
-        shellcheck -a -o all -e SC2250,SC2312 "$f" || exit 1
-    else
-        echo "shellcheck not available"
-    fi
-}
-lnt_b=0
-lnt_b1=0
-
-lint_usage() {
-    [[ "$hour_limit" = "0" ]] && return
-    echo
-    [[ $lnt_p -eq 0 ]] && echo "Warning lint_posix() never called"
-    [[ $lnt_p1 -eq 0 ]] && echo "posix shellcheck never called"
-    [[ $lnt_p2 -eq 0 ]] && echo "posix checkbashisms never called"
-
-    [[ $lnt_b -eq 0 ]] && echo "Warning lint_bash() never called"
-    [[ $lnt_b1 -eq 0 ]] && echo "bash shellcheck never called"
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "lint_bash() - no paran given!" 1
+    echo "checking bash: $fn"
+    do_shellcheck "$fn"
 }
 
 get_file_age() {
@@ -181,13 +168,12 @@ should_it_be_linted() {
 
     [[ -z "$hour_limit" ]] && return 0
     if [[ -z "$cutoff_time" ]]; then
-	current_time=$(date +%s)  # Get current time in seconds since epoch
-	span_in_seconds="$(( 3600 * hour_limit ))"
-	cutoff_time="$((current_time - span_in_seconds))"
+        current_time=$(date +%s) # Get current time in seconds since epoch
+        span_in_seconds="$((3600 * hour_limit))"
+        cutoff_time="$((current_time - span_in_seconds))"
     fi
     [[ $(get_file_age "$fname") -ge $cutoff_time ]]
 }
-
 
 #===============================================================
 #
@@ -196,7 +182,8 @@ should_it_be_linted() {
 #===============================================================
 
 process_file_tree() {
-
+    local all_files
+    local fname
     #
     #  Loop over al files, first doing exludes
     #  Then identifying filetype using: file -b
@@ -209,7 +196,6 @@ process_file_tree() {
     #  Reads in all files, globally reverse sorted by file age
     #
     #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-
 
     #
     #  But of course find in MacOS does not behave like the rest of them..
@@ -224,14 +210,14 @@ process_file_tree() {
         # find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-
     else
         # Linux version
-        mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-    fi
+        #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+        #
+        #  Works on older versions
+        #
+        # shellcheck disable=SC2207
+        all_files=($(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2))
 
-    
-    #
-    #  Works on older versions
-    #
-    # all_files=($(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2))
+    fi
 
     for fname in "${all_files[@]}"; do
         #[[ "$fname" =
@@ -260,11 +246,11 @@ process_file_tree() {
         #
         if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-	    should_it_be_linted && lint_posix "$fname"
+            should_it_be_linted && lint_posix "$fname"
             continue
         elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-	    should_it_be_linted && lint_bash "$fname"
+            should_it_be_linted && lint_bash "$fname"
             continue
         elif [[ "$f_type" == *"C source"* ]]; then
             items_c+=("$fname")
@@ -276,12 +262,12 @@ process_file_tree() {
             items_perl+=("$fname")
             continue
         elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
-                 [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
+            [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
             #  Who might have guessed on MacOS file -b output looks different...
             items_ucode_esc+=("$fname")
             continue
         elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
-                 [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
+            [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_ucode+=("$fname")
             continue
@@ -367,7 +353,6 @@ if [[ "$1" = "-q" ]]; then
     hour_limit=0
 fi
 
-
 #
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else.
@@ -426,5 +411,3 @@ fi
 if [[ ${#file_types[@]} -gt 0 ]]; then
     list_item_group "Unclassified file types" "${file_types[@]}"
 fi
-
-lint_usage
