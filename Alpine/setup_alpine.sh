@@ -198,7 +198,7 @@ cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
 #
-if [ ! -x /bin/login ]; then
+if [ ! -x "$(readlink -f /bin/login)" ]; then
     error_msg "CRITICAL!! no run-able /bin/login present!"
 fi
 
