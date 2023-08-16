@@ -422,7 +422,7 @@ replace_home_dirs() {
         [ ! -f "$HOME_DIR_ROOT" ] && error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT"
         msg_2 "Replacing /root"
         rm /root -rf
-        cd /
+        cd / || error_msg "Failed to cd into: /"
         tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
     fi
 }
