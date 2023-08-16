@@ -343,9 +343,9 @@ if [[ "$1" = "-f" ]]; then
 fi
 
 if [[ "$1" = "-F" ]]; then
-    echo "Will only check files changed in the last 6h"
+    echo "Will only check files changed in the last hour"
     echo
-    hour_limit=6
+    hour_limit=1
 fi
 
 if [[ "$1" = "-q" ]]; then

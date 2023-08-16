@@ -38,6 +38,45 @@ Available options:
     exit 0
 }
 
+check_dependencies() {
+
+    _deps=""
+    [ -z "$(command -v rsync)" ] && _deps="$_deps rsync"
+    _wget_cmd="$(command -v wget)"
+    if [ -n "$_wget_cmd" ] && readlink "$_wget_cmd" | grep -q busybox; then
+        _deps="$_deps wget"
+        _additional_msg="You need to install a real wget, the busybox one does not handle redirects"
+    fi
+    [ -z "$_wget_cmd" ] && _deps="$_deps wget"
+    [ -z "$_deps" ] && return
+
+    msg_1 "In order for this to work you need to install some dependencies"
+
+    if [ -n "$_additional_msg" ]; then
+        echo "$_additional_msg"
+        echo
+    fi
+
+    echo "Here are instructions how to install this on your platform:"
+    echo
+
+    case "$(hostfs_detect)" in
+
+    "$distro_alpine")
+        echo "apk add $_deps"
+        ;;
+    "$distro_debian" | "$distro_devuan")
+        echo "apt install $_deps"
+        ;;
+    *)
+        echo "Platform not recognized, can not suggest how to install"
+        echo "You need the following items: $_deps"
+        ;;
+    esac
+
+    error_msg "This needs to be resolved"
+}
+
 parse_arguments() { # Multi OK 1
     while [ -n "$1" ]; do
 
@@ -167,8 +206,6 @@ cache_fs_image() {
     msg_2 "cache_fs_image()"
     [ -z "$src_image" ] && error_msg "cache_fs_image() no src_image supplied"
     [ -z "$src_tarball" ] && error_msg "cache_fs_image() no src_taball supplied"
-
-    ensure_usable_wget
 
     if [ ! -d "$src_img_cache_d" ]; then
         mkdir -p "$src_img_cache_d"
@@ -463,6 +500,8 @@ aok_FS_do_compress=true       # compress FS at end of build_fs
 aok_files="${build_root_d}${aok_content}"
 
 parse_arguments "$@"
+
+check_dependencies
 
 display_build_target
 

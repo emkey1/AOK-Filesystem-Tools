@@ -258,18 +258,6 @@ display_time_elapsed() {
     unset _dte_seconds
 }
 
-#
-#  Busybox wget cant hanle redirects, this installs real wget if needbe
-#
-ensure_usable_wget() {
-    msg_3 "ensure_usable_wget()"
-    #  shellcheck disable=SC2010
-    if ls -l "$(command -v wget)" | grep -q busybox; then
-        error_msg "You need to install a real wget, busybox does not handle redirects"
-    fi
-    # msg_3 "ensure_usable_wget()  done"
-}
-
 copy_local_bins() {
     msg_2 "copy_local_bins($1)"
     _clb_base_dir="$1"

@@ -25,8 +25,6 @@ cd "$debian_download_location" || {
     error_msg "Failed to cd into: $debian_download_location"
 }
 
-ensure_usable_wget
-
 #
 #  If install was aborted and re-attempted, ensure there is no
 #  half downloaded image pressent.
