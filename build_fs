@@ -217,7 +217,7 @@ cache_fs_image() {
         cmd="wget $src_image"
         #  Ensure basename for tar ball is used
         case "$build_target" in
-        "$distro_alpine") cmd="$cmd -O $alpine_src_tb" ;;
+        "$distro_alpine" | "$destfs_select") cmd="$cmd -O $alpine_src_tb" ;;
         "$distro_debian") cmd="$cmd -O $debian_src_tb" ;;
         "$distro_devuan") cmd="$cmd -O $devuan_src_tb" ;;
         *)
