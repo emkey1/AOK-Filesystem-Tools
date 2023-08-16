@@ -7,7 +7,6 @@
 #  `hostname`
 #
 
-#  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
 #  Only relevant for aok kernels and if AOK_HOSTNAME_SUFFIX is "Y"

@@ -7,11 +7,9 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #  Automatic sudo if run by a user account, do this before
 #  sourcing tools/utils.sh !!
 #
-#  shellcheck disable=SC1091
 . "$current_dir"/tools/run_as_root.sh
 
 if true; then
-    #  shellcheck disable=SC1091
     . "$current_dir"/tools/utils.sh
 else
     echo "Using local deffinitions of destfs"

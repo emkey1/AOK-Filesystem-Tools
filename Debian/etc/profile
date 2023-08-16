@@ -23,7 +23,7 @@ if [ -n "${PS1-}" ]; then
         # The file bash.bashrc already sets the default PS1.
         # PS1='\h:\w\$ '
         if [ -f /etc/bash.bashrc ]; then
-            #  shellcheck disable=SC1091
+            #  shellcheck source=/dev/null
             . /etc/bash.bashrc
         fi
     else
@@ -38,7 +38,7 @@ fi
 if [ -d /etc/profile.d ]; then
     for i in /etc/profile.d/*.sh; do
         if [ -r "$i" ]; then
-            #  shellcheck disable=SC1090
+            # shellcheck source=/dev/null
             . "$i"
         fi
     done

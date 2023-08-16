@@ -123,8 +123,8 @@ do_shellcheck() {
     local fn2="$1"
     [[ -z "$fn2" ]] && error_msg "do_shellcheck() - no paran given!" 1
     if [[ -n "${shellcheck_p}" ]]; then
-        # -x follow source
-	shellcheck -a -x -e SC2250,SC2312 $sc_extra "$fn2" || exit 1
+        #  shellcheck disable=SC2086
+        shellcheck -a -x -e SC2250,SC2312 $sc_extra "$fn2" || exit 1
 
     fi
 }

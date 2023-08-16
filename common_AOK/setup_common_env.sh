@@ -94,6 +94,7 @@ setup_environment() {
 
 }
 
+# shellcheck disable=SC2317
 copy_skel_files() {
     csf_dest="$1"
     if [ -z "$csf_dest" ]; then
@@ -183,7 +184,6 @@ create_user() {
 #
 #===============================================================
 
-# shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"

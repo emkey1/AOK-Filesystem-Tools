@@ -44,9 +44,7 @@ install_aok_apks() {
 
 tsaft_start="$(date +%s)"
 
-# shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
-# shellcheck disable=SC1091
 . /opt/AOK/tools/user_interactions.sh
 
 if [ -n "$LOG_FILE" ]; then

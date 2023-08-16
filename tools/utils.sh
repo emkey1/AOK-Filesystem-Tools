@@ -641,7 +641,7 @@ aok_content="/opt/AOK"
 conf_overrides="${aok_content}/.AOK_VARS"
 if [ -f "$conf_overrides" ]; then
     # msg_2 "Found .AOK_VARS"
-    #  shellcheck disable=SC1090
+    # shellcheck source=/opt/AOK/.AOK_VARS
     . "$conf_overrides"
 fi
 unset conf_overrides

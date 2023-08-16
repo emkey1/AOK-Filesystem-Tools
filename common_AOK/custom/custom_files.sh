@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#  shellcheck disable=SC1091
+# shellcheck source=/dev/null
 source /opt/AOK/tools/utils.sh
 
 process_custom_file_list() {
@@ -8,7 +8,6 @@ process_custom_file_list() {
     [[ -z "$files_template" ]] && error_msg "process_custom_file_list() no param"
 
     msg_2 "process_custom_file_list($files_template)"
-    #  shellcheck disable=SC1090
     source "$files_template"
 
     # Iterate over the array

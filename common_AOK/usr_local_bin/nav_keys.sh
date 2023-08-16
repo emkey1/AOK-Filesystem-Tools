@@ -196,7 +196,7 @@ Select modifier:
 #
 #===============================================================
 
-#  shellcheck disable=SC1091
+# shellcheck source=/dev/null
 . /opt/AOK/tools/utils.sh
 
 #

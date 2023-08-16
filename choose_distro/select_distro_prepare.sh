@@ -22,7 +22,6 @@ if [ ! -d "/opt/AOK" ]; then
     exit 1
 fi
 
-# shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
 msg_script_title "select_distro_prepare.sh  Prep for distro select"

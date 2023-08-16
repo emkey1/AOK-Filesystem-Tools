@@ -11,7 +11,6 @@ if [ ! -d /opt/AOK ]; then
 fi
 
 # Read important stuff
-# shellcheck disable=SC1091
 . /opt/AOK/AOK_VARS
 
 # execute again as root
