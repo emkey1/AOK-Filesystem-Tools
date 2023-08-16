@@ -106,10 +106,10 @@ current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 #  Automatic sudo if run by a user account, do this before
 #  sourcing tools/utils.sh !!
 #
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
+#  shellcheck disable=SC1091
 . "$current_dir"/run_as_root.sh
 
-# shellcheck source=/opt/AOK/tools/utils.sh
+#  shellcheck disable=SC1091
 . "$current_dir"/utils.sh
 
 if this_is_ish && hostfs_is_debian; then
