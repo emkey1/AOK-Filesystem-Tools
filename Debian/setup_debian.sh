@@ -1,6 +1,4 @@
 #!/bin/sh
-#  shellcheck disable=SC2154
-
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -180,6 +178,7 @@ debian_services
 # cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
 # ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 
+#  shellcheck disable=SC2154
 if [ "$USE_MIMALLOC" = "YES" ]; then
     mimalloc_install
 else

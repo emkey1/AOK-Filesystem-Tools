@@ -35,10 +35,8 @@ apk update && apk upgrade
 msg_3 "Installing wget (needed for Debian download)"
 apk add wget
 
-# shellcheck disable=SC2154
 set_new_etc_profile "$setup_select_distro"
 
-# shellcheck disable=SC2154
 if this_fs_is_chrooted; then
     msg_1 "This is chrooted"
     echo "It doesn't make sense to select Distro at this time"

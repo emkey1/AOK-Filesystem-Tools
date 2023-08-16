@@ -26,7 +26,7 @@ if ! command -v x11vnc >/dev/null; then
     echo "Installing dependencies"
     echo
     # In this case we want the variable to split up into separate params...
-    # shellcheck disable=SC2154,SC2086
+    # shellcheck disable=SC2086
     apk add $VNC_APKS
 fi
 

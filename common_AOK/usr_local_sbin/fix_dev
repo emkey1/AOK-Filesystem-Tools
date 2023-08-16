@@ -88,7 +88,6 @@ if [ "$(uname)" = "Darwin" ]; then
     log_it "Don't run this on MacOS!!" 1
 fi
 
-#  shellcheck disable=SC2154
 if [ -e /etc/opt/this_fs_is_chrooted ]; then
     log_it "WARNING: chrooted, Skipping fix_dev" 0
 fi

@@ -1,6 +1,4 @@
 #!/bin/sh
-# shellcheck disable=SC2154
-
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #

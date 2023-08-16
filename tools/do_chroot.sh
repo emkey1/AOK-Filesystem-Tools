@@ -1,6 +1,4 @@
 #!/bin/sh
-# shellcheck disable=SC2154
-
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -177,10 +175,10 @@ case "$1" in
     if ! env_cleanup; then
         msg_1 "cleanup failed!"
     fi
-    
+
     clr_timeout=2
     msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
-    sleep "$clr_timeout"    
+    sleep "$clr_timeout"
     rm -rf "$build_root_d"
     [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
     exit 0

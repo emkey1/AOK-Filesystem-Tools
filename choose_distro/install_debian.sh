@@ -3,7 +3,7 @@
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
-#  shellcheck disable=SC2114,SC2154
+#  shellcheck disable=SC2114
 
 . /opt/AOK/tools/utils.sh
 
