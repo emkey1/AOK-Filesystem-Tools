@@ -14,7 +14,7 @@
 msg_1 "Setting -aok suffix for hostname"
 
 #  Ensure suffix is not added multiple times if this is restarted
-if hostname | grep -q "\-aok"; then
+if hostname | grep -q '\-aok'; then
     msg_2 "AOK suffix already set, aborting"
     exit 0
 fi

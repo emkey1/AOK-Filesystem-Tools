@@ -154,7 +154,7 @@ process_items() {
                     [ "$group_lst" = "$g" ] && break # list done
                 done
             fi
-            printf "[%${max_len}s]  %s\n" "$name" "$packages"
+            printf "[%${max_len}s]  %s\\n" "$name" "$packages"
             ;;
 
         "install")

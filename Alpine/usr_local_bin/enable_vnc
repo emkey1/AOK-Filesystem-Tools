@@ -79,8 +79,8 @@ chown ish.ish /home/ish/.xinitrc
 cat <<EVERYWHERE >/home/ish/.Xresources
 Xft.dpi: 264
 xterm*VT100.Translations: #override \
-    Ctrl <Key> minus: smaller-vt-font() \n\
-    Ctrl <Key> plus: larger-vt-font() \n\
+    Ctrl <Key> minus: smaller-vt-font() \\n\
+    Ctrl <Key> plus: larger-vt-font() \\n\
     Ctrl <Key> 0: set-vt-font(d)
 EVERYWHERE
 

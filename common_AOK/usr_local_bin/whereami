@@ -32,7 +32,7 @@ printf "place name..."
 url="https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&zoom=99&format=json"
 # echo "url is: $url"
 location="$(curl "$url" 2>/dev/null)"
-printf "\n\n"
+printf '\n\n'
 
 echo "GPS location: $gps"
 echo "$location" | jq .display_name

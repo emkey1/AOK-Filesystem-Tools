@@ -131,7 +131,7 @@ keyboard. If you do not want to use this feature, hit space
 In most cases, if you have selected 'External Keyboard - Backtic -> Escape'
 This key would actually generate Esc, but this is not always the case.
 For example the keyboard identified in BT settings as 'Yoozon 3.0 Keyboard'
-generates (octal) \302\247 for the key, even with the backtick setting.
+generates (octal) \\302\\247 for the key, even with the backtick setting.
 
 For such keyboards, this will also enable the intended key to generate Escape
 in the first place inside tmux.

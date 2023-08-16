@@ -21,6 +21,7 @@ if [[ -n "$destfs" ]]; then
     echo "Dest FS type: $destfs"
 fi
 
+# shellcheck disable=SC2154
 if [[ -d "$build_root_d/etc/opt/AOK" ]]; then
     echo "----"
     inspect_files=(

@@ -22,7 +22,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DESC="runbg daemon"
 NAME=runbg
 DAEMON=/bin/cat
-EXTRA_OPTS="/dev/location > /dev/null \&"
+EXTRA_OPTS='/dev/location > /dev/null \&'
 PIDFILE=/var/run/runbg.pid
 SCRIPTNAME=/etc/init.d/"$NAME"
 

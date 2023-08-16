@@ -46,7 +46,7 @@ unset duration
 
 msg_3 "Extracted Devuan tarball"
 
-cd /
+cd / || error_msg "Failed to cd into: /"
 
 msg_3 "Maintaining resolv.conf"
 cp -a /etc/resolv.conf "$distro_tmp_dir"/etc

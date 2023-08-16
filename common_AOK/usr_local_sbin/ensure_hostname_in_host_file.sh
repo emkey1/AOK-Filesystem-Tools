@@ -24,5 +24,5 @@ host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
 #
 if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
     echo "[$(date)] adding hostname: $host_name to $host_file" >>/var/log/syslog
-    printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
+    printf '127.0.0.1\t%s\n' "$host_name" >>"$host_file"
 fi

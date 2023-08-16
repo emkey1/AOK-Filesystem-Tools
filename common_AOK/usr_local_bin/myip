@@ -2,7 +2,7 @@
 
 printf "Internet IP:  "
 if curl -s http://ifconfig.me; then
-    printf "\n"
+    printf '\n'
 else
     echo "Error: Unable to determine"
 fi
@@ -40,5 +40,5 @@ fi
 #
 #  Local IPs are indented a full tab, to make internet IP stand out
 #
-printf "Local IP(V4):\t%s\n" "$LOCAL_IP"
-[[ -n "$LOCAL_IP_V6" ]] && printf "Local IP(V6):\t%s\n" "$LOCAL_IP_V6"
+printf 'Local IP(V4):\t%s\n' "$LOCAL_IP"
+[[ -n "$LOCAL_IP_V6" ]] && printf 'Local IP(V6):\t%s\n' "$LOCAL_IP_V6"
