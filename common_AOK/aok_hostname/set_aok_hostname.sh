@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #
 #  If you run both aok and regular iSH on the same device
 #  this script modifies the hostname for aok kernels to have -aok suffix
@@ -7,16 +6,16 @@
 #  `hostname`
 #
 
-#  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
-#  Only relevant for aok kernels
-! is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
+#  Only relevant for aok kernels and if AOK_HOSTNAME_SUFFIX is "Y"
+#  shellcheck disable=SC2154
+! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
 
 msg_1 "Setting -aok suffix for hostname"
 
 #  Ensure suffix is not added multiple times if this is restarted
-if hostname | grep -q "\-aok"; then
+if hostname | grep -q '\-aok'; then
     msg_2 "AOK suffix already set, aborting"
     exit 0
 fi
@@ -24,7 +23,7 @@ fi
 new_hostname="$(hostname)-aok"
 hostname_service="/etc/init.d/hostname"
 
-if is_debian; then
+if destfs_is_debian; then
     msg_3 "Debian - removing previous service files"
     rm -f /etc/init.d/hostname
     rm -f /etc/init.d/hostname.sh
@@ -38,12 +37,7 @@ msg_3 "Will work normally on next boot."
 
 cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
 
-wall_cmd="/usr/bin/wall"
-wc="/usr/local/bin/wall"
-[ -x "$wc" ] && wall_cmd="$wc"
-[ -z "$wall_cmd" ] && error_msg "Command wall not found"
-sed -i "s#PATH_TO_WALL#$wall_cmd##" "$hostname_service"
-msg_3 "hostname service will announce new hostname using: $wall_cmd"
+msg_3 "hostname service will announce new hostname using: wall -n"
 
 chmod 755 "$hostname_service"
 rc-update add hostname default

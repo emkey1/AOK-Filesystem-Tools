@@ -3,9 +3,8 @@
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #  License: MIT
 #
-#  shellcheck disable=SC2114,SC2154
+#  shellcheck disable=SC2114
 
-#  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
 
 tid_start="$(date +%s)"
@@ -16,7 +15,7 @@ msg_script_title "install_devuan.sh  Downloading & Installing Devuan"
 #  Step 1  Download and upack Devuan
 #
 
-devuan_download_location="/tmp/devuan_fs"
+devuan_download_location="$TMPDIR/devuan_fs"
 src_image="$DEVUAN_SRC_IMAGE"
 src_tarball="$devuan_download_location/$devuan_src_tb"
 
@@ -24,8 +23,6 @@ mkdir -p "$devuan_download_location"
 cd "$devuan_download_location" || {
     error_msg "Failed to cd into: $devuan_download_location"
 }
-
-ensure_usable_wget
 
 #
 #  If install was aborted and re-attempted, ensure there is no
@@ -47,7 +44,7 @@ unset duration
 
 msg_3 "Extracted Devuan tarball"
 
-cd /
+cd / || error_msg "Failed to cd into: /"
 
 msg_3 "Maintaining resolv.conf"
 cp -a /etc/resolv.conf "$distro_tmp_dir"/etc
@@ -64,6 +61,13 @@ rm -rf "$devuan_download_location"
 #  Step 2, Get rid of Alpine FS
 #
 msg_2 "Deleting most of Alpine FS"
+
+if [ -n "$LOG_FILE" ]; then
+    msg_2 "Disabling LOG_FILE until Debian FS has been deployed"
+    orig_log_file="$LOG_FILE"
+    LOG_FILE=""
+fi
+
 #
 #  Removing anything but musl from /lib
 #  Doing this before moving busybox to make things simpler
@@ -110,6 +114,14 @@ msg_3 "Putting Devuan stuff into place"
 /busybox mv "$distro_tmp_dir"/etc /
 
 #  From now on Devuan should be fully available
+
+rm -f "$destfs_select_hint"
+
+if [ -n "$orig_log_file" ]; then
+    LOG_FILE="$orig_log_file"
+    unset orig_log_file
+    msg_3 "LOG_FILE restored"
+fi
 
 msg_3 "Removing tmp area $distro_tmp_dir"
 rm -rf "$distro_tmp_dir" || {

@@ -1,5 +1,5 @@
 Two possible approaches...
-o Run 'chroot_build_image'.  It will do everything for you and dump a ready for use image in /tmp/AOK
+o Run 'chroot_build_image'.  It will do everything for you and dump a ready for use image in $TMPDIR/AOK
 OR...
 o Download, import and boot from the latest Alpine i386 miniroot, or use the included iSH miniroot
 o The unzip binary is included with either of the above mentioned filesystems so it is probably easiest

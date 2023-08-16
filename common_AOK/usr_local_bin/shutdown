@@ -6,48 +6,76 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  Shuts dowwn iSH nodes
+#  Shuts dowwn openrc based systems
 #
 #  Using restart / stop - start
 #  to ensure the process is taking place
 #  Just doing start is not 100% to take effect
 #  depending on service states
 #
-#  Optional param 1 wall message
+#  Optional param 1 is appended to the system shutdown notice
 #
 
-notification="${1:-This machine will be shutdown in 10 seconds}"
+# Define a function to handle Ctrl+C
+interrupt_handler() {
+    echo "Ctrl+C (SIGINT) received. Cancelling shutdown..."
 
-if test -f /etc/alpine-release; then
-    wall_cmd="/usr/local/bin/wall"
-else
-    #  Debians built-in wall works on iSH
-    wall_cmd="wall"
+    /usr/local/bin/wall -n "shutdown was canceled, the shutdown notice can be ignored"
+    exit 1
+}
+
+notification=$(
+    cat <<'EOF'
+
+    *** SYSTEM SHUTDOWN NOTICE ***
+
+This machine will be shutdown in 10 seconds!!
+EOF
+)
+
+#
+#  Append param 1 if pressent on new line
+#
+[ -n "$1" ] && notification="${notification}
+$1"
+
+uid="$(id | awk -F'[(=]' '{print $2}')"
+
+if [ "$uid" -ne 0 ]; then
+    echo "ERROR: shutdown requires root privileges!"
+    exit 1
 fi
 
-sudo "$wall_cmd" "$notification"
-
-echo
-echo "WARNING! Abort shut down by hitting Ctrl-C"
-echo
-
-if test -f /etc/debian_version; then
-    echo
-    echo "Be aware that if running Debian iSH-AOK will report the server has"
-    echo "crached once shutdown has happened, this is normal"
-    echo "since iSH-AOK has no clue why it terminated"
+if ! mount | grep -qw "/"; then
+    echo "WARNING: No / mounted, this seems to be chrooted, aborting"
+    exit 2
 fi
+
+/usr/local/bin/wall "$notification"
+
+#
+#  Set the interrupt_handler function to be called when Ctrl+C is pressed
+#  Since this will wall announcing shutdown is cancelled, it is better
+#  to activate after the initial wall is made
+#
+trap interrupt_handler INT
+
+echo
+echo "Abort shut down by hitting Ctrl-C within 10 secoonds"
+echo
 
 echo
 sleep 10
 
+echo "Commencing shutdown..."
+
 if test -f /etc/alpine-release; then
-    sudo /etc/init.d/killprocs restart
+    /etc/init.d/killprocs restart 2>/dev/null
 else
     #
     #  Debian / Deuvan does not support restart
     #  so a stop start sequence must be done
     #
-    sudo /etc/init.d/killprocs stop
-    sudo /etc/init.d/killprocs start
+    /etc/init.d/killprocs stop
+    /etc/init.d/killprocs start
 fi

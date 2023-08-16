@@ -1,6 +1,4 @@
 #!/bin/sh
-#  shellcheck disable=SC2154
-
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -36,10 +34,10 @@ prepare_env_etc() {
     msg_2 "prepare_env_etc()"
 
     msg_3 "Devuan AOK inittab"
-    cp -a "$aok_content"/Devuan/etc/inittab /etc
+    cp -a "${aok_content}/Devuan/etc/inittab" /etc
 
     msg_3 "hosts file helping apt tools"
-    cp -a "$aok_content"/Devuan/etc/hosts /etc
+    cp -a "${aok_content}/Devuan/etc/hosts" /etc
 
     #
     #  Most of the Debian services, mounting fs, setting up networking etc
@@ -52,7 +50,7 @@ prepare_env_etc() {
 
     msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
-    cp -a "$aok_content"/Devuan/etc/update-motd.d/* /etc/update-motd.d
+    cp -a "${aok_content}/Devuan/etc/update-motd.d/*" /etc/update-motd.d
 
     msg_3 "prepare_env_etc() done"
 }
@@ -65,16 +63,25 @@ setup_login() {
     #
     # SKIP_LOGIN
     msg_2 "Install Debian AOK login methods"
-    cp "$aok_content"/Debian/bin/login.loop /bin
+    cp "${aok_content}/Debian/bin/login.loop" /bin
     chmod +x /bin/login.loop
-    cp "$aok_content"/Debian/bin/login.once /bin
+    cp "${aok_content}/Debian/bin/login.once" /bin
     chmod +x /bin/login.once
 
     # TODO: enabled in Debian, verify it can be ignored here
     # cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
 
     mv /bin/login /bin/login.original
-    ln -sf /bin/login.original /bin/login
+    # ln -sf /bin/login.original /bin/login
+
+    /usr/local/bin/aok -l disable >/dev/null || {
+        error_msg "Failed to disable login during deploy"
+    }
+
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
 }
 
 #===============================================================
@@ -83,27 +90,19 @@ setup_login() {
 #
 #===============================================================
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-# sleep 2
-
-#  Ensure important devices are present
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
-
 tsd_start="$(date +%s)"
 
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
+#
+#  Ensure important devices are present.
+#  this is not yet in inittab, so run it from here on 1st boot
+#
+echo "-->  Running fix_dev  <--"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
+echo
 
-#  shellcheck disable=SC1091
 . /opt/AOK/tools/utils.sh
+
+deploy_starting
 
 if [ "$build_env" -eq 0 ]; then
     echo
@@ -114,13 +113,7 @@ fi
 
 msg_script_title "setup_devuan.sh  Devuan specific AOK env"
 
-start_setup Devuan "$(cat /etc/debian_version)"
-
-if test -f /AOK; then
-    msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
-    rm -rf /AOK
-fi
-
+initiate_deploy Devuan "$(cat /etc/devuan_version)"
 prepare_env_etc
 
 #
@@ -132,34 +125,21 @@ cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
 msg_1 "apt update"
 apt update -y
 
-#
-#  Doing some user interactions as early as possible, unless this is
-#  pre-built, then this happens on first boot via setup_alpine_final_tasks.sh
-#
-if ! bldstat_get "$status_prebuilt_fs"; then
-    user_interactions
-fi
-
 if [ "$QUICK_DEPLOY" -eq 0 ]; then
     msg_1 "apt upgrade"
     apt upgrade -y
 
     if [ -n "$DEB_PKGS" ]; then
-        msg_1 "Add core Debian packages"
+        msg_1 "Add co43 Devuan packages"
         echo "$DEB_PKGS"
         bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
     fi
     #
-    # Devuan draws in some 91 packages if openssh-server is installed
-    # seems a bit much, also I havent figured out how to disable sshd
-    # initially, so not active ATM
-    #
     # install_sshd
+    echo
 else
     msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
 fi
-
-setup_login
 
 # msg_2 "Add boot init.d items suitable for iSH"
 # rc-update add urandom boot
@@ -189,17 +169,12 @@ if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
 
-#
-#  Overriding common runbg with Debian specific, work in progress...
-#
-# msg_2 "Adding runbg service"
-# cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
-# ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
+setup_login
 
-if bldstat_get "$status_prebuilt_fs"; then
-    select_profile "$setup_devuan_final"
+if deploy_state_is_it "$deploy_state_pre_build"; then
+    set_new_etc_profile "$setup_final"
 else
-    "$setup_devuan_final"
+    "$setup_final"
     not_prebuilt=1
 fi
 

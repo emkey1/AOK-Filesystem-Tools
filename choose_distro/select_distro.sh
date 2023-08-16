@@ -1,11 +1,12 @@
 #!/bin/sh
-# shellcheck disable=SC2154
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  select_distro.sh
 #
 #  Setup Distro choice
 #
@@ -39,6 +40,7 @@ Select distro:
         echo "Alpine selected"
         echo
         msg_1 "running $setup_alpine_scr"
+        rm -f "$destfs_select_hint"
         "$setup_alpine_scr"
         ;;
 
@@ -69,32 +71,22 @@ Select distro:
 #
 #===============================================================
 
-#
-#  Since this is run as /etc/profile during deploy, and this wait is
-#  needed for /etc/profile (see Alpine/etc/profile for details)
-#  we also put it here
-#
-# sleep 2
-
-#  Ensure important devices are present
-echo "-> Running fix_dev <-"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev
-
-if [ ! -d "/opt/AOK" ]; then
-    echo "ERROR: This is not an AOK File System!"
-    echo
-    exit 1
-fi
-
 tcd_start="$(date +%s)"
 
-# shellcheck disable=SC1091
+#
+#  Ensure important devices are present.
+#  this is not yet in inittab, so run it from here on 1st boot
+#
+echo "-->  Running fix_dev  <--"
+/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
+echo
+
 . /opt/AOK/tools/utils.sh
 
 manual_runbg
 
 #  shellcheck disable=SC2009
-if ! is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
+if ! this_fs_is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
     cat /dev/location >/dev/null &
     msg_1 "iSH now able to run in the background"
 fi

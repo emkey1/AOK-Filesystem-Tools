@@ -11,7 +11,7 @@
 #
 
 log_it() {
-    echo "$1" >>/tmp/tzlog
+    echo "$1" >>"$TMPDIR/tzlog"
 }
 
 check_dependencies() {
@@ -58,8 +58,8 @@ get_tz_regions_lst() {
 }
 
 get_tz_options_lst() {
-    options=$(cd /usr/share/zoneinfo/"$1" && find . | sed "s|^\./||" |
-        sed "s/^\.//" | sed '/^$/d' | sort)
+    options=$(cd /usr/share/zoneinfo/"$1" && find . | sed 's|^\./||' |
+        sed 's/^\.//' | sed '/^$/d' | sort)
 }
 
 main() {
@@ -100,8 +100,8 @@ main() {
         option_items+=("$name" " ($offset)")
     done <<<"$options"
 
-    menu_title="Select your timezone in\nregion: ${region}"
-    test "$region" = 'Etc' && menu_title="$menu_title\n\nPlease note POSIX and ISO use oposite signs\nfor numerical time-zone references!\nFocus on the right column in this table"
+    menu_title="Select your timezone in\\nregion: ${region}"
+    test "$region" = 'Etc' && menu_title="$menu_title\\n\\nPlease note POSIX and ISO use oposite signs\\nfor numerical time-zone references!\\nFocus on the right column in this table"
     tz=$($dialog_app \
         --title "Timezones - location" \
         --ok-button "Select" \
@@ -125,7 +125,7 @@ main() {
         return
     fi
 
-    if ! $dialog_app --yesno "Setting Time Zone to:\n\n    $selected_tz\n" 0 0; then
+    if ! $dialog_app --yesno "Setting Time Zone to:\\n\\n    $selected_tz\\n" 0 0; then
         #  recurse and try again
         main
     else
@@ -141,6 +141,8 @@ main() {
 
 # dialog_app="dialog"
 dialog_app="whiptail"
+
+TMPDIR="${TMPDIR:-/tmp}"
 
 # execute again as root
 if [[ "$(whoami)" != "root" ]]; then

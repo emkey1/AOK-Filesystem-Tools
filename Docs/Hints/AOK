@@ -8,7 +8,7 @@ To generate a fresh root filesystem identical to what you started with...
    cd /opt/AOK
    sudo ./build_fs
 
-The root fs will then be available in /tmp/AOK
+The root fs will then be available in $TMPDIR/AOK
 
 VNC
 

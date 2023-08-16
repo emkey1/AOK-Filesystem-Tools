@@ -25,7 +25,7 @@ start() {
 	hostname | grep -qv "\-$h_suffix" && echo "$(hostname)-$h_suffix" >/etc/hostname
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
-	PATH_TO_WALL "hostname is now: $(hostname)"
+	/usr/local/bin/wall -n "hostname is now: $(hostname)"
 	#
 	#  This one is run from /etc/inittab, so most likely before this
 	#  has started, running it again here ensures that the now active

@@ -23,6 +23,6 @@ host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
 #  iSH-AOK on the same device.
 #
 if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
-    echo "adding hostname: $host_name to $host_file" >>/var/log/syslog
-    printf "127.0.0.1\t%s\n" "$host_name" >>"$host_file"
+    echo "[$(date)] adding hostname: $host_name to $host_file" >>/var/log/syslog
+    printf '127.0.0.1\t%s\n' "$host_name" >>"$host_file"
 fi
