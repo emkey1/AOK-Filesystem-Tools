@@ -210,7 +210,7 @@ create_fs() {
 
     case "$src_tarball" in
     *alpine*) _cf_time_estimate="Should not take that long" ;;
-    *) _cf_time_estimate="will take a while (iPad 7th:14 iPad 9th:6 minutes)" ;;
+    *) _cf_time_estimate="will take a while (iPad 5th:14 iPad 7th:6 minutes)" ;;
     esac
     msg_3 "Extracting $_cf_tarball $_cf_time_estimate"
     unset _cf_time_estimate
