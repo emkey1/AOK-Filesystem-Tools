@@ -336,23 +336,32 @@ echo
 
 # Only lint files changed last 24h
 
-if [[ "$1" = "-f" ]]; then
+case "$1" in
+
+"") ;; #  no param
+
+"-f")
     echo "Will only check files changed in the last 24h"
     echo
     hour_limit=24
-fi
+    ;;
 
-if [[ "$1" = "-F" ]]; then
+"-F")
     echo "Will only check files changed in the last hour"
     echo
     hour_limit=1
-fi
+    ;;
 
-if [[ "$1" = "-q" ]]; then
+"-q")
     echo "Will skip any linting, only list files by type"
     echo
     hour_limit=0
-fi
+    ;;
+
+*)
+    error_msg "Unrecognized option: $1"
+    ;;
+esac
 
 #
 #  Ensure this is run in the intended location in case this was launched from
