@@ -269,14 +269,14 @@ case "$1" in
         error_msg "build_root_d undefined, cant clear build env" 1
     fi
 
-    if ! env_cleanup; then
-        msg_1 "cleanup failed!"
-    fi
+    #if ! env_cleanup; then
+    #    msg_1 "cleanup failed!"
+    #fi
 
     clr_timeout=2
     msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
     sleep "$clr_timeout"
-    rm -rf "$build_root_d"OC
+    rm -rf "$build_root_d"
     [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
     exit 0
     ;;
