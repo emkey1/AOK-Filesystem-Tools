@@ -32,6 +32,7 @@ Available options:
                    for quicker imports on target device, but up to 10
                    times larger image file.
                    This can only be done on iSH or Linux (x86)!
+-C  --clear        Empty the build env ($build_root_d)
 -j  --bzip2        Use bzip2 compression for distribution
 -N  --no_compress  Terminates when FS is prepared, without generating
                    a FS tarball."
@@ -122,6 +123,17 @@ parse_arguments() { # Multi OK 1
             fi
             pre_build_FS=true
             ;;
+
+
+	"-C" | "--clear")
+	    clr_timeout=2
+	    [ ! -e "$build_root_d" ] && error_msg "Buildenv not pressent: $build_root_d"
+	    msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
+	    sleep "$clr_timeout"
+	    rm -rf "$build_root_d"
+	    [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
+	    exit 0
+	    ;;
 
         "-j" | "--bzip2")
             if ! $aok_FS_do_compress; then
