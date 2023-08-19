@@ -639,6 +639,13 @@ unset conf_overrides
 #
 #  Honour  TMPDIR if defined.
 #
+
+# echo "MY_ALT_T   [$MY_ALT_T]"
+# echo "TMPDIR       [$TMPDIR]"
+# TMPDIR="${MY_ALT_T:-${TMPDIR:-/tmp}}"
+# echo "TMPDIR final [$TMPDIR]"
+# exit 0
+
 TMPDIR="${TMPDIR:-/tmp}"
 
 #
