@@ -10,8 +10,55 @@
 #  by allocating and freeing OS resources needed.
 #
 
+can_chroot_run_now() {
+    # msg_2 "can_chroot_run_now()"
+
+    [ -z "$pid_file" ] && error_msg "pid_file is undefined!"
+    if [ -f "$pid_file" ]; then
+        # error_msg "pid exists"
+        # Read the PID from the file
+        pid=$(cat "$pid_file")
+
+        # Check if the process is still running
+        if ps -p "$pid" >/dev/null 2>&1; then
+            error_msg "$prog_name with PID $pid is running!"
+        else
+            msg_1 "There is no process with PID $pid running."
+
+            echo "If the system crashed as a chroot was active, this situation"
+            echo "would not be unlikely."
+            echo
+            echo "If you are certain that there is no ongoing chroot task,"
+            echo "you can delete the below PID file"
+            echo "  $pid_file"
+            echo
+            echo "After this, request the environment to be cleaned up by running:"
+            echo "$prog_name -c"
+            exit 1
+        fi
+    fi
+    # msg_3 "can_chroot_run_now() - done"
+}
+
+use_root_shell_as_default_cmd() {
+    #
+    #  Since no command was specified, try to extract the root
+    #  shell from within the env. This to ensue we dont try
+    #  to use a shell that is either not available, nor
+    #  not found in the expeted location
+    #
+    # msg_2 "use_root_shell_as_default_cmd()"
+
+    f_etc_pwd="$CHROOT_TO/etc/passwd"
+    [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
+
+    cmd="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
+
+    # msg_3 "use_root_shell_as_default_cmd() - done"
+}
+
 env_prepare() {
-    msg_2 "env_prepare()"
+    # msg_2 "env_prepare()"
 
     #  To ensure nothing bad happens it doesnt hurt to run this multipple times
     can_chroot_run_now
@@ -19,7 +66,7 @@ env_prepare() {
     _err="$prog_name is running! - this should have already been caught!"
     [ -f "$pid_file" ] && error_msg "$_err"
 
-    msg_3 "creating pid_file: $pid_file"
+    # msg_3 "creating pid_file: $pid_file"
     echo "$$" >"$pid_file"
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
@@ -51,11 +98,11 @@ env_prepare() {
     # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
 
-    msg_3 "env_prepare() - done"
+    # msg_3 "env_prepare() - done"
 }
 
 env_cleanup() {
-    msg_2 "env_cleanup()"
+    # msg_2 "env_cleanup()"
 
     #
     #  This would normally be called as a mount session is terminating
@@ -67,10 +114,10 @@ env_cleanup() {
     umount "$CHROOT_TO"/proc || return 1
 
     if [ "$build_env" -eq 1 ]; then
-        msg_3 "Removing the temp /dev entries"
+        # msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else
-        msg_3 "Unmounting /sys & /dev"
+        # msg_3 "Unmounting /sys & /dev"
         umount "$CHROOT_TO"/sys || return 1
         umount "$CHROOT_TO"/dev/pts || return 1
         umount "$CHROOT_TO"/dev || return 1
@@ -82,36 +129,40 @@ env_cleanup() {
     [ -z "$pid_file" ] && error_msg "pid_file is undefined!"
 
     [ -n "$pid_file" ] && {
-	msg_3 "removing pid_file: $pid_file"
-	rm -f "$pid_file"
+        # msg_3 "removing pid_file: $pid_file"
+        rm -f "$pid_file"
     }
 
-    msg_3 "env_cleanup() - done"
+    # msg_3 "env_cleanup() - done"
 }
 
 show_help() {
-    msg_2 "show_help()"
+    # msg_2 "show_help()"
 
     cat <<EOF
-Usage: $prog_name [-h] | [-v] | [-c] | [-p dir] command
+Usage: $prog_name [-h] [-a] [-c] [-C] [-p dir] [command]
 
 chroot with env setup so this works on both Linux & iSH
 
 Available options:
 
--a  --available Reports if this can be run now
 -h  --help      Print this help and exit
+-a  --available Reports if this can be run now
 -c  --cleanup   Cleanup env if something crashed whilst sudoed
 -C  --clear     First do a --cleanup, then remove the build_root ($build_root_d)
 -p, --path      What dir to chroot into, defaults to: $build_root_d
-command         What to run, defaults to "bash -l", command and params must be quoted!
+command         Defaults to the shell used by root within the env
 EOF
 
-    msg_3 "show_help() - done"
+    # msg_3 "show_help() - done"
 }
 
 chroot_statuses() {
-    msg_2 "chroot_statuses()"
+    #
+    #  This is mostly a debug helper, so only informative
+    #  does not contribute to the actual process
+    #
+    # msg_2 "chroot_statuses()"
 
     [ -n "$1" ] && msg_1 "chroot_statuses - $1"
 
@@ -126,37 +177,7 @@ chroot_statuses() {
     else
         msg_3 "Dest not"
     fi
-    msg_3 "chroot_statuses() - done"
-}
-
-can_chroot_run_now() {
-    msg_2 "can_chroot_run_now()"
-
-    [ -z "$pid_file" ] && error_msg "pid_file is undefined!"
-    if [ -f "$pid_file" ]; then
-	# error_msg "pid exists"
-        # Read the PID from the file
-        pid=$(cat "$pid_file")
-
-        # Check if the process is still running
-        if ps -p "$pid" >/dev/null 2>&1; then
-            error_msg "$prog_name with PID $pid is running!"
-        else
-            msg_1 "There is no process with PID $pid running."
-
-	    echo "If the system crashed as a chroot was active, this situation"
-	    echo "would not be unlikely."
-	    echo
-            echo "If you are certain that there is no ongoing chroot task,"
-            echo "you can delete the below PID file"
-	    echo "  $pid_file"
-	    echo
-	    echo "After this, request the environment to be cleaned up by running:"
-	    echo "$prog_name -c"
-            exit 1
-        fi
-    fi
-    msg_3 "can_chroot_run_now() - done"
+    # msg_3 "chroot_statuses() - done"
 }
 
 #===============================================================
@@ -187,7 +208,6 @@ if this_is_ish && hostfs_is_debian; then
     echo "ish running Debian - this does not seem able to do chroot. You have been warned..."
     echo "************"
 fi
-
 
 if [ "$build_env" -eq 0 ]; then
     echo
@@ -226,7 +246,7 @@ case "$1" in
     ;;
 
 "-p" | "--path")
-    if [ -n "$2" ]; then
+    if [ -d "$2" ]; then
         CHROOT_TO="$2"
         shift # get rid of the option
         shift # get rid of the dir
@@ -256,7 +276,7 @@ case "$1" in
     clr_timeout=2
     msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
     sleep "$clr_timeout"
-    rm -rf "$build_root_d"
+    rm -rf "$build_root_d"OC
     [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
     exit 0
     ;;
@@ -272,14 +292,19 @@ esac
 
 can_chroot_run_now
 
+#
+#  In case something fails, always try to unmount
+#
+trap env_cleanup EXIT
+
 env_prepare
 
 [ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
 
 if [ "$1" = "" ]; then
-    cmd="/usr/bin/env bash -l"
+    use_root_shell_as_default_cmd
 else
-    cmd="$1"
+    cmd="$@"
     if ! [ -f "${build_root_d}${cmd}" ]; then
         msg_1 "Might not work, cmd not found: ${build_root_d}${cmd}"
     fi
@@ -321,8 +346,5 @@ exit_code="$?"
 
 destfs_clear_chrooted
 
-env_cleanup
-
-echo
 # If there was an error in the chroot process, propagate it
 exit "$exit_code"
