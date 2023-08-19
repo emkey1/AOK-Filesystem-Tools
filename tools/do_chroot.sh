@@ -227,16 +227,17 @@ chroot_statuses() {
 
 #  Allowing this to be run from anywhere using path
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+AOK_DIR="$(dirname -- "$current_dir")"
 
 #
 #  Automatic sudo if run by a user account, do this before
 #  sourcing tools/utils.sh !!
 #
 # shellcheck source=/opt/AOK/tools/run_as_root.sh
-hide_run_as_root=1 . "$current_dir"/run_as_root.sh
+hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 
 # shellcheck source=/opt/AOK/tools/utils.sh
-. "$current_dir"/utils.sh
+. "$AOK_DIR"/tools/utils.sh
 
 prog_name="$(basename "$0")"
 CHROOT_TO="$build_root_d"

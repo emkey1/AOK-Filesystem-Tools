@@ -31,17 +31,13 @@ Available options:
 #===============================================================
 
 #  Allowing this to be run from anywhere using path
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+AOK_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 
-#
-#  Automatic sudo if run by a user account, do this before
-#  sourcing tools/utils.sh !!
-#
 # shellcheck source=/opt/AOK/tools/run_as_root.sh
-. "$current_dir"/tools/run_as_root.sh
+hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 
 # shellcheck source=/opt/AOK/tools/utils.sh
-. "$current_dir"/tools/utils.sh
+. "$AOK_DIR/tools/utils.sh"
 
 prog_name=$(basename "$0")
 use_bzip2=false

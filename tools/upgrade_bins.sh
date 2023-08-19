@@ -16,10 +16,12 @@
 #
 #===============================================================
 
+#  Allowing this to be run from anywhere using path
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+AOK_DIR="$(dirname -- "$current_dir")"
 
 # shellcheck source=/opt/AOK/tools/utils.sh
-. "$current_dir"/utils.sh
+. "$AOK_DIR"/tools/utils.sh
 
 if ! this_is_ish; then
     error_msg "This should only be run on an iSH platform!"

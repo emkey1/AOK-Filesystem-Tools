@@ -16,6 +16,7 @@
 #  defaulting to 1. If exit code is 0 this will not exit, just display
 #  the error message, then continue.
 #
+
 error_msg() {
     _em_msg="$1"
     _em_exit_code="${2:-1}"
@@ -635,16 +636,6 @@ if [ -f "$conf_overrides" ]; then
     . "$conf_overrides"
 fi
 unset conf_overrides
-
-#
-#  Honour  TMPDIR if defined.
-#
-
-# echo "MY_ALT_T   [$MY_ALT_T]"
-# echo "TMPDIR       [$TMPDIR]"
-# TMPDIR="${MY_ALT_T:-${TMPDIR:-/tmp}}"
-# echo "TMPDIR final [$TMPDIR]"
-# exit 0
 
 TMPDIR="${TMPDIR:-/tmp}"
 
