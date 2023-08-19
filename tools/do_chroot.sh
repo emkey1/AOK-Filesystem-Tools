@@ -10,8 +10,8 @@
 #  by allocating and freeing OS resources needed.
 #
 
-#  Debug help, displays entry and exit of functions
-# _fnc_calls=1
+#  Debug help, set to 1 to display entry and exit of functions
+_fnc_calls=0
 
 can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
@@ -128,6 +128,7 @@ display_signal() {
     [ "$_fnc_calls" = 1 ] && msg_3 "display_signal() - done"
 }
 
+#  shellcheck disable=SC2120
 env_cleanup() {
     signal="$1" # this was triggered by trap
     [ -n "$signal" ] && display_signal "$signal"
