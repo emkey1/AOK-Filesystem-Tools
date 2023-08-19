@@ -317,11 +317,11 @@ set_initial_login_mode() {
     fi
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   boolean checks
 #
-#===============================================================
+#---------------------------------------------------------------
 
 this_is_ish() {
     test -d /proc/ish
@@ -331,14 +331,14 @@ this_is_aok_kernel() {
     grep -qi aok /proc/ish/version 2>/dev/null
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   chroot handling
 #
 #  Theese are convenience hints that can be set in order for
 #  scipts to keep
 #
-#===============================================================
+#---------------------------------------------------------------
 
 this_fs_is_chrooted() {
     #  Check this _ACTUAL_ fs
@@ -351,6 +351,7 @@ dest_fs_is_chrooted() {
 }
 
 destfs_set_is_chrooted() {
+    # msg_2 "destfs_set_is_chrooted(()"
     [ -n "$DEBUG_BUILD" ] && msg_1 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
     if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
         msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
@@ -359,10 +360,11 @@ destfs_set_is_chrooted() {
     fi
     mkdir -p "$(dirname "$f_this_fs_is_chrooted")"
     touch "$f_this_fs_is_chrooted"
+    # msg_3 "destfs_set_is_chrooted(() - done"
 }
 
 destfs_clear_chrooted() {
-    msg_2 "destfs_clear_chrooted(()"
+    # msg_2 "destfs_clear_chrooted(()"
 
     if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
         msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
@@ -378,11 +380,11 @@ destfs_clear_chrooted() {
     # msg_3 "destfs_clear_chrooted(() - done"
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Related to custom settings
 #
-#===============================================================
+#---------------------------------------------------------------
 
 notification_additional_tasks() {
     # msg_2 "notification_additional_tasks()"
@@ -425,11 +427,11 @@ run_additional_tasks_if_found() {
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Host FS
 #
-#===============================================================
+#---------------------------------------------------------------
 
 hostfs_is_alpine() {
     test -f /etc/alpine-release
@@ -460,11 +462,11 @@ hostfs_detect() {
         echo
     fi
 }
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Destination FS
 #
-#===============================================================
+#---------------------------------------------------------------
 
 destfs_is_devuan() {
     test -f "$build_root_d"/etc/devuan_version
@@ -502,7 +504,7 @@ destfs_detect() {
     fi
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Deployment state
 #
@@ -510,7 +512,7 @@ destfs_detect() {
 #
 #   up to deploy_state_creating allways happens on build host
 #
-#===============================================================
+#---------------------------------------------------------------
 
 deploy_state_set() {
     # msg_1 "===============   deploy_state_set($1)   ============="
