@@ -304,7 +304,7 @@ env_prepare
 if [ "$1" = "" ]; then
     use_root_shell_as_default_cmd
 else
-    cmd="$@"
+    cmd="$*"
     if ! [ -f "${build_root_d}${cmd}" ]; then
         msg_1 "Might not work, cmd not found: ${build_root_d}${cmd}"
     fi
