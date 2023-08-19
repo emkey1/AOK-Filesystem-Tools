@@ -173,7 +173,11 @@ should_it_be_linted() {
         span_in_seconds="$((3600 * hour_limit))"
         cutoff_time="$((current_time - span_in_seconds))"
     fi
-    [[ $(get_file_age "$fname") -ge $cutoff_time ]]
+    if [[ $(get_file_age "$fname") -ge $cutoff_time ]]; then
+        files_aged_out_for_linting=1
+        return 0
+    fi
+    return 1
 }
 
 #===============================================================
@@ -223,6 +227,11 @@ process_file_tree() {
     for fname in "${all_files[@]}"; do
         #[[ "$fname" =
         [[ -d "$fname" ]] && continue
+        
+        # if [[ "$hour_limit" != "0" ]] [[ "$files_aged_out_for_linting" = "1" ]]; then
+        #     echo ">>> Files aged out!"
+        #     break
+        # fi
 
         for exclude in "${excludes[@]}"; do
             [[ "$fname" == "$exclude" ]] && continue 2
@@ -247,11 +256,11 @@ process_file_tree() {
         #
         if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-            should_it_be_linted && lint_posix "$fname"
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_posix "$fname"
             continue
         elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-            should_it_be_linted && lint_bash "$fname"
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
             continue
         elif [[ "$f_type" == *"C source"* ]]; then
             items_c+=("$fname")
@@ -280,6 +289,8 @@ process_file_tree() {
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_bin64+=("$fname")
             continue
+        elif [[ "$f_type" == *"ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped"* ]]; then
+            items_bin32_other+=("$fname")
         elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
             #  This must come after items_ucode_esc, otherwise that would eat this
             items_bin32_linux_so+=("$fname")
@@ -399,16 +410,17 @@ if [[ "$hour_limit" = "0" ]]; then
     list_item_group posix "${items_posix[@]}"
     list_item_group bash "${items_bash[@]}"
 
-    # list_item_group "ASCII text" "${items_ascii[@]}"
-    # list_item_group perl "${items_perl[@]}"
-    # list_item_group C "${items_c[@]}"
-    # list_item_group makefile "${items_makefile[@]}"
-    # list_item_group openrc "${items_openrc[@]}"
-    # list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
-    # list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+    list_item_group "ASCII text" "${items_ascii[@]}"
+    list_item_group perl "${items_perl[@]}"
+    list_item_group C "${items_c[@]}"
+    list_item_group makefile "${items_makefile[@]}"
+    list_item_group openrc "${items_openrc[@]}"
+    list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
+    list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
 
-    # list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
-    # list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+    list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+    list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+    list_item_group "ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped" "${items_bin32_other[@]}"
 fi
 
 #
