@@ -10,8 +10,11 @@
 #  by allocating and freeing OS resources needed.
 #
 
+#  Debug help, displays entry and exit of functions
+# _fnc_calls=1
+
 can_chroot_run_now() {
-    msg_2 "can_chroot_run_now()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot destination does not exist: $CHROOT_TO"
 
@@ -39,7 +42,7 @@ can_chroot_run_now() {
             exit 1
         fi
     fi
-    msg_3 "can_chroot_run_now() - done"
+    [ "$_fnc_calls" = 1 ] && msg_3 "can_chroot_run_now() - done"
 }
 
 use_root_shell_as_default_cmd() {
@@ -49,15 +52,15 @@ use_root_shell_as_default_cmd() {
     #  to use a shell that is either not available, nor
     #  not found in the expeted location
     #
-    # msg_2 "use_root_shell_as_default_cmd()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "use_root_shell_as_default_cmd()"
     f_etc_pwd="${CHROOT_TO}/etc/passwd"
     [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
-    cmd="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
-    # msg_3 "use_root_shell_as_default_cmd() - done"
+    cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
+    [ "$_fnc_calls" = 1 ] && msg_3 "use_root_shell_as_default_cmd() - done"
 }
 
 env_prepare() {
-    # msg_2 "env_prepare()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "env_prepare()"
 
     _err="$prog_name is running! - this should have already been caught!"
     [ -f "$pidfile_do_chroot" ] && error_msg "$_err"
@@ -103,11 +106,42 @@ env_prepare() {
     # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
 
-    # msg_3 "env_prepare() - done"
+    [ "$_fnc_calls" = 1 ] && msg_3 "env_prepare() - done"
+}
+
+display_signal() {
+    [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
+    case "$signal" in
+    INT)
+        echo "Ctrl+C (SIGINT) was caught."
+        ;;
+    TERM)
+        echo "Termination (SIGTERM) was caught."
+        ;;
+    HUP)
+        echo "Hangup (SIGHUP) was caught."
+        ;;
+    *)
+        echo "Unknown signal ($signal) was caught."
+        ;;
+    esac
+    [ "$_fnc_calls" = 1 ] && msg_3 "display_signal() - done"
 }
 
 env_cleanup() {
-    msg_2 "env_cleanup()"
+    signal="$1" # this was triggered by trap
+    [ -n "$signal" ] && display_signal "$signal"
+
+    if [ "$_fnc_calls" = 1 ]; then
+        if [ -n "$env_cleanup_started" ]; then
+            msg_1 "env_cleanup() has already been called, skipping"
+            return
+        fi
+        msg_2 "env_cleanup()"
+    else
+        [ -n "$env_cleanup_started" ] && return
+    fi
+    env_cleanup_started=1
 
     #
     #  This would normally be called as a mount session is terminating
@@ -138,7 +172,7 @@ env_cleanup() {
         rm -f "$pidfile_do_chroot"
     }
 
-    msg_3 "env_cleanup() - done"
+    [ "$_fnc_calls" = 1 ] && msg_3 "env_cleanup() - done"
 }
 
 show_help() {
@@ -166,7 +200,7 @@ chroot_statuses() {
     #  This is mostly a debug helper, so only informative
     #  does not contribute to the actual process
     #
-    # msg_2 "chroot_statuses()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "chroot_statuses()"
 
     [ -n "$1" ] && msg_1 "chroot_statuses - $1"
 
@@ -181,7 +215,7 @@ chroot_statuses() {
     else
         msg_3 "Dest not"
     fi
-    # msg_3 "chroot_statuses() - done"
+    [ "$_fnc_calls" = 1 ] && msg_3 "chroot_statuses() - done"
 }
 
 #===============================================================
@@ -288,7 +322,8 @@ can_chroot_run_now
 #
 #  In case something fails, always try to unmount
 #
-trap env_cleanup EXIT
+trap 'env_cleanup INT' INT
+trap 'env_cleanup TERM' TERM
 
 env_prepare
 
@@ -297,13 +332,22 @@ env_prepare
 if [ "$1" = "" ]; then
     use_root_shell_as_default_cmd
 else
-    cmd="$*"
-    if ! [ -f "${build_root_d}${cmd}" ]; then
-        msg_1 "Might not work, cmd not found: ${build_root_d}${cmd}"
+    cmd_w_params="$*"
+    _cmd="$1"
+    if [ "${_cmd%"${_cmd#?}"}" = "/" ]; then
+        #
+        #  State of requested command cant really be examined without
+        #  a full path
+        #
+        if ! [ -f "${build_root_d}${_cmd}" ]; then
+            msg_1 "Might not work, file not found: ${build_root_d}${_cmd}"
+        elif ! [ -x "${build_root_d}${_cmd}" ]; then
+            msg_1 "Might not work, file not executable: ${build_root_d}${_cmd}"
+        fi
     fi
 fi
 
-msg_1 "chrooting: $CHROOT_TO ($cmd)"
+msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 
 if [ -n "$DEBUG_BUILD" ]; then
     msg_2 "Deploy state: $(deploy_state_get)"
@@ -327,15 +371,17 @@ if [ -n "$DEBUG_BUILD" ]; then
     echo ">>> -----"
     echo
     msg_1 "==========  doing chroot  =========="
-    echo ">> about to run: chroot $CHROOT_TO $cmd"
+    echo ">> about to run: chroot $CHROOT_TO $cmd_w_params"
 fi
 
-#  In this case we want the $cmd variable to expand into its components
+#  In this case we want the $cmd_w_params variable to expand into its components
 #  shellcheck disable=SC2086
-chroot "$CHROOT_TO" $cmd
+chroot "$CHROOT_TO" $cmd_w_params
 exit_code="$?"
 
 [ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
+
+env_cleanup
 
 destfs_clear_chrooted
 
