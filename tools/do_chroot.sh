@@ -15,11 +15,11 @@ can_chroot_run_now() {
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot destination does not exist: $CHROOT_TO"
 
-    [ -z "$pid_file" ] && error_msg "pid_file is undefined!"
-    if [ -f "$pid_file" ]; then
+    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
+    if [ -f "$pidfile_do_chroot" ]; then
         # error_msg "pid exists"
         # Read the PID from the file
-        pid=$(cat "$pid_file")
+        pid=$(cat "$pidfile_do_chroot")
 
         # Check if the process is still running
         if ps -p "$pid" >/dev/null 2>&1; then
@@ -32,7 +32,7 @@ can_chroot_run_now() {
             echo
             echo "If you are certain that there is no ongoing chroot task,"
             echo "you can delete the below PID file"
-            echo "  $pid_file"
+            echo "  $pidfile_do_chroot"
             echo
             echo "After this, request the environment to be cleaned up by running:"
             echo "$prog_name -c"
@@ -60,10 +60,10 @@ env_prepare() {
     # msg_2 "env_prepare()"
 
     _err="$prog_name is running! - this should have already been caught!"
-    [ -f "$pid_file" ] && error_msg "$_err"
+    [ -f "$pidfile_do_chroot" ] && error_msg "$_err"
 
-    # msg_3 "creating pid_file: $pid_file"
-    echo "$$" >"$pid_file"
+    # msg_3 "creating pidfile_do_chroot: $pidfile_do_chroot"
+    echo "$$" >"$pidfile_do_chroot"
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
 
@@ -111,7 +111,7 @@ env_cleanup() {
 
     #
     #  This would normally be called as a mount session is terminating
-    #  so therefore the pid_file should not be checked.
+    #  so therefore the pidfile_do_chroot should not be checked.
     #  Assume that if we get here we can do the cleanup.
     #
 
@@ -129,13 +129,13 @@ env_cleanup() {
     fi
 
     #
-    #  Complain about pottenially bad pid_file after completing the procedure
+    #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
     #
-    [ -z "$pid_file" ] && error_msg "pid_file is undefined!"
+    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
 
-    [ -n "$pid_file" ] && {
-        # msg_3 "removing pid_file: $pid_file"
-        rm -f "$pid_file"
+    [ -n "$pidfile_do_chroot" ] && {
+        # msg_3 "removing pidfile_do_chroot: $pidfile_do_chroot"
+        rm -f "$pidfile_do_chroot"
     }
 
     msg_3 "env_cleanup() - done"
@@ -203,7 +203,6 @@ hide_run_as_root=1 . "$current_dir"/run_as_root.sh
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$current_dir"/utils.sh
 
-pid_file="$TMPDIR/aok_do_chroot.pid"
 prog_name="$(basename "$0")"
 CHROOT_TO="$build_root_d"
 

@@ -779,3 +779,5 @@ deploy_state_finalizing="finalizing"     # main deploy has happened, now certain
 
 destfs_select="select"
 destfs_select_hint="$build_root_d"/etc/opt/select_distro
+
+pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
