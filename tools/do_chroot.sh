@@ -11,7 +11,9 @@
 #
 
 can_chroot_run_now() {
-    # msg_2 "can_chroot_run_now()"
+    msg_2 "can_chroot_run_now()"
+
+    [ ! -d "$CHROOT_TO" ] && error_msg "chroot destination does not exist: $CHROOT_TO"
 
     [ -z "$pid_file" ] && error_msg "pid_file is undefined!"
     if [ -f "$pid_file" ]; then
@@ -37,7 +39,7 @@ can_chroot_run_now() {
             exit 1
         fi
     fi
-    # msg_3 "can_chroot_run_now() - done"
+    msg_3 "can_chroot_run_now() - done"
 }
 
 use_root_shell_as_default_cmd() {
@@ -48,20 +50,14 @@ use_root_shell_as_default_cmd() {
     #  not found in the expeted location
     #
     # msg_2 "use_root_shell_as_default_cmd()"
-
-    f_etc_pwd="$CHROOT_TO/etc/passwd"
+    f_etc_pwd="${CHROOT_TO}/etc/passwd"
     [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
-
     cmd="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
-
     # msg_3 "use_root_shell_as_default_cmd() - done"
 }
 
 env_prepare() {
     # msg_2 "env_prepare()"
-
-    #  To ensure nothing bad happens it doesnt hurt to run this multipple times
-    can_chroot_run_now
 
     _err="$prog_name is running! - this should have already been caught!"
     [ -f "$pid_file" ] && error_msg "$_err"
@@ -77,7 +73,8 @@ env_prepare() {
         error_msg "This [$CHROOT_TO] is already chrooted!"
     fi
 
-    mount -t proc proc "$CHROOT_TO"/proc
+    [ ! -d "$d_proc" ] && error_msg "Directory $d_proc is missing"
+    mount -t proc proc "$d_proc"
 
     if [ "$build_env" -eq 1 ]; then
         # msg_3 "Setting up needed /dev items"
@@ -91,9 +88,17 @@ env_prepare() {
         mknod "$CHROOT_TO"/dev/zero c 1 5
         chmod 666 "$CHROOT_TO"/dev/zero
     else
-        mount -t sysfs sys "$CHROOT_TO"/sys
-        mount -o bind /dev "$CHROOT_TO"/dev
-        mount -o bind /dev/pts "$CHROOT_TO"/dev/pts
+        [ ! -d "$d_sys" ] && error_msg "Directory $d_sys is missing"
+        [ ! -d "$d_dev" ] && error_msg "Directory $d_dev is missing"
+
+        mount -t sysfs sys "$d_sys"
+        mount -o bind /dev "$d_dev"
+        #
+        #  $d_dev_pts wont exist until d_dev is mounted, so cant be
+        #  checked in advance, and if we can mount d_dev without error
+        #  it is highly unlikely to be an issue
+        #
+        mount -o bind /dev/pts "$d_dev_pts"
     fi
     # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
@@ -102,7 +107,7 @@ env_prepare() {
 }
 
 env_cleanup() {
-    # msg_2 "env_cleanup()"
+    msg_2 "env_cleanup()"
 
     #
     #  This would normally be called as a mount session is terminating
@@ -111,16 +116,16 @@ env_cleanup() {
     #
 
     # msg_3 "Un-mounting system resources"
-    umount "$CHROOT_TO"/proc || return 1
+    umount "$d_proc" || error_msg "Failed to unmount $d_proc"
 
     if [ "$build_env" -eq 1 ]; then
         # msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else
         # msg_3 "Unmounting /sys & /dev"
-        umount "$CHROOT_TO"/sys || return 1
-        umount "$CHROOT_TO"/dev/pts || return 1
-        umount "$CHROOT_TO"/dev || return 1
+        umount "$d_sys" || error_msg "Failed to unmount $d_sys"
+        umount "$d_dev_pts" || error_msg "Failed to unmount $d_dev_pts"
+        umount "$d_dev" || error_msg "Failed to unmount $d_dev"
     fi
 
     #
@@ -133,7 +138,7 @@ env_cleanup() {
         rm -f "$pid_file"
     }
 
-    # msg_3 "env_cleanup() - done"
+    msg_3 "env_cleanup() - done"
 }
 
 show_help() {
@@ -269,7 +274,17 @@ case "$1" in
 
 esac
 
+#
+#  Must be defined after param parsing, since -p might change CHROOT_TO
+#
+d_proc="${CHROOT_TO}/proc"
+d_sys="${CHROOT_TO}/sys"
+d_dev="${CHROOT_TO}/dev"
+d_dev_pts="${CHROOT_TO}/dev/pts"
+
 can_chroot_run_now
+
+#error_msg "abort after checking for existance"
 
 #
 #  In case something fails, always try to unmount
