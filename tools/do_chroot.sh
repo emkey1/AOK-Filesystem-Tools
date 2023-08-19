@@ -149,7 +149,6 @@ Available options:
 -h  --help      Print this help and exit
 -a  --available Reports if this can be run now
 -c  --cleanup   Cleanup env if something crashed whilst sudoed
--C  --clear     First do a --cleanup, then remove the build_root ($build_root_d)
 -p, --path      What dir to chroot into, defaults to: $build_root_d
 command         Defaults to the shell used by root within the env
 EOF
@@ -258,26 +257,6 @@ case "$1" in
 "-c" | "--cleanup")
     can_chroot_run_now
     env_cleanup
-    exit 0
-    ;;
-
-"-C" | "--clear")
-    can_chroot_run_now
-    [ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
-
-    if [ -z "$build_root_d" ]; then
-        error_msg "build_root_d undefined, cant clear build env" 1
-    fi
-
-    #if ! env_cleanup; then
-    #    msg_1 "cleanup failed!"
-    #fi
-
-    clr_timeout=2
-    msg_1 "Will clear [$build_root_d] in $clr_timeout seconds..."
-    sleep "$clr_timeout"
-    rm -rf "$build_root_d"
-    [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
     exit 0
     ;;
 
