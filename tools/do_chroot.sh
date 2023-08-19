@@ -13,6 +13,33 @@
 #  Debug help, set to 1 to display entry and exit of functions
 _fnc_calls=0
 
+cleanup() {
+    [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
+ 
+    signal="$1" # this was triggered by trap
+    case "$signal" in
+    
+    INT)
+        echo "Ctrl+C (SIGINT) was caught."
+        ;;
+    
+    TERM)
+        echo "Termination (SIGTERM) was caught."
+        ;;
+    
+    HUP)
+        echo "Hangup (SIGHUP) was caught."
+        ;;
+    
+    *)
+        echo "Unknown signal ($signal) was caught."
+        ;;
+    
+    esac
+
+    env_restore
+}
+
 can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
 
@@ -109,40 +136,19 @@ env_prepare() {
     [ "$_fnc_calls" = 1 ] && msg_3 "env_prepare() - done"
 }
 
-display_signal() {
-    [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
-    case "$signal" in
-    INT)
-        echo "Ctrl+C (SIGINT) was caught."
-        ;;
-    TERM)
-        echo "Termination (SIGTERM) was caught."
-        ;;
-    HUP)
-        echo "Hangup (SIGHUP) was caught."
-        ;;
-    *)
-        echo "Unknown signal ($signal) was caught."
-        ;;
-    esac
-    [ "$_fnc_calls" = 1 ] && msg_3 "display_signal() - done"
-}
-
 #  shellcheck disable=SC2120
-env_cleanup() {
-    signal="$1" # this was triggered by trap
-    [ -n "$signal" ] && display_signal "$signal"
+env_restore() {
 
     if [ "$_fnc_calls" = 1 ]; then
-        if [ -n "$env_cleanup_started" ]; then
-            msg_1 "env_cleanup() has already been called, skipping"
+        if [ -n "$env_restore_started" ]; then
+            msg_1 "env_restore() has already been called, skipping"
             return
         fi
-        msg_2 "env_cleanup()"
+        msg_2 "env_restore()"
     else
-        [ -n "$env_cleanup_started" ] && return
+        [ -n "$env_restore_started" ] && return
     fi
-    env_cleanup_started=1
+    env_restore_started=1
 
     #
     #  This would normally be called as a mount session is terminating
@@ -173,7 +179,7 @@ env_cleanup() {
         rm -f "$pidfile_do_chroot"
     }
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "env_cleanup() - done"
+    [ "$_fnc_calls" = 1 ] && msg_3 "env_restore() - done"
 }
 
 show_help() {
@@ -296,7 +302,7 @@ case "$1" in
 
 "-c" | "--cleanup")
     can_chroot_run_now
-    env_cleanup
+    env_restore
     exit 0
     ;;
 
@@ -324,8 +330,8 @@ can_chroot_run_now
 #
 #  In case something fails, always try to unmount
 #
-trap 'env_cleanup INT' INT
-trap 'env_cleanup TERM' TERM
+trap 'cleanup INT' INT
+trap 'cleanup TERM' TERM
 
 env_prepare
 
@@ -383,7 +389,7 @@ exit_code="$?"
 
 [ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
 
-env_cleanup
+env_restore
 
 destfs_clear_chrooted
 
