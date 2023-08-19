@@ -10,7 +10,7 @@
 #
 #  Normally this will refuse to run if not started from init.
 #  During setup, when this isnt in inittab yet, this check can be
-#  ignored with the param: ignore_init_chec
+#  ignored with the param: ignore_init_check
 #
 #  This allows a deploy script to run fix_dev in order to ensure no
 #  device weirdness is pressent
@@ -75,6 +75,8 @@ log_file="/var/log/fix_dev.log"
 #
 pid_file="/run/fixdev.pid"
 
+skip_init_check="ignore_init_check"
+
 #
 #  This should only run from init, so it is safe to ignore any previous
 #  content in the pidfile
@@ -92,7 +94,7 @@ if [ -e /etc/opt/this_fs_is_chrooted ]; then
     log_it "WARNING: chrooted, Skipping fix_dev" 0
 fi
 
-if [ "$1" != "ignore_init_check" ]; then
+if [ "$1" != "$skip_init_check" ]; then
     #
     #  In AOK FS running on Debian this is started from a secondary init
     #  (investigating) so minimum 3, sometimes it gets 4
@@ -104,6 +106,8 @@ if [ "$1" != "ignore_init_check" ]; then
         [ -n "$log_file" ] && pstree -p >>"$log_file"
         log_it "ERROR: Not started from init, parent is ($PPID) exiting" 1
     fi
+else
+    log_it "Allowed to run outside init due to $skip_init_check"
 fi
 
 while true; do
