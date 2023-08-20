@@ -244,6 +244,10 @@ process_file_tree() {
             [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
             continue
         fi
+        #
+        #  Only gather data about other file types, if they will be displayed in the end
+        #  in order to make this process quicker on the rather sloowish iSH systems
+        #
         if [[ "$hour_limit" = "0" ]]; then
             if [[ "$f_type" == *"C source"* ]]; then
                 items_c+=("$fname")
