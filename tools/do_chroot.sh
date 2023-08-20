@@ -11,30 +11,35 @@
 #
 
 #  Debug help, set to 1 to display entry and exit of functions
-_fnc_calls=0
+# _fnc_calls=0
 
+#
+#  Since this is called via a parameterized trap, shellcheck doesnt
+#  recognize this code is in use..
+#
+# shellcheck disable=SC2317  # Don't warn about unreachable code
 cleanup() {
-    [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
- 
+    # [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
+
     signal="$1" # this was triggered by trap
     case "$signal" in
-    
+
     INT)
         echo "Ctrl+C (SIGINT) was caught."
         ;;
-    
+
     TERM)
         echo "Termination (SIGTERM) was caught."
         ;;
-    
+
     HUP)
         echo "Hangup (SIGHUP) was caught."
         ;;
-    
+
     *)
         echo "Unknown signal ($signal) was caught."
         ;;
-    
+
     esac
 
     env_restore
