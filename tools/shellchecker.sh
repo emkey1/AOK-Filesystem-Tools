@@ -331,7 +331,7 @@ quicksort() {
 # 0.66s user 0.22s system 102% cpu 0.855 total
 # 0.54s user 0.16s system 102% cpu 0.687 total
 
-# iSH 40s - 49.7
+# iSH-AOK native 26.4  wc 49.7
 qs_sort_array() {
     local input_array=("$@")
     local sorted_array=("$(quicksort "${input_array[@]}")")
@@ -346,7 +346,7 @@ qs_sort_array() {
 # 0.66s user 0.26s system 102% cpu 0.899 total
 
 
-# iSH 39s - 49.9
+# iSH-AOK native 25.9  wc 49.9
 bubble_sort_array() {
     local input_array=("$@") # Convert arguments into an array
     local sorted_array=("${input_array[@]}")
@@ -367,7 +367,7 @@ bubble_sort_array() {
     echo "${sorted_array[@]}"
 }
 
-# iSH 39s - 47.3
+# iSH-AOK native 23.3 wc 47.3
 sort_array() {
     local input_array=("$@") # Convert arguments into an array
     local sorted_array=()
@@ -392,7 +392,7 @@ list_item_group() {
     [[ ${#items[@]} -eq 0 ]] && return
     echo
     echo "---  $lbl  ---"
-    for item in $(sort_array "${items[@]}"); do
+    for item in $(bubble_sort_array "${items[@]}"); do
         echo "$item"
     done
 }
