@@ -11,7 +11,7 @@
 #
 
 #  Debug help, set to 1 to display entry and exit of functions
-# _fnc_calls=0
+_fnc_calls=0
 
 #
 #  Since this is called via a parameterized trap, shellcheck doesnt
