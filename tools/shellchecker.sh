@@ -209,10 +209,10 @@ process_file_tree() {
         #[[ "$fname" =
         [[ -d "$fname" ]] && continue
 
-        # if [[ "$hour_limit" != "0" ]] [[ "$files_aged_out_for_linting" = "1" ]]; then
-        #     echo ">>> Files aged out!"
-        #     break
-        # fi
+        if [[ "$hour_limit" != "0" ]] && [[ "$files_aged_out_for_linting" = "1" ]]; then
+            # echo ">>> Files aged out!"
+            break
+        fi
 
         for exclude in "${excludes[@]}"; do
             [[ "$fname" == "$exclude" ]] && continue 2
@@ -243,146 +243,62 @@ process_file_tree() {
             items_bash+=("$fname")
             [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
             continue
-        elif [[ "$f_type" == *"C source"* ]]; then
-            items_c+=("$fname")
-            continue
-        elif [[ "$f_type" == *"openrc-run"* ]]; then
-            items_openrc+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Perl script"* ]]; then
-            items_perl+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
-            [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
-            #  Who might have guessed on MacOS file -b output looks different...
-            items_ucode_esc+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
-            [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_ucode+=("$fname")
-            continue
-        elif [[ "$f_type" == *"makefile script"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_makefile+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_bin64+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped"* ]]; then
-            items_bin32_other+=("$fname")
-        elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_bin32_linux_so+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_bin32_musl+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ASCII text"* ]]; then
-            #  This must come after items_ucode_esc, otherwise this
-            #  very generic string would match most files
-            items_ascii+=("$fname")
-            continue
-        elif ! string_in_array "$f_type" "${file_types[@]}"; then
-            #
-            #  For unhandled file types, ignore the file, just store the new file type
-            #  to a list.
-            #
-            echo ">>> Unhandled file: $fname" # - $f_type"
-            echo ">>> Unhandled type: $f_type"
-            file_types+=("$f_type")
+        fi
+        if [[ "$hour_limit" = "0" ]]; then
+            if [[ "$f_type" == *"C source"* ]]; then
+                items_c+=("$fname")
+                continue
+            elif [[ "$f_type" == *"openrc-run"* ]]; then
+                items_openrc+=("$fname")
+                continue
+            elif [[ "$f_type" == *"Perl script"* ]]; then
+                items_perl+=("$fname")
+                continue
+            elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
+                [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
+                #  Who might have guessed on MacOS file -b output looks different...
+                items_ucode_esc+=("$fname")
+                continue
+            elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
+                [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_ucode+=("$fname")
+                continue
+            elif [[ "$f_type" == *"makefile script"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_makefile+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_bin64+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped"* ]]; then
+                items_bin32_other+=("$fname")
+            elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_bin32_linux_so+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_bin32_musl+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ASCII text"* ]]; then
+                #  This must come after items_ucode_esc, otherwise this
+                #  very generic string would match most files
+                items_ascii+=("$fname")
+                continue
+            elif ! string_in_array "$f_type" "${file_types[@]}"; then
+                #
+                #  For unhandled file types, ignore the file, just store the new file type
+                #  to a list.
+                #
+                echo ">>> Unhandled file: $fname" # - $f_type"
+                echo ">>> Unhandled type: $f_type"
+                file_types+=("$f_type")
+            fi
         fi
     done
 }
-
-#===============================================================
-#
-#   Display a given type in sorted order
-#
-#===============================================================
-
-# quicksort() {
-#     local array=("$@")
-#     local length=${#array[@]}
-
-#     if [[ length -le 1 ]]; then
-#         echo "${array[@]}"
-#         return
-#     fi
-
-#     local pivot="${array[0]}"
-#     local lesser=()
-#     local greater=()
-
-#     for item in "${array[@]:1}"; do
-#         if [[ "$item" < "$pivot" ]]; then
-#             lesser+=("$item")
-#         else
-#             greater+=("$item")
-#         fi
-#     done
-
-#     echo "$(quicksort "${lesser[@]}")" "$pivot" "$(quicksort "${greater[@]}")"
-# }
-
-# 0.59s user 0.19s system 102% cpu 0.755 total
-# 0.66s user 0.22s system 102% cpu 0.855 total
-# 0.54s user 0.16s system 102% cpu 0.687 total
-
-# # iSH-AOK native 26.4  wc 49.7
-# qs_sort_array() {
-#     local input_array=("$@")
-#     local sorted_array=("$(quicksort "${input_array[@]}")")
-#     echo "${sorted_array[@]}"
-# }
-
-#
-#  Function to sort an array in ascending order
-#
-# 0.53s user 0.21s system 102% cpu 0.717 total
-# 0.54s user 0.15s system 102% cpu 0.674 total
-# 0.66s user 0.26s system 102% cpu 0.899 total
-
-# # iSH-AOK native 25.9  wc 49.9
-# bubble_sort_array() {
-#     local input_array=("$@") # Convert arguments into an array
-#     local sorted_array=("${input_array[@]}")
-#     local len=${#sorted_array[@]}
-
-#     # Bubble sort
-#     for ((i = 0; i < len - 1; i++)); do
-#         for ((j = 0; j < len - i - 1; j++)); do
-#             if [[ "${sorted_array[j]}" > "${sorted_array[j + 1]}" ]]; then
-#                 # Swap the elements
-#                 local temp="${sorted_array[j]}"
-#                 sorted_array[j]="${sorted_array[j + 1]}"
-#                 sorted_array[j + 1]="$temp"
-#             fi
-#         done
-#     done
-
-#     echo "${sorted_array[@]}"
-# }
-
-# # iSH-AOK native 23.3 wc 47.3
-# sort_array() {
-#     local input_array=("$@") # Convert arguments into an array
-#     local sorted_array=()
-
-#     # Use a loop to add each eOBlement to the sorted array
-#     for item in "${input_array[@]}"; do
-#         sorted_array+=("$item")
-#     done
-
-#     IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
-
-#     # ish erroe /dev/fd/62: No such file or directory
-#     # mapfile -t sorted_array < <(printf '%s\n' "${sorted_array[@]}" | sort -f)
-
-#     echo "${sorted_array[@]}"
-# }
 
 list_item_group() {
     local lbl="$1"
@@ -473,17 +389,24 @@ if [[ "$hour_limit" = "0" ]]; then
     list_item_group posix "${items_posix[@]}"
     list_item_group bash "${items_bash[@]}"
 
-    # list_item_group "ASCII text" "${items_ascii[@]}"
-    # list_item_group perl "${items_perl[@]}"
-    # list_item_group C "${items_c[@]}"
-    # list_item_group makefile "${items_makefile[@]}"
-    # list_item_group openrc "${items_openrc[@]}"
-    # list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
-    # list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+    list_item_group "ASCII text" "${items_ascii[@]}"
+    list_item_group perl "${items_perl[@]}"
+    list_item_group C "${items_c[@]}"
+    list_item_group makefile "${items_makefile[@]}"
+    list_item_group openrc "${items_openrc[@]}"
+    list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
+    list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
 
-    # list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
-    # list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
-    # list_item_group "ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped" "${items_bin32_other[@]}"
+    list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+    list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+    list_item_group "ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped" "${items_bin32_other[@]}"
+
+    #
+    #  Unrecognized file types
+    #
+    if [[ ${#file_types[@]} -gt 0 ]]; then
+        list_item_group "Unclassified file types" "${file_types[@]}"
+    fi
 fi
 
 #
@@ -497,11 +420,4 @@ if [[ ${#items_bin64[@]} -gt 0 ]]; then
     echo
     echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
     list_item_group "ELF 64-bit LSB executable" "${items_bin64[@]}"
-fi
-
-#
-#  Unrecognized file types
-#
-if [[ ${#file_types[@]} -gt 0 ]]; then
-    list_item_group "Unclassified file types" "${file_types[@]}"
 fi
