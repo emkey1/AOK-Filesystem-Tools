@@ -45,6 +45,24 @@ cleanup() {
     env_restore
 }
 
+set_chroot_to() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "set_chroot_to()"
+
+    _chrt="$1"
+    [ -z "$_chrt" ] && error_msg "set_chroot_to() no param"
+    [ ! -d "$_chrt" ] && error_msg "set_chroot_to($_chrt) - path does not exist!"
+
+    CHROOT_TO="$_chrt"
+    #
+    #  Must be called whenever CHROOT_TO is changed, like by param -p
+    #
+    d_proc="${CHROOT_TO}/proc"
+    d_sys="${CHROOT_TO}/sys"
+    d_dev="${CHROOT_TO}/dev"
+    d_dev_pts="${CHROOT_TO}/dev/pts"
+    [ "$_fnc_calls" = 1 ] && msg_3 "set_chroot_to() - done"
+}
+
 can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
 
@@ -89,6 +107,17 @@ use_root_shell_as_default_cmd() {
     [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
     cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
     [ "$_fnc_calls" = 1 ] && msg_3 "use_root_shell_as_default_cmd() - done"
+}
+
+safe_umount() {
+    # Only attempt unmount if it was mounted
+    _mount_point="$1"
+
+    if mount | grep -q "$_mount_point"; then
+        umount "$_mount_point" || error_msg "Failed to unmount $_mount_point"
+    else
+        msg_3 "$_mount_point - was not mounted"
+    fi
 }
 
 env_prepare() {
@@ -161,17 +190,20 @@ env_restore() {
     #  Assume that if we get here we can do the cleanup.
     #
 
+    [ -z "$d_proc" ] && error_msg "variable d_proc is undefiened"
+    [ ! -d "$d_proc" ] && error_msg "Directory $d_proc is missing"
+
     # msg_3 "Un-mounting system resources"
-    umount "$d_proc" || error_msg "Failed to unmount $d_proc"
+    safe_umount "$d_proc"
 
     if [ "$build_env" -eq 1 ]; then
         # msg_3 "Removing the temp /dev entries"
         rm -rf "${CHROOT_TO:?}"/dev/*
     else
         # msg_3 "Unmounting /sys & /dev"
-        umount "$d_sys" || error_msg "Failed to unmount $d_sys"
-        umount "$d_dev_pts" || error_msg "Failed to unmount $d_dev_pts"
-        umount "$d_dev" || error_msg "Failed to unmount $d_dev"
+        safe_umount "$d_sys"
+        safe_umount "$d_dev_pts"
+        safe_umount "$d_dev"
     fi
 
     #
@@ -193,8 +225,6 @@ show_help() {
     cat <<EOF
 Usage: $prog_name [-h] [-a] [-c] [-C] [-p dir] [command]
 
-chroot with env setup so this works on both Linux & iSH
-
 Available options:
 
 -h  --help      Print this help and exit
@@ -202,6 +232,15 @@ Available options:
 -c  --cleanup   Cleanup env if something crashed whilst sudoed
 -p, --path      What dir to chroot into, defaults to: $build_root_d
 command         Defaults to the shell used by root within the env
+
+chroot with env setup so this works on both Linux & iSH
+
+Normally this will clear up the env even if the chroot crashes.
+If it does  fail to clean up, and you attempt to run with -c
+used -p to chroot to a custom path, you must take care to give
+-p BEFORE -c in order for this to know what reminant mount points to
+clean up!
+
 EOF
 
     # msg_3 "show_help() - done"
@@ -236,6 +275,8 @@ chroot_statuses() {
 #
 #===============================================================
 
+prog_name="$(basename "$0")"
+
 #  Allowing this to be run from anywhere using path
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 AOK_DIR="$(dirname -- "$current_dir")"
@@ -250,8 +291,7 @@ hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
-prog_name="$(basename "$0")"
-CHROOT_TO="$build_root_d"
+set_chroot_to "$build_root_d"
 
 if this_is_ish && hostfs_is_debian; then
     echo "************"
@@ -297,7 +337,7 @@ case "$1" in
 
 "-p" | "--path")
     if [ -d "$2" ]; then
-        CHROOT_TO="$2"
+        set_chroot_to "$2"
         shift # get rid of the option
         shift # get rid of the dir
     else
@@ -306,6 +346,16 @@ case "$1" in
     ;;
 
 "-c" | "--cleanup")
+    echo
+    echo "Please be aware that if you attempt to clean up after a chroot"
+    echo "to a non-standard path (ie you used -p), you must use this notation"
+    echo "in order to attempt to clean up the right things."
+    echo
+    echo "$prog_name -p /custom/path -c"
+    echo
+    echo "This will continue in 5 secnods, hit Ctrl-C if you want to abort"
+    sleep 5
+
     can_chroot_run_now
     env_restore
     exit 0
@@ -319,14 +369,6 @@ case "$1" in
     ;;
 
 esac
-
-#
-#  Must be defined after param parsing, since -p might change CHROOT_TO
-#
-d_proc="${CHROOT_TO}/proc"
-d_sys="${CHROOT_TO}/sys"
-d_dev="${CHROOT_TO}/dev"
-d_dev_pts="${CHROOT_TO}/dev/pts"
 
 can_chroot_run_now
 
