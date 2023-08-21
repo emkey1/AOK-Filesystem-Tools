@@ -429,9 +429,13 @@ if [ -n "$DEBUG_BUILD" ]; then
     echo ">> about to run: chroot $CHROOT_TO $cmd_w_params"
 fi
 
+#
+#  Here we must disable all env variables that should not be passed into
+#  the chroot env, like TMPDIR
+#
 #  In this case we want the $cmd_w_params variable to expand into its components
 #  shellcheck disable=SC2086
-chroot "$CHROOT_TO" $cmd_w_params
+TMPDIR="" chroot "$CHROOT_TO" $cmd_w_params
 exit_code="$?"
 
 [ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
