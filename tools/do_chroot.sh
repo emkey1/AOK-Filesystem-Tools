@@ -13,56 +13,6 @@
 #  Debug help, set to 1 to display entry and exit of functions
 _fnc_calls=0
 
-#
-#  Since this is called via a parameterized trap, shellcheck doesnt
-#  recognize this code is in use..
-#
-# shellcheck disable=SC2317  # Don't warn about unreachable code
-cleanup() {
-    # [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
-
-    signal="$1" # this was triggered by trap
-    case "$signal" in
-
-    INT)
-        echo "Ctrl+C (SIGINT) was caught."
-        ;;
-
-    TERM)
-        echo "Termination (SIGTERM) was caught."
-        ;;
-
-    HUP)
-        echo "Hangup (SIGHUP) was caught."
-        ;;
-
-    *)
-        echo "Unknown signal ($signal) was caught."
-        ;;
-
-    esac
-
-    env_restore
-}
-
-set_chroot_to() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "set_chroot_to()"
-
-    _chrt="$1"
-    [ -z "$_chrt" ] && error_msg "set_chroot_to() no param"
-    [ ! -d "$_chrt" ] && error_msg "set_chroot_to($_chrt) - path does not exist!"
-
-    CHROOT_TO="$_chrt"
-    #
-    #  Must be called whenever CHROOT_TO is changed, like by param -p
-    #
-    d_proc="${CHROOT_TO}/proc"
-    d_sys="${CHROOT_TO}/sys"
-    d_dev="${CHROOT_TO}/dev"
-    d_dev_pts="${CHROOT_TO}/dev/pts"
-    [ "$_fnc_calls" = 1 ] && msg_3 "set_chroot_to() - done"
-}
-
 can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
 
@@ -95,6 +45,75 @@ can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_3 "can_chroot_run_now() - done"
 }
 
+#
+#  Since this is called via a parameterized trap, shellcheck doesnt
+#  recognize this code is in use..
+#
+# shellcheck disable=SC2317  # Don't warn about unreachable code
+cleanup() {
+    # [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
+
+    signal="$1" # this was triggered by trap
+    case "$signal" in
+
+    INT)
+        echo "Ctrl+C (SIGINT) was caught."
+        ;;
+
+    TERM)
+        echo "Termination (SIGTERM) was caught."
+        ;;
+
+    HUP)
+        echo "Hangup (SIGHUP) was caught."
+        ;;
+
+    *)
+        echo "Unknown signal ($signal) was caught."
+        ;;
+
+    esac
+
+    env_restore
+}
+
+ensure_dev_paths_are_defined() {
+
+    [ -z "$d_proc" ] && error_msg "d_proc undefined!"
+    [ -z "$d_sys" ] && error_msg "d_sys undefined!"
+    [ -z "$d_dev" ] && error_msg "d_dev undefined!"
+    [ -z "$d_dev_pts" ] && error_msg "d_dev_pts undefined!"
+}
+
+safe_umount() {
+    # Only attempt unmount if it was mounted
+    _mount_point="$1"
+
+    if mount | grep -q "$_mount_point"; then
+        umount "$_mount_point" || error_msg "Failed to unmount $_mount_point"
+    else
+        msg_3 "$_mount_point - was not mounted"
+    fi
+}
+
+set_chroot_to() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "set_chroot_to()"
+
+    _chrt="$1"
+    [ -z "$_chrt" ] && error_msg "set_chroot_to() no param"
+    [ ! -d "$_chrt" ] && error_msg "set_chroot_to($_chrt) - path does not exist!"
+
+    CHROOT_TO="$_chrt"
+    #
+    #  Must be called whenever CHROOT_TO is changed, like by param -p
+    #
+    d_proc="${CHROOT_TO}/proc"
+    d_sys="${CHROOT_TO}/sys"
+    d_dev="${CHROOT_TO}/dev"
+    d_dev_pts="${CHROOT_TO}/dev/pts"
+    [ "$_fnc_calls" = 1 ] && msg_3 "set_chroot_to() - done"
+}
+
 use_root_shell_as_default_cmd() {
     #
     #  Since no command was specified, try to extract the root
@@ -109,19 +128,10 @@ use_root_shell_as_default_cmd() {
     [ "$_fnc_calls" = 1 ] && msg_3 "use_root_shell_as_default_cmd() - done"
 }
 
-safe_umount() {
-    # Only attempt unmount if it was mounted
-    _mount_point="$1"
-
-    if mount | grep -q "$_mount_point"; then
-        umount "$_mount_point" || error_msg "Failed to unmount $_mount_point"
-    else
-        msg_3 "$_mount_point - was not mounted"
-    fi
-}
-
 env_prepare() {
     [ "$_fnc_calls" = 1 ] && msg_2 "env_prepare()"
+
+    ensure_dev_paths_are_defined
 
     _err="$prog_name is running! - this should have already been caught!"
     [ -f "$pidfile_do_chroot" ] && error_msg "$_err"
@@ -172,7 +182,6 @@ env_prepare() {
 
 #  shellcheck disable=SC2120
 env_restore() {
-
     if [ "$_fnc_calls" = 1 ]; then
         if [ -n "$env_restore_started" ]; then
             msg_1 "env_restore() has already been called, skipping"
@@ -183,6 +192,8 @@ env_restore() {
         [ -n "$env_restore_started" ] && return
     fi
     env_restore_started=1
+
+    ensure_dev_paths_are_defined
 
     #
     #  This would normally be called as a mount session is terminating
@@ -196,14 +207,28 @@ env_restore() {
     # msg_3 "Un-mounting system resources"
     safe_umount "$d_proc"
 
-    if [ "$build_env" -eq 1 ]; then
-        # msg_3 "Removing the temp /dev entries"
-        rm -rf "${CHROOT_TO:?}"/dev/*
-    else
-        # msg_3 "Unmounting /sys & /dev"
-        safe_umount "$d_sys"
-        safe_umount "$d_dev_pts"
-        safe_umount "$d_dev"
+    # if [ "$build_env" -eq 1 ]; then
+    #     # msg_3 "Removing the temp /dev entries"
+    #     rm -rf "${CHROOT_TO:?}"/dev/*
+    # else
+    #     # msg_3 "Unmounting /sys & /dev"
+    #     safe_umount "$d_sys"
+    #     safe_umount "$d_dev_pts"
+    #     safe_umount "$d_dev"
+    # fi
+
+    # msg_3 "Unmounting /sys & /dev"
+    safe_umount "$d_sys"
+    safe_umount "$d_dev_pts"
+    safe_umount "$d_dev"
+    # msg_3 "Removing the temp /dev entries"
+    rm -rf "${CHROOT_TO:?}"/dev/*
+    # rm -rf "$d_dev"/*
+    if [ "$(find "$d_dev"/ | wc -l)" -gt 1 ]; then
+        msg_1 "Found remainders in $d_dev"
+        ls -la "$d_dev"
+        echo "-----------------------------------"
+        echo
     fi
 
     #
