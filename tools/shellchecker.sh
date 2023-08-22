@@ -214,39 +214,21 @@ process_file_tree() {
     local all_files
     local fname
     #
-    #  Loop over al files, first doing exludes
+    #  Loop over al files, sorted by file age, newest firtst.
     #  Then identifying filetype using: file -b
     #  grouping by type, and linting files suitable for such
     #  as they come up. Thereby minimizing pointless wait time, since
     #  the file tree is globally sorted by age
     #
+    if [[ $(uname) == "Darwin" ]]; then
+        # macOS version
+        # all_files=($(find . -type f -exec stat -f '%m %N' {} \; | sort -n -r -k1,1 | cut -d' ' -f2-))
+        mapfile -t all_files < <(find . -type f -exec stat -f '%m %N' {} \; | sort -n -r -k1,1 | cut -d' ' -f2-)
 
-    #
-    #  Reads in all files, globally reverse sorted by file age
-    #
-    #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-
-    #
-    #  But of course find in MacOS does not behave like the rest of them..
-    #
-    #  MacOS  all 27s
-    #  hetz1 linux mode 19s
-    #        mac mode
-    #
-    # if [[ $(uname) == "Darwin" ]]; then
-    # macOS version
-    # mapfile -t all_files < <(find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-)
-    # find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-
-    # else
-    # Linux version
-    # mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-    #
-    #  Works on older versions
-    #
-    # shellcheck disable=SC2207
-    all_files=($(find . -type f -printf '%T@ %p\n' | sort -n -r -k1,1 | cut -d' ' -f2))
-
-    # fi
+    else
+        # shellcheck disable=SC2207
+        all_files=($(find . -type f -printf '%T@ %p\n' | sort -n -r -k1,1 | cut -d' ' -f2))
+    fi
 
     for fname in "${all_files[@]}"; do
         [[ -d "$fname" ]] && continue
