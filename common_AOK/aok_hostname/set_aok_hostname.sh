@@ -10,7 +10,10 @@
 
 #  Only relevant for aok kernels and if AOK_HOSTNAME_SUFFIX is "Y"
 #  shellcheck disable=SC2154
-! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
+if ! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ]; then
+    msg_2 "This env will not be setup for AOK_HOSTNAME_SUFFIX"
+    exit 0
+fi
 
 msg_1 "Setting -aok suffix for hostname"
 
