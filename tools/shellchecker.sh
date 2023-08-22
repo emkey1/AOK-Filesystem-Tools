@@ -23,7 +23,7 @@
 #
 error_msg() {
     local em_msg="$1"
-    local em_exit_code="${2:-1}"
+    local em_exit_code="${2:-"-1"}"
     if [[ -z "$em_msg" ]]; then
         echo
         echo "error_msg() no param"

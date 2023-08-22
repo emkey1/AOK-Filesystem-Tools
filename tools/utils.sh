@@ -19,7 +19,7 @@
 
 error_msg() {
     _em_msg="$1"
-    _em_exit_code="${2:-1}"
+    _em_exit_code="$2"
     if [ -z "$_em_msg" ]; then
         echo
         echo "error_msg() no param"
@@ -30,7 +30,7 @@ error_msg() {
     echo "ERROR: $_em_msg"
     echo
     [ -n "$LOG_FILE" ] && echo "ERROR: $_em_msg" >>"$LOG_FILE" 2>&1
-    [ "$_em_exit_code" -gt -1 ] && exit "$_em_exit_code"
+    [ -n "$_em_exit_code" ] && exit "$_em_exit_code"
     unset _em_msg
     unset _em_exit_code
 }
