@@ -11,7 +11,6 @@
 #
 
 #  Debug help, set to 1 to display entry and exit of functions
-_fnc_calls=0
 
 can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
@@ -51,7 +50,7 @@ can_chroot_run_now() {
 #
 # shellcheck disable=SC2317  # Don't warn about unreachable code
 cleanup() {
-    # [ "$_fnc_calls" = 1 ] && msg_3 "display_signal()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "cleanup($1)"
 
     signal="$1" # this was triggered by trap
     case "$signal" in
@@ -75,17 +74,26 @@ cleanup() {
     esac
 
     env_restore
+    [ "$_fnc_calls" = 1 ] && msg_3 "cleanup() - done"
 }
 
 ensure_dev_paths_are_defined() {
+    #
+    #  This ensures that all the system path variables have been defined,
+    #  to minimize risk of having to abort half way through a procedure
+    #
+    [ "$_fnc_calls" = 1 ] && msg_2 "ensure_dev_paths_are_defined()"
 
     [ -z "$d_proc" ] && error_msg "d_proc undefined!"
     [ -z "$d_sys" ] && error_msg "d_sys undefined!"
     [ -z "$d_dev" ] && error_msg "d_dev undefined!"
     [ -z "$d_dev_pts" ] && error_msg "d_dev_pts undefined!"
+
+    [ "$_fnc_calls" = 1 ] && msg_3 "ensure_dev_paths_are_defined() - done"
 }
 
-safe_umount() {
+umount_mounted() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "umount_mounted($1)"
     # Only attempt unmount if it was mounted
     _mount_point="$1"
 
@@ -94,10 +102,31 @@ safe_umount() {
     else
         msg_3 "$_mount_point - was not mounted"
     fi
+    cleanout_sys_dir "$_mount_point"
+
+    [ "$_fnc_calls" = 1 ] && msg_3 "umount_mounted() - done"
+}
+
+cleanout_sys_dir() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "cleanout_sys_dir($1)"
+
+    _d_clear="$1"
+    [ -z "$_d_clear" ] && error_msg "cleanout_sys_dir() no param provided"
+    [ ! -d "$_d_clear" ] && error_msg "cleanout_sys_dir($_d_clear) no such folder"
+
+    if [ "$(find "$_d_clear"/ | wc -l)" -gt 1 ]; then
+        msg_1 "Found residual files in: $_d_clear"
+        ls -la "$_d_clear"
+        echo "------------------"
+
+        msg_3 "Removing residual files inside $_d_clear"
+        rm -rf "${_d_clear:?}"/*
+    fi
+    [ "$_fnc_calls" = 1 ] && msg_3 "cleanout_sys_dir() - done"
 }
 
 set_chroot_to() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "set_chroot_to()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "set_chroot_to($1)"
 
     _chrt="$1"
     [ -z "$_chrt" ] && error_msg "set_chroot_to() no param"
@@ -204,32 +233,15 @@ env_restore() {
     [ -z "$d_proc" ] && error_msg "variable d_proc is undefiened"
     [ ! -d "$d_proc" ] && error_msg "Directory $d_proc is missing"
 
-    # msg_3 "Un-mounting system resources"
-    safe_umount "$d_proc"
+    msg_3 "Un-mounting system resources"
+    umount_mounted "$d_proc"
 
-    # if [ "$build_env" -eq 1 ]; then
-    #     # msg_3 "Removing the temp /dev entries"
-    #     rm -rf "${CHROOT_TO:?}"/dev/*
-    # else
-    #     # msg_3 "Unmounting /sys & /dev"
-    #     safe_umount "$d_sys"
-    #     safe_umount "$d_dev_pts"
-    #     safe_umount "$d_dev"
-    # fi
+    umount_mounted "$d_sys"
+    cleanout_sys_dir "$d_sys"
 
-    # msg_3 "Unmounting /sys & /dev"
-    safe_umount "$d_sys"
-    safe_umount "$d_dev_pts"
-    safe_umount "$d_dev"
-    # msg_3 "Removing the temp /dev entries"
-    rm -rf "${CHROOT_TO:?}"/dev/*
-    # rm -rf "$d_dev"/*
-    if [ "$(find "$d_dev"/ | wc -l)" -gt 1 ]; then
-        msg_1 "Found remainders in $d_dev"
-        ls -la "$d_dev"
-        echo "-----------------------------------"
-        echo
-    fi
+    umount_mounted "$d_dev_pts"
+    umount_mounted "$d_dev"
+    cleanout_sys_dir "$d_dev"
 
     #
     #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
@@ -276,7 +288,7 @@ chroot_statuses() {
     #  This is mostly a debug helper, so only informative
     #  does not contribute to the actual process
     #
-    [ "$_fnc_calls" = 1 ] && msg_2 "chroot_statuses()"
+    [ "$_fnc_calls" = 1 ] && msg_2 "chroot_statuses($1)"
 
     [ -n "$1" ] && msg_1 "chroot_statuses - $1"
 
