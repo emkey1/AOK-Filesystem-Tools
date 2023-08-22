@@ -133,7 +133,7 @@ lint_bash() {
     do_shellcheck "$fn"
 }
 
-get_file_save_time() {
+get_mtime() {
     local fname="$1"
     if [[ $(uname) == "Darwin" ]]; then
         # macOS version
@@ -146,7 +146,6 @@ get_file_save_time() {
 
 display_file_age() {
     local file_path="$1" # Replace with the path to your file
-    local file_mtime
     local current_time
     local time_difference
     local days
@@ -156,10 +155,8 @@ display_file_age() {
     local age
 
     if [[ -e "$file_path" ]]; then
-        file_mtime=$(stat -c %Y "$file_path") # Get file's last modification time in seconds since epoch
-        current_time=$(date +%s)              # Get current time in seconds since epoch
-
-        time_difference=$((current_time - file_mtime))
+        current_time=$(date +%s) # Get current time in seconds since epoch
+        time_difference=$((current_time - $(get_mtime "$file_path")))
 
         # Calculate days, hours, minutes, and seconds
         days=$((time_difference / 86400))
@@ -185,6 +182,7 @@ display_file_age() {
     fi
     return 0
 }
+
 should_it_be_linted() {
     local current_time
     local span_in_seconds
@@ -196,7 +194,8 @@ should_it_be_linted() {
         span_in_seconds="$((3600 * hour_limit))"
         cutoff_time="$((current_time - span_in_seconds))"
     fi
-    if [[ "$(get_file_save_time "$fname")" -lt "$cutoff_time" ]]; then
+    # display_file_age "$fname"
+    if [[ "$(get_mtime "$fname")" -lt "$cutoff_time" ]]; then
         # echo ">>> Cut of time reached limit: $hour_limit"
         files_aged_out_for_linting=1
         return 1
@@ -249,6 +248,10 @@ process_file_tree() {
         for suffix in "${suffixes[@]}"; do
             [[ "$fname" == *"$suffix" ]] && continue 2
         done
+
+        # # display_file_age "$fname"
+        # should_it_be_linted
+        # continue
 
         f_type="$(file -b "$fname")"
 
