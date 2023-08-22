@@ -11,7 +11,7 @@
 #
 
 #  Debug help, set to 1 to display entry and exit of functions
-_fnc_calls=1
+_fnc_calls=0
 
 can_chroot_run_now() {
     [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
