@@ -133,7 +133,7 @@ lint_bash() {
     do_shellcheck "$fn"
 }
 
-get_file_age() {
+get_file_save_time() {
     local fname="$1"
     if [[ $(uname) == "Darwin" ]]; then
         # macOS version
@@ -144,9 +144,51 @@ get_file_age() {
     fi
 }
 
+display_file_age() {
+    local file_path="$1" # Replace with the path to your file
+    local file_mtime
+    local current_time
+    local time_difference
+    local days
+    local hours
+    local minutes
+    local seconds
+    local age
+
+    if [[ -e "$file_path" ]]; then
+        file_mtime=$(stat -c %Y "$file_path") # Get file's last modification time in seconds since epoch
+        current_time=$(date +%s)              # Get current time in seconds since epoch
+
+        time_difference=$((current_time - file_mtime))
+
+        # Calculate days, hours, minutes, and seconds
+        days=$((time_difference / 86400))
+        time_difference=$((time_difference % 86400))
+        hours=$((time_difference / 3600))
+        time_difference=$((time_difference % 3600))
+        minutes=$((time_difference / 60))
+        seconds=$((time_difference % 60))
+
+        [[ "$hours" -lt 10 ]] && hours="0${hours}"
+        [[ "$minutes" -lt 10 ]] && minutes="0${minutes}"
+        [[ "$seconds" -lt 10 ]] && seconds="0${seconds}"
+
+        if [[ "$days" -gt 0 ]]; then
+            age="$days $age"
+        else
+            age="  "
+        fi
+        age+="${hours}:${minutes}:${seconds} $file_path"
+        echo "$age"
+    else
+        error_msg "File not found: $file_path"
+    fi
+    return 0
+}
 should_it_be_linted() {
     local current_time
     local span_in_seconds
+    local cutoff_time
 
     [[ -z "$hour_limit" ]] && return 0
     if [[ -z "$cutoff_time" ]]; then
@@ -154,11 +196,12 @@ should_it_be_linted() {
         span_in_seconds="$((3600 * hour_limit))"
         cutoff_time="$((current_time - span_in_seconds))"
     fi
-    if [[ $(get_file_age "$fname") -ge $cutoff_time ]]; then
+    if [[ "$(get_file_save_time "$fname")" -lt "$cutoff_time" ]]; then
+        # echo ">>> Cut of time reached limit: $hour_limit"
         files_aged_out_for_linting=1
-        return 0
+        return 1
     fi
-    return 1
+    return 0
 }
 
 #===============================================================
@@ -190,23 +233,22 @@ process_file_tree() {
     #  hetz1 linux mode 19s
     #        mac mode
     #
-    if [[ $(uname) == "Darwin" ]]; then
-        # macOS version
-        mapfile -t all_files < <(find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-)
-        # find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-
-    else
-        # Linux version
-        #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-        #
-        #  Works on older versions
-        #
-        # shellcheck disable=SC2207
-        all_files=($(find . -type f -printf '%T@ %p\n' | sort -n -r -k1,1 | cut -d' ' -f2))
+    # if [[ $(uname) == "Darwin" ]]; then
+    # macOS version
+    # mapfile -t all_files < <(find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-)
+    # find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-
+    # else
+    # Linux version
+    # mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
+    #
+    #  Works on older versions
+    #
+    # shellcheck disable=SC2207
+    all_files=($(find . -type f -printf '%T@ %p\n' | sort -n -r -k1,1 | cut -d' ' -f2))
 
-    fi
+    # fi
 
     for fname in "${all_files[@]}"; do
-        #[[ "$fname" =
         [[ -d "$fname" ]] && continue
 
         if [[ "$hour_limit" != "0" ]] && [[ "$files_aged_out_for_linting" = "1" ]]; then
