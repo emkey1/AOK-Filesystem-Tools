@@ -135,7 +135,7 @@ if [ -n "$DEBUG_BUILD" ]; then
     msg_3 "Detected: [$(destfs_detect)]"
     msg_2 ">>>  Debug, dropping into ash"
     /bin/ash
-    error_msg "aborting buil after ash" 1
+    error_msg "aborting build after ash" 1
 fi
 
 if [ -n "$LOG_FILE" ]; then
