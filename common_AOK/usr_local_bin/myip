@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 printf "Internet IP:  "
 if curl -s http://ifconfig.me; then
