@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #  Part of https://github.com/emkey1/AOK-Filesystem-Tools
 #
@@ -8,6 +8,7 @@
 #
 #  Common setup tasks for both Alpine & Debian
 #
+# shellcheck disable=SC2154
 
 setup_environment() {
 
@@ -19,7 +20,7 @@ setup_environment() {
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
-    if [ -n "$USER_NAME" ]; then
+    if [[ -n "$USER_NAME" ]]; then
         echo "Default user is: $USER_NAME" >>/etc/issue
     fi
     echo >>/etc/issue
@@ -39,7 +40,7 @@ setup_environment() {
     #  needed for it are in. If it is not set, there will be a dialog
     #  at the end of the deploy where TZ can be selected
     #
-    if [ -n "$AOK_TIMEZONE" ]; then
+    if [[ -n "$AOK_TIMEZONE" ]]; then
         #
         #  Need full path to handle that this path is not correctly cached at
         #  this point if Debian is being installed, probably due to switching
@@ -62,8 +63,8 @@ setup_environment() {
     msg_2 "Populate /etc/skel"
     cp -a "$aok_content"/common_AOK/etc/skel /etc
 
-    if [ -f /etc/ssh/sshd_config ]; then
-        if [ "$QUICK_DEPLOY" -eq 0 ]; then
+    if [[ -f /etc/ssh/sshd_config ]]; then
+        if [[ "$QUICK_DEPLOY" -eq 0 ]]; then
             # Move sshd to port 1022 to avoid issues
             sshd_port=1022
             msg_2 "sshd will use port: $sshd_port"
@@ -77,7 +78,7 @@ setup_environment() {
         msg_2 "sshd not installed - port not changed"
     fi
 
-    if [ "$QUICK_DEPLOY" -eq 0 ]; then
+    if [[ "$QUICK_DEPLOY" -eq 0 ]]; then
         msg_2 "Activating group sudo for no passwd sudo"
         cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
         chmod 440 /etc/sudoers.d/sudo_no_passwd
@@ -93,10 +94,9 @@ setup_environment() {
 
 }
 
-# shellcheck disable=SC2317
 copy_skel_files() {
     csf_dest="$1"
-    if [ -z "$csf_dest" ]; then
+    if [[ -z "$csf_dest" ]]; then
         error_msg "copy_skel_files() needs a destination param"
     fi
     cp -r /etc/skel/. "$csf_dest"
@@ -111,10 +111,18 @@ copy_skel_files() {
 
 user_root() {
     msg_2 "Setting up root user env"
-
-    if ! destfs_is_debian; then
-        msg_3 "Alpine - root shell -> /bin/ash"
-        sed -i "s|^root:[^:]*:|root:/bin/bash:|" /etc/passwd
+    #
+    #  If USER_SHELL has been defined, the assumption would be to use
+    #  the same for user root, since if logins are not enabled,
+    #  you wold start up as user root.
+    #  With the exception that if USER_SHELL is the default for the FS
+    #  no change will happen
+    #
+    if (destfs_is_alpine && [[ "$USER_SHELL" != "/bin/ash" ]]) || \
+	   (! destfs_is_alpine && [[ "$USER_SHELL" != "/bin/bash" ]]); then
+	msg_3 "Changing root shell into USER_SHELL: $USER_SHELL"
+	awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
+	    /etc/passwd > /tmp/passwd && mv /tmp/passwd /etc/passwd
     fi
 
     #
@@ -130,7 +138,7 @@ user_root() {
 
 create_user() {
     msg_2 "Creating default user and group: $USER_NAME"
-    if [ -z "$USER_NAME" ]; then
+    if [[ -z "$USER_NAME" ]]; then
         msg_3 "No user requested"
         return
     fi
@@ -138,22 +146,22 @@ create_user() {
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
 
-    if (destfs_is_debian || destfs_is_devuan) && [ "$USER_SHELL" = "/bin/ash" ]; then
-        msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with /bin/bash"
-        USER_SHELL="/bin/bash"
+    if (destfs_is_debian || destfs_is_devuan) && [[ "$USER_SHELL" = "/bin/ash" ]]; then
+        msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with bash"
+        USER_SHELL="$(/usr/bin/env bash)"
     fi
 
     #
     #  Determine what shell to use for custom user
     #
-    if [ -n "$USER_SHELL" ]; then
-        if [ ! -x "${build_root_d}$USER_SHELL" ]; then
+    if [[ -n "$USER_SHELL" ]]; then
+        if [[ ! -x "${build_root_d}$USER_SHELL" ]]; then
             error_msg "User shell not found: ${build_root_d} $USER_SHELL"
         fi
         use_shell="$USER_SHELL"
         msg_3 "User shell: $use_shell"
     else
-        use_shell="/bin/bash"
+        use_shell="$(command -v bash)"
         msg_3 "User shell (default): $use_shell"
     fi
 
@@ -183,13 +191,28 @@ create_user() {
 #
 #===============================================================
 
+# shellcheck source=/dev/null
 . /opt/AOK/tools/utils.sh
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
+msg_1 "User shell: [$USER_SHELL]"
+
+if [[ -n "$USER_SHELL" ]]; then
+    [[ ! -x "$USER_SHELL" ]] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
+else
+    if is_alpine; then
+	USER_SHELL="/bin/ash"
+    else
+	USER_SHELL="/bin/bash"
+    fi
+    msg_2 "USER_SHELL was undefined, set to the default: $USER_SHELL"
+fi
+
 setup_environment
 user_root
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
+
+if [[ "$QUICK_DEPLOY" -eq 0 ]]; then
     # [ -n "$USER_NAME" ] &&
     create_user
 else
@@ -197,5 +220,6 @@ else
 fi
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
+
 
 exit 0 # indicate no error
