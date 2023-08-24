@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if ! grep -qi aok /proc/ish/version 2>/dev/null; then
     echo "Not running on iSH-AOK, exiting."
