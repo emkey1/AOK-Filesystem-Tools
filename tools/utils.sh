@@ -13,13 +13,13 @@
 
 #
 #  Display an error message, second optional param is exit code,
-#  defaulting to 1. If exit code is 0 this will not exit, just display
+#  defaulting to 1. If exit code is no_exit this will not exit, just display
 #  the error message, then continue.
 #
 
 error_msg() {
     _em_msg="$1"
-    _em_exit_code="$2"
+    _em_exit_code="${2:-1}"
     if [ -z "$_em_msg" ]; then
         echo
         echo "error_msg() no param"
@@ -30,7 +30,7 @@ error_msg() {
     echo "ERROR: $_em_msg"
     echo
     [ -n "$LOG_FILE" ] && echo "ERROR: $_em_msg" >>"$LOG_FILE" 2>&1
-    [ -n "$_em_exit_code" ] && exit "$_em_exit_code"
+    [ "$_em_exit_code" != "no_exit" ] && exit "$_em_exit_code"
     unset _em_msg
     unset _em_exit_code
 }
