@@ -1,4 +1,4 @@
-# Nav-Key handling
+# Nav-Key Handling
 
 ## Propagating Nav-Key
 

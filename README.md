@@ -56,7 +56,7 @@ ERROR: Failed to sudo run: /opt/AOK/build_fs
 
 ## Experimenting with generating your own FS
 
-First, create your local config file, this will not collide with the git repo, and if you update it will not be touched
+First, create your local config file, this will not collide with the git repository, and if you update it will not be touched
 
 ```bash
 cp /opt/AOK/AOK_VARS /opt/AOK/.AOK_VARS
@@ -188,7 +188,7 @@ into .AOK_VARS and then edit .AOK_VARS to match your needs.
 When testing setups in a chroot env, some extra steps are needed,
 since in chroot /etc/profile might not run, depending on shell use.
 
-`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
+`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, i.e. next step of
 deploy directly, if any steps remain.
 
 `sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash available

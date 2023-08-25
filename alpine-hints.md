@@ -1,9 +1,4 @@
-# General iSH hints
-
-## Trouble cloning git repos
-
-Doing `git config --global pack.threads "1"` sets up you iSH environment
-to work with git repositories
+# General Alpine Hints
 
 ## Python
 
