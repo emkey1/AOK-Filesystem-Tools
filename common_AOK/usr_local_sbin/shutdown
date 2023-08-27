@@ -69,6 +69,9 @@ sleep 10
 
 echo "Commencing shutdown..."
 
+#  Terminates all running services, not completing until all are done
+openrc shutdown
+
 if test -f /etc/alpine-release; then
     /etc/init.d/killprocs restart 2>/dev/null
 else
