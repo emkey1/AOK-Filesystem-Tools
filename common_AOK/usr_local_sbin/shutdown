@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Shuts dowwn openrc based systems
+#
+#  Using restart / stop - start
+#  to ensure the process is taking place
+#  Just doing start is not 100% to take effect
+#  depending on service states
+#
+#  Optional param 1 is appended to the system shutdown notice
+#
+
+# Define a function to handle Ctrl+C
+interrupt_handler() {
+    echo "Ctrl+C (SIGINT) received. Cancelling shutdown..."
+
+    /usr/local/bin/wall -n "shutdown was canceled, the shutdown notice can be ignored"
+    exit 1
+}
+
+notification="
+
+    *** SYSTEM SHUTDOWN NOTICE ***
+
+This machine will be shutdown in 10 seconds!!
+"
+
+#
+#  Append param 1 if pressent on new line
+#
+[ -n "$1" ] && notification="${notification}
+$1"
+
+uid="$(id | awk -F'[(=]' '{print $2}')"
+
+if [ "$uid" -ne 0 ]; then
+    echo "ERROR: shutdown requires root privileges!"
+    exit 1
+fi
+
+if ! mount | grep -qw "/"; then
+    echo "WARNING: No / mounted, this seems to be chrooted, aborting"
+    exit 2
+fi
+
+/usr/local/bin/wall "$notification"
+
+#
+#  Set the interrupt_handler function to be called when Ctrl+C is pressed
+#  Since this will wall announcing shutdown is cancelled, it is better
+#  to activate after the initial wall is made
+#
+trap interrupt_handler INT
+
+echo
+echo "Abort shut down by hitting Ctrl-C within 10 secoonds"
+echo
+
+echo
+sleep 10
+
+echo "Commencing shutdown..."
+
+#  Terminates all running services, not completing until all are done
+openrc shutdown
+
+if test -f /etc/alpine-release; then
+    /etc/init.d/killprocs restart 2>/dev/null
+else
+    #
+    #  Debian / Deuvan does not support restart
+    #  so a stop start sequence must be done
+    #
+    /etc/init.d/killprocs stop
+    /etc/init.d/killprocs start
+fi
