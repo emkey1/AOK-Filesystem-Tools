@@ -36,6 +36,13 @@ setup_environment() {
     copy_local_bins common_AOK
 
     #
+    #  special case this should not be directly runnable,
+    #  perhaps it should not be in /usr/local/bin,
+    #  what other location would be more apropriate?
+    #
+    chmod 644 /usr/local/sbin/do_shutdown
+
+    #
     #  If AOK_TIMEZONE is defined, TZ can be set as early as the tools
     #  needed for it are in. If it is not set, there will be a dialog
     #  at the end of the deploy where TZ can be selected

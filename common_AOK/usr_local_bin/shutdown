@@ -65,18 +65,13 @@ echo
 echo
 sleep 10
 
-echo "Commencing shutdown..."
-
-#  Terminates all running services, not completing until all are done
-openrc shutdown
-
-if test -f /etc/alpine-release; then
-    /etc/init.d/killprocs restart 2>/dev/null
-else
-    #
-    #  Debian / Deuvan does not support restart
-    #  so a stop start sequence must be done
-    #
-    /etc/init.d/killprocs stop
-    /etc/init.d/killprocs start
-fi
+#
+#  If this is done via remote connection, the openrc shutdown
+#  step would most likely terminate the session, thereby pottentially
+#  aborting the shutdown script before it completes.
+#  Thus the actual shutdown is run in a separate backgrounded script
+#  that will ignore if the triggering session disapears
+#  Since do_shutdown will shut the system down without any warning,
+#  it has no shebang, so intended shell must be mentioned by the caller.
+#
+/bin/sh /usr/local/sbin/do_shutdown &
