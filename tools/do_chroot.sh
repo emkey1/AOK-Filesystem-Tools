@@ -231,7 +231,7 @@ env_prepare() {
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
 
-    # msg_3 "Mounting system resources"
+    msg_3 "Mounting system resources"
 
     if mount | grep -q "$CHROOT_TO"; then
         error_msg "This [$CHROOT_TO] is already chrooted!"
