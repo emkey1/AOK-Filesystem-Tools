@@ -1,0 +1,38 @@
+# This should not have a shebang for system stability reasons!
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  this is called by 'shutdown' and does the actual shutdown procedure.
+#
+#  If shutdown was a single script and was triggered in a remote
+#  session, the 'openrc shutdown' bellow would most likely terminate
+#  that session, thereby pottentially aborting the shutdown before
+#  it completes.
+#
+#  Thus this, the actual shutdown is run in a separate backgrounded
+#  script that will ignore if the triggering session disapears.
+#
+#  Apropriate warnings and abort possibility are offered in 'shutdown'
+#
+#  Triggering this one unintentionally will shutdown the system without
+#  any warning. Therefore it should not have a shebang, forcing
+#  the caller to really want to run this.
+#
+
+echo
+echo "Commencing shutdown..."
+
+#
+#  Terminates all running services, not completing until all are done.
+#  During this, most remote sessions will be terminated...
+#
+openrc shutdown
+
+sleep 2  # on console, give an oportunity to see the openrc shutdown complete
+
+#  Should be a guaranteed insta-kill of iSH
+killall -9 init
