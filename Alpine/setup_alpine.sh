@@ -167,8 +167,8 @@ fi
 
 prepare_env_etc
 
-msg_1 "apk update"
-apk update
+#msg_1 "apk update"
+#apk update
 
 msg_1 "apk upgrade"
 apk upgrade
