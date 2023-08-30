@@ -143,6 +143,8 @@ initiate_deploy Debian "$(cat /etc/debian_version)"
 
 prepare_env_etc
 
+# set runlevel
+
 msg_1 "apt update"
 apt update -y
 

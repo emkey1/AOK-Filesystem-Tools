@@ -46,13 +46,11 @@ Select distro:
 
     2)
         echo "Debian selected"
-        test -f "$additional_tasks_script" && notification_additional_tasks
         "$aok_content"/choose_distro/install_debian.sh
         ;;
 
     3)
         echo "Devuan selected"
-        test -f "$additional_tasks_script" && notification_additional_tasks
         "$aok_content"/choose_distro/install_devuan.sh
         ;;
 

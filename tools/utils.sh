@@ -144,7 +144,12 @@ initiate_deploy() {
     [ -z "$_ss_vers_info" ] && error_msg "initiate_deploy() no vers_info provided"
 
     # buildtype_set "$_ss_distro_name"
-    test -f "$additional_tasks_script" && notification_additional_tasks
+    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+        msg_2 "At the end of the install, additioal tasks will be run:"
+        echo "--------------------"
+        echo "$FIRST_BOOT_ADDITIONAL_TASKS"
+        echo "--------------------"
+    fi
     echo
 
     msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${_ss_distro_name}: $_ss_vers_info"
@@ -387,46 +392,31 @@ destfs_clear_chrooted() {
 #
 #---------------------------------------------------------------
 
-notification_additional_tasks() {
-    # msg_2 "notification_additional_tasks()"
-    if [ -f "$additional_tasks_script" ]; then
-        echo "At the end of the install, this will be run:"
-        echo "--------------------"
-        cat "$additional_tasks_script"
-        echo "--------------------"
-        echo
-    fi
-    # msg_3 "notification_additional_tasks() done"
-}
-
 replace_home_dirs() {
     if [ -n "$HOME_DIR_USER" ]; then
-        [ ! -f "$HOME_DIR_USER" ] && error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER"
-        [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-        msg_2 "Replacing /home/$USER_NAME"
-        cd "/home" || error_msg "Failed cd /home"
-        rm -rf "$USER_NAME"
-        tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
+        if [ -f "$HOME_DIR_USER" ]; then
+            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
+            msg_2 "Replacing /home/$USER_NAME"
+            cd "/home" || error_msg "Failed cd /home"
+            rm -rf "$USER_NAME"
+            tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
+	else
+	    error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
+	fi
     fi
 
     if [ -n "$HOME_DIR_ROOT" ]; then
-        [ ! -f "$HOME_DIR_ROOT" ] && error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT"
-        msg_2 "Replacing /root"
-        rm /root -rf
-        cd / || error_msg "Failed to cd into: /"
-        tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
+        if [ -f "$HOME_DIR_ROOT" ]; then
+            msg_2 "Replacing /root"
+            rm /root -rf
+            cd / || error_msg "Failed to cd into: /"
+            tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
+	else
+	    error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
+	fi
     fi
 }
 
-run_additional_tasks_if_found() {
-    msg_2 "run_additional_tasks_if_found()"
-    if [ -x "$additional_tasks_script" ]; then
-        msg_1 "Running additional setup tasks [$additional_tasks_script]"
-        "$additional_tasks_script" && rm "$additional_tasks_script"
-        echo
-    fi
-    # msg_3 "run_additional_tasks_if_found()  done"
-}
 
 #---------------------------------------------------------------
 #
@@ -478,9 +468,13 @@ destfs_is_debian() {
 }
 
 destfs_is_alpine() {
-    ! destfs_is_select && test -f "$file_alpine_release"
+    test -f "$build_root_d"/etc/alpine-release
+
+    # TODO: what is the purpose of this?
+    #! destfs_is_select && test -f "$file_alpine_release"
 }
 
+# TODO: what is the purpose of this?
 destfs_is_select() {
     [ -f "$destfs_select_hint" ]
     # [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
@@ -775,6 +769,7 @@ deploy_state_pre_build="prebuild"        # building FS on buildhost, no details 
 deploy_state_dest_build="dest build"     # building FS on dest, dest details can be gathered
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
+# TODO: what is the purpose of theese two?
 destfs_select="select"
 destfs_select_hint="$build_root_d"/etc/opt/select_distro
 

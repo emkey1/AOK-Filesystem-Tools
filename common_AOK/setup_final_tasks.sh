@@ -35,6 +35,18 @@ install_aok_apks() {
     echo
 }
 
+run_additional_tasks_if_found() {
+    msg_2 "run_additional_tasks_if_found()"
+
+    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+        msg_1 "Running additional setup tasks:"
+	echo "$FIRST_BOOT_ADDITIONAL_TASKS"
+	echo "---------------"
+	/bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS"
+    fi
+    msg_3 "run_additional_tasks_if_found()  done"
+}
+
 #===============================================================
 #
 #   Main
@@ -79,6 +91,9 @@ fi
 
 set_new_etc_profile "$next_etc_profile"
 
+#
+#  Handling custom files
+#
 "$aok_content"/common_AOK/custom/custom_files.sh
 
 /usr/local/sbin/ensure_hostname_in_host_file.sh

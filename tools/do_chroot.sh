@@ -9,7 +9,11 @@
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.
 #
-
+#  Since this is a POSIX script, there are no local variables,
+#  to minimize risk of unintentionally changing an outer variable
+#  many functions use variable names of the form
+#  _ + shorthand for func name
+#
 #  Debug help, set to 1 to display entry and exit of functions
 _fnc_calls=0
 
@@ -22,13 +26,13 @@ can_chroot_run_now() {
     if [ -f "$pidfile_do_chroot" ]; then
         # error_msg "pid exists"
         # Read the PID from the file
-        pid=$(cat "$pidfile_do_chroot")
+        _pid=$(cat "$pidfile_do_chroot")
 
         # Check if the process is still running
-        if ps -p "$pid" >/dev/null 2>&1; then
-            error_msg "$prog_name with PID $pid is running!"
+        if ps -p "$_pid" >/dev/null 2>&1; then
+            error_msg "$prog_name with PID $_pid is running!"
         else
-            msg_1 "There is no process with PID $pid running."
+            msg_1 "There is no process with PID $_pid running."
 
             echo "If the system crashed as a chroot was active, this situation"
             echo "would not be unlikely."
@@ -42,6 +46,8 @@ can_chroot_run_now() {
             exit 1
         fi
     fi
+    unset _pid
+
     [ "$_fnc_calls" = 1 ] && msg_3 "can_chroot_run_now() - done"
 }
 
@@ -53,8 +59,8 @@ can_chroot_run_now() {
 cleanup() {
     [ "$_fnc_calls" = 1 ] && msg_2 "cleanup($1)"
 
-    signal="$1" # this was triggered by trap
-    case "$signal" in
+    _signal="$1" # this was triggered by trap
+    case "$_signal" in
 
     INT)
         echo "Ctrl+C (SIGINT) was caught."
@@ -69,13 +75,25 @@ cleanup() {
         ;;
 
     *)
-        echo "Unknown signal ($signal) was caught."
+        echo "Unknown signal ($_signal) was caught."
         ;;
 
     esac
+    unset _signal
 
     env_restore
     [ "$_fnc_calls" = 1 ] && msg_3 "cleanup() - done"
+}
+
+defined_and_existing() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "defined_and_existing($1)"
+
+    _dae="$1"
+    [ -z "$_dae" ] && error_msg "defined_and_existing() no param provided"
+    [ ! -d "$_dae" ] && error_msg "defined_and_existing($_dae) no such folder"
+    unset _dae
+
+    [ "$_fnc_calls" = 1 ] && msg_3 "defined_and_existing() - done"
 }
 
 ensure_dev_paths_are_defined() {
@@ -85,25 +103,48 @@ ensure_dev_paths_are_defined() {
     #
     [ "$_fnc_calls" = 1 ] && msg_2 "ensure_dev_paths_are_defined()"
 
-    [ -z "$d_proc" ] && error_msg "d_proc undefined!"
-    [ -z "$d_sys" ] && error_msg "d_sys undefined!"
-    [ -z "$d_dev" ] && error_msg "d_dev undefined!"
-    [ -z "$d_dev_pts" ] && error_msg "d_dev_pts undefined!"
+    defined_and_existing "$CHROOT_TO"
+    defined_and_existing "$d_proc"
+    defined_and_existing "$d_sys"
+    defined_and_existing "$d_dev"
+    if [ "$1" = "skip_pts" ]; then
+	#
+	#  Before mounting the resources dev/pts will not exist, so
+	#  preparational checks will need to handle /dev/pts as a special case.
+	#  At that point all that can be done is to verify that it has been set
+	#
+	[ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
+    else
+	defined_and_existing "$d_dev_pts"
+    fi
 
     [ "$_fnc_calls" = 1 ] && msg_3 "ensure_dev_paths_are_defined() - done"
+}
+
+exists_and_empty() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "exists_and_empty($1)"
+
+    _eae="$1"
+    defined_and_existing "$_eae"
+    [ "$(find "$_eae" | wc -l)" -gt 1 ] && error_msg "exists_and_empty($_eae) -Not empty"
+    unset _eae
+
+    [ "$_fnc_calls" = 1 ] && msg_3 "exists_and_empty() - done"
 }
 
 umount_mounted() {
     [ "$_fnc_calls" = 1 ] && msg_2 "umount_mounted($1)"
     # Only attempt unmount if it was mounted
-    _mount_point="$1"
+    _um="$1"
 
-    if mount | grep -q "$_mount_point"; then
-        umount "$_mount_point" || error_msg "Failed to unmount $_mount_point"
+    defined_and_existing "$_um"
+    if mount | grep -q "$_um"; then
+        umount "$_um" || error_msg "Failed to unmount $_um"
     else
-        msg_3 "$_mount_point - was not mounted"
+        msg_3 "$_um - was not mounted"
     fi
-    cleanout_sys_dir "$_mount_point"
+    [ -d "$_um" ] && cleanout_sys_dir "$_um"
+    unset _um
 
     [ "$_fnc_calls" = 1 ] && msg_3 "umount_mounted() - done"
 }
@@ -111,18 +152,27 @@ umount_mounted() {
 cleanout_sys_dir() {
     [ "$_fnc_calls" = 1 ] && msg_2 "cleanout_sys_dir($1)"
 
-    _d_clear="$1"
-    [ -z "$_d_clear" ] && error_msg "cleanout_sys_dir() no param provided"
-    [ ! -d "$_d_clear" ] && error_msg "cleanout_sys_dir($_d_clear) no such folder"
+    d_clear="$1"
+    [ -z "$d_clear" ] && error_msg "cleanout_sys_dir() no param provided"
+    [ ! -d "$d_clear" ] && error_msg "cleanout_sys_dir($d_clear) no such folder"
 
-    if [ "$(find "$_d_clear"/ | wc -l)" -gt 1 ]; then
-        msg_1 "Found residual files in: $_d_clear"
-        ls -la "$_d_clear"
+    if [ -n "${d_clear##$CHROOT_TO*}" ]; then
+	error_msg "cleanout_sys_dir($d_clear) not part of chroot point! [$CHROOT_TO]"
+    elif [ "$d_clear" = "$CHROOT_TO" ]; then
+	error_msg "cleanout_sys_dir($d_clear) is chroot point!"
+    fi
+
+
+    if [ "$(find "$d_clear"/ | wc -l)" -gt 1 ]; then
+        msg_1 "Found residual files in: $d_clear"
+        ls -la "$d_clear"
         echo "------------------"
 
-        msg_3 "Removing residual files inside $_d_clear"
-        rm -rf "${_d_clear:?}"/*
+        msg_3 "Removing residual files inside $d_clear"
+        rm -rf "${d_clear:?}"/*
     fi
+    unset d_clear
+
     [ "$_fnc_calls" = 1 ] && msg_3 "cleanout_sys_dir() - done"
 }
 
@@ -133,7 +183,12 @@ set_chroot_to() {
     [ -z "$_chrt" ] && error_msg "set_chroot_to() no param"
     [ ! -d "$_chrt" ] && error_msg "set_chroot_to($_chrt) - path does not exist!"
 
+    #
+    #  Sanity check that it is a FS without issues
+    #
     CHROOT_TO="$_chrt"
+    unset _chrt
+
     #
     #  Must be called whenever CHROOT_TO is changed, like by param -p
     #
@@ -141,6 +196,12 @@ set_chroot_to() {
     d_sys="${CHROOT_TO}/sys"
     d_dev="${CHROOT_TO}/dev"
     d_dev_pts="${CHROOT_TO}/dev/pts"
+
+
+    exists_and_empty "$d_proc"
+    exists_and_empty "$d_sys"
+    exists_and_empty "$d_dev"
+
     [ "$_fnc_calls" = 1 ] && msg_3 "set_chroot_to() - done"
 }
 
@@ -152,19 +213,23 @@ use_root_shell_as_default_cmd() {
     #  not found in the expeted location
     #
     [ "$_fnc_calls" = 1 ] && msg_2 "use_root_shell_as_default_cmd()"
+
     f_etc_pwd="${CHROOT_TO}/etc/passwd"
     [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
     cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
+    unset f_etc_pwd
+
     [ "$_fnc_calls" = 1 ] && msg_3 "use_root_shell_as_default_cmd() - done"
 }
 
 env_prepare() {
     [ "$_fnc_calls" = 1 ] && msg_2 "env_prepare()"
 
-    ensure_dev_paths_are_defined
+    ensure_dev_paths_are_defined "skip_pts"
 
     _err="$prog_name is running! - this should have already been caught!"
     [ -f "$pidfile_do_chroot" ] && error_msg "$_err"
+    unset _err
 
     # msg_3 "creating pidfile_do_chroot: $pidfile_do_chroot"
     echo "$$" >"$pidfile_do_chroot"
@@ -236,13 +301,9 @@ env_restore() {
 
     msg_3 "Un-mounting system resources"
     umount_mounted "$d_proc"
-
     umount_mounted "$d_sys"
-    cleanout_sys_dir "$d_sys"
-
     umount_mounted "$d_dev_pts"
     umount_mounted "$d_dev"
-    cleanout_sys_dir "$d_dev"
 
     #
     #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
@@ -385,6 +446,8 @@ case "$1" in
 
 "-c" | "--cleanup")
     echo
+    echo "Will cleanup the mount point: $CHROOT_TO"
+    echo
     echo "Please be aware that if you attempt to clean up after a chroot"
     echo "to a non-standard path (ie you used -p), you must use this notation"
     echo "in order to attempt to clean up the right things."
@@ -475,12 +538,9 @@ fi
 #  shellcheck disable=SC2086
 TMPDIR="" chroot "$CHROOT_TO" $cmd_w_params
 exit_code="$?"
-
 [ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
 
 env_restore
-
 destfs_clear_chrooted
-
 # If there was an error in the chroot process, propagate it
 exit "$exit_code"

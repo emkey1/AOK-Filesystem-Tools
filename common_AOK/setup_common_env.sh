@@ -153,11 +153,6 @@ create_user() {
     cu_home_dir="/home/$USER_NAME"
     groupadd -g 501 "$USER_NAME"
 
-    if (destfs_is_debian || destfs_is_devuan) && [[ "$USER_SHELL" = "/bin/ash" ]]; then
-        msg_3 "WARNING /bin/ash not available in Debian/Devuan, replacing with bash"
-        USER_SHELL="$(/usr/bin/env bash)"
-    fi
-
     #
     #  Determine what shell to use for custom user
     #
@@ -203,12 +198,14 @@ create_user() {
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
-msg_1 "User shell: [$USER_SHELL]"
-
 if [[ -n "$USER_SHELL" ]]; then
+    if ! destfs_is_alpine && [ "$USER_SHELL" = "/bin/ash" ]; then
+	msg_1 "Only Alpine has /bin/ash - USER_SHELL set to /bin/bash"
+	USER_SHELL="/bin/bash"
+    fi
     [[ ! -x "$USER_SHELL" ]] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
 else
-    if is_alpine; then
+    if destfs_is_alpine; then
 	USER_SHELL="/bin/ash"
     else
 	USER_SHELL="/bin/bash"

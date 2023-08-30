@@ -306,24 +306,6 @@ copy_AOK_to_dest() {
     msg_3 "copy_AOK_to_dest() done"
 }
 
-add_additional_tasks_if_defined() {
-    #
-    #  If defined, append additional tasks
-    #
-    msg_2 "add_additional_tasks_if_defined($FIRST_BOOT_ADDITIONAL_TASKS)"
-    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
-        msg_3 "Creating additional tasks script"
-        mkdir -p "$build_root_d"/opt
-        {
-            echo "#!/bin/sh"
-            echo "$FIRST_BOOT_ADDITIONAL_TASKS"
-        } >"$additional_tasks_script"
-        chmod 755 "$additional_tasks_script"
-        msg_3 "setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $additional_tasks_script"
-    fi
-    # msg_3 "add_additional_tasks_if_defined() done"
-}
-
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
 
@@ -352,7 +334,6 @@ select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
 
     # buildtype_set "$destfs_select"
-
     touch "$destfs_select_hint"
 
     set_new_etc_profile "$setup_select_distro_prepare"
@@ -533,8 +514,6 @@ check_dependencies
 
 display_build_target
 
-test -f "$additional_tasks_script" && notification_additional_tasks
-
 msg_2 "Preparing build environment"
 
 msg_3 "Clearing build root $build_root_d"
@@ -583,8 +562,6 @@ elif [ "$build_target" = "$destfs_select" ]; then
 else
     setup_Alpine_on_1st_boot
 fi
-
-add_additional_tasks_if_defined
 
 if $pre_build_FS; then
     prebuild_fs
