@@ -468,7 +468,7 @@ destfs_is_debian() {
 }
 
 destfs_is_alpine() {
-    destfs_is_select && test -f "$file_alpine_release"
+    ! destfs_is_select && test -f "$file_alpine_release"
 }
 
 destfs_is_select() {
