@@ -22,7 +22,10 @@ stop_post() {
 start() {
 	h_suffix="aok"
 	#  Ensure suffix is not added multiple times if this is restarted
-	hostname | ! grep -q "\-$h_suffix" && echo "$(hostname)-$h_suffix" >/etc/hostname
+	hostname | grep -q "\-$h_suffix" || {
+            echo "$(hostname)-$h_suffix" > /etc/hostname
+        }
+
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
 	/usr/local/bin/wall -n "hostname is now: $(hostname)"
