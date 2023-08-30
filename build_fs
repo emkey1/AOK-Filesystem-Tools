@@ -126,12 +126,11 @@ parse_arguments() { # Multi OK 1
             ;;
 
         "-c" | "--clear")
-            do_clear
+           do_clear
             exit 0
             ;;
 
         "-C" | "--full_clear")
-            do_clear
             do_full_clear
             exit 0
             ;;
@@ -177,6 +176,7 @@ do_clear() {
 
 do_full_clear() {
     # msg_2 "do_full_clear()"
+    do_clear
     [ -e "$src_img_cache_d" ] && rm -rf "$src_img_cache_d"
     [ -e "$src_img_cache_d" ] && error_msg "Failed to clear: $src_img_cache_d"
     # msg_3 "do_full_clear() - done"

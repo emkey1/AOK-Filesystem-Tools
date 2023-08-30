@@ -629,14 +629,15 @@ unset conf_overrides
 TMPDIR="${TMPDIR:-/tmp}"
 
 #
-#  temp value until we know if this is dest FS, so that build_root_d can
+#  temp value until we know if this is dest FS, so that d_images can
 #  be selected
 #
-build_ro1t_d=""
+build_root_d=""
 #
 #  Locations build host for working on a client FS
 #
-build_base_d="$TMPDIR/AOK"
+d_images="$TMPDIR/aok_imgs"
+[ ! -d "$d_images" ] && mkdir -p "$d_images"
 
 #
 #  Used for keeping track of deploy / chroot status
@@ -654,7 +655,7 @@ fi
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
     [ -n "$DEBUG_BUILD" ] && msg_3 "running inside dest FS"
 else
-    build_root_d="$build_base_d/FS"
+    build_root_d="$TMPDIR/aok_fs"
     [ -n "$DEBUG_BUILD" ] && msg_3 "running on build host FS"
 fi
 
@@ -691,7 +692,7 @@ fi
 #
 
 #  Location for src images
-src_img_cache_d="$TMPDIR/cache_AOK_images"
+src_img_cache_d="$TMPDIR/aok_cache"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is

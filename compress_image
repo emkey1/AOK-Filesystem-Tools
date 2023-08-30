@@ -103,7 +103,7 @@ fi
 #  Clear logged build-states etc, no longer needed
 
 # set location
-tarball="$build_base_d/$tarball_fn"
+tarball="$d_images/$tarball_fn"
 
 # echo "removing temp /dev items"
 # rm  -f "$build_root_d"/dev/*
