@@ -186,12 +186,12 @@ display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
     #
-    [ "$build_env" -eq 1 ] && dbt_run_mode="Building on iSH"
-    [ "$build_env" -eq 2 ] && dbt_run_mode="Building on x86 Linux"
+    [ "$build_env" = "$be_ish" ] && dbt_run_mode="Building on iSH"
+    [ "$build_env" = "$be_linux" ] && dbt_run_mode="Building on x86 Linux"
 
     if ! $pre_build_FS; then
         dbt_run_mode="Will not chroot"
-    elif [ "$build_env" -eq 0 ]; then
+    elif [ "$build_env" = "$be_other" ]; then
         echo "Unfortunately, you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
         echo "Use another build option (try -h for help)"
@@ -343,7 +343,7 @@ select_distro_on_1st_boot() {
     #  will be run on 1st boot, a slight delay, but end result is
     #  the same.
     #
-    if [ "$build_env" -gt 0 ]; then
+    if [ "$build_env" != "$be_other" ]; then
         if ! "$aok_content"/tools/do_chroot.sh /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
@@ -360,7 +360,7 @@ select_distro_on_1st_boot() {
 prebuild_fs() {
     msg_1 "prebuild_fs()"
 
-    if [ "$build_env" -eq 0 ]; then
+    if [ "$build_env" = "$be_other" ]; then
         error_msg "Not possible to pre-build on this environment!"
     fi
 
@@ -425,7 +425,7 @@ consider_generating_tarball() {
         unset cgt_label
     fi
 
-    if [ "$build_env" -gt 0 ]; then
+    if [ "$build_env" != "$be_other" ]; then
         if [ "$build_target" = "$distro_debian" ]; then
             set_shell="/bin/sh"
         else

@@ -127,7 +127,7 @@ echo
 
 deploy_starting
 
-if [ "$build_env" -eq 0 ]; then
+if [ "$build_env" = "$be_other" ]; then
     echo
     echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
     echo "##           You have been warned"

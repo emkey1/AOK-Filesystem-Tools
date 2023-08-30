@@ -667,13 +667,17 @@ f_deploy_state="${build_root_d}${f_deploy_state_raw}"
 #  1 = iSH
 #  2 = Linux (x86)
 #
+#  >0   != "$be_other"  - no chroot
 
+be_ish="Build env iSH"
+be_linux="Build env x86 Linux"
+be_other="Build env other"
 if this_is_ish; then
-    build_env=1
+    build_env="$be_ish" # 1
 elif uname -a | grep -qi linux && uname -a | grep -q -e x86 -e i686; then
-    build_env=2
+    build_env="$be_linux" # 2
 else
-    build_env=0 # chroot not possible
+    build_env="$be_other" # chroot not possible 0
 fi
 
 if [ -n "$DEBUG_BUILD" ]; then

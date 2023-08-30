@@ -243,7 +243,7 @@ env_prepare() {
     [ ! -d "$d_proc" ] && error_msg "Directory $d_proc is missing"
     mount -t proc proc "$d_proc"
 
-    if [ "$build_env" -eq 1 ]; then
+    if [ "$build_env" = "$be_ish" ]; then
         # msg_3 "Setting up needed /dev items"
 
         mknod "$CHROOT_TO"/dev/null c 1 3
@@ -396,7 +396,7 @@ if this_is_ish && hostfs_is_debian; then
     echo "************"
 fi
 
-if [ "$build_env" -eq 0 ]; then
+if [ "$build_env" = "$be_other" ]; then
     echo
     echo "AOK can only be chrooted on iSH or Linux (x86)"
     echo

@@ -83,7 +83,7 @@ identify_available_linters() {
         if [[ -n "${checkbashisms_p}" ]]; then
             printf "%s " "checkbashisms"
             #  shellcheck disable=SC2154
-            if [[ "$build_env" -eq 1 ]]; then
+            if [[ "$build_env" = "$be_ish" ]]; then
                 if checkbashisms --version | grep -q 2.21; then
                     echo
                     echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
