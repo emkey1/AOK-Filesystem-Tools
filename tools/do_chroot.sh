@@ -132,34 +132,17 @@ exists_and_empty() {
     [ "$_fnc_calls" = 1 ] && msg_3 "exists_and_empty() - done"
 }
 
-umount_mounted() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "umount_mounted($1)"
-    # Only attempt unmount if it was mounted
-    _um="$1"
-
-    defined_and_existing "$_um"
-    if mount | grep -q "$_um"; then
-        umount "$_um" || error_msg "Failed to unmount $_um"
-    else
-        msg_3 "$_um - was not mounted"
-    fi
-    [ -d "$_um" ] && cleanout_sys_dir "$_um"
-    unset _um
-
-    [ "$_fnc_calls" = 1 ] && msg_3 "umount_mounted() - done"
-}
-
-cleanout_sys_dir() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "cleanout_sys_dir($1)"
+cleanout_dir_after_umount() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "cleanout_dir_after_umount($1)"
 
     d_clear="$1"
-    [ -z "$d_clear" ] && error_msg "cleanout_sys_dir() no param provided"
-    [ ! -d "$d_clear" ] && error_msg "cleanout_sys_dir($d_clear) no such folder"
+    [ -z "$d_clear" ] && error_msg "cleanout_dir_after_umount() no param provided"
+    [ ! -d "$d_clear" ] && error_msg "cleanout_dir_after_umount($d_clear) no such folder"
 
     if [ -n "${d_clear##$CHROOT_TO*}" ]; then
-	error_msg "cleanout_sys_dir($d_clear) not part of chroot point! [$CHROOT_TO]"
+	error_msg "cleanout_dir_after_umount($d_clear) not part of chroot point! [$CHROOT_TO]"
     elif [ "$d_clear" = "$CHROOT_TO" ]; then
-	error_msg "cleanout_sys_dir($d_clear) is chroot point!"
+	error_msg "cleanout_dir_after_umount($d_clear) is chroot point!"
     fi
 
 
@@ -173,7 +156,24 @@ cleanout_sys_dir() {
     fi
     unset d_clear
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "cleanout_sys_dir() - done"
+    [ "$_fnc_calls" = 1 ] && msg_3 "cleanout_dir_after_umount() - done"
+}
+
+umount_mounted() {
+    [ "$_fnc_calls" = 1 ] && msg_2 "umount_mounted($1)"
+    # Only attempt unmount if it was mounted
+    _um="$1"
+
+    defined_and_existing "$_um"
+    if mount | grep -q "$_um"; then
+        umount "$_um" || error_msg "Failed to unmount $_um"
+    else
+        msg_3 "$_um - was not mounted"
+    fi
+    [ -d "$_um" ] && cleanout_dir_after_umount "$_um"
+    unset _um
+
+    [ "$_fnc_calls" = 1 ] && msg_3 "umount_mounted() - done"
 }
 
 set_chroot_to() {

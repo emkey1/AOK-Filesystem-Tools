@@ -468,16 +468,11 @@ destfs_is_debian() {
 }
 
 destfs_is_alpine() {
-    test -f "$build_root_d"/etc/alpine-release
-
-    # TODO: what is the purpose of this?
-    #! destfs_is_select && test -f "$file_alpine_release"
+    destfs_is_select && test -f "$file_alpine_release"
 }
 
-# TODO: what is the purpose of this?
 destfs_is_select() {
     [ -f "$destfs_select_hint" ]
-    # [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
 }
 
 destfs_detect() {
@@ -769,7 +764,6 @@ deploy_state_pre_build="prebuild"        # building FS on buildhost, no details 
 deploy_state_dest_build="dest build"     # building FS on dest, dest details can be gathered
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
-# TODO: what is the purpose of theese two?
 destfs_select="select"
 destfs_select_hint="$build_root_d"/etc/opt/select_distro
 
