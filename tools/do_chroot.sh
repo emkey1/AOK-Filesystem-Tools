@@ -14,11 +14,12 @@
 #  many functions use variable names of the form
 #  _ + shorthand for func name
 #
-#  Debug help, set to 1 to display entry and exit of functions
-_fnc_calls=0
+#  Debug help, set to 1 to display entry  of functions
+#  set to 2 to also display exits
+_fnc_calls=1
 
 can_chroot_run_now() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "can_chroot_run_now()"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "can_chroot_run_now()"
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot destination does not exist: $CHROOT_TO"
 
@@ -48,7 +49,7 @@ can_chroot_run_now() {
     fi
     unset _pid
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "can_chroot_run_now() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "can_chroot_run_now() - done"
 }
 
 #
@@ -57,7 +58,7 @@ can_chroot_run_now() {
 #
 # shellcheck disable=SC2317  # Don't warn about unreachable code
 cleanup() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "cleanup($1)"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "cleanup($1)"
 
     _signal="$1" # this was triggered by trap
     case "$_signal" in
@@ -82,18 +83,18 @@ cleanup() {
     unset _signal
 
     env_restore
-    [ "$_fnc_calls" = 1 ] && msg_3 "cleanup() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "cleanup() - done"
 }
 
 defined_and_existing() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "defined_and_existing($1)"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "defined_and_existing($1)"
 
     _dae="$1"
     [ -z "$_dae" ] && error_msg "defined_and_existing() no param provided"
     [ ! -d "$_dae" ] && error_msg "defined_and_existing($_dae) no such folder"
     unset _dae
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "defined_and_existing() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "defined_and_existing() - done"
 }
 
 ensure_dev_paths_are_defined() {
@@ -101,7 +102,7 @@ ensure_dev_paths_are_defined() {
     #  This ensures that all the system path variables have been defined,
     #  to minimize risk of having to abort half way through a procedure
     #
-    [ "$_fnc_calls" = 1 ] && msg_2 "ensure_dev_paths_are_defined()"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "ensure_dev_paths_are_defined()"
 
     defined_and_existing "$CHROOT_TO"
     defined_and_existing "$d_proc"
@@ -118,22 +119,22 @@ ensure_dev_paths_are_defined() {
 	defined_and_existing "$d_dev_pts"
     fi
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "ensure_dev_paths_are_defined() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined() - done"
 }
 
 exists_and_empty() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "exists_and_empty($1)"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "exists_and_empty($1)"
 
     _eae="$1"
     defined_and_existing "$_eae"
     [ "$(find "$_eae" | wc -l)" -gt 1 ] && error_msg "exists_and_empty($_eae) -Not empty"
     unset _eae
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "exists_and_empty() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "exists_and_empty() - done"
 }
 
 cleanout_dir_after_umount() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "cleanout_dir_after_umount($1)"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "cleanout_dir_after_umount($1)"
 
     d_clear="$1"
     [ -z "$d_clear" ] && error_msg "cleanout_dir_after_umount() no param provided"
@@ -156,11 +157,11 @@ cleanout_dir_after_umount() {
     fi
     unset d_clear
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "cleanout_dir_after_umount() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir_after_umount() - done"
 }
 
 umount_mounted() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "umount_mounted($1)"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "umount_mounted($1)"
     # Only attempt unmount if it was mounted
     _um="$1"
 
@@ -173,21 +174,14 @@ umount_mounted() {
     [ -d "$_um" ] && cleanout_dir_after_umount "$_um"
     unset _um
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "umount_mounted() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "umount_mounted() - done"
 }
 
-set_chroot_to() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "set_chroot_to($1)"
+define_chroot_env() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "define_chroot_env()"
 
-    _chrt="$1"
-    [ -z "$_chrt" ] && error_msg "set_chroot_to() no param"
-    [ ! -d "$_chrt" ] && error_msg "set_chroot_to($_chrt) - path does not exist!"
-
-    #
-    #  Sanity check that it is a FS without issues
-    #
-    CHROOT_TO="$_chrt"
-    unset _chrt
+    [ -z "$CHROOT_TO" ] && error_msg "define_chroot_env() CHROOT_TO not defined!"
+    [ ! -d "$CHROOT_TO" ] && error_msg "define_chroot_env() - path does not exist: $CHROOT_TO"
 
     #
     #  Must be called whenever CHROOT_TO is changed, like by param -p
@@ -202,7 +196,11 @@ set_chroot_to() {
     exists_and_empty "$d_sys"
     exists_and_empty "$d_dev"
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "set_chroot_to() - done"
+    #echo
+    #echo ">>> =======  CHROOT_TO: [$CHROOT_TO]  ============="
+    #echo
+    
+    [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
 }
 
 use_root_shell_as_default_cmd() {
@@ -212,18 +210,18 @@ use_root_shell_as_default_cmd() {
     #  to use a shell that is either not available, nor
     #  not found in the expeted location
     #
-    [ "$_fnc_calls" = 1 ] && msg_2 "use_root_shell_as_default_cmd()"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "use_root_shell_as_default_cmd()"
 
     f_etc_pwd="${CHROOT_TO}/etc/passwd"
     [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
     cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
     unset f_etc_pwd
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "use_root_shell_as_default_cmd() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "use_root_shell_as_default_cmd() - done"
 }
 
 env_prepare() {
-    [ "$_fnc_calls" = 1 ] && msg_2 "env_prepare()"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "env_prepare()"
 
     ensure_dev_paths_are_defined "skip_pts"
 
@@ -272,12 +270,12 @@ env_prepare() {
     # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "env_prepare() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "env_prepare() - done"
 }
 
 #  shellcheck disable=SC2120
 env_restore() {
-    if [ "$_fnc_calls" = 1 ]; then
+    if [ "$_fnc_calls" -gt 0 ]; then
         if [ -n "$env_restore_started" ]; then
             msg_1 "env_restore() has already been called, skipping"
             return
@@ -315,7 +313,7 @@ env_restore() {
         rm -f "$pidfile_do_chroot"
     }
 
-    [ "$_fnc_calls" = 1 ] && msg_3 "env_restore() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "env_restore() - done"
 }
 
 show_help() {
@@ -350,7 +348,7 @@ chroot_statuses() {
     #  This is mostly a debug helper, so only informative
     #  does not contribute to the actual process
     #
-    [ "$_fnc_calls" = 1 ] && msg_2 "chroot_statuses($1)"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "chroot_statuses($1)"
 
     [ -n "$1" ] && msg_1 "chroot_statuses - $1"
 
@@ -365,7 +363,7 @@ chroot_statuses() {
     else
         msg_3 "Dest not"
     fi
-    [ "$_fnc_calls" = 1 ] && msg_3 "chroot_statuses() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "chroot_statuses() - done"
 }
 
 #===============================================================
@@ -390,7 +388,7 @@ hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
-set_chroot_to "$build_root_d"
+CHROOT_TO="$build_root_d"
 
 if this_is_ish && hostfs_is_debian; then
     echo "************"
@@ -436,7 +434,7 @@ case "$1" in
 
 "-p" | "--path")
     if [ -d "$2" ]; then
-        set_chroot_to "$2"
+        CHROOT_TO="$2"
         shift # get rid of the option
         shift # get rid of the dir
     else
@@ -457,6 +455,7 @@ case "$1" in
     echo "This will continue in 5 secnods, hit Ctrl-C if you want to abort"
     sleep 5
 
+    define_chroot_env
     can_chroot_run_now
     env_restore
     exit 0
@@ -471,6 +470,7 @@ case "$1" in
 
 esac
 
+define_chroot_env
 can_chroot_run_now
 
 #error_msg "abort after checking for existance"
