@@ -11,12 +11,15 @@
 #
 #  Since this is a POSIX script, there are no local variables,
 #  to minimize risk of unintentionally changing an outer variable
-#  many functions use variable names of the form
-#  _ + shorthand for func name
+#  many functions where variables are of a temporary natue  use
+#  variable names of the form:   _ + shorthand for func name
+#
+
 #
 #  Debug help, set to 1 to display entry  of functions
 #  set to 2 to also display exits
-_fnc_calls=1
+#
+_fnc_calls=0
 
 can_chroot_run_now() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "can_chroot_run_now()"
@@ -25,7 +28,6 @@ can_chroot_run_now() {
 
     [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
     if [ -f "$pidfile_do_chroot" ]; then
-        # error_msg "pid exists"
         # Read the PID from the file
         _pid=$(cat "$pidfile_do_chroot")
 
@@ -106,17 +108,19 @@ ensure_dev_paths_are_defined() {
 
     defined_and_existing "$CHROOT_TO"
     defined_and_existing "$d_proc"
-    defined_and_existing "$d_sys"
     defined_and_existing "$d_dev"
-    if [ "$1" = "skip_pts" ]; then
-	#
-	#  Before mounting the resources dev/pts will not exist, so
-	#  preparational checks will need to handle /dev/pts as a special case.
-	#  At that point all that can be done is to verify that it has been set
-	#
-	[ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
-    else
-	defined_and_existing "$d_dev_pts"
+    if [ "$build_env" = "$be_linux" ]; then
+	defined_and_existing "$d_sys"
+	if [ "$1" = "skip_pts" ]; then
+	    #
+	    #  Before mounting the resources dev/pts will not exist, so
+	    #  preparational checks will need to handle /dev/pts as a special case.
+	    #  At that point all that can be done is to verify that it has been set
+	    #
+	    [ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
+	else
+	    defined_and_existing "$d_dev_pts"
+	fi
     fi
 
     [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined() - done"
@@ -133,17 +137,17 @@ exists_and_empty() {
     [ "$_fnc_calls" = 2 ] && msg_3 "exists_and_empty() - done"
 }
 
-cleanout_dir_after_umount() {
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "cleanout_dir_after_umount($1)"
+cleanout_dir() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "cleanout_dir($1)"
 
     d_clear="$1"
-    [ -z "$d_clear" ] && error_msg "cleanout_dir_after_umount() no param provided"
-    [ ! -d "$d_clear" ] && error_msg "cleanout_dir_after_umount($d_clear) no such folder"
+    [ -z "$d_clear" ] && error_msg "cleanout_dir() no param provided"
+    [ ! -d "$d_clear" ] && error_msg "cleanout_dir($d_clear) no such folder"
 
-    if [ -n "${d_clear##$CHROOT_TO*}" ]; then
-	error_msg "cleanout_dir_after_umount($d_clear) not part of chroot point! [$CHROOT_TO]"
+    if [ -n "${d_clear##"$CHROOT_TO"*}" ]; then
+	error_msg "cleanout_dir($d_clear) not part of chroot point! [$CHROOT_TO]"
     elif [ "$d_clear" = "$CHROOT_TO" ]; then
-	error_msg "cleanout_dir_after_umount($d_clear) is chroot point!"
+	error_msg "cleanout_dir($d_clear) is chroot point!"
     fi
 
 
@@ -157,21 +161,20 @@ cleanout_dir_after_umount() {
     fi
     unset d_clear
 
-    [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir_after_umount() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir() - done"
 }
 
 umount_mounted() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "umount_mounted($1)"
-    # Only attempt unmount if it was mounted
-    _um="$1"
 
+    _um="$1"
     defined_and_existing "$_um"
     if mount | grep -q "$_um"; then
         umount "$_um" || error_msg "Failed to unmount $_um"
     else
         msg_3 "$_um - was not mounted"
     fi
-    [ -d "$_um" ] && cleanout_dir_after_umount "$_um"
+    [ -d "$_um" ] && cleanout_dir "$_um"
     unset _um
 
     [ "$_fnc_calls" = 2 ] && msg_3 "umount_mounted() - done"
@@ -186,20 +189,14 @@ define_chroot_env() {
     #
     #  Must be called whenever CHROOT_TO is changed, like by param -p
     #
-    d_proc="${CHROOT_TO}/proc"
-    d_sys="${CHROOT_TO}/sys"
-    d_dev="${CHROOT_TO}/dev"
-    d_dev_pts="${CHROOT_TO}/dev/pts"
+    d_proc="${CHROOT_TO}/proc" ; exists_and_empty "$d_proc"
+    d_dev="${CHROOT_TO}/dev"   ; exists_and_empty "$d_dev"
 
+    if [ "$build_env" = "$be_linux" ]; then
+	d_sys="${CHROOT_TO}/sys"   ; exists_and_empty "$d_sys"
+	d_dev_pts="${CHROOT_TO}/dev/pts"
+    fi
 
-    exists_and_empty "$d_proc"
-    exists_and_empty "$d_sys"
-    exists_and_empty "$d_dev"
-
-    #echo
-    #echo ">>> =======  CHROOT_TO: [$CHROOT_TO]  ============="
-    #echo
-    
     [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
 }
 
@@ -240,33 +237,16 @@ env_prepare() {
         error_msg "This [$CHROOT_TO] is already chrooted!"
     fi
 
-    [ ! -d "$d_proc" ] && error_msg "Directory $d_proc is missing"
     mount -t proc proc "$d_proc"
 
     if [ "$build_env" = "$be_ish" ]; then
-        # msg_3 "Setting up needed /dev items"
-
-        mknod "$CHROOT_TO"/dev/null c 1 3
-        chmod 666 "$CHROOT_TO"/dev/null
-
-        mknod "$CHROOT_TO"/dev/urandom c 1 9
-        chmod 666 "$CHROOT_TO"/dev/urandom
-
-        mknod "$CHROOT_TO"/dev/zero c 1 5
-        chmod 666 "$CHROOT_TO"/dev/zero
-    else
-        [ ! -d "$d_sys" ] && error_msg "Directory $d_sys is missing"
-        [ ! -d "$d_dev" ] && error_msg "Directory $d_dev is missing"
-
+	cp -a /dev/* "$d_dev"
+    elif [ "$build_env" = "$be_linux" ]; then
         mount -t sysfs sys "$d_sys"
-        mount -o bind /dev "$d_dev"
-        #
-        #  $d_dev_pts wont exist until d_dev is mounted, so cant be
-        #  checked in advance, and if we can mount d_dev without error
-        #  it is highly unlikely to be an issue
-        #
-        mount -o bind /dev/pts "$d_dev_pts"
+	mount -o bind /dev "$d_dev"
+	mount -o bind /dev/pts "$d_dev_pts"
     fi
+
     # msg_3 "copying current /etc/resolv.conf"
     cp /etc/resolv.conf "$CHROOT_TO/etc"
 
@@ -275,6 +255,11 @@ env_prepare() {
 
 #  shellcheck disable=SC2120
 env_restore() {
+    #
+    #  This would normally be called as a mount session is terminating
+    #  so therefore the pidfile_do_chroot should not be checked.
+    #  Assume that if we get here we can do the cleanup.
+    #
     if [ "$_fnc_calls" -gt 0 ]; then
         if [ -n "$env_restore_started" ]; then
             msg_1 "env_restore() has already been called, skipping"
@@ -288,20 +273,17 @@ env_restore() {
 
     ensure_dev_paths_are_defined
 
-    #
-    #  This would normally be called as a mount session is terminating
-    #  so therefore the pidfile_do_chroot should not be checked.
-    #  Assume that if we get here we can do the cleanup.
-    #
-
-    [ -z "$d_proc" ] && error_msg "variable d_proc is undefiened"
-    [ ! -d "$d_proc" ] && error_msg "Directory $d_proc is missing"
-
     msg_3 "Un-mounting system resources"
     umount_mounted "$d_proc"
-    umount_mounted "$d_sys"
-    umount_mounted "$d_dev_pts"
-    umount_mounted "$d_dev"
+    if [ "$build_env" = "$be_ish" ]; then
+        rm -rf "${d_dev:?}"/*
+	#  ensure it is empty
+    	cleanout_dir "$d_dev"
+    elif [ "$build_env" = "$be_linux" ]; then
+	umount_mounted "$d_dev_pts"
+	umount_mounted "$d_dev"
+	umount_mounted "$d_sys"
+    fi
 
     #
     #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
@@ -411,10 +393,6 @@ cd "$aok_content" || {
     error_msg "Failed to cd into: $aok_content"
 }
 
-# if [ "$(whoami)" != "root" ]; then
-#     error_msg "This must be run as root or using sudo!"
-# fi
-
 case "$1" in
 
 "-h" | "--help")
@@ -472,8 +450,6 @@ esac
 
 define_chroot_env
 can_chroot_run_now
-
-#error_msg "abort after checking for existance"
 
 #
 #  In case something fails, always try to unmount
