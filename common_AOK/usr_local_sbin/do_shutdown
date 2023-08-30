@@ -26,13 +26,20 @@
 echo
 echo "Commencing shutdown..."
 
+date > /var/log/shutdown
+
 #
 #  Terminates all running services, not completing until all are done.
 #  During this, most remote sessions will be terminated...
 #
+echo "will do openrc shutdown" >> /var/log/shutdown
 openrc shutdown
+echo "completed openrc shutdown" >> /var/log/shutdown
 
 sleep 2  # on console, give an oportunity to see the openrc shutdown complete
 
+
 #  Should be a guaranteed insta-kill of iSH
-killall -9 init
+echo "will do   killall -9 login init" >> /var/log/shutdown
+killall -9 login init
+echo "completed killall -9 login init" >> /var/log/shutdown
