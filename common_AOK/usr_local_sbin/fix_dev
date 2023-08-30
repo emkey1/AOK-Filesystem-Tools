@@ -71,7 +71,7 @@ is_char_dev() {
 
 log_file="/var/log/fix_dev.log"
 
-log_it "Skipping fix_dev for now" 0
+# log_it "Skipping fix_dev for now" 0
 
 #
 #  When pressent fix_dev is running, so other processes during early
@@ -80,12 +80,6 @@ log_it "Skipping fix_dev for now" 0
 pid_file="/run/fixdev.pid"
 
 skip_init_check="ignore_init_check"
-
-#
-#  This should only run from init, so it is safe to ignore any previous
-#  content in the pidfile
-#
-echo "$$" >"$pid_file"
 
 if ! this_is_ish; then
     log_it "WARNING: Not iSH kernel, skipping fix_dev" 0
@@ -120,6 +114,13 @@ if [ "$1" != "$skip_init_check" ]; then
 else
     log_it "Allowed to run outside init due to $skip_init_check"
 fi
+
+#
+#  This should only run from init, so it is safe to ignore any previous
+#  content in the pidfile
+#
+echo "$$" >"$pid_file"
+
 
 while true; do
     log_it "fixing devs" -1
