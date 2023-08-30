@@ -199,7 +199,7 @@ create_user() {
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 if [[ -n "$USER_SHELL" ]]; then
-    if ! destfs_is_alpine && [ "$USER_SHELL" = "/bin/ash" ]; then
+    if ! destfs_is_alpine && [[ "$USER_SHELL" = "/bin/ash" ]]; then
 	msg_1 "Only Alpine has /bin/ash - USER_SHELL set to /bin/bash"
 	USER_SHELL="/bin/bash"
     fi
