@@ -304,20 +304,6 @@ copy_skel_files() {
     unset _csf_dest
 }
 
-set_initial_login_mode() {
-    if [ -n "$INITIAL_LOGIN_MODE" ]; then
-        #
-        #  Now that final_tasks have run as root, the desired login method
-        #  can be set.
-        #
-        msg_2 "Using defined login method. It will be used next time App is run"
-        /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
-    else
-        msg_2 "No login mode defined, disabling console login"
-        /usr/local/bin/aok -l disable
-    fi
-}
-
 #---------------------------------------------------------------
 #
 #   boolean checks
@@ -380,38 +366,6 @@ destfs_clear_chrooted() {
     fi
     # msg_3 "destfs_clear_chrooted(() - done"
 }
-
-#---------------------------------------------------------------
-#
-#   Related to custom settings
-#
-#---------------------------------------------------------------
-
-replace_home_dirs() {
-    if [ -n "$HOME_DIR_USER" ]; then
-        if [ -f "$HOME_DIR_USER" ]; then
-            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-            msg_2 "Replacing /home/$USER_NAME"
-            cd "/home" || error_msg "Failed cd /home"
-            rm -rf "$USER_NAME"
-            tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
-	else
-	    error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
-	fi
-    fi
-
-    if [ -n "$HOME_DIR_ROOT" ]; then
-        if [ -f "$HOME_DIR_ROOT" ]; then
-            msg_2 "Replacing /root"
-            rm /root -rf
-            cd / || error_msg "Failed to cd into: /"
-            tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
-	else
-	    error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
-	fi
-    fi
-}
-
 
 #---------------------------------------------------------------
 #
@@ -552,14 +506,6 @@ deploy_state_check_param() {
 
     unset _func
     unset bspc_bs
-}
-
-deploy_state_clear() {
-    msg_2 "deploy_state_clear()"
-
-    rm "$f_deploy_state"
-
-    msg_3 "deploy_state_clear() - done"
 }
 
 deploy_starting() {
