@@ -71,6 +71,7 @@ INITIAL_LOGIN_MODE="enable"
 #  If the FS is being compressed its /iCloud is first cleared, so
 #  anything you put in /iCloud will only be available for chrooted
 #  sessions on the build host.
+#  This one it is better to define in .AOK_VARS
 #
 # POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/AOK/FS"
 
@@ -80,7 +81,6 @@ INITIAL_LOGIN_MODE="enable"
 #  when it should be running inside a full AOK FS
 #  If this is a script, it must be available with this PATH on the new
 #  FS, that means it most likely needs to be in the iCloud mount.
-#  This one it is better to define in .AOK_VARS
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
 
