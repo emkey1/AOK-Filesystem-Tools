@@ -143,24 +143,19 @@ initiate_deploy Debian "$(cat /etc/debian_version)"
 
 prepare_env_etc
 
-# set runlevel
 
-msg_1 "apt update"
-apt update -y
+# msg_1 "apt update"
+# apt update -y
 
-if [ "$QUICK_DEPLOY" -eq 0 ] || [ "$QUICK_DEPLOY" -eq 2 ]; then
-    msg_1 "apt upgrade"
-    apt upgrade -y
+msg_1 "apt upgrade"
+apt upgrade -y
 
-    if [ -n "$DEB_PKGS" ]; then
-        msg_1 "Add Debian packages"
-        echo "$DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
-    fi
-    echo
-else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
+if [ -n "$DEB_PKGS" ]; then
+    msg_1 "Add Debian packages"
+    echo "$DEB_PKGS"
+    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
 fi
+echo
 
 #
 #  Common deploy, used both for Alpine & Debian

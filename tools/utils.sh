@@ -154,11 +154,6 @@ initiate_deploy() {
 
     msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${_ss_distro_name}: $_ss_vers_info"
 
-    if [ "$QUICK_DEPLOY" -ne 0 ]; then
-        echo
-        echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
-    fi
-
     manual_runbg
 
     copy_local_bins "$_ss_distro_name"

@@ -19,9 +19,6 @@ install_aok_apks() {
     if ! this_is_aok_kernel; then
         msg_1 "Skipping AOK only packages on non AOK kernel"
         return
-    elif [ "$QUICK_DEPLOY" -ne 0 ]; then
-        msg_1 "QUICK_DEPLOY - skipping AOK_APKS"
-        return
     elif [ -z "$AOK_APKS" ]; then
         msg_1 "No AOK_APKS defined"
         return

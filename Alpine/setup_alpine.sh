@@ -16,25 +16,12 @@ find_fastest_mirror() {
 }
 
 install_apks() {
-    if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
+    if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
-
-        if [ "$QUICK_DEPLOY" -eq 1 ]; then
-            #
-            #  If you want to override CORE_APKS in a quick deploy
-            #  set it to a value higher than 1
-            #
-            msg_3 "QUICK_DEPLOY=1 - doing minimal package install"
-            #  probably absolute minimal without build errors
-            # CORE_APKS="openssh bash openrc sudo dcron dcron-openrc"
-            CORE_APKS="bash openrc"
-        fi
 
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
         apk add $CORE_APKS
-    elif [ "$QUICK_DEPLOY" -eq 1 ]; then
-        msg_1 "QUICK_DEPLOY - skipping CORE_APKS"
     else
         msg_1 "No CORE_APKS defined"
     fi
@@ -54,23 +41,19 @@ prepare_env_etc() {
         ln /etc/init.d/devfs /etc/init.d/dev
     fi
 
-    if [ "$QUICK_DEPLOY" -eq 0 ]; then
-        msg_3 "Adding apk repository - testing"
-        if [ "$ALPINE_VERSION" = "edge" ]; then
-            cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-        elif min_release 3.18; then
-            #
-            #  Only works for fairly recent releases, otherwise dependencies won't
-            #  work.
-            #
-            msg_3 "  edge/testing is setup as a restricted repo, in order"
-            msg_3 "  to install testing apks do apk add foo@testing"
-            msg_3 "  In case of incompatible dependencies an error will"
-            msg_3 "  be displayed, and nothing bad will happen."
-            echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
-        fi
-    else
-        msg_2 "QUICK_DEPLOY - not adding testing repository"
+    msg_3 "Adding apk repository - testing"
+    if [ "$ALPINE_VERSION" = "edge" ]; then
+        cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+    elif min_release 3.18; then
+        #
+        #  Only works for fairly recent releases, otherwise dependencies won't
+        #  work.
+        #
+        msg_3 "  edge/testing is setup as a restricted repo, in order"
+        msg_3 "  to install testing apks do apk add foo@testing"
+        msg_3 "  In case of incompatible dependencies an error will"
+        msg_3 "  be displayed, and nothing bad will happen."
+        echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
     fi
     # msg_3 "replace_key_etc_files() done"
 }
@@ -175,13 +158,9 @@ apk upgrade
 
 install_apks
 
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "adding group sudo"
-    # apk add shadow
-    groupadd sudo
-else
-    msg_3 "QUICK_DEPLOY - skipping group sudo"
-fi
+msg_2 "adding group sudo"
+# apk add shadow
+groupadd sudo
 
 if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
@@ -214,11 +193,6 @@ if apk info -e dcron >/dev/null; then
     cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
 fi
 
-if [ "$QUICK_DEPLOY" -ne 0 ]; then
-    msg_2 "QUICK_DEPLOY - disabling custom login"
-    # shellcheck disable=SC2034
-    INITIAL_LOGIN_MODE="disable"
-fi
 
 # msg_2 "Installing dependencies for common setup"
 # apk add sudo openrc bash openssh-server

@@ -200,11 +200,6 @@ display_build_target() { # Multi OK 1
     msg_1 "Run mode: $dbt_run_mode"
     unset dbt_run_mode
 
-    if [ "$QUICK_DEPLOY" -ne 0 ]; then
-        echo
-        echo "**  Using QUICK_DEPLOY=$QUICK_DEPLOY  **"
-    fi
-
     if [ "$(whoami)" != "root" ]; then
         # Must come after help display, to avoid infinite loop
         "$0" -h

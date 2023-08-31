@@ -52,9 +52,6 @@ the hostfs. More clarity about how to refer to different roles needs to
 be found.
 
 
-
-##  upgrase_bins
-
 ### remaining
 
 - Alpine - ok

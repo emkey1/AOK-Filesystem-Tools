@@ -125,21 +125,16 @@ cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
 msg_1 "apt update"
 apt update -y
 
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_1 "apt upgrade"
-    apt upgrade -y
+msg_1 "apt upgrade"
+apt upgrade -y
 
-    if [ -n "$DEB_PKGS" ]; then
-        msg_1 "Add co43 Devuan packages"
-        echo "$DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
-    fi
-    #
-    # install_sshd
-    echo
-else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
+if [ -n "$DEB_PKGS" ]; then
+    msg_1 "Add co43 Devuan packages"
+    echo "$DEB_PKGS"
+    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
 fi
+
+# install_sshd
 
 # msg_2 "Add boot init.d items suitable for iSH"
 # rc-update add urandom boot
@@ -149,18 +144,13 @@ fi
 # rc-update add umountroot off
 # rc-update add urandom off
 
-# # skipping openrc
-# if [ "$QUICK_DEPLOY" -eq 0 ]; then
-#     msg_2 "Disable some auto-enabled services that wont make sense in iSH"
-#     openrc_might_trigger_errors
-
-#     rc-update del dbus default
-#     rc-update del elogind default
-#     rc-update del rsync default
-#     rc-update del sudo default
-# else
-#     msg_2 "QUICK_DEPLOY - did not remove default services"
-# fi
+# skipping openrc
+#msg_2 "Disable some auto-enabled services that wont make sense in iSH"
+#openrc_might_trigger_errors
+#rc-update del dbus default
+#rc-update del elogind default
+#rc-update del rsync default
+#rc-update del sudo default
 
 #
 #  Common deploy, used both for Alpine & Debian
