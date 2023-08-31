@@ -26,20 +26,26 @@
 echo
 echo "Commencing shutdown..."
 
-date > /var/log/shutdown
 
 #
 #  Terminates all running services, not completing until all are done.
 #  During this, most remote sessions will be terminated...
 #
-echo "will do openrc shutdown" >> /var/log/shutdown
+echo "will do openrc shutdown" >> /var/log/shutdown.log
 openrc shutdown
-echo "completed openrc shutdown" >> /var/log/shutdown
+echo "completed openrc shutdown" >> /var/log/shutdown.log
 
 # on console, give an oportunity to see the openrc shutdown complete
 sleep 2
 
-echo "will do   killall -9 login init" >> /var/log/shutdown
+#
+#  Havent fully figured out if login or init should be killed
+#  on iSH-AOK killall -9 login  results in an ish crash popup,
+#  but the app is gone. killall -9 login init seemingly kills it
+#  but the app window is still there if it was not in FG, and wont
+#  close until it is made the FG app
+#
+echo "will do   killall -9 login init" >> /var/log/shutdown.log
 #  Should be a guaranteed insta-kill of iSH
-killall -9 login init
-echo "completed killall -9 login init" >> /var/log/shutdown
+killall -9 login
+echo "completed killall -9 login init" >> /var/log/shutdown.log
