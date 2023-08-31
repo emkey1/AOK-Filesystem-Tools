@@ -541,7 +541,7 @@ rm "$build_root_d"/etc/motd
 
 # Should always happen
 msg_2 "Create directory /iCloud inside new filesystem"
-mkdir "$build_root_d"/iCloud
+mkdir -p "$build_root_d"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
     msg_1 "POPULATE_FS cmd: $POPULATE_FS"
