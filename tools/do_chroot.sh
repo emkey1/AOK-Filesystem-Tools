@@ -15,6 +15,9 @@
 #  variable names of the form:   _ + shorthand for func name
 #
 
+# Global exclude
+# shellcheck disable=SC2317
+
 #
 #  Debug help, set to 1 to display entry  of functions
 #  set to 2 to also display exits
@@ -168,6 +171,15 @@ umount_mounted() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "umount_mounted($1)"
 
     _um="$1"
+
+    if [ -n "${_um##*/deb/pts}" ]; then
+	#
+	#  If dev is not mounted dev/pts would not be arround
+	#  so in such cases just return, to avoid showing
+	#  an irrelevant error.
+	#
+	[ ! -d "$_um" ] && return
+    fi
     defined_and_existing "$_um"
     if mount | grep -q "$_um"; then
         umount "$_um" || error_msg "Failed to unmount $_um"
@@ -189,13 +201,14 @@ define_chroot_env() {
     #
     #  Must be called whenever CHROOT_TO is changed, like by param -p
     #
-    d_proc="${CHROOT_TO}/proc" ; exists_and_empty "$d_proc"
-    d_dev="${CHROOT_TO}/dev"   ; exists_and_empty "$d_dev"
+    d_proc="${CHROOT_TO}/proc" #; exists_and_empty "$d_proc"
+    d_dev="${CHROOT_TO}/dev"   #; exists_and_empty "$d_dev"
 
     if [ "$build_env" = "$be_linux" ]; then
-	d_sys="${CHROOT_TO}/sys"   ; exists_and_empty "$d_sys"
+	d_sys="${CHROOT_TO}/sys" #   ; exists_and_empty "$d_sys"
 	d_dev_pts="${CHROOT_TO}/dev/pts"
     fi
+    ensure_dev_paths_are_defined "skip_pts"
 
     [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
 }
@@ -271,7 +284,7 @@ env_restore() {
     fi
     env_restore_started=1
 
-    ensure_dev_paths_are_defined
+    ensure_dev_paths_are_defined skip_pts
 
     msg_3 "Un-mounting system resources"
     umount_mounted "$d_proc"
@@ -301,7 +314,7 @@ env_restore() {
 show_help() {
     # msg_2 "show_help()"
 
-    cat <<EOF
+    echo "
 Usage: $prog_name [-h] [-a] [-c] [-C] [-p dir] [command]
 
 Available options:
@@ -320,8 +333,7 @@ used -p to chroot to a custom path, you must take care to give
 -p BEFORE -c in order for this to know what reminant mount points to
 clean up!
 
-EOF
-
+"
     # msg_3 "show_help() - done"
 }
 
@@ -421,6 +433,8 @@ case "$1" in
     ;;
 
 "-c" | "--cleanup")
+    cleanup_sleep=2
+    can_chroot_run_now
     echo
     echo "Will cleanup the mount point: $CHROOT_TO"
     echo
@@ -430,11 +444,10 @@ case "$1" in
     echo
     echo "$prog_name -p /custom/path -c"
     echo
-    echo "This will continue in 5 secnods, hit Ctrl-C if you want to abort"
-    sleep 5
+    echo "This will continue in $cleanup_sleep secnods, hit Ctrl-C if you want to abort"
+    sleep "$cleanup_sleep"
 
     define_chroot_env
-    can_chroot_run_now
     env_restore
     exit 0
     ;;
