@@ -24,6 +24,8 @@ interrupt_handler() {
     exit 1
 }
 
+hold_time=10
+
 notification="
 
     *** SYSTEM SHUTDOWN NOTICE ***
@@ -59,11 +61,11 @@ fi
 trap interrupt_handler INT
 
 echo
-echo "Abort shut down by hitting Ctrl-C within 10 secoonds"
+echo "Abort shut down by hitting Ctrl-C within $hold_time secoonds"
 echo
 
 echo
-sleep 10
+sleep "$hold_time"
 
 #
 #  If this is done via remote connection, the openrc shutdown
@@ -74,4 +76,5 @@ sleep 10
 #  Since do_shutdown will shut the system down without any warning,
 #  it has no shebang, so intended shell must be mentioned by the caller.
 #
-/bin/sh /usr/local/sbin/do_shutdown &
+date > /var/log/shutdown.log
+/bin/sh /usr/local/sbin/do_shutdown | tee -a /var/log/shutdown.log &
