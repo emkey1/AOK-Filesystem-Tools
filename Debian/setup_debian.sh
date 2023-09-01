@@ -153,7 +153,7 @@ apt upgrade -y
 if [ -n "$DEB_PKGS" ]; then
     msg_1 "Add Debian packages"
     echo "$DEB_PKGS"
-    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
+    bash -c "apt install -y $DEB_PKGS"
 fi
 echo
 
