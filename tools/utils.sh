@@ -319,21 +319,6 @@ copy_local_bins() {
     # msg_3 "copy_local_bins() done"
 }
 
-copy_skel_files() {
-    _csf_dest="$1"
-    if [ -z "$_csf_dest" ]; then
-        error_msg "copy_skel_files() needs a destination param"
-    fi
-    cp -r /etc/skel/. "$_csf_dest"
-    cd "$_csf_dest" || {
-        error_msg "Failed to cd into: $_csf_dest"
-    }
-
-    ln -sf .bash_profile .bashrc
-
-    unset _csf_dest
-}
-
 #---------------------------------------------------------------
 #
 #   boolean checks
