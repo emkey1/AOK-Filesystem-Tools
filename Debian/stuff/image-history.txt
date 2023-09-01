@@ -1,0 +1,20 @@
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Log over changes in the Debian1-minim-x tarballs
+#  used as minimal file-systems to generate
+#  Debian10-x-aok-y tarballs with all the AOK stuff
+#  preinstalled.
+#
+
+--- Debian10-minim-4
+Removed some pkgs not usable in iSH
+Ran mandb -c to hopefully get future updates of mandb to run quicker
+
+--- Debian10-minim-3
+Added some locales:
+  en_US.utf8 en_GB.utf8                                                      

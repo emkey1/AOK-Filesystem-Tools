@@ -502,6 +502,7 @@ mkdir -p "$d_build_root"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
     msg_1 "POPULATE_FS: $POPULATE_FS"
+    $POPULATE_FS
 fi
 
 if [ "$build_target" = "$distro_debian" ]; then
