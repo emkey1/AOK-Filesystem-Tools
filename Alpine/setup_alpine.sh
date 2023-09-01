@@ -25,6 +25,15 @@ install_apks() {
     else
         msg_1 "No CORE_APKS defined"
     fi
+
+    #
+    #  Install some custom apks, where the current repo version cant
+    #  be used
+    #
+    msg_2 "Custom apks"
+    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk &>/dev/null; then
+	apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk
+    fi
 }
 
 prepare_env_etc() {
