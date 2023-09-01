@@ -253,6 +253,11 @@ env_prepare() {
     mount -t proc proc "$d_proc"
 
     if [ "$build_env" = "$be_ish" ]; then
+	#
+	#  I havent figured out how to mount /dev on iSH for the
+	#  chrooted env, so for now, I simply copy the host /dev files
+	#  into the chroot env. And remove them when exiting
+	#
 	cp -a /dev/* "$d_dev"
     elif [ "$build_env" = "$be_linux" ]; then
         mount -t sysfs sys "$d_sys"
