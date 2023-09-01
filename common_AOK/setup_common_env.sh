@@ -149,8 +149,8 @@ create_user() {
     #  Determine what shell to use for custom user
     #
     if [[ -n "$USER_SHELL" ]]; then
-        if [[ ! -x "${build_root_d}$USER_SHELL" ]]; then
-            error_msg "User shell not found: ${build_root_d} $USER_SHELL"
+        if [[ ! -x "${d_build_root}$USER_SHELL" ]]; then
+            error_msg "User shell not found: ${d_build_root} $USER_SHELL"
         fi
         use_shell="$USER_SHELL"
         msg_3 "User shell: $use_shell"

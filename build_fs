@@ -32,7 +32,7 @@ Available options:
                    for quicker imports on target device, but up to 10
                    times larger image file.
                    This can only be done on iSH or Linux (x86)!
--c  --clear        Empty the build env ($build_root_d)
+-c  --clear        Empty the build env ($d_build_root)
 -C  --full_clear   Do a clear, and in addition clear the download cache
 -j  --bzip2        Use bzip2 compression for distribution
 -N  --no_compress  Terminates when FS is prepared, without generating
@@ -162,9 +162,9 @@ do_clear() {
     [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
     [ -f "$pidfile_do_chroot" ] && error_msg "do_chroot.sh seems to be running!"
 
-    [ ! -e "$build_root_d" ] && error_msg "Buildenv not pressent: $build_root_d"
-    rm -rf "$build_root_d"
-    [ -e "$build_root_d" ] && error_msg "Failed to clear: $build_root_d"
+    [ ! -e "$d_build_root" ] && error_msg "Buildenv not pressent: $d_build_root"
+    rm -rf "$d_build_root"
+    [ -e "$d_build_root" ] && error_msg "Failed to clear: $d_build_root"
     # msg_3 "do_clear() - done"
 }
 
@@ -200,7 +200,7 @@ display_build_target() { # Multi OK 1
         error_msg "This must be run as root or using sudo!"
     fi
 
-    if [ "$(find "$build_root_d"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
+    if [ "$(find "$d_build_root"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
         echo "ERROR: Active chroot session detected!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         tools/do_chroot.sh -c"
@@ -261,7 +261,7 @@ copy_AOK_to_dest() {
     msg_2 "copy_AOK_to_dest()"
 
     mkdir -p "$aok_files"
-    mkdir -p "$build_root_d"/etc/opt
+    mkdir -p "$d_build_root"/etc/opt
 
     rsync -ah \
         --exclude=.git/ \
@@ -269,7 +269,7 @@ copy_AOK_to_dest() {
         --exclude=.gitmodules \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        "$aok_content" "$build_root_d"/opt
+        "$aok_content" "$d_build_root"/opt
 
     io_dst_conf="$aok_files"/AOK_VARS
     io_conf_overrides="$aok_content"/.AOK_VARS
@@ -384,9 +384,9 @@ consider_generating_tarball() {
             cgt_extra_params="$cgt_extra_params -j"
         fi
 
-        if [ -n "$build_root_d" ] && ls -A "$build_root_d"/iCloud/* >/dev/null 2>&1; then
+        if [ -n "$d_build_root" ] && ls -A "$d_build_root"/iCloud/* >/dev/null 2>&1; then
             msg_3 "Clearing /iCloud before generating image"
-            rm "$build_root_d"/iCloud/* -rf
+            rm "$d_build_root"/iCloud/* -rf
         fi
 
 	#
@@ -458,7 +458,7 @@ use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true means generate pre-built FS
 aok_FS_do_compress=true       # compress FS at end of build_fs
 
-aok_files="${build_root_d}${aok_content}"
+aok_files="${d_build_root}${aok_content}"
 
 parse_arguments "$@"
 
@@ -468,8 +468,8 @@ display_build_target
 
 msg_2 "Preparing build environment"
 
-msg_3 "Clearing build root $build_root_d"
-rm -rf "$build_root_d"
+msg_3 "Clearing build root $d_build_root"
+rm -rf "$d_build_root"
 
 if [ "$build_target" = "$distro_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
@@ -483,7 +483,7 @@ else
 fi
 
 cache_fs_image
-create_fs "${src_img_cache_d}/$src_tarball" "$build_root_d" "$verbose"
+create_fs "${src_img_cache_d}/$src_tarball" "$d_build_root" "$verbose"
 
 copy_AOK_to_dest
 msg_3 "Deployed $aok_content on new filesystem"
@@ -494,11 +494,11 @@ msg_3 "Deployed $aok_content on new filesystem"
 #  deleting the default one both on Alpine & Debian makes sence.
 #
 msg_2 "Remove initial /etc/motd from new filesystem"
-rm "$build_root_d"/etc/motd
+rm "$d_build_root"/etc/motd
 
 # Should always happen
 msg_2 "Create directory /iCloud inside new filesystem"
-mkdir -p "$build_root_d"/iCloud
+mkdir -p "$d_build_root"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
     msg_1 "POPULATE_FS: $POPULATE_FS"
@@ -527,7 +527,7 @@ if [ "$build_env" != "$be_other" ]; then
         shell_not_triggering_profile="/bin/sh"
     fi
     msg_1 "How to access the just created FS from this env"
-    echo "The newly created FS is located at: $build_root_d"
+    echo "The newly created FS is located at: $d_build_root"
     echo
     echo "If there are remining deploy steps, they will be auto-performed"
     echo "when you chroot."

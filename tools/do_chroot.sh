@@ -322,7 +322,7 @@ Available options:
 -h  --help      Print this help and exit
 -a  --available Reports if this can be run now
 -c  --cleanup   Cleanup env if something crashed whilst sudoed
--p, --path      What dir to chroot into, defaults to: $build_root_d
+-p, --path      What dir to chroot into, defaults to: $d_build_root
 command         Defaults to the shell used by root within the env
 
 chroot with env setup so this works on both Linux & iSH
@@ -382,7 +382,7 @@ hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
-CHROOT_TO="$build_root_d"
+CHROOT_TO="$d_build_root"
 
 if this_is_ish && hostfs_is_debian; then
     echo "************"
@@ -472,7 +472,7 @@ trap 'cleanup TERM' TERM
 
 env_prepare
 
-[ -z "$build_root_d" ] && error_msg "build_root_d empty!" 1
+[ -z "$d_build_root" ] && error_msg "d_build_root empty!" 1
 
 if [ "$1" = "" ]; then
     use_root_shell_as_default_cmd
@@ -484,10 +484,10 @@ else
         #  State of requested command cant really be examined without
         #  a full path
         #
-        if ! [ -f "${build_root_d}${_cmd}" ]; then
-            msg_1 "Might not work, file not found: ${build_root_d}${_cmd}"
-        elif ! [ -x "${build_root_d}${_cmd}" ]; then
-            msg_1 "Might not work, file not executable: ${build_root_d}${_cmd}"
+        if ! [ -f "${d_build_root}${_cmd}" ]; then
+            msg_1 "Might not work, file not found: ${d_build_root}${_cmd}"
+        elif ! [ -x "${d_build_root}${_cmd}" ]; then
+            msg_1 "Might not work, file not executable: ${d_build_root}${_cmd}"
         fi
     fi
 fi
@@ -504,7 +504,7 @@ destfs_set_is_chrooted
 
 if [ -n "$DEBUG_BUILD" ]; then
     chroot_statuses "After setting destfs"
-    msg_2 "build_root_d [$build_root_d]"
+    msg_2 "d_build_root [$d_build_root]"
     msg_3 "Detected: [$(destfs_detect)]"
     echo
     echo ">>> -----  displaying host fs status"
@@ -512,7 +512,7 @@ if [ -n "$DEBUG_BUILD" ]; then
     echo ">>> -----"
     echo
     echo ">>> -----  displaying dest fs status"
-    find "$build_root_d"/etc/opt
+    find "$d_build_root"/etc/opt
     echo ">>> -----"
     echo
     msg_1 "==========  doing chroot  =========="

@@ -27,8 +27,8 @@ Available options:
 clear_build_triggered_logfiles() {
     f_fd_log="/var/log/fix_dev.log"
     f_sys_log="/var/log/syslog"
-    br_fd_log="${build_root_d}$f_fd_log"
-    br_sys_log="${build_root_d}$f_sys_log"
+    br_fd_log="${d_build_root}$f_fd_log"
+    br_sys_log="${d_build_root}$f_sys_log"
     if [ -f "$br_fd_log" ] || [ -f "br_sys_log" ]; then
 	msg_2 "Removing log files generated during preparations on client FS"
 	[ -f "$br_fd_log" ] && msg_3 "$f_fd_log" && rm -f "$br_fd_log"
@@ -81,11 +81,11 @@ while [ -n "$1" ]; do
     shift
 done
 
-if [ ! -d "$build_root_d" ]; then
-    error_msg "No image built empty dir: [$build_root_d]!"
+if [ ! -d "$d_build_root" ]; then
+    error_msg "No image built empty dir: [$d_build_root]!"
 fi
 
-if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
+if [ "$(find "$d_build_root"/dev | wc -l)" -gt 1 ]; then
     error_msg "Active chroot session detected!"
 fi
 
@@ -116,13 +116,13 @@ fi
 tarball="$d_images/$tarball_fn"
 
 # echo "removing temp /dev items"
-# rm  -f "$build_root_d"/dev/*
+# rm  -f "$d_build_root"/dev/*
 
 #
 # Tar up and zip the result
 #
-cd "$build_root_d" || {
-    error_msg "Failed to cd into: $build_root_d"
+cd "$d_build_root" || {
+    error_msg "Failed to cd into: $d_build_root"
 }
 
 if $use_bzip2; then

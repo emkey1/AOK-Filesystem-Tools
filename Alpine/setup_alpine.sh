@@ -114,7 +114,7 @@ if [ -n "$DEBUG_BUILD" ]; then
     else
         msg_3 "NOT chrooted!"
     fi
-    msg_3 "build_root_d [$build_root_d]"
+    msg_3 "d_build_root [$d_build_root]"
     msg_3 "Detected: [$(destfs_detect)]"
     msg_2 ">>>  Debug, dropping into ash"
     /bin/ash

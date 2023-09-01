@@ -28,14 +28,14 @@ log_it() {
 	error_msg "log_it() called without LOG_FILE defined!"
     fi
     #  Ensure dir for LOG_FILE exists
-    _log_dir="$(dirname -- "${build_root_d}$LOG_FILE")"
+    _log_dir="$(dirname -- "${d_build_root}$LOG_FILE")"
     if [ ! -d "$_log_dir" ]; then
 	echo "Will create log_dir: $_log_dir"
 	# sleep 3
 	mkdir -p "$_log_dir"
     fi
 
-    echo "$_li" >> "${build_root_d}$LOG_FILE" # 2>&1
+    echo "$_li" >> "${d_build_root}$LOG_FILE" # 2>&1
     unset _li
     unset _log_dir
 }
@@ -204,15 +204,15 @@ set_new_etc_profile() {
     #  Avoid file replacement whilst running doesnt overwrite the
     #  previous script without first removing it, leaving a garbled file
     #
-    rm "$build_root_d"/etc/profile
+    rm "$d_build_root"/etc/profile
 
-    cp -a "$sp_new_profile" "$build_root_d"/etc/profile
+    cp -a "$sp_new_profile" "$d_build_root"/etc/profile
 
     #
     #  Normaly profile is sourced, but in order to be able to directly
     #  run it if manually triggering a deploy, make it executable
     #
-    chmod 744 "$build_root_d"/etc/profile
+    chmod 744 "$d_build_root"/etc/profile
     unset sp_new_profile
     # msg_3 "set_new_etc_profile() done"
 }
@@ -224,7 +224,7 @@ create_fs() {
     msg_2 "create_fs()"
     _cf_tarball="$1"
     [ -z "$_cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
-    _cf_fs_location="${2:-$build_root_d}"
+    _cf_fs_location="${2:-$d_build_root}"
     msg_3 "will be deployed in: $_cf_fs_location"
     _cf_verbose="${3:-false}"
     if $_cf_verbose; then # verbose mode
@@ -440,11 +440,11 @@ hostfs_detect() {
 #---------------------------------------------------------------
 
 destfs_is_devuan() {
-    test -f "$build_root_d"/etc/devuan_version
+    test -f "$d_build_root"/etc/devuan_version
 }
 
 destfs_is_debian() {
-    test -f "$build_root_d"/etc/debian_version && ! destfs_is_devuan
+    test -f "$d_build_root"/etc/debian_version && ! destfs_is_devuan
 }
 
 destfs_is_alpine() {
@@ -604,7 +604,7 @@ TMPDIR="${TMPDIR:-/tmp}"
 #  temp value until we know if this is dest FS, so that d_images can
 #  be selected
 #
-build_root_d=""
+d_build_root=""
 #
 #  Locations build host for working on a client FS
 #
@@ -627,12 +627,12 @@ fi
 if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
     [ -n "$DEBUG_BUILD" ] && msg_3 "running inside dest FS"
 else
-    build_root_d="$TMPDIR/aok_fs"
+    d_build_root="$TMPDIR/aok_fs"
     [ -n "$DEBUG_BUILD" ] && msg_3 "running on build host FS"
 fi
 
-f_this_fs_is_chrooted="${build_root_d}${f_this_fs_is_chrooted_raw}"
-f_deploy_state="${build_root_d}${f_deploy_state_raw}"
+f_this_fs_is_chrooted="${d_build_root}${f_this_fs_is_chrooted_raw}"
+f_deploy_state="${d_build_root}${f_deploy_state_raw}"
 
 #
 #  Detecting build environments
@@ -704,17 +704,17 @@ debian_tb="AOK-Debian-10-$AOK_VERSION"
 devuan_tb="AOK-Devuan-4-$AOK_VERSION"
 
 #  Where to find native FS version
-file_alpine_release="$build_root_d"/etc/alpine-release
-file_debian_version="$build_root_d"/etc/debian_version
+file_alpine_release="$d_build_root"/etc/alpine-release
+file_debian_version="$d_build_root"/etc/debian_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
-file_aok_release="$build_root_d"/etc/aok-release
+file_aok_release="$d_build_root"/etc/aok-release
 
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
 #  FIRST_BOOT_ADDITIONAL_TASKS
 #
-additional_tasks_script="$build_root_d/opt/additional_tasks"
+additional_tasks_script="$d_build_root/opt/additional_tasks"
 
 #
 #  Either run this script chrooted if the host OS supports it, or run it
@@ -742,6 +742,6 @@ deploy_state_dest_build="dest build"     # building FS on dest, dest details can
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
 destfs_select="select"
-destfs_select_hint="$build_root_d"/etc/opt/select_distro
+destfs_select_hint="$d_build_root"/etc/opt/select_distro
 
 pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
