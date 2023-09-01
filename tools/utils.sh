@@ -406,7 +406,7 @@ hostfs_detect() {
     #  Since a select env also looks like Alpine, this must fist
     #  test if it matches the test criteria
     #
-    error_msg 'abort in hostfs_detect()'
+    #error_msg 'abort in hostfs_detect()'
     if hostfs_is_alpine; then
         echo "$distro_alpine"
     elif hostfs_is_debian; then
