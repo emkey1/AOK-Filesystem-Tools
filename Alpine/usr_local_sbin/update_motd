@@ -1,12 +1,14 @@
 #!/bin/sh
 
 #
-#  This is run during boot-up, and the intended usage case is if you want to
-#  update /etc/motd every time this boots. For instance if it should indicate
-#  the current iSH release, if you are using TestFlight, this might be updated
-#  between runs without human intervention. It could happen also with AppStore
-#  but not on a near daily basis.
-#  hostname might also change between boot-ups.
+#  Unfortunately the console session starts before the boot process has
+#  completed. This means that the console will see the "old" version of
+#  /etc/motd, might be mildly confusing if you have just upgraded to a
+#  new Alpine release. Something like 1-2 seconds after this is displayed
+#  on the console, the file is updated, so for ssh sessions, they will
+#  always see the current content. If you are curious you can alwats do
+#  a: cat /etc/motd
+#  Otherwise just boot again, then it should have catched up.
 #
 
 #
