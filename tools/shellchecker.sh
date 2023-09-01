@@ -411,7 +411,6 @@ cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for t
 #
 excludes=(
     ./Alpine/cron/15min/dmesg_save
-    ./tools/not_used.sh
 )
 
 #
