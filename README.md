@@ -5,6 +5,11 @@ This creates a consistent iSH environment aimed at giving a mostly normal Linux 
 It can be based on several distros, primarily Alpine & Debian, and should give a very similar user experience on either.
 Alpine uses fewer resources, so things will be a bit "faster", but in the iSH universe faster is a very relative concept.
 
+## Disclaimer
+
+Since I tend to work on this on a workstation, then use it on multiple devices, I dont use branches much to isolate experimental stuff. If you want to try it out, start by using the latest release. They are thorougly tested and should be fully stable.
+Most of the time the main branch will work fine, but there are no guarantees...
+
 ## Installation
 
 ### Get the repo
