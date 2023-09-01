@@ -20,12 +20,16 @@
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 AOK_DIR="$(dirname -- "$current_dir")"
 
+# shellcheck source=/opt/AOK/tools/run_as_root.sh
+hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
+
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
 if ! this_is_ish; then
     error_msg "This should only be run on an iSH platform!"
 fi
+
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
@@ -43,14 +47,6 @@ echo
 echo "Upgrading /usr/local/bin & /usr/local/sbin with current items from $aok_content"
 echo
 
-destfs_is_alpine && echo "is alpine" || echo "NOT alpine"
-destfs_is_select && echo "is select" || echo "NOT select"
-destfs_is_devuan && echo "is devuan" || echo "NOT devuan"
-destfs_is_debian && echo "is debian" || echo "NOT debian"
-echo "Detected: [$(destfs_detect)]"
-
-# exit 1
-
 #
 #  Always copy common stuff
 #
@@ -61,15 +57,15 @@ rsync -ahP "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
 #
 #  Copy distro specific stuff
 #
-if destfs_is_alpine; then
+if hostfs_is_alpine; then
     echo "Alpine specifics"
     rsync -ahP "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
     rsync -ahP "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
-elif destfs_is_debian; then
+elif hostfs_is_debian; then
     echo "Debian specifics"
     rsync -ahP "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
     rsync -ahP "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
-elif destfs_is_devuan; then
+elif hostfs_is_devuan; then
     echo "Devuan specifics"
     rsync -ahP "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
     rsync -ahP "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
