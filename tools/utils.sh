@@ -17,6 +17,29 @@
 #  the error message, then continue.
 #
 
+log_it() {
+    _li="$1"
+    if [ -z "$_li" ]; then
+	unset LOG_FILE
+	error_msg "log_it() - no param!"
+    fi
+    if [ -z "$LOG_FILE" ]; then
+	unset LOG_FILE
+	error_msg "log_it() called without LOG_FILE defined!"
+    fi
+    #  Ensure dir for LOG_FILE exists
+    _log_dir="$(dirname -- "${build_root_d}$LOG_FILE")"
+    if [ ! -d "$_log_dir" ]; then
+	echo "Will create log_dir: $_log_dir"
+	# sleep 3
+	mkdir -p "$_log_dir"
+    fi
+
+    echo "$_li" >> "${build_root_d}$LOG_FILE" # 2>&1
+    unset _li
+    unset _log_dir
+}
+
 error_msg() {
     _em_msg="$1"
     _em_exit_code="${2:-1}"
@@ -25,11 +48,11 @@ error_msg() {
         echo "error_msg() no param"
         exit 9
     fi
-
+    _em_msg="ERROR: $_em_msg"
     echo
-    echo "ERROR: $_em_msg"
+    echo "$_em_msg"
     echo
-    [ -n "$LOG_FILE" ] && echo "ERROR: $_em_msg" >>"$LOG_FILE" 2>&1
+    [ -n "$LOG_FILE" ] && log_it "$_em_msg"
     [ "$_em_exit_code" != "no_exit" ] && exit "$_em_exit_code"
     unset _em_msg
     unset _em_exit_code
@@ -57,22 +80,28 @@ debug_sleep() {
 #
 msg_1() {
     [ -z "$1" ] && error_msg "msg_1() no param"
+    _msg="===  $1  ==="
     echo
-    echo "===  $1  ==="
+    echo "$_msg"
     echo
-    [ -n "$LOG_FILE" ] && echo "[$(date)] ===  $1  ===" >>"$LOG_FILE" 2>&1
+    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    unset _msg
 }
 
 msg_2() {
     [ -z "$1" ] && error_msg "msg_2() no param"
-    echo "---  $1"
-    [ -n "$LOG_FILE" ] && echo "[$(date)] ---  $1" >>"$LOG_FILE" 2>&1
+    _msg="---  $1"
+    echo "$_msg"
+    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    unset _msg
 }
 
 msg_3() {
     [ -z "$1" ] && error_msg "msg_3() no param"
-    echo "  -  $1"
-    [ -n "$LOG_FILE" ] && echo "[$(date)]   -  $1" >>"$LOG_FILE" 2>&1
+    _msg="  -  $1"
+    echo "$_msg"
+    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    unset _msg
 }
 
 msg_script_title() {
@@ -213,7 +242,8 @@ create_fs() {
     *alpine*) _cf_time_estimate="Should not take that long" ;;
     *) _cf_time_estimate="will take a while (iPad 5th:14 iPad 7th:6 minutes)" ;;
     esac
-    msg_3 "Extracting $_cf_tarball $_cf_time_estimate"
+    msg_3 "Extracting... $_cf_time_estimate"
+    msg_3 "$_cf_tarball"
     unset _cf_time_estimate
 
     if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
@@ -391,6 +421,7 @@ hostfs_detect() {
     #  Since a select env also looks like Alpine, this must fist
     #  test if it matches the test criteria
     #
+    error_msg 'abort in hostfs_detect()'
     if hostfs_is_alpine; then
         echo "$distro_alpine"
     elif hostfs_is_debian; then
