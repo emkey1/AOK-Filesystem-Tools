@@ -24,6 +24,18 @@ Available options:
     exit 0
 }
 
+clear_build_triggered_logfiles() {
+    f_fd_log="/var/log/fix_dev.log"
+    f_sys_log="/var/log/syslog"
+    br_fd_log="${build_root_d}$f_fd_log"
+    br_sys_log="${build_root_d}$f_sys_log"
+    if [ -f "$br_fd_log" ] || [ -f "br_sys_log" ]; then
+	msg_2 "Removing log files generated during preparations on client FS"
+	[ -f "$br_fd_log" ] && msg_3 "$f_fd_log" && rm -f "$br_fd_log"
+	[ -f "$br_sys_log" ] && msg_3 "$f_sys_log" && rm -f "$br_sys_log"
+    fi
+}
+
 #===============================================================
 #
 #   Main
@@ -70,7 +82,7 @@ while [ -n "$1" ]; do
 done
 
 if [ ! -d "$build_root_d" ]; then
-    error_msg "No image built yet, [$build_root_d]!"
+    error_msg "No image built empty dir: [$build_root_d]!"
 fi
 
 if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
@@ -100,8 +112,6 @@ else
     deploy_state_is_it "$deploy_state_pre_build" && tarball_fn="$tarball_fn-pb"
 fi
 
-#  Clear logged build-states etc, no longer needed
-
 # set location
 tarball="$d_images/$tarball_fn"
 
@@ -129,16 +139,13 @@ if $verbose; then
     opts="v$opts"
 fi
 
-msg_3 "Clearing some log files on client FS"
-rm -f "${build_root_d}/var/log/fix_dev.log"
-if [ -n "$LOG_FILE" ]; then
-    msg_3 "Found a LOG_FILE, renamed to .old to give dest-system a fresh start"
-    [ -f "${build_root_d}$LOG_FILE" ] && mv "${build_root_d}$LOG_FILE" \
-        "${build_root_d}${LOG_FILE}.old"
-fi
+clear_build_triggered_logfiles
 
-msg_1 "Creating image $tarball"
+echo
+msg_2 "Wrting image file"
+msg_3 " $tarball"
 tar "$opts" "$tarball" .
+ex_code="$?"
 
 #
 # copy it to /iCloud if this runs on iSH
@@ -150,9 +157,6 @@ if this_is_ish && [ "$(find /iCloud/ -maxdepth 1 | wc -l)" -gt 1 ]; then
     cp "$tarball" "$icloud_archive_d"
 fi
 
-if $verbose; then
-    msg_1 "Image is ready - $tarball"
-else
-    msg_1 "Image is ready!"
-fi
-exit 0 #  Avoid exiting with error if above file did not exist
+msg_3 "Image is ready!"
+
+exit "$ex_code" #  Propagate tar any tar error
