@@ -18,7 +18,7 @@ motd_template="/etc/motd_template"
 aok_release="/etc/aok-release"
 
 echo "[35m===>  Welcome to: $(hostname)  <===" >"$motd_file"
-echo "Alpine release: $(cat /etc/alpine-release)" >>"$motd_file"
+echo "Alpine release: $(grep PRETTY /etc/os-release | awk '{ print $NF }' | sed s/v// | sed s/\"//)" >>"$motd_file"
 
 if [ -e "$aok_release" ]; then
     echo "AOK release:    $(cat "$aok_release")" >>"$motd_file"
