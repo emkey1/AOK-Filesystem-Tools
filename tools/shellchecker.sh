@@ -423,6 +423,7 @@ prefixes=(
 )
 suffixes=(
     \~
+    \#
 )
 
 identify_available_linters
