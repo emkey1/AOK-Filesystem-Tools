@@ -16,7 +16,18 @@ Most of the time the main branch will work fine, but there are no guarantees...
 
 ### Get the repo
 
-```bash
+For general usage using the latest release is recomended, see the Disclaimer.
+Once you downloaded it do the following (release numbers will change)
+
+```sh
+unzip AOK-Filesystem-Tools-0.9.2.zip 
+sudo rm -rf /opt/AOK  # remove the previous instance if present
+sudo mv AOK-Filesystem-Tools-0.9.2 /opt/AOK
+```
+
+To try out the latest changes you can do a git clone:
+
+```sh
 git clone https://github.com/jaclu/AOK-Filesystem-Tools.git 
 sudo rm -rf /opt/AOK  # remove the previous instance if present
 sudo mv AOK-Filesystem-Tools /opt/AOK
@@ -24,8 +35,8 @@ sudo mv AOK-Filesystem-Tools /opt/AOK
 
 It is assumed this is located at /opt/AOK
 
-Since various parts of this are both used in the initial build process on the host platform, 
-and also for finalizing the setup on the destination platform. 
+Since various parts of this are both used in the initial build process on 
+the host platform, and also for finalizing the setup on the destination platform. 
 It must be located in a known location for it to be found.
 
 ### To prebuild your FS or not
