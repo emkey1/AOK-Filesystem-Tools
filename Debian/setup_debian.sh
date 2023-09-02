@@ -153,7 +153,21 @@ apt upgrade -y
 if [ -n "$DEB_PKGS" ]; then
     msg_1 "Add Debian packages"
     echo "$DEB_PKGS"
-    bash -c "apt install -y $DEB_PKGS"
+    #  shellcheck disable=SC2086
+    apt install -y $DEB_PKGS
+fi
+echo
+
+if [ -n "$DEB_PKGS_SKIP" ]; then
+    msg_1 "Removing Debian packages"
+    echo "$DEB_PKGS_SKIP"
+    echo
+    #
+    #  To prevent leftovers having to potentially be purged later
+    #  we do purge instead of remove, purge implies a remove
+    #
+    #  shellcheck disable=SC2086
+    apt purge -y $DEB_PKGS_SKIP
 fi
 echo
 
