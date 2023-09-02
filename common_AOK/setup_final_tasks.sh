@@ -75,7 +75,8 @@ run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
-        msg_1 "Running additional setup tasks:"
+        msg_1 "Running additional setup tasks"
+	echo "---------------"
 	echo "$FIRST_BOOT_ADDITIONAL_TASKS"
 	echo "---------------"
 	/bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS"
