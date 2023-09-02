@@ -32,6 +32,39 @@ prepare_env_etc() {
     msg_3 "prepare_env_etc() done"
 }
 
+setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    # SKIP_LOGIN
+    msg_2 "Install Debian AOK login methods"
+    cp "$aok_content"/Debian/bin/login.loop /bin
+    chmod +x /bin/login.loop
+    cp "$aok_content"/Debian/bin/login.once /bin
+    chmod +x /bin/login.once
+
+    #  Ensure that Debian requires login
+    cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
+
+    mv /bin/login /bin/login.original
+
+    #
+    #  In order to ensure 1st boot will be able to run, for now
+    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
+    #  method will be activated at the end of the setup
+    #
+    /usr/local/bin/aok -l disable >/dev/null || {
+        error_msg "Failed to disable login during deploy"
+    }
+
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
+}
+
 debian_services() {
     #
     #  Setting up suitable services, and removing those not meaningfull
@@ -56,40 +89,6 @@ debian_services() {
     rc-update del elogind default
     rc-update del rsync default
     rc-update del sudo default
-}
-
-setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    # SKIP_LOGIN
-    msg_2 "Install Debian AOK login methods"
-    cp "$aok_content"/Debian/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Debian/bin/login.once /bin
-    chmod +x /bin/login.once
-
-    cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
-
-    mv /bin/login /bin/login.original
-
-    # ln -sf /bin/login.original /bin/login
-
-    #
-    #  In order to ensure 1st boot will be able to run, for now
-    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
-    #  method will be activated at the end of the setup
-    #
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
 }
 
 mimalloc_install() {
