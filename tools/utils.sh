@@ -393,7 +393,7 @@ hostfs_is_alpine() {
 }
 
 hostfs_is_debian() {
-    test -f /etc/debian_version && ! destfs_is_devuan
+    test -f /etc/debian_version && ! hostfs_is_devuan
 }
 
 hostfs_is_devuan() {
@@ -424,16 +424,16 @@ hostfs_detect() {
 #
 #---------------------------------------------------------------
 
-destfs_is_devuan() {
-    test -f "$d_build_root"/etc/devuan_version
+destfs_is_alpine() {
+    ! destfs_is_select && test -f "$file_alpine_release"
 }
 
 destfs_is_debian() {
     test -f "$d_build_root"/etc/debian_version && ! destfs_is_devuan
 }
 
-destfs_is_alpine() {
-    ! destfs_is_select && test -f "$file_alpine_release"
+destfs_is_devuan() {
+    test -f "$d_build_root"/etc/devuan_version
 }
 
 destfs_is_select() {
