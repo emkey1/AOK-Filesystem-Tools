@@ -1,7 +1,7 @@
 #!/bin/sh
 # this is sourced, shebang just to hint editors since no extension
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #

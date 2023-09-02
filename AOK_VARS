@@ -4,7 +4,7 @@
 # ShellCheck conditions at the top of the file are globals
 # shellcheck disable=SC2034
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
