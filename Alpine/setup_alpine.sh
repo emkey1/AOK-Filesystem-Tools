@@ -31,7 +31,7 @@ install_apks() {
     #  be used
     #
     msg_2 "Custom apks"
-    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk &>/dev/null; then
+    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1 ; then
 	apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk
     fi
 }
@@ -50,19 +50,27 @@ prepare_env_etc() {
         ln /etc/init.d/devfs /etc/init.d/dev
     fi
 
-    msg_3 "Adding apk repository - testing"
-    if [ "$ALPINE_VERSION" = "edge" ]; then
-        cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-    elif min_release 3.18; then
+    #
+    #  If edge/testing isnt added to the repositoris, testing apks can
+    #  still be installed. Using mdcat as an example:
+    #  apk add mdcat --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    #
+    testing_repo="https://dl-cdn.alpinelinux.org/alpine/edge/testing"
+    if [ "$alpine_release" = "edge" ]; then
+	msg_2 "Adding apk repository - testing"
+	#    cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+	echo "$testing_repo" >>/etc/apk/repositories
+    elif min_release 3.17; then
         #
         #  Only works for fairly recent releases, otherwise dependencies won't
         #  work.
         #
+        msg_2 "Adding apk repository - @testing"
         msg_3 "  edge/testing is setup as a restricted repo, in order"
         msg_3 "  to install testing apks do apk add foo@testing"
         msg_3 "  In case of incompatible dependencies an error will"
         msg_3 "  be displayed, and nothing bad will happen."
-        echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+        echo "@testing $testing_repo" >>/etc/apk/repositories
     fi
     # msg_3 "replace_key_etc_files() done"
 }
@@ -145,8 +153,8 @@ msg_script_title "setup_alpine.sh - Setup Alpine"
 
 initiate_deploy Alpine "$ALPINE_VERSION"
 
-if [ -z "$alpine_release" ]; then
-    error_msg "alpine_release param not supplied"
+if [ -z "$ALPINE_VERSION" ]; then
+    error_msg "ALPINE_VERSION param not supplied"
 fi
 
 if ! min_release "3.16"; then

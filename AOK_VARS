@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.3"
+AOK_VERSION="0.9.4"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -107,8 +107,13 @@ INITIAL_LOGIN_MODE="enable"
 # ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
 ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #
-# 2023-07-28 edge doesn't work ATM, will investigate...
-# #ALPINE_VERSION=edge # Current development tree
+#  For edge releases - Current development tree
+#  format is the isodate featured in the minirootfs filename
+#
+# ALPINE_VERSION="20230901"  # 3.19_alpha20230901
+# ALPINE_VERSION="20230329"  # 3.18_alpha20230329
+# ALPINE_VERSION="20221110"  # 3.17_alpha20221110
+
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc

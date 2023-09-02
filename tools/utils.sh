@@ -667,17 +667,15 @@ devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | cut -d'?' -f1 | grep -oE '[^/]+$')"
 #  Extract the release/branch/major version, from the requested Alpine,
 #  gives something like 3.14
 #
-if [ "$ALPINE_VERSION" = "edge" ]; then
-    alpine_src_tb="alpine-minirootfs-20230329-x86.tar.gz"
-    alpine_release="$ALPINE_VERSION"
-    _vers="$ALPINE_VERSION"
+
+alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+if echo "$ALPINE_VERSION" | grep -Eq '^[0-9]{8}$'; then
+    alpine_release="edge"
+    alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/edge/releases/x86/$alpine_src_tb"
 else
-    alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
     alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-    _vers="v$alpine_release"
+    alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v${alpine_release}/releases/x86/$alpine_src_tb"
 fi
-alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/$_vers/releases/x86/$alpine_src_tb"
-unset _vers
 
 #
 #  Names of the generated distribution tarballs, no ext, that is ecided

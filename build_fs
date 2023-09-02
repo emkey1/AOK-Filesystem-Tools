@@ -213,6 +213,7 @@ display_build_target() { # Multi OK 1
     elif [ "$build_target" = "$distro_devuan" ]; then
         release_msg="Devuan"
     else
+	[ -z "$ALPINE_VERSION" ] && error_msg "ALPINE_VERSION is undefined"
         release_msg="Alpine: $ALPINE_VERSION"
     fi
     msg_1 "Building iSH-AOK $release_msg filesystem - $AOK_VERSION"
