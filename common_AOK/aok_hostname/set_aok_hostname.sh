@@ -26,18 +26,11 @@ fi
 new_hostname="$(hostname)-aok"
 hostname_service="/etc/init.d/hostname"
 
-if destfs_is_debian; then
-    msg_3 "Debian - removing previous service files"
-    rm -f /etc/init.d/hostname
-    rm -f /etc/init.d/hostname.sh
-    rm -f /etc/rcS.d/S01hostname.sh
-    rm -f /etc/systemd/system/hostname.service
-fi
-
 msg_2 "Using service to set hostname with -aok suffix"
 msg_3 "This might fail during deploy if system wasnt booted with openrc"
 msg_3 "Will work normally on next boot."
 
+#  This will overwrite the generic hostname service
 cp /opt/AOK/common_AOK/aok_hostname/aok-hostname-service "$hostname_service"
 
 msg_3 "hostname service will announce new hostname using: wall -n"

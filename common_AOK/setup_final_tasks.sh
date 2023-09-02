@@ -119,17 +119,34 @@ fi
 
 user_interactions
 
-destfs_is_alpine && install_aok_apks
+hostfs_is_alpine && install_aok_apks
+
+#
+#  Removing default host
+#
+hostn_service=/etc/init.d/hostname
+if [ -f "$hostn_service" ]; then
+    msg_2 "Disabling hostname service not working on iSH"
+    mv -f "$hostn_service" /etc/init.d/NOT-hostname
+fi
+
+if hostfs_is_debian || hostfs_is_devuan; then
+    msg_3 "Removing hostname service files not meaningfull on iSH"
+    rm -f /etc/init.d/hostname
+    rm -f /etc/init.d/hostname.sh
+    rm -f /etc/rcS.d/S01hostname.sh
+    rm -f /etc/systemd/system/hostname.service
+fi
 
 "$aok_content"/common_AOK/aok_hostname/set_aok_hostname.sh
 
 set_initial_login_mode
 
-if destfs_is_alpine; then
+if hostfs_is_alpine; then
     next_etc_profile="$aok_content/Alpine/etc/profile"
-elif destfs_is_debian; then
+elif hostfs_is_debian; then
     next_etc_profile="$aok_content/Debian/etc/profile"
-elif destfs_is_devuan; then
+elif hostfs_is_devuan; then
     next_etc_profile="$aok_content/Devuan/etc/profile"
 else
     error_msg "Undefined Distro, cant set next_etc_profile"
