@@ -2,6 +2,13 @@
 
 I will try to keep track of changes between releases here
 
+## Changes newest first
+
+- removed some utils
+common_AOK/usr_local_bin/finger
+common_AOK/usr_local_bin/iCloud
+
+
 ## release 0.9.4
 
 - Adding repo https://dl-cdn.alpinelinux.org/alpine/edge/testing Both for edge and rescent Alpine releases. For non edge releases testing is hidden behind @testing
