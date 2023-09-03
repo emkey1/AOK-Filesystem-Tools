@@ -1,5 +1,10 @@
 #!/bin/sh
-
+#
+#  shellcheck disable=SC2154
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
 #
 #  Unfortunately the console session starts before the boot process has
 #  completed. This means that the console will see the "old" version of
