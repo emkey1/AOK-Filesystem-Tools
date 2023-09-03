@@ -9,9 +9,8 @@
 #  this is called by 'shutdown' and does the actual shutdown procedure.
 #
 #  If shutdown was a single script and was triggered in a remote
-#  session, the 'openrc shutdown' bellow would most likely terminate
-#  that session, thereby pottentially aborting the shutdown before
-#  it completes.
+#  session, the 'openrc shutdown' bellow might terminate that session,
+#  thereby pottentially aborting the shutdown before it completes.
 #
 #  Thus this, the actual shutdown is run in a separate backgrounded
 #  script that will ignore if the triggering session disapears.
