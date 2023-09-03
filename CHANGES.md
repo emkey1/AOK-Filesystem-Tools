@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- removed Debian/etc/init.d/runbg
+I figured out that the generic runbg works just as fine on Debian
 - removed some utils
 common_AOK/usr_local_bin/finger
 common_AOK/usr_local_bin/iCloud

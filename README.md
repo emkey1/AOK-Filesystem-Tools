@@ -44,10 +44,6 @@ Fully usable. Release can be selected in AOK_VARS
 
 Fully usable. Be aware that this is Debian 10, since that was the last version of Debian for 32-bit environs. Deb 10 has been end of lifed, so will no longer recieve updates, but you are unlikely to run any public services on iSH, so for experimenting with a local Debian, it should be fine.
 
-- `runbg`
-
-I've attempted to convert `runbg` to be a POSIX script, as is typically the case in Debian when using OpenRC. But so far, I haven't had success. For now, I'm using the same approach as in Alpine, employing a `#!/sbin/openrc-run` style script, which seems to work fine.
-
 ### Devuan File System
 
 DNS resolving doesn't work, so while you can use Devuan, it's not very useful beyond testing at the moment. You can use `/etc/hosts`, to add hosts, and the hostnames needed for apt handling are included, but this is a limited solution to the DNS issue.
