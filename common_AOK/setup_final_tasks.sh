@@ -71,6 +71,34 @@ set_initial_login_mode() {
     fi
 }
 
+start_cron_if_active() {
+    msg_2 "start_cron_if_active()"
+    #  shellcheck disable=SC2154
+    [ "$USE_CRON_SERVICE" != "Y" ] && return
+
+    if this_fs_is_chrooted || ! this_is_ish; then
+	msg_3 "Cant attempt to start cron on a chrooted/non-iSH device"
+	return
+    fi
+
+    cron_service="/etc/init.d"
+    if hostfs_is_alpine; then
+	cron_service="$cron_service/dcron"
+    elif hostfs_is_debian; then
+	cron_service="$cron_service/cron"
+    else
+	error_msg "cron service not available for this FS"
+    fi
+
+    openrc_might_trigger_errors
+    [ ! -x "$cron_service" ] && error_msg "Cron service not found: $cron_service"
+    if ! "$cron_service" status > /dev/null; then
+	msg_3 "Starting cron service"
+	"$cron_service" start
+    fi
+    msg_3 "start_cron_if_active() - done"
+}
+
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
@@ -154,6 +182,8 @@ fi
 
 set_new_etc_profile "$next_etc_profile"
 
+start_cron_if_active
+
 #
 #  Handling custom files
 #
@@ -162,6 +192,7 @@ set_new_etc_profile "$next_etc_profile"
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 replace_home_dirs
+
 
 run_additional_tasks_if_found
 
