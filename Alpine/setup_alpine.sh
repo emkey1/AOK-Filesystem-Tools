@@ -105,6 +105,25 @@ setup_login() {
     fi
 }
 
+setup_cron_env() {
+    msg_2 "Setup Alpine dcron"
+
+    msg_3 "root crontab running periodic content"
+    mkdir -p /etc/crontabs
+    cp -a "$aok_content"/common_AOK/cron/crontab-root /etc/crontabs/root
+
+    #  shellcheck disable=SC2154
+    if [ "$USE_CRON_SERVICE" = "Y" ]; then
+	msg_3 "Activating cron service"
+	[ "$(command -v crond)" != /usr/sbin/crond ] && error_msg "cron service requested, dcron does not seem to be installed"
+	rc-update add dcron default
+    else
+	msg_3 "Inactivating cron service"
+	rc-update del dcron default
+    fi
+    msg_3 "setup_cron_env() - done"
+}
+
 #===============================================================
 #
 #   Main
@@ -198,32 +217,10 @@ if [ ! -x "$(readlink -f /bin/login)" ]; then
     error_msg "CRITICAL!! no run-able /bin/login present!"
 fi
 
-#
-#  Setup dcron if it was included in CORE_APKS
-#
-if apk info -e dcron >/dev/null; then
-    msg_2 "Detected dcron, adding service"
-    openrc_might_trigger_errors
-    rc-update add dcron default
-    rc-service dcron start
-    msg_3 "Setting dcron for checking every 15 mins"
-    cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
-fi
-
-
-# msg_2 "Installing dependencies for common setup"
-# apk add sudo openrc bash openssh-server
-
-# if ! "$setup_common_aok"; then
-#     error_msg "$setup_common_aok reported error"
-# fi
-#
-#  Setup Initial login mode will be done by setup_alpine_final_tasks.sh
-#  If we do it now, final_tasks might not run as root
-#
-
 msg_2 "Preparing initial motd"
 /usr/local/sbin/update_motd
+
+setup_cron_env
 
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
