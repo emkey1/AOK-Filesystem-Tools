@@ -136,7 +136,7 @@ generates (octal) \\302\\247 for the key, even with the backtick setting.
 For such keyboards, this will also enable the intended key to generate Escape
 in the first place inside tmux.
 "
-    if [ -n "$1" ]; then
+    if [[ -n "$1" ]]; then
 	sequence="$1"
     else
 	echo "$text"
@@ -157,7 +157,7 @@ Select modifier:
 4 - Escape prefix, then arrows, actual Escape requires Escape double tap
 
 "
-    if [ -n "$1" ]; then
+    if [[ -n "$1" ]]; then
 	selection="$1"
     else
 	echo "$text"
@@ -229,7 +229,7 @@ And will take effect next time you start tmux.
 #
 #  If $1 is defined, assume scripted usage, only mention what was selected
 #
-[ -z "$1" ] && echo "$text"
+[[ -z "$1" ]] && echo "$text"
 
 if this_is_aok_kernel; then
     select_nav_key_type "$1"
@@ -237,7 +237,7 @@ else
     select_esc_key "$1"
 fi
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
     echo
     echo "You need to restart tmux in order for this to take effect."
 fi
