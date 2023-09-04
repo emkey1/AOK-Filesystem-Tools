@@ -10,6 +10,18 @@
 #
 # shellcheck disable=SC2154
 
+setup_cron_env() {
+    msg_2 "Setup geeral cron env"
+    #
+    #  These files will always be setup and ready
+    #  The cron/dcron service will only be acrive
+    #  if USE_CRON_SERVICE="Y
+    #
+    msg_3 "Setting cron periodic files"
+    cp -a "$aok_content"/common_AOK/cron/periodic /etc
+    #msg_3 "setup_cron_env() - done"
+}
+
 setup_environment() {
 
     #  Announce what AOK release this is
@@ -133,6 +145,7 @@ user_root() {
     chown -R root: /root
     msg_3 "clear root history"
     rm /root/.bash_history -f
+    # msg_3 "user_root() - done"
 }
 
 create_user() {
@@ -177,6 +190,7 @@ create_user() {
     chown -R "$USER_NAME": "$cu_home_dir"
 
     unset cu_home_dir
+    # msg_3 "create_user() - done"
 }
 
 #===============================================================
@@ -189,6 +203,8 @@ create_user() {
 . /opt/AOK/tools/utils.sh
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
+
+setup_cron_env
 
 if [[ -n "$USER_SHELL" ]]; then
     if ! destfs_is_alpine && [[ "$USER_SHELL" = "/bin/ash" ]]; then
