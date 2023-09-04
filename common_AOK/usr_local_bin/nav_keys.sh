@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-
-#!/bin/sh
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
 #  Set nav key workaround for tmux
+#  For scripted usage, give this the desired navkey as $1
 #
 #   1 Creates a tmux config snippet that can be sourced from local tmux
+#     This is done by the default /etc/skel/.tmux.conf
 #
 #   2 Defines the nav key used, so in more advanced personalized usage
 #     scenarios one can use env variables & SendKeys informing remote
@@ -136,10 +136,12 @@ generates (octal) \\302\\247 for the key, even with the backtick setting.
 For such keyboards, this will also enable the intended key to generate Escape
 in the first place inside tmux.
 "
-    echo "$text"
-
-    capture_keypress
-
+    if [ -n "$1" ]; then
+	sequence="$1"
+    else
+	echo "$text"
+	capture_keypress
+    fi
     tmux_esc_prefix "$sequence"
 }
 
@@ -151,14 +153,16 @@ Select modifier:
 0 - Do not use a nav-key work-arround
 1 - Shift arrows
 2 - Ctrl  arrows
-3 - Alt arrows (only with iSH-AOK released after June 24th)
+3 - Alt arrows - comes with iSH-AOK versions after:  1.3 (485)
 4 - Escape prefix, then arrows, actual Escape requires Escape double tap
 
 "
-    #  3 - Alt(Meta) arrows
-
-    echo "$text"
-    read -r selection
+    if [ -n "$1" ]; then
+	selection="$1"
+    else
+	echo "$text"
+	read -r selection
+    fi
 
     case "$selection" in
 
@@ -220,17 +224,20 @@ Outside tmux, this setting will have no effect.
 
 This setting can be changed at any time by running /usr/local/bin/nav_keys.sh
 And will take effect next time you start tmux.
-
-If you do not use a seperate keyboard, this setting has no effect.
 "
 
-echo "$text"
-#if true; then
+#
+#  If $1 is defined, assume scripted usage, only mention what was selected
+#
+[ -z "$1" ] && echo "$text"
+
 if this_is_aok_kernel; then
-    select_nav_key_type
+    select_nav_key_type "$1"
 else
-    select_esc_key
+    select_esc_key "$1"
 fi
 
-echo
-echo "You need to restart tmux in order for this to take effect."
+if [ -z "$1" ]; then
+    echo
+    echo "You need to restart tmux in order for this to take effect."
+fi

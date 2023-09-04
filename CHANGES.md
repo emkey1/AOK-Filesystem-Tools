@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- nav_keys.sh
+Can now be used in scrips, give desired navkey as param
 - removed Debian/etc/init.d/runbg
 I figured out that the generic runbg works just as fine on Debian
 - removed some utils
