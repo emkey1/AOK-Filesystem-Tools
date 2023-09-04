@@ -410,7 +410,7 @@ cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for t
 #  Specifix excludes
 #
 excludes=(
-    ./Alpine/cron/15min/dmesg_save
+    ./common_AOK/cron/periodic/15min/dmesg_save
 )
 
 #
