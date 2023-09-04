@@ -32,6 +32,25 @@ prepare_env_etc() {
     msg_3 "prepare_env_etc() done"
 }
 
+setup_cron_env() {
+    msg_2 "Setup Debian cron"
+
+    msg_3 "root crontab running periodic content"
+    mkdir -p /var/spool/cron/crontabs
+    cp -a "$aok_content"/common_AOK/cron/crontab-root /var/spool/cron/crontabs/root
+
+    #  shellcheck disable=SC2154
+    if [ "$USE_CRON_SERVICE" = "Y" ]; then
+	msg_3 "Activating cron service"
+	[ "$(command -v cron)" != /usr/sbin/cron ] && error_msg "cron service requested, cron does not seem to be installed"
+	rc-update add cron default
+    else
+	msg_3 "Inactivating cron service"
+	rc-update del cron default
+    fi
+    msg_3 "setup_cron_env() - done"
+}
+
 setup_login() {
     #
     #  What login method will be used is setup during FIRST_BOOT,
@@ -74,36 +93,22 @@ debian_services() {
     msg_3 "Remove previous ssh host keys if present"
     rm -f /etc/ssh/ssh_host*key*
 
-    msg_2 "Add services for runlevel boot"
-    rc-update add urandom boot
+    # msg_2 "Add services for runlevel boot"
+    # rc-update add urandom boot
 
-    msg_3 "Add services for runlevel off"
-    rc-update add sendsigs off
-    rc-update add umountroot off
-    rc-update add urandom off
+    #msg_3 "Add services for runlevel off"
+    #rc-update add sendsigs off
+    #rc-update add urandom off
 
-    msg_3 "Disable some auto-enabled services that wont make sense in iSH"
-    openrc_might_trigger_errors
+    #msg_3 "Disable some auto-enabled services that wont make sense in iSH"
+    #openrc_might_trigger_errors
 
-    rc-update del dbus default
-    rc-update del elogind default
-    rc-update del rsync default
-    rc-update del sudo default
-}
+    #rc-update del dbus default
+    #rc-update del elogind default
+    #rc-update del rsync default
+    #rc-update del sudo default
 
-mimalloc_install() {
-    msg_2 "mimalloc_install()"
-    apt -y install cmake gcc-8-multilib
-    cd /tmp || error_msg "mimalloc_install() Failed: cd /tmp"
-    git clone https://github.com/xloem/mimalloc
-    cd mimalloc || error_msg "mimalloc_install() Failed: cd mimalloc"
-    git checkout vmem
-    mkdir build
-    cd build || error_msg "mimalloc_install() Failed: cd build"
-    cmake ..
-    make install
-    cp -av "$aok_content"/Debian/mimalloc_patch/mimalloc /usr/local/bin
-    msg_3 "mimalloc_install() - done"
+    setup_cron_env
 }
 
 #===============================================================
@@ -141,7 +146,6 @@ touch /var/log/wtmp
 initiate_deploy Debian "$(cat /etc/debian_version)"
 
 prepare_env_etc
-
 
 # msg_1 "apt update"
 # apt update -y
@@ -187,13 +191,6 @@ debian_services
 # msg_2 "Adding runbg service"
 # cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
 # ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
-
-#  shellcheck disable=SC2154
-if [ "$USE_MIMALLOC" = "YES" ]; then
-    mimalloc_install
-else
-    msg_2 "Skipping MIMALLOC patch"
-fi
 
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
