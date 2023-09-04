@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- common_AOK/etc/skel/.tmux.conf
+Fixed typo
 - nav_keys.sh
 Can now be used in scrips, give desired navkey as param
 - removed Debian/etc/init.d/runbg
