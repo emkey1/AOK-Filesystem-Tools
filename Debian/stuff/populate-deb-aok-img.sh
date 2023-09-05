@@ -14,7 +14,7 @@
 #
 pkgs_tools="coreutils util-linux sudo tzdata findutils sed tar
   file gawk grep less git sqlite fzf python3-pip ncdu
-  manpages man-db psmisc whiptail"
+  manpages man-db psmisc whiptail htop"
 pkgs_shells="bash zsh"
 pkgs_services="openrc" # not sure what cron to use
 
@@ -36,10 +36,20 @@ apt install -y $CORE_APTS
 #  Remove stuff not usable or needed when running on iSH
 #  this also removes quite a few dependencies
 #
-apt remove -y xauth xdg-user-dirs pinentry-curses \
-    publicsuffix krb5-locales gnupg-l10n dmidecode \
-    dbus elogind
+delay=5
+echo
+echo
+echo "=====   wil purge in $delay   ====="
+sleep "$delay"
+
+apt purge -y dbus dirmngr elogind gnupg-l10n gnupg-utils gpg gpg-agent gpgconf gpgsm libapparmor1 libdbus-1-3 libelogind0 pinentry-curses python3-asn1crypto python3-cffi-backend python3-cryptography python3-dbus python3-entrypoints xdg-user-dirs
 
 #
-#  Remember to run Mapt once this is done!
+#  Remember to
+#
+#  run Mapt once this is done
+#  ensusre no services are active: find /etc/runlevels
+#  remmove deploy stuff before conpressing a new Debian10-x-aok-y
+#  clear /root/.bash_history
+#  clear /root/.viminfo
 #
