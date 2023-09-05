@@ -96,7 +96,7 @@ start_cron_if_active() {
 	msg_3 "Starting cron service"
 	"$cron_service" start
     fi
-    msg_3 "start_cron_if_active() - done"
+    # msg_3 "start_cron_if_active() - done"
 }
 
 run_additional_tasks_if_found() {
@@ -117,7 +117,7 @@ deploy_state_clear() {
 
     rm "$f_deploy_state"
 
-    msg_3 "deploy_state_clear() - done"
+    # msg_3 "deploy_state_clear() - done"
 }
 
 

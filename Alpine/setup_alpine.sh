@@ -121,7 +121,7 @@ setup_cron_env() {
 	msg_3 "Inactivating cron service"
 	rc-update del dcron default
     fi
-    msg_3 "setup_cron_env() - done"
+    # msg_3 "setup_cron_env() - done"
 }
 
 #===============================================================
