@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-exe="$(type -p "$0")"
-while [[ -e "$exe" ]] && ! [[ -e "$exe".orig ]]; do
-    exe="$(dirname "$exe")"/"$(readlink "$exe")"
-done
-LD_PRELOAD=/usr/local/lib/libmimalloc.so "$exe".orig "$@"
