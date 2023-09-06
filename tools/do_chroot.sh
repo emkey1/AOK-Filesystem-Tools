@@ -88,7 +88,7 @@ cleanup() {
     unset _signal
 
     env_restore
-    [ "$_fnc_calls" = 2 ] && msg_3 "cleanup() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "cleanup($1) - done"
 }
 
 defined_and_existing() {
@@ -99,7 +99,7 @@ defined_and_existing() {
     [ ! -d "$_dae" ] && error_msg "defined_and_existing($_dae) no such folder"
     unset _dae
 
-    [ "$_fnc_calls" = 2 ] && msg_3 "defined_and_existing() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "defined_and_existing($1) - done"
 }
 
 ensure_dev_paths_are_defined() {
@@ -107,7 +107,7 @@ ensure_dev_paths_are_defined() {
     #  This ensures that all the system path variables have been defined,
     #  to minimize risk of having to abort half way through a procedure
     #
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "ensure_dev_paths_are_defined()"
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "ensure_dev_paths_are_defined($1)"
 
     defined_and_existing "$CHROOT_TO"
     defined_and_existing "$d_proc"
@@ -126,7 +126,7 @@ ensure_dev_paths_are_defined() {
 	fi
     fi
 
-    [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined($1) - done"
 }
 
 exists_and_empty() {
@@ -137,7 +137,7 @@ exists_and_empty() {
     [ "$(find "$_eae" | wc -l)" -gt 1 ] && error_msg "exists_and_empty($_eae) -Not empty"
     unset _eae
 
-    [ "$_fnc_calls" = 2 ] && msg_3 "exists_and_empty() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "exists_and_empty($1) - done"
 }
 
 cleanout_dir() {
@@ -145,7 +145,6 @@ cleanout_dir() {
 
     d_clear="$1"
     [ -z "$d_clear" ] && error_msg "cleanout_dir() no param provided"
-    [ ! -d "$d_clear" ] && error_msg "cleanout_dir($d_clear) no such folder"
 
     if [ -n "${d_clear##"$CHROOT_TO"*}" ]; then
 	error_msg "cleanout_dir($d_clear) not part of chroot point! [$CHROOT_TO]"
@@ -154,7 +153,7 @@ cleanout_dir() {
     fi
 
 
-    if [ "$(find "$d_clear"/ | wc -l)" -gt 1 ]; then
+    if [ "$(find "$d_clear"/ 2>/dev/null | wc -l)" -gt 1 ]; then
         msg_1 "Found residual files in: $d_clear"
         ls -la "$d_clear"
         echo "------------------"
@@ -164,7 +163,33 @@ cleanout_dir() {
     fi
     unset d_clear
 
-    [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir($1) - done"
+}
+
+kill_remaining_procs() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "kill_remaining_procs()"
+
+    msg_3 "Ensuring chroot env didn't leave any process..."
+    ch_procs="$(lsof | grep "$CHROOT_TO" | awk '{ print $2  }' | uniq)"
+    [ -z "$ch_procs" ] && return
+    msg_3 "remaining procs to kill: [$ch_procs]"
+    #  shellcheck disable=SC2086
+    echo $ch_procs |  xargs kill
+
+    ch_procs="$(lsof | grep "$CHROOT_TO" | awk '{ print $2  }' | uniq)"
+
+    if [ -n "$ch_procs" ]; then
+	echo
+	echo "***  WARNING - remaining procsses from chrooted env ***"
+	echo "Remaining mounts:"
+	mount | grep "$CHROOT_TO"
+	echo
+	echo "Must be manually unmouunted"
+	echo
+	exit 1
+    fi
+
+    [ "$_fnc_calls" = 2 ] && msg_3 "kill_remaining_procs() - done"
 }
 
 umount_mounted() {
@@ -172,24 +197,17 @@ umount_mounted() {
 
     _um="$1"
 
-    if [ -n "${_um##*/deb/pts}" ]; then
-	#
-	#  If dev is not mounted dev/pts would not be arround
-	#  so in such cases just return, to avoid showing
-	#  an irrelevant error.
-	#
-	[ ! -d "$_um" ] && return
-    fi
-    defined_and_existing "$_um"
     if mount | grep -q "$_um"; then
+	defined_and_existing "$_um"
         umount "$_um" || error_msg "Failed to unmount $_um"
+	[ -d "$_um" ] && cleanout_dir "$_um"
     else
-        msg_3 "$_um - was not mounted"
+        #msg_3 "$_um - was not mounted"
+	cleanout_dir "$_um"
     fi
-    [ -d "$_um" ] && cleanout_dir "$_um"
     unset _um
 
-    [ "$_fnc_calls" = 2 ] && msg_3 "umount_mounted() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "umount_mounted($1) - done"
 }
 
 define_chroot_env() {
@@ -244,11 +262,11 @@ env_prepare() {
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
 
-    msg_3 "Mounting system resources"
+#    if mount | grep -q "$CHROOT_TO"; then
+#        error_msg "This [$CHROOT_TO] is already chrooted!"
+#    fi
 
-    if mount | grep -q "$CHROOT_TO"; then
-        error_msg "This [$CHROOT_TO] is already chrooted!"
-    fi
+    msg_3 "Mounting system resources"
 
     mount -t proc proc "$d_proc"
 
@@ -260,9 +278,9 @@ env_prepare() {
 	#
 	cp -a /dev/* "$d_dev"
     elif [ "$build_env" = "$be_linux" ]; then
-        mount -t sysfs sys "$d_sys"
+#	mount -t sysfs sys "$d_sys"
 	mount -o bind /dev "$d_dev"
-	mount -o bind /dev/pts "$d_dev_pts"
+#	mount -o bind /dev/pts "$d_dev_pts"
     fi
 
     # msg_3 "copying current /etc/resolv.conf"
@@ -288,19 +306,19 @@ env_restore() {
         [ -n "$env_restore_started" ] && return
     fi
     env_restore_started=1
-
     ensure_dev_paths_are_defined skip_pts
 
-    msg_3 "Un-mounting system resources"
+    msg_2 "Releasing system resources"
+    kill_remaining_procs
     umount_mounted "$d_proc"
     if [ "$build_env" = "$be_ish" ]; then
         rm -rf "${d_dev:?}"/*
 	#  ensure it is empty
     	cleanout_dir "$d_dev"
     elif [ "$build_env" = "$be_linux" ]; then
+	umount_mounted "$d_sys"
 	umount_mounted "$d_dev_pts"
 	umount_mounted "$d_dev"
-	umount_mounted "$d_sys"
     fi
 
     #
@@ -362,7 +380,7 @@ chroot_statuses() {
     else
         msg_3 "Dest not"
     fi
-    [ "$_fnc_calls" = 2 ] && msg_3 "chroot_statuses() - done"
+    [ "$_fnc_calls" = 2 ] && msg_3 "chroot_statuses($1) - done"
 }
 
 #===============================================================
@@ -522,21 +540,6 @@ if [ -n "$DEBUG_BUILD" ]; then
     echo
     msg_1 "==========  doing chroot  =========="
     echo ">> about to run: chroot $CHROOT_TO $cmd_w_params"
-fi
-
-if [ -f  "$CHROOT_TO"/etc/debian_version ]; then
-    echo
-    echo "+-------------------------------------------------------------+"
-    echo "|"
-    echo "|  Be warned! Starting any openrc service in a Debian chroot"
-    echo "|  on a Linux host, will make it impossible to unmount /dev"
-    echo "|  essentialy forcing you to have to do init 6 to get things"
-    echo "|  Back to normal. Hopefully I can fix this soon, but for now,"
-    echo "|  try to avoid it!"
-    echo "|"
-    echo "+-------------------------------------------------------------+"
-    echo
-    echo
 fi
 
 #
