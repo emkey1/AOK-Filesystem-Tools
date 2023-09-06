@@ -4,6 +4,10 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+## release 0.9.6
+
+- Sorted out the issue with do_chroot.sh, added a check that kills any stray processes created inside the chroot
+
 ## release 0.9.5
 
 - Added warning not to start openrc service on Debian chroot with a Linux host. It will force you to reboot in order to reclaim /dev
