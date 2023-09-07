@@ -8,6 +8,14 @@
 #
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.
+#  Since during the deploy kernel features are checked for, services might
+#  be probed or even started, it is necesery to have various system dirs
+#  mounted during deploy.
+#  If the chroot starts a service or other sub process that opes a file
+#  to one of the sys dirs, for instance writes to /dev/null
+#  This prevents the chrooted /dev from being unmounted, so during
+#  restore of the env there is a scan for any processes blocking
+#  unmounting, and an attempt to kill them is done.
 #
 #  Since this is a POSIX script, there are no local variables,
 #  to minimize risk of unintentionally changing an outer variable
@@ -166,21 +174,45 @@ cleanout_dir() {
     [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir($1) - done"
 }
 
+set_ch_procs() {
+    # Since this is done twice, use a func to ensure same filtering is done
+
+    #
+    #  needed so that we can filter for chroot processes actually having this
+    #  in their env, without this the child ps, grep & awk
+    #  processes would inherit the env variable created by the sudo.
+    #  For some reason, despite this the process running this script maintains
+    #  the env setting SUDO_COMMAND set by chroot,
+    #  so that process has to be filtered out by grep -v " $cmd_line"
+    #  pretty much a cludge, but the best I could come up with so far
+    #
+    export SUDO_COMMAND=none
+
+    _procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | grep -v " $cmd_line" | grep -v SUDO_COMMAND=none | awk '{print $1 }' | tr '\n' ' ')"
+
+    # Trim trailing whitespace
+    ch_procs="${_procs%"${_procs##*[![:space:]]}"}"
+    unset _procs
+}
+
 kill_remaining_procs() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "kill_remaining_procs()"
 
     msg_3 "Ensuring chroot env didn't leave any process..."
-    ch_procs="$(lsof | grep "$CHROOT_TO" | awk '{ print $2  }' | uniq)"
-    [ -z "$ch_procs" ] && return
+
+    set_ch_procs
+    [ -z "$ch_procs" ] && return  # nothing needs killing
+
     msg_3 "remaining procs to kill: [$ch_procs]"
-    #  shellcheck disable=SC2086
-    echo $ch_procs |  xargs kill
+    echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: [{}] $s" ; kill {}'
 
-    ch_procs="$(lsof | grep "$CHROOT_TO" | awk '{ print $2  }' | uniq)"
-
+    #
+    #  Ensure thee are no leftovers that kill didnt get rid off
+    #
+    set_ch_procs
     if [ -n "$ch_procs" ]; then
-	echo
-	echo "***  WARNING - remaining procsses from chrooted env ***"
+	msg_3 "***  WARNING - remaining procs: [$ch_procs]  ***"
+
 	echo "Remaining mounts:"
 	mount | grep "$CHROOT_TO"
 	echo
@@ -389,8 +421,12 @@ chroot_statuses() {
 #
 #===============================================================
 
-prog_name="$(basename "$0")"
-
+#
+#  needed during cleanup to filter out processes with
+#  SUDO_COMMAND=$cmd_line
+#
+cmd_line="$0"
+prog_name="$(basename "$cmd_line")"
 #  Allowing this to be run from anywhere using path
 current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 AOK_DIR="$(dirname -- "$current_dir")"
@@ -548,13 +584,15 @@ fi
 #
 #  In this case we want the $cmd_w_params variable to expand into its components
 #
+#  TODO: try to get rid of emptying vars
 #  shellcheck disable=SC2086
-TMPDIR="" SHELL="" LESS="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
-exit_code="$?"
+TMPDIR="" SHELL="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
+chroot_exit_code="$?"
 
 [ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
 
 env_restore
 destfs_clear_chrooted
+
 # If there was an error in the chroot process, propagate it
-exit "$exit_code"
+exit "$chroot_exit_code"
