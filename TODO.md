@@ -1,9 +1,5 @@
 # TODO
 
-## Alpine and Debian root env is fairly different
-
-Investigate and bring them closer together
-
 ##  Make it more clear how to refer to self during deploy
 
 When the deploy starts its pretty clear what `hostfs_is_alpine` and

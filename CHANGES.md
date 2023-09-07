@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- improved cleanup of processes after chroot
+
 ## release 0.9.6
 
 - Sorted out the issue with do_chroot.sh, added a check that kills any stray processes created inside the chroot
