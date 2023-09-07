@@ -178,9 +178,10 @@ set_ch_procs() {
     # Since this is done twice, use a func to ensure same filtering is done
 
     #
-    #  needed so that we can filter for chroot processes actually having this
-    #  in their env, without this the child ps, grep & awk
-    #  processes would inherit the env variable created by the sudo.
+    #  needed so that we can filter chroot processes having the real
+    #  SUDO_COMMAND in their env. Without this the child ps, grep & awk
+    #  processes would inherit the env variable created by the chroot.
+    #
     #  For some reason, despite this the process running this script maintains
     #  the env setting SUDO_COMMAND set by chroot,
     #  so that process has to be filtered out by grep -v " $cmd_line"
@@ -188,7 +189,8 @@ set_ch_procs() {
     #
     export SUDO_COMMAND=none
 
-    _procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | grep -v " $cmd_line" | grep -v SUDO_COMMAND=none | awk '{print $1 }' | tr '\n' ' ')"
+    _procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | grep -v " $cmd_line" | \
+    	      grep -v SUDO_COMMAND=none | awk '{print $1 }' | tr '\n' ' ')"
 
     # Trim trailing whitespace
     ch_procs="${_procs%"${_procs##*[![:space:]]}"}"
@@ -198,25 +200,29 @@ set_ch_procs() {
 kill_remaining_procs() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "kill_remaining_procs()"
 
-    msg_3 "Ensuring chroot env didn't leave any process..."
+    msg_3 "Ensuring chroot env didn't leave any process running..."
 
     set_ch_procs
     [ -z "$ch_procs" ] && return  # nothing needs killing
 
     msg_3 "remaining procs to kill: [$ch_procs]"
-    echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: [{}] $s" ; kill {}'
+    echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: $s" ; kill {}'
 
     #
     #  Ensure thee are no leftovers that kill didnt get rid off
     #
+    msg_3 "Making sure nothing remains"
     set_ch_procs
     if [ -n "$ch_procs" ]; then
 	msg_3 "***  WARNING - remaining procs: [$ch_procs]  ***"
 
 	echo "Remaining mounts:"
-	mount | grep "$CHROOT_TO"
 	echo
-	echo "Must be manually unmouunted"
+
+	mount | grep "$CHROOT_TO"
+
+	echo
+	echo "Must be manually unmouunted once offending process are gone"
 	echo
 	exit 1
     fi
