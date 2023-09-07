@@ -182,10 +182,13 @@ set_ch_procs() {
     #  SUDO_COMMAND in their env. Without this the child ps, grep & awk
     #  processes would inherit the env variable created by the chroot.
     #
-    #  For some reason, despite this the process running this script maintains
-    #  the env setting SUDO_COMMAND set by chroot,
+    #  For some reason, despite this the process running this script
+    #  maintains the env setting SUDO_COMMAND set by chroot,
     #  so that process has to be filtered out by grep -v " $cmd_line"
     #  pretty much a cludge, but the best I could come up with so far
+    #
+    #  Be aware that this wont catch procs that on purpose clear
+    #  or edit their SUDO_COMMAND env variable
     #
     export SUDO_COMMAND=none
 
