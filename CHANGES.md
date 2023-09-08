@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Processing DEB_PKGS_SKIP before DEB_PKGS
 - Added override option if do_chroot.sh recomends against running it
 - improved checks that chroot is not already active
 - improved cleanup of processes after chroot, also works when ps axe is not available
