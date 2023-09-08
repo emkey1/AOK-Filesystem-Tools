@@ -214,4 +214,7 @@ if [ "$not_prebuilt" = 1 ]; then
     echo "/etc/inittab was changed during the install."
     echo "In order for this new version to be used, a restart is needed."
     echo
+else
+    msg_1 "Prebuild completed, exiting"
+    exit
 fi

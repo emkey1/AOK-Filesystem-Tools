@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Reintroduced exit after pre-build
 - Improved check that chroot dest is not already being used in a chroot
 - Alpine & Debian if USE_CRON_SERVICE is not "Y", only actually disable service if it was active, to avoid pointless warning
 - do_chroot.sh uses /dev/pts again - some Debian packages gives a warning when not available
