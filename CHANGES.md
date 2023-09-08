@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- improved checks that chroot is not already active
 - improved cleanup of processes after chroot, also works when ps axe is not available
 
 ## release 0.9.6

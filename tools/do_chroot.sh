@@ -35,9 +35,9 @@ _fnc_calls=0
 can_chroot_run_now() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "can_chroot_run_now()"
 
+    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot destination does not exist: $CHROOT_TO"
 
-    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
     if [ -f "$pidfile_do_chroot" ]; then
         # Read the PID from the file
         _pid=$(cat "$pidfile_do_chroot")
@@ -61,6 +61,18 @@ can_chroot_run_now() {
         fi
     fi
     unset _pid
+
+    #
+    #  Last check, ensure no sys dirs are mounted already at this location
+    #  That would strongly indicate a concurrent chroot
+    #
+    if [ -n "$(lsof |grep "$CHROOT_TO")" ]; then
+        echo "ERROR: Active chroot session detected at $CHROOT_TO!"
+        echo "       If this is due to a crash or abort, you can clear it by running:"
+        echo "         tools/do_chroot.sh -c"
+        echo
+        exit 1
+    fi
 
     [ "$_fnc_calls" = 2 ] && msg_3 "can_chroot_run_now() - done"
 }

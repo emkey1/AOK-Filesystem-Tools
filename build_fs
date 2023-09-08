@@ -200,8 +200,8 @@ display_build_target() { # Multi OK 1
         error_msg "This must be run as root or using sudo!"
     fi
 
-    if [ "$(find "$d_build_root"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
-        echo "ERROR: Active chroot session detected!"
+    if [ -d "$d_build_root" ] && [ -n "$(lsof |grep "$d_build_root")" ]; then
+        echo "ERROR: Active chroot session detected at $d_build_root!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         tools/do_chroot.sh -c"
         echo
