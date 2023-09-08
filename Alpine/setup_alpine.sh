@@ -108,18 +108,19 @@ setup_login() {
 setup_cron_env() {
     msg_2 "Setup Alpine dcron"
 
-    msg_3 "root crontab running periodic content"
+    msg_3 "Adding root crontab running periodic content"
     mkdir -p /etc/crontabs
     cp -a "$aok_content"/common_AOK/cron/crontab-root /etc/crontabs/root
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
-	msg_3 "Activating cron service"
+	msg_3 "Activating dcron service"
 	[ "$(command -v crond)" != /usr/sbin/crond ] && error_msg "cron service requested, dcron does not seem to be installed"
 	rc-update add dcron default
     else
 	msg_3 "Inactivating cron service"
-	rc-update del dcron default
+	#  Action only needs to be taken if it was active
+	[ -n "$(find /etc/runlevels/ |grep dcron)" ] && rc-update del dcron default
     fi
     # msg_3 "setup_cron_env() - done"
 }

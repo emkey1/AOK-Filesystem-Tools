@@ -35,7 +35,7 @@ prepare_env_etc() {
 setup_cron_env() {
     msg_2 "Setup Debian cron"
 
-    msg_3 "root crontab running periodic content"
+    msg_3 "Adding root crontab running periodic content"
     mkdir -p /var/spool/cron/crontabs
     cp -a "$aok_content"/common_AOK/cron/crontab-root /var/spool/cron/crontabs/root
 
@@ -46,7 +46,8 @@ setup_cron_env() {
 	rc-update add cron default
     else
 	msg_3 "Inactivating cron service"
-	rc-update del cron default
+	#  Action only needs to be taken if it was active
+	[ -n "$(find /etc/runlevels/ |grep cron)" ] && rc-update del cron default
     fi
     # msg_3 "setup_cron_env() - done"
 }
