@@ -408,6 +408,9 @@ Available options:
 -a  --available Reports if this can be run now
 -c  --cleanup   Cleanup env if something crashed whilst sudoed
 -p, --path      What dir to chroot into, defaults to: $d_build_root
+-f, --force     Run this despite a warning indicating it will likely
+                not work.
+
 command         Defaults to the shell used by root within the env
 
 chroot with env setup so this works on both Linux & iSH
@@ -473,12 +476,6 @@ hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 
 CHROOT_TO="$d_build_root"
 
-if this_is_ish && hostfs_is_debian; then
-    echo "************"
-    echo "ish running Debian - this does not seem able to do chroot. You have been warned..."
-    echo "************"
-fi
-
 if [ "$build_env" = "$be_other" ]; then
     echo
     echo "AOK can only be chrooted on iSH or Linux (x86)"
@@ -494,61 +491,79 @@ cd "$aok_content" || {
     error_msg "Failed to cd into: $aok_content"
 }
 
-case "$1" in
+while [ -n "$1" ]; do
 
-"-h" | "--help")
-    show_help
-    exit 0
-    ;;
+    case "$1" in
 
-"-a" | "--available")
-    can_chroot_run_now
-    msg_1 "$prog_name not running, can be started!"
-    #
-    #  This check should already have exited, exit busy, now in case
-    #  something went wrong
-    #
+	"-h" | "--help")
+	    show_help
+	    exit 0
+	    ;;
+
+	"-a" | "--available")
+	    can_chroot_run_now
+	    msg_1 "$prog_name not running, can be started!"
+	    #
+	    #  This check should already have exited, exit busy, now in case
+	    #  something went wrong
+	    #
+	    exit 1
+	    ;;
+
+	"-p" | "--path")
+	    if [ -d "$2" ]; then
+		CHROOT_TO="$2"
+		shift # get rid of the option
+		shift # get rid of the dir
+	    else
+		error_msg "-p assumes a param pointing to where to chroot!"
+	    fi
+	    ;;
+
+	"-c" | "--cleanup")
+	    cleanup_sleep=2
+	    can_chroot_run_now
+	    echo
+	    echo "Will cleanup the mount point: $CHROOT_TO"
+	    echo
+	    echo "Please be aware that if you attempt to clean up after a chroot"
+	    echo "to a non-standard path (ie you used -p), you must use this notation"
+	    echo "in order to attempt to clean up the right things."
+	    echo
+	    echo "$prog_name -p /custom/path -c"
+	    echo
+	    echo "This will continue in $cleanup_sleep secnods, hit Ctrl-C if you want to abort"
+	    sleep "$cleanup_sleep"
+
+	    define_chroot_env
+	    env_restore
+	    exit 0
+	    ;;
+
+	"-f" | "--force")
+	    msg_1 "Using force!"
+	    force_this=1
+	    ;;
+
+	*)
+	    firstchar="$(echo "$1" | cut -c1-1)"
+	    if [ "$firstchar" = "-" ]; then
+		error_msg "invalid option! Try using: -h"
+	    fi
+	    ;;
+
+    esac
+    shift
+done
+
+if this_is_ish && hostfs_is_debian && [ "$force_this" != "1" ]; then
+    echo "************"
+    echo "ish running Debian - this does not seem able to do chroot. You have been warned..."
+    echo "                     Run this with -f if you still want to go ahead"
+    echo "************"
     exit 1
-    ;;
+fi
 
-"-p" | "--path")
-    if [ -d "$2" ]; then
-        CHROOT_TO="$2"
-        shift # get rid of the option
-        shift # get rid of the dir
-    else
-        error_msg "-p assumes a param pointing to where to chroot!"
-    fi
-    ;;
-
-"-c" | "--cleanup")
-    cleanup_sleep=2
-    can_chroot_run_now
-    echo
-    echo "Will cleanup the mount point: $CHROOT_TO"
-    echo
-    echo "Please be aware that if you attempt to clean up after a chroot"
-    echo "to a non-standard path (ie you used -p), you must use this notation"
-    echo "in order to attempt to clean up the right things."
-    echo
-    echo "$prog_name -p /custom/path -c"
-    echo
-    echo "This will continue in $cleanup_sleep secnods, hit Ctrl-C if you want to abort"
-    sleep "$cleanup_sleep"
-
-    define_chroot_env
-    env_restore
-    exit 0
-    ;;
-
-*)
-    firstchar="$(echo "$1" | cut -c1-1)"
-    if [ "$firstchar" = "-" ]; then
-        error_msg "invalid option! Try using: -h"
-    fi
-    ;;
-
-esac
 
 define_chroot_env
 can_chroot_run_now

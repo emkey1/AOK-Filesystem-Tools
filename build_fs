@@ -32,6 +32,8 @@ Available options:
                    for quicker imports on target device, but up to 10
                    times larger image file.
                    This can only be done on iSH or Linux (x86)!
+-f  --force        Force do_chroot.sh to run, despite any warnings
+                   it displays.
 -c  --clear        Empty the build env ($d_build_root)
 -C  --full_clear   Do a clear, and in addition clear the download cache
 -j  --bzip2        Use bzip2 compression for distribution
@@ -118,6 +120,10 @@ parse_arguments() { # Multi OK 1
             fi
             pre_build_FS=true
             ;;
+
+	"-f" | "--force")
+	    force_chroot="-f"
+	    ;;
 
         "-c" | "--clear")
            do_clear
@@ -334,7 +340,8 @@ select_distro_on_1st_boot() {
     #  the same.
     #
     if [ "$build_env" != "$be_other" ]; then
-        if ! "$aok_content"/tools/do_chroot.sh /etc/profile; then
+	[ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
+        if ! "$aok_content"/tools/do_chroot.sh "$force_chroot" /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
     else
@@ -363,7 +370,8 @@ prebuild_fs() {
 
     deploy_state_set "$deploy_state_pre_build"
 
-    "$aok_content"/tools/do_chroot.sh /etc/profile || {
+    [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
+    "$aok_content"/tools/do_chroot.sh "$force_chroot" /etc/profile || {
         error_msg "There was an error during prebuild"
     }
     msg_1 "Returned from prebuild chroot"
