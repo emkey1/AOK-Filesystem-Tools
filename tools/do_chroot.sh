@@ -342,7 +342,7 @@ env_prepare() {
     elif [ "$build_env" = "$be_linux" ]; then
 #	mount -t sysfs sys "$d_sys"
 	mount -o bind /dev "$d_dev"
-#	mount -o bind /dev/pts "$d_dev_pts"
+	mount -o bind /dev/pts "$d_dev_pts"
     fi
 
     # msg_3 "copying current /etc/resolv.conf"
