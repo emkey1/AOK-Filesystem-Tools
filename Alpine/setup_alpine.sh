@@ -32,6 +32,7 @@ install_apks() {
     #
     msg_2 "Custom apks"
     if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1 ; then
+	msg_3 "mtr is a full screen traceroute"
 	apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk
     fi
 }
