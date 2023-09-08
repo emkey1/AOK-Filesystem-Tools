@@ -192,8 +192,17 @@ set_ch_procs() {
     #
     export SUDO_COMMAND=none
 
-    _procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | grep -v " $cmd_line" | \
-    	      grep -v SUDO_COMMAND=none | awk '{print $1 }' | tr '\n' ' ')"
+    if hostfs_is_alpine; then
+	#
+	#  Be aware that sometimes calling lsof will cause iSH-AOK
+	#  to crash hard
+	#
+	_procs="$(lsof |grep aok_fs | awk '{print $1}' | uniq  | tr '\n' ' ')"
+    else
+	_procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | \
+ 	          grep -v " $cmd_line" | grep -v SUDO_COMMAND=none | \
+		  awk '{print $1 }' | tr '\n' ' ')"
+    fi
 
     # Trim trailing whitespace
     ch_procs="${_procs%"${_procs##*[![:space:]]}"}"
