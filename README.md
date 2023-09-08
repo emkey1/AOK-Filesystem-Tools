@@ -44,6 +44,26 @@ Fully usable. Release can be selected in AOK_VARS
 
 Fully usable. Be aware that this is Debian 10, since that was the last version of Debian for 32-bit environs. Deb 10 has been end of lifed, so will no longer recieve updates, but you are unlikely to run any public services on iSH, so for experimenting with a local Debian, it should be fine.
 
+#### Performance issues running Debian
+
+Any time you add/delete a package containing man pages it will cause a man-db trigger to reindex all man pages. On a normal system this is so close to instantaneous that it is a non-issue. However when running Debian on iSH-AOK this reindexing takes a long time...
+
+By default the iSH-AOK Debaian base images includes the man tools, since it is normally expected to be present on a Debian. If you can live without them, getting rid of them will vastly improve responsiveness when adding/removing packages.
+
+You can achieve this by adding the following in your config
+
+```sh
+DEB_PKGS_SKIP="man-db"
+```
+
+This will disable the man system in new File Systems you create
+
+In an already deployed Debian 10, instead do:
+
+```sh
+apt remove man-db
+```
+
 ### Devuan File System
 
 DNS resolving doesn't work, so while you can use Devuan, it's not very useful beyond testing at the moment. You can use `/etc/hosts`, to add hosts, and the hostnames needed for apt handling are included, but this is a limited solution to the DNS issue.
