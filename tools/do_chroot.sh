@@ -30,7 +30,7 @@
 #  Debug help, set to 1 to display entry  of functions
 #  set to 2 to also display exits
 #
-_fnc_calls=2
+_fnc_calls=0
 
 can_chroot_run_now() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "can_chroot_run_now()"
