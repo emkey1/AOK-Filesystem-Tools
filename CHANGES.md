@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- do_chroot.sh uses /dev/pts again - some Debian packages gives a warning when not available
 - Processing DEB_PKGS_SKIP before DEB_PKGS
 - Added override option if do_chroot.sh recomends against running it
 - improved checks that chroot is not already active
