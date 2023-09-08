@@ -60,7 +60,7 @@ INITIAL_LOGIN_MODE="enable"
 # USE_CRON_SERVICE="Y"
 
 #
-#  Replaces /root and USER_NAME home dirs with pre-defined content, if defined
+#  Replaces /root and USER_NAME home dirs with pre-defined content
 #  If USER_NAME is not set HOME_DIR_USER will be ignored.
 #
 # HOME_DIR_USER="/iCloud/ish_config/home_user.tgz"
@@ -75,17 +75,18 @@ INITIAL_LOGIN_MODE="enable"
 # AOK_HOSTNAME_SUFFIX="Y"
 
 #
-#  If you manually want to add something to the new FS, before deploy
+#  If you want to manuallyadd something to the new FS, before deploy
 #  begins. Remember that from the outside, the new FS is located at
-#  $TMPDIR/AOK/FS
+#  $TMPDIR/aok_fs, if TMPDIR is undefined it defaults to /tmp
 #  I use this when I want to simulate a mounted /iCloud env like what I
-#  would have on my iPad, whilst testing the FS on a linux host chrooted
+#  would have on my iPad, whilst testing the FS on a Linux build host
 #  If the FS is being compressed its /iCloud is first cleared, so
 #  anything you put in /iCloud will only be available for chrooted
 #  sessions on the build host.
-#  This one it is better to define in .AOK_VARS
+#  If you put stuff in locations other than /iCloud it will be
+#  kept in the compressed FS
 #
-# POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/AOK/FS"
+# POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/aok_fs"
 
 #
 #  Use this if you have your own restore procedure.
@@ -93,6 +94,7 @@ INITIAL_LOGIN_MODE="enable"
 #  when it should be running inside a full AOK FS
 #  If this is a script, it must be available with this PATH on the new
 #  FS, that means it most likely needs to be in the iCloud mount.
+#  Unless you have used POPULATE_FS to insert it into the regular FS
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
 
@@ -101,7 +103,7 @@ INITIAL_LOGIN_MODE="enable"
 #  file. This is mostly useful as a debugging tool, if during the deploy
 #  something goes wrong and iSH crashes. This way you can at least get
 #  an idea of how far things progressed before something broke.
-#  This one it is better to define in .AOK_VARS
+#  The path defines will be inside the new FS
 #
 # LOG_FILE=/var/log/aokfs-build.log
 
@@ -153,10 +155,8 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #
 #  Additional packages. These don't work with stock iSH but work with
 #  iSH-AOK and will probably work with the Linux Kernel iSH
-#  Will only be installed if the kernel is identified as iSH-AOK.
-#  If doing a prebuild, these will be installed regardless of
-#  build platform, then on first boot at dest device, they
-#  will be removed if at this time the env is not iSH-AOK
+#  Will only be installed if the kernel is identified as iSH-AOK
+#  on first boot at dest device,
 #
 AOK_APKS="procps nload"
 
@@ -168,8 +168,7 @@ AOK_APKS="procps nload"
 #  conveniently than having to open this file and then do cut/paste
 #  repeatedly.
 #
-#  You can add/modify all the groups to your liking.
-#  Again, consider using .AOK_VARS
+#  You can add/modify groups to your liking.
 #
 VNC_APKS="x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status \
     i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc \
@@ -180,7 +179,6 @@ DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
     bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev \
     libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
-# BLOAT3_APKS='emacs neofetch'
 
 DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
     tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc \
@@ -197,7 +195,12 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 ########################################################################
 
 #
-#  If this type of install is selected, this tarball will be used as base image
+#  If this type of install is selected, this tarball will be used as
+#  base image. Since apt install tends to be really slow on iSH-AOK,
+#  these images comes with all the default AOK_FS stuff pre-installed
+#  If you want to get rid of default packages, use DEB_PKGS_SKIP
+#  Best of all if you pre-build, this package removal happens on the
+#  buil-host, so will not have to be done on the dest device!
 #
 DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/uifhcafdb86241sgs26l3/Debian10-4-aok-2.tar.gz?rlkey=fh5ftnyky9t53tkz4x4wqiz40"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
@@ -205,13 +208,14 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-
 #
 #  All the AOK packages used on Alpine are pre-installed,
 #  here one can add any additional packages to be installed during setup
+#  If pre-build is used, this will happen on the build host.
 #
 DEB_PKGS=""
 
 #
 #  Since the Debian image comes pre installed with all the aok related
 #  stuff, here you can list packages that should be deleted.
-#  This happens during the pre-build when available,
+#  This happens during the pre-build when used,
 #  it saves time compared to having to do it on the target device.
 #
 DEB_PKGS_SKIP=""
@@ -221,5 +225,6 @@ DEB_PKGS_SKIP=""
 #  If the file(-s) are relevant both for Alpine and Debian, point it to the same
 #  template file.
 #  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
+#  This points to a location on the destination device.
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
