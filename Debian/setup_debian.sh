@@ -165,11 +165,11 @@ if [ -n "$DEB_PKGS_SKIP" ]; then
     #  shellcheck disable=SC2086
     apt purge -y $DEB_PKGS_SKIP
 fi
-echo
 
 if [ -n "$DEB_PKGS" ]; then
     msg_1 "Add Debian packages"
     echo "$DEB_PKGS"
+    echo
     #  shellcheck disable=SC2086
     apt install -y $DEB_PKGS
 fi
@@ -185,6 +185,7 @@ fi
 setup_login
 
 debian_services
+
 
 #
 #  Overriding common runbg with Debian specific, work in progress...
