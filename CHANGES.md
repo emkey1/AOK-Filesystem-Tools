@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- New Debian src-img: Debian10-5-aok-1.tgz
 - Added my package adm tools Mapt & Mapk
 - Improved detection if already chrooted
 - Removed DEBUG_BUILD havent used it in a while and that stuff was going obsolete
