@@ -115,7 +115,7 @@ run_additional_tasks_if_found() {
 deploy_state_clear() {
     msg_2 "deploy_state_clear()"
 
-    rm "$f_deploy_state"
+    rm "$f_dest_fs_deploy_state"
 
     # msg_3 "deploy_state_clear() - done"
 }
