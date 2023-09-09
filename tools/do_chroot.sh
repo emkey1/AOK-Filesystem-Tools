@@ -610,30 +610,7 @@ fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 
-if [ -n "$DEBUG_BUILD" ]; then
-    msg_2 "Deploy state: $(deploy_state_get)"
-    msg_2 "chroot statuses before"
-    chroot_statuses "Before setting destfs"
-fi
-
 destfs_set_is_chrooted
-
-if [ -n "$DEBUG_BUILD" ]; then
-    chroot_statuses "After setting destfs"
-    msg_2 "d_build_root [$d_build_root]"
-    msg_3 "Detected: [$(destfs_detect)]"
-    echo
-    echo ">>> -----  displaying host fs status"
-    find /etc/opt
-    echo ">>> -----"
-    echo
-    echo ">>> -----  displaying dest fs status"
-    find "$d_build_root"/etc/opt
-    echo ">>> -----"
-    echo
-    msg_1 "==========  doing chroot  =========="
-    echo ">> about to run: chroot $CHROOT_TO $cmd_w_params"
-fi
 
 #
 #  Here we must disable all env variables that should not be passed into
@@ -645,8 +622,6 @@ fi
 #  shellcheck disable=SC2086
 TMPDIR="" SHELL="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
 chroot_exit_code="$?"
-
-[ -n "$DEBUG_BUILD" ] && msg_1 "----------  back from chroot  ----------"
 
 env_restore
 destfs_clear_chrooted
