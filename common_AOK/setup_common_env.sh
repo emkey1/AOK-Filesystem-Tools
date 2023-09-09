@@ -68,6 +68,9 @@ setup_environment() {
     msg_3 "Populate /etc/skel"
     cp -a "$aok_content"/common_AOK/etc/skel /etc
 
+    msg_3 "Activating group sudo for no passwd sudo"
+    cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
+    chmod 440 /etc/sudoers.d/sudo_no_passwd
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
@@ -116,6 +119,22 @@ setup_environment() {
         msg_2 "openrc not available - runbg not activated"
     fi
 
+    #
+    #  Removing default hostname service
+    #
+    hostn_service=/etc/init.d/hostname
+    if [ -f "$hostn_service" ]; then
+	msg_2 "Disabling hostname service not working on iSH"
+	mv -f "$hostn_service" /etc/init.d/NOT-hostname
+    fi
+    if hostfs_is_debian || hostfs_is_devuan; then
+	msg_3 "Removing hostname service files not meaningfull on iSH"
+	rm -f /etc/init.d/hostname
+	rm -f /etc/init.d/hostname.sh
+	rm -f /etc/rcS.d/S01hostname.sh
+	rm -f /etc/systemd/system/hostname.service
+    fi
+
     if [[ -f /etc/ssh/sshd_config ]]; then
         # Move sshd to port 1022 to avoid issues
         sshd_port=1022
@@ -127,9 +146,9 @@ setup_environment() {
         msg_2 "sshd not installed - port not changed"
     fi
 
-    msg_2 "Activating group sudo for no passwd sudo"
-    cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
-    chmod 440 /etc/sudoers.d/sudo_no_passwd
+    setup_cron_env
+
+    echo  # Spacer to next task
 
     #
     #  If chrooted inside tmux TERM causes whiptail to fail, set it to something
@@ -149,7 +168,8 @@ setup_root_env() {
     #  Extra sanity check, if this is undefined, the rest of this would
     #  ruin the build host root env...
     #
-    [ -z "$d_build_root" ] && error_msg "setup_root_env() - d_build_root undefined!"
+    [ ! -f "$f_host_deploy_state" ]  && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
+    [ -z "$d_build_root" ]
 
     #
     #  root user env
@@ -158,10 +178,7 @@ setup_root_env() {
     copy_skel_files /root
 
     msg_3 "clear root history"
-    rm "$d_build_root"/root/.bash_history -f
-
-    #msg_3 "Add /usr/local/sbin & bin to PATH"
-    #echo "PATH=/usr/local/sbin:/usr/local/bin:$PATH" >>/root/.bash_profile
+    rm /root/.bash_history -f
 
     # msg_3 "setup_root_env() - done"
 }
@@ -236,8 +253,6 @@ if ! command -v bash >/dev/null; then
     #
     error_msg "bash not installed, common_AOK/setup_environment() can not complete"
 fi
-
-setup_cron_env
 
 if [[ -n "$USER_SHELL" ]]; then
     if ! destfs_is_alpine && [[ "$USER_SHELL" = "/bin/ash" ]]; then
