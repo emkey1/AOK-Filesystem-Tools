@@ -144,21 +144,6 @@ echo
 
 . /opt/AOK/tools/utils.sh
 
-if [ -n "$DEBUG_BUILD" ]; then
-    msg_2 ">>> some debug statuses"
-    msg_3 "Deploy state: $(deploy_state_get)"
-    if this_fs_is_chrooted; then
-        msg_3 "This is chrooted"
-    else
-        msg_3 "NOT chrooted!"
-    fi
-    msg_3 "d_build_root [$d_build_root]"
-    msg_3 "Detected: [$(destfs_detect)]"
-    msg_2 ">>>  Debug, dropping into ash"
-    /bin/ash
-    error_msg "aborting build after ash" 1
-fi
-
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
 fi
