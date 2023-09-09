@@ -118,8 +118,8 @@ INITIAL_LOGIN_MODE="enable"
 #
 # ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
 # ALPINE_VERSION=3.16.7 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
-ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
+ ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
+#ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #
 #  For edge releases - Current development tree
 #  format is the isodate featured in the minirootfs filename
@@ -202,7 +202,7 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/uifhcafdb86241sgs26l3/Debian10-4-aok-2.tar.gz?rlkey=fh5ftnyky9t53tkz4x4wqiz40"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/hg7h99hhmdt9qd87p4jf0/Debian10-5-aok-2.tgz?rlkey=09uh0t53f5w6rh9xhzlnfeh9o"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
 
 #

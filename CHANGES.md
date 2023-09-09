@@ -4,6 +4,9 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Improved detection if already chrooted
+- Removed DEBUG_BUILD havent used it in a while and that stuff was going obsolete
+- Added check that sudo is installed
 - Reintroduced exit after pre-build
 - Improved check that chroot dest is not already being used in a chroot
 - Alpine & Debian if USE_CRON_SERVICE is not "Y", only actually disable service if it was active, to avoid pointless warning

@@ -66,7 +66,7 @@ can_chroot_run_now() {
     #  Last check, ensure no sys dirs are mounted already at this location
     #  That would strongly indicate a concurrent chroot
     #
-    if ! hostfs_is_alpine && [ -n "$(mount | grep /opt/4-aok-2)" ]; then
+    if ! hostfs_is_alpine && [ -n "$(mount | grep "$TMPDIR/aok_fs")" ]; then
         echo "ERROR: Something has mounted sys folders inside $CHROOT_TO!"
 	echo "       Most likely another process is already chrooted to"
 	echo "       this location."
@@ -74,17 +74,6 @@ can_chroot_run_now() {
         echo "         tools/do_chroot.sh -c"
 	echo
 	exit 1
-    elif [ -n "$(lsof |grep "$CHROOT_TO")" ]; then
-        echo "ERROR: Potential Active chroot session detected at $CHROOT_TO!"
-	echo "       Due to the limited abilities of iSH Alpine, this could have been"
-	echo "       caused by a shell using this as it's current directory."
-	echo "       If that is the case, just cd that shell somewhere else to get"
-	echo "       rid of a false warning."
-        echo "       If this is due to a crash or abort, you can clear it by running:"
-        echo "         tools/do_chroot.sh -c"
-        echo
-	lsof | grep "$CHROOT_TO"
-        exit 1
     fi
 
     [ "$_fnc_calls" = 2 ] && msg_3 "can_chroot_run_now() - done"

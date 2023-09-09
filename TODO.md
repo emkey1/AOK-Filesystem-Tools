@@ -1,6 +1,11 @@
 # TODO
 
+##  Move do_shutdwn
+
+/usr/local/lib ??
+
 ##  Make it more clear how to refer to self during deploy
+
 
 When the deploy starts its pretty clear what `hostfs_is_alpine` and
 `destfs_is_alpine` is refering to. However when the destfs boots up and

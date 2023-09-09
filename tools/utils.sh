@@ -337,45 +337,40 @@ this_is_aok_kernel() {
 #
 #   chroot handling
 #
-#  Theese are convenience hints that can be set in order for
-#  scipts to keep
-#
 #---------------------------------------------------------------
 
 this_fs_is_chrooted() {
     #  Check this _ACTUAL_ fs
-    [ -n "$DEBUG_BUILD" ] && msg_2 "this_fs_is_chrooted() [$f_this_fs_is_chrooted_raw]"
-    [ -f "$f_this_fs_is_chrooted_raw" ]
+    [ -f "$f_host_fs_is_chrooted" ]
 }
+
 dest_fs_is_chrooted() {
-    [ -n "$DEBUG_BUILD" ] && msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted]"
-    [ -f "$f_this_fs_is_chrooted" ]
+    [ -f "$f_dest_fs_is_chrooted" ]
 }
 
 destfs_set_is_chrooted() {
     # msg_2 "destfs_set_is_chrooted(()"
-    [ -n "$DEBUG_BUILD" ] && msg_1 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
-    if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
-        msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
-        msg_3 "$f_this_fs_is_chrooted"
+    if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
+        msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
+        msg_3 "$f_dest_fs_is_chrooted"
         error_msg "flagging dest FS as chrooted NOT possible!"
     fi
-    mkdir -p "$(dirname "$f_this_fs_is_chrooted")"
-    touch "$f_this_fs_is_chrooted"
+    mkdir -p "$(dirname "$f_dest_fs_is_chrooted")"
+    touch "$f_dest_fs_is_chrooted"
     # msg_3 "destfs_set_is_chrooted(() - done"
 }
 
 destfs_clear_chrooted() {
     # msg_2 "destfs_clear_chrooted(()"
 
-    if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
-        msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
-        msg_3 "$f_this_fs_is_chrooted"
+    if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
+        msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
+        msg_3 "$f_dest_fs_is_chrooted"
         error_msg "clearing dest FS as chrooted NOT possible!"
     fi
 
-    if [ -f "$f_this_fs_is_chrooted" ]; then
-        rm "$f_this_fs_is_chrooted"
+    if [ -f "$f_dest_fs_is_chrooted" ]; then
+        rm "$f_dest_fs_is_chrooted"
     else
         error_msg "destfs_clear_chrooted() - could not find chroot indicator"
     fi
@@ -385,6 +380,8 @@ destfs_clear_chrooted() {
 #---------------------------------------------------------------
 #
 #   Host FS
+#
+#  What this FS is
 #
 #---------------------------------------------------------------
 
@@ -422,6 +419,8 @@ hostfs_detect() {
 #
 #   Destination FS
 #
+#  destfs from the perspective of a build host
+#
 #---------------------------------------------------------------
 
 destfs_is_alpine() {
@@ -445,10 +444,10 @@ destfs_detect() {
     #  Since a select env also looks like Alpine, this must fist
     #  test if it matches the test criteria
     #
-    if destfs_is_alpine; then
-        echo "$distro_alpine"
-    elif destfs_is_select; then
+    if destfs_is_select; then
         echo "$destfs_select"
+    elif destfs_is_alpine; then
+        echo "$distro_alpine"
     elif destfs_is_debian; then
         echo "$distro_debian"
     elif destfs_is_devuan; then
@@ -476,8 +475,8 @@ deploy_state_set() {
 
     deploy_state_check_param deploy_state_set "$_state"
 
-    mkdir -p "$(dirname "$f_deploy_state")"
-    echo "$_state" >"$f_deploy_state"
+    mkdir -p "$(dirname "$f_dest_fs_deploy_state")"
+    echo "$_state" >"$f_dest_fs_deploy_state"
 
     unset _state
 }
@@ -496,10 +495,10 @@ deploy_state_is_it() {
 }
 
 deploy_state_get() {
-    _state="$(cat "$f_deploy_state" 2>/dev/null)"
+    _state="$(cat "$f_dest_fs_deploy_state" 2>/dev/null)"
     if [ -z "$_state" ]; then
         # This will only be logged, that depends on LOG_FILE being set
-        msg_1 "deploy_state_get() did not find anything in [$f_deploy_state]" >/dev/null
+        msg_1 "deploy_state_get() did not find anything in [$f_dest_fs_deploy_state]" >/dev/null
         echo ""
     else
         echo "$_state"
@@ -537,11 +536,6 @@ deploy_starting() {
 #   Main
 #
 #===============================================================
-
-#
-#  Only use if you want low-level debugging, in most cases not helpfull
-#
-# DEBUG_BUILD=1
 
 while [ -f "/run/fixdev.pid" ]; do
     msg_3 "Waiting for fix_dev to complete"
@@ -601,23 +595,26 @@ d_images="$TMPDIR/aok_imgs"
 #
 aok_content_etc="/etc$aok_content"
 
-f_this_fs_is_chrooted_raw="/etc/opt/this_fs_is_chrooted"
-f_deploy_state_raw="${aok_content_etc}/deploy_state"
+#
+#  Figure out if this script is run as a build host
+#  or inside the dest File System
+#
+#  To make things work regardless, a build host adds
+#  a prefix to all absolute paths - d_build_root
+#  pointing to where the dest fs is located in the host fs
+#
+f_host_fs_is_chrooted="/etc/opt/this_fs_is_chrooted"
+f_host_deploy_state="${aok_content_etc}/deploy_state"
 
-if [ -n "$DEBUG_BUILD" ]; then
-    echo ">>> --- Raw states"
-    echo ">>> this is f_this_fs_is_chrooted [$f_this_fs_is_chrooted_raw] f_deploy_state [$f_deploy_state_raw]"
-fi
-
-if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
-    [ -n "$DEBUG_BUILD" ] && msg_3 "running inside dest FS"
-else
+if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
     d_build_root="$TMPDIR/aok_fs"
-    [ -n "$DEBUG_BUILD" ] && msg_3 "running on build host FS"
+#    msg_3 "><>===  This is run by Build host"
+#else
+#    msg_3 "><>===  This runs inside dest FS"
 fi
 
-f_this_fs_is_chrooted="${d_build_root}${f_this_fs_is_chrooted_raw}"
-f_deploy_state="${d_build_root}${f_deploy_state_raw}"
+f_dest_fs_is_chrooted="${d_build_root}${f_host_fs_is_chrooted}"
+f_dest_fs_deploy_state="${d_build_root}${f_host_deploy_state}"
 
 #
 #  Detecting build environments
@@ -636,12 +633,6 @@ elif uname -a | grep -qi linux && uname -a | grep -q -e x86 -e i686; then
     build_env="$be_linux" # 2
 else
     build_env="$be_other" # chroot not possible 0
-fi
-
-if [ -n "$DEBUG_BUILD" ]; then
-    echo ">>> === defined states"
-    echo ">>> f_this_fs_is_chrooted [$f_this_fs_is_chrooted]  f_deploy_state [$f_deploy_state]"
-    echo ">>> build_env [$build_env]"
 fi
 
 #
