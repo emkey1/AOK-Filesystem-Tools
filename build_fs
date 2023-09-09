@@ -206,7 +206,7 @@ display_build_target() { # Multi OK 1
         error_msg "This must be run as root or using sudo!"
     fi
 
-    if [ -d "$d_build_root" ] && [ -n "$(lsof |grep "$d_build_root")" ]; then
+    if [ -d "$d_build_root" ] && [ -f "$pidfile_do_chroot" ]; then
         echo "ERROR: Active chroot session detected at $d_build_root!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         tools/do_chroot.sh -c"
@@ -374,6 +374,7 @@ prebuild_fs() {
     "$aok_content"/tools/do_chroot.sh "$force_chroot" /etc/profile || {
         error_msg "There was an error during prebuild"
     }
+
     msg_1 "Returned from prebuild chroot"
 
     # msg_3 "prebuild_fs() done"
