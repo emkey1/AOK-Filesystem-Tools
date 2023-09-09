@@ -10,6 +10,27 @@
 #
 # shellcheck disable=SC2154
 
+copy_skel_files() {
+    csf_dest="$1"
+    if [ -z "$csf_dest" ]; then
+        error_msg "copy_skel_files() needs a destination param"
+    elif [ ! -d "$csf_dest" ]; then
+        error_msg "copy_skel_files($csf_dest) - not indicating a directory"
+    fi
+
+    cp -r "$aok_content"/common_AOK/etc/skel/. "$csf_dest"
+
+    #
+    #  Ensure all files are owned by owner of this after skel copy
+    #
+    csf_owner=$(stat -c "%U" "$csf_dest")
+    chown -R "$csf_owner": "$csf_dest"
+
+    # ln -sf .bash_profile .bashrc  # TODO: for old skel files, can probably go
+    unset csf_dest
+    unset csf_owner
+}
+
 setup_cron_env() {
     msg_2 "Setup geeral cron env"
     #
@@ -28,7 +49,25 @@ setup_environment() {
     msg_2 "Set $file_aok_release to $AOK_VERSION"
     echo "$AOK_VERSION" >"$file_aok_release"
 
-    msg_2 "copy some /etc files"
+    copy_local_bins common_AOK
+    #
+    #  special case this should not be directly runnable,
+    #  perhaps it should not be in /usr/local/sbin,
+    #  what other location would be more apropriate?
+    #
+    chmod 644 /usr/local/sbin/do_shutdown
+
+    msg_2 "Configure some /etc files"
+
+    #
+    #  If the skel files are copied to /root during deploy, in a script run
+    #  by root, it triggers a clear screen. Doing it at this point ensures
+    #  that root env is already setup before dest root runs anything
+    #
+
+    msg_3 "Populate /etc/skel"
+    cp -a "$aok_content"/common_AOK/etc/skel /etc
+
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
@@ -37,22 +76,20 @@ setup_environment() {
     fi
     echo >>/etc/issue
 
-    if ! command -v sudo >/dev/null; then
-        error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
-    fi
-
-    if ! command -v bash >/dev/null; then
-        error_msg "bash not installed, common_AOK/setup_environment() can not complete"
-    fi
-
-    copy_local_bins common_AOK
-
     #
-    #  special case this should not be directly runnable,
-    #  perhaps it should not be in /usr/local/bin,
-    #  what other location would be more apropriate?
+    #  If USER_SHELL has been defined, the assumption would be to use
+    #  the same for user root, since if logins are not enabled,
+    #  you wold start up as user root.
+    #  With the exception that if USER_SHELL is the default for the FS
+    #  no change will happen
     #
-    chmod 644 /usr/local/sbin/do_shutdown
+    if (destfs_is_alpine && [ "$USER_SHELL" != "/bin/ash" ]) || \
+	   (! destfs_is_alpine && [ "$USER_SHELL" != "/bin/bash" ]); then
+	msg_3 "Changing root shell into USER_SHELL: $USER_SHELL"
+	awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
+	    /etc/passwd > /tmp/passwd && \
+	    mv /tmp/passwd /etc/passwd
+    fi
 
     #
     #  If AOK_TIMEZONE is defined, TZ can be set as early as the tools
@@ -79,9 +116,6 @@ setup_environment() {
         msg_2 "openrc not available - runbg not activated"
     fi
 
-    msg_2 "Populate /etc/skel"
-    cp -a "$aok_content"/common_AOK/etc/skel /etc
-
     if [[ -f /etc/ssh/sshd_config ]]; then
         # Move sshd to port 1022 to avoid issues
         sshd_port=1022
@@ -99,53 +133,37 @@ setup_environment() {
 
     #
     #  If chrooted inside tmux TERM causes whiptail to fail, set it to something
-    #  safe.
+    #  safe. TODO: is still needed? If so move to where it is needed
     #
-    TERM=xterm
-
+    # TERM=xterm
 }
 
-copy_skel_files() {
-    csf_dest="$1"
-    if [[ -z "$csf_dest" ]]; then
-        error_msg "copy_skel_files() needs a destination param"
-    fi
-    cp -r /etc/skel/. "$csf_dest"
-    cd "$csf_dest" || {
-        error_msg "Failed to cd into: $csf_dest"
-    }
 
-    ln -sf .bash_profile .bashrc
-
-    unset csf_dest
-}
-
-user_root() {
+setup_root_env() {
+    #
+    #  Should be done before the first session by this user
+    #
     msg_2 "Setting up root user env"
+
     #
-    #  If USER_SHELL has been defined, the assumption would be to use
-    #  the same for user root, since if logins are not enabled,
-    #  you wold start up as user root.
-    #  With the exception that if USER_SHELL is the default for the FS
-    #  no change will happen
+    #  Extra sanity check, if this is undefined, the rest of this would
+    #  ruin the build host root env...
     #
-    if (destfs_is_alpine && [[ "$USER_SHELL" != "/bin/ash" ]]) || \
-	   (! destfs_is_alpine && [[ "$USER_SHELL" != "/bin/bash" ]]); then
-	msg_3 "Changing root shell into USER_SHELL: $USER_SHELL"
-	awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
-	    /etc/passwd > /tmp/passwd && mv /tmp/passwd /etc/passwd
-    fi
+    [ -z "$d_build_root" ] && error_msg "setup_root_env() - d_build_root undefined!"
 
     #
     #  root user env
     #
+    msg_3 "Use skel files for root"
     copy_skel_files /root
-    msg_3 "Add /usr/local/sbin & bin to PATH"
-    echo "PATH=/usr/local/sbin:/usr/local/bin:$PATH" >>/root/.bash_profile
-    chown -R root: /root
+
     msg_3 "clear root history"
-    rm /root/.bash_history -f
-    # msg_3 "user_root() - done"
+    rm "$d_build_root"/root/.bash_history -f
+
+    #msg_3 "Add /usr/local/sbin & bin to PATH"
+    #echo "PATH=/usr/local/sbin:/usr/local/bin:$PATH" >>/root/.bash_profile
+
+    # msg_3 "setup_root_env() - done"
 }
 
 create_user() {
@@ -204,6 +222,21 @@ create_user() {
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
+if ! command -v sudo >/dev/null; then
+    #
+    #  If sudo is not installed passwordless sudoers file cant be copied
+    #  and sudo is a core part of AOK FS, so shuld always be pressent
+    #
+    error_msg "sudo not installed, common_AOK/setup_environment() can not complete"
+fi
+
+if ! command -v bash >/dev/null; then
+    #
+    #  Starting with this, some bash scripts need to be run
+    #
+    error_msg "bash not installed, common_AOK/setup_environment() can not complete"
+fi
+
 setup_cron_env
 
 if [[ -n "$USER_SHELL" ]]; then
@@ -222,8 +255,7 @@ else
 fi
 
 setup_environment
-user_root
-
+setup_root_env
 create_user
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
