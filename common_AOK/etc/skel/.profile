@@ -8,20 +8,39 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
-# if running bash
-if [ -n "$BASH_VERSION" ]; then
-    # include .bashrc if it exists
-    if [ -f "$HOME/.bashrc" ]; then
-	. "$HOME/.bashrc"
-    fi
-fi
+#  If not running interactively, don't go further
+case $- in
 
-# set PATH so it includes user's private bin if it exists
+    *i*) ;;
+
+    *) return  ;;
+
+esac
+
+case "$0" in
+
+    "-ash" | "ash" | "-dash" | "dash" )
+        ENV=$HOME/.ash_init; export ENV
+        # echo ">> ENV is set to: $ENV"
+        ;;
+
+    "-bash" | "bash" )
+        if [ -n "$PS1" -a -n "$BASH_VERSION" ]; then
+	    . "$HOME/.bashrc"
+        fi
+        ;;
+
+    *) ;;
+
+esac
+
+
+# set PATH so it includes user's bin if it exists
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
 
-# set PATH so it includes user's private bin if it exists
+# set PATH so it includes user's local bin if it exists
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
