@@ -495,6 +495,12 @@ cd "$aok_content" || {
 
 while [ -n "$1" ]; do
 
+    firstchar="$(echo "$1" | cut -c1-1)"
+    if [ "$firstchar" != "-" ]; then
+	#  No more options, continue
+	break
+    fi
+
     case "$1" in
 
 	"-h" | "--help")
@@ -547,10 +553,7 @@ while [ -n "$1" ]; do
 	    ;;
 
 	*)
-	    firstchar="$(echo "$1" | cut -c1-1)"
-	    if [ "$firstchar" = "-" ]; then
-		error_msg "invalid option! Try using: -h"
-	    fi
+	    error_msg "invalid option! Try using: -h"
 	    ;;
 
     esac
