@@ -154,6 +154,16 @@ prepare_env_etc
 msg_1 "apt upgrade"
 apt upgrade -y
 
+#
+#  To ensure that
+#  a) Deleting stuff, doesnt unintentionally delete what was supposed to
+#     be added in DEPB_PKGS
+#  b) If this is not prebuilt, and man-db is removed, saves the delay
+#     if DEB_PKGS adds something with a man page, just to then delete
+#     the man DB
+#
+#  It makes sense do first delete, then add
+#
 if [ -n "$DEB_PKGS_SKIP" ]; then
     msg_1 "Removing Debian packages"
     echo "$DEB_PKGS_SKIP"
