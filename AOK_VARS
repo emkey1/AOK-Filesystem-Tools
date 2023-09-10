@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.6-13"
+AOK_VERSION="0.9.6-14"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -206,19 +206,21 @@ DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/hg7h99hhmdt9qd87p4jf0/Debian10-
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
 
 #
+#  Since the Debian image comes pre installed with all the aok related
+#  stuff, here you can list packages that should be deleted.
+#  This happens during the pre-build when used,
+#  it saves time compared to having to do it on the target device.
+#  DEN_PKGS_SKIP is processed before DEB_PKGS to ensure that
+#  this doesnt unintentionally deelete something for DEB_PKGS
+#
+DEB_PKGS_SKIP=""
+
+#
 #  All the AOK packages used on Alpine are pre-installed,
 #  here one can add any additional packages to be installed during setup
 #  If pre-build is used, this will happen on the build host.
 #
 DEB_PKGS=""
-
-#
-#  Since the Debian image comes pre installed with all the aok related
-#  stuff, here you can list packages that should be deleted.
-#  This happens during the pre-build when used,
-#  it saves time compared to having to do it on the target device.
-#
-DEB_PKGS_SKIP=""
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
