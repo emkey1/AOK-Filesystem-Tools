@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.6-14"
+AOK_VERSION="0.9.6-15"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -124,9 +124,9 @@ ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #  For edge releases - Current development tree
 #  format is the isodate featured in the minirootfs filename
 #
-#  If you need to detect if the build is a edge release in your
+#  If you need to detect if the build is an edge release in your
 #  .AOK_VARS, when making config desicions,
-#  you  can check it thus:
+#  you can check it thus:
 #
 #  if echo "$ALPINE_VERSION" | grep -Eq '^[0-9]{8}$'; then
 #      echo "this is edge"
