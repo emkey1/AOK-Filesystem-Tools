@@ -117,13 +117,13 @@ setup_cron_env() {
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
-	msg_3 "Activating dcron service"
+	msg_3 "Activating dcron service, but not starting it now"
 	[ "$(command -v crond)" != /usr/sbin/crond ] && error_msg "cron service requested, dcron does not seem to be installed"
 	rc-update add dcron default
     else
 	msg_3 "Inactivating cron service"
 	#  Action only needs to be taken if it was active
-	[ -n "$(find /etc/runlevels/ |grep dcron)" ] && rc-update del dcron default
+	find /etc/runlevels/ | grep -q dcron && rc-update del dcron default
     fi
     # msg_3 "setup_cron_env() - done"
 }
@@ -211,25 +211,28 @@ msg_2 "Preparing initial motd"
 
 setup_cron_env
 
+#
+#  Depending on if prebuilt or not, either setup final tasks to run
+#  on first boot or now.
+#
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
+    is_prebuilt=1  # shorthand to avoid doing the above check again
 else
     "$setup_final"
-    not_prebuilt=1
 fi
 
 msg_1 "Setup complete!"
 
 duration="$(($(date +%s) - tsa_start))"
-display_time_elapsed "$duration" "Setup Alpine"
+display_time_elapsed "$duration" "Setup Debian"
 
-if deploy_state_is_it "$deploy_state_pre_build"; then
+if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"
     exit
+else
+    msg_1 "Please reboot/restart this app now!"
+    echo "/etc/inittab was changed during the install."
+    echo "In order for this new version to be used, a restart is needed."
+    echo
 fi
-
-msg_1 "Please reboot/restart this app now!"
-
-echo "/etc/inittab was changed during the install."
-echo "In order for this new version to be used, a restart is needed."
-echo

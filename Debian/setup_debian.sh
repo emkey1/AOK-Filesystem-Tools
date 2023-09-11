@@ -47,6 +47,7 @@ setup_cron_env() {
     else
 	msg_3 "Inactivating cron service"
 	#  Action only needs to be taken if it was active
+	#  shellcheck disable=SC2143  # TODO fix and test
 	[ -n "$(find /etc/runlevels/ |grep cron)" ] && rc-update del cron default
     fi
     # msg_3 "setup_cron_env() - done"
@@ -210,9 +211,9 @@ debian_services
 #
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
+    is_prebuilt=1  # shorthand to avoid doing the above check again
 else
     "$setup_final"
-    not_prebuilt=1
 fi
 
 msg_1 "Setup complete!"
@@ -220,12 +221,12 @@ msg_1 "Setup complete!"
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 
-if [ "$not_prebuilt" = 1 ]; then
+if [ -n "$is_prebuilt" ]; then
+    msg_1 "Prebuild completed, exiting"
+    exit
+else
     msg_1 "Please reboot/restart this app now!"
     echo "/etc/inittab was changed during the install."
     echo "In order for this new version to be used, a restart is needed."
     echo
-else
-    msg_1 "Prebuild completed, exiting"
-    exit
 fi
