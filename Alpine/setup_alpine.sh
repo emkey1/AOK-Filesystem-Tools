@@ -223,12 +223,13 @@ msg_1 "Setup complete!"
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
 
-if [ "$not_prebuilt" = 1 ]; then
-    msg_1 "Please reboot/restart this app now!"
-    echo "/etc/inittab was changed during the install."
-    echo "In order for this new version to be used, a restart is needed."
-    echo
-else
+if deploy_state_is_it "$deploy_state_pre_build"; then
     msg_1 "Prebuild completed, exiting"
     exit
 fi
+
+msg_1 "Please reboot/restart this app now!"
+
+echo "/etc/inittab was changed during the install."
+echo "In order for this new version to be used, a restart is needed."
+echo
