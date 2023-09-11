@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+## release 0.9.7
+
 - Updated skel files, now ash & zsh setup like bash
 - New Debian src-img: Debian10-5-aok-1.tgz
 - Added my package adm tools Mapt & Mapk
