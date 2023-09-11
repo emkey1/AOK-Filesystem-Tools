@@ -165,7 +165,8 @@ fi
 
 set_new_etc_profile "$next_etc_profile"
 
-start_cron_if_active
+# to many issues - not worth it will start after reboot anyhow
+# start_cron_if_active
 
 #
 #  Handling custom files
