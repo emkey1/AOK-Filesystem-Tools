@@ -66,6 +66,7 @@ can_chroot_run_now() {
     #  Last check, ensure no sys dirs are mounted already at this location
     #  That would strongly indicate a concurrent chroot
     #
+    # shellcheck disable=SC2143  # TODO fix and test
     if ! hostfs_is_alpine && [ -n "$(mount | grep "$TMPDIR/aok_fs")" ]; then
         echo "ERROR: Something has mounted sys folders inside $CHROOT_TO!"
 	echo "       Most likely another process is already chrooted to"
@@ -213,6 +214,7 @@ set_ch_procs() {
 	#
 	_procs="$(lsof |grep aok_fs | awk '{print $1}' | uniq  | tr '\n' ' ')"
     else
+	# shellcheck disable=SC2009,2086  # TODO: fix and test
 	_procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | \
  	          grep -v " $cmd_line" | grep -v SUDO_COMMAND=none | \
 		  awk '{print $1 }' | tr '\n' ' ')"
@@ -232,6 +234,7 @@ kill_remaining_procs() {
     [ -z "$ch_procs" ] && return  # nothing needs killing
 
     msg_3 "remaining procs to kill: [$ch_procs]"
+    # shellcheck disable=SC2016,SC2086  # TODO: fix and test
     echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: $s" ; kill {}'
 
     #
