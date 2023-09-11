@@ -1,5 +1,5 @@
 
-# Files related to generation of DEBIAN_SRC_IMAGE
+# Files Related to Generation of DEBIAN_SRC_IMAGE
 
 Be aware that theese are just reference copies, for easy access
 and might not always be up to date.

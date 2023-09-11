@@ -1,23 +1,12 @@
 #!/bin/bash
 
-# sqlite3 /tmp/package_info.db 'select priority,section,name,is_leaf FROM packages ORDER By priority,section,is_leaf,name'
-
-
 #
 #  Sample usages
 #
 
-declare -A packages_by_priority_section
-declare -A priority_order
+# sqlite3 /tmp/package_info.db 'select priority,section,name,is_leaf FROM packages ORDER By priority,section,is_leaf,name'
 
-# Define priority severity order
-priority_order=(
-    [required]=1
-    [important]=2
-    [standard]=3
-    [optional]=4
-    [extra]=5
-)
+
 
 # Create an SQLite database or connect to an existing one
 
@@ -45,7 +34,7 @@ print_progress_dot() {
 #  Checking dependencies inside iSH would take longer than forever,
 #  so on iSH skip this check
 #
-if [ ! -d /proc/ish ]; then
+if [[ ! -d /proc/ish ]]; then
     check_dependencies=1
 fi
 
@@ -55,9 +44,9 @@ for package in $(dpkg-query -f '${Package}\n' -W); do
     #  Check if the package has dependencies
 
     is_leaf=""  #  Defaults to not be a leaf
-    if [ "$check_dependencies" = 1 ]; then
+    if [[ "$check_dependencies" = 1 ]]; then
 	# If the package has no dependencies, it's a leaf package
-	if [ -z "$(apt-cache depends "$package" 2>/dev/null | grep "Depends:")" ]; then
+	if apt-cache depends "$package" 2>/dev/null | ! grep -q "Depends:"; then
 	    is_leaf="*"
 	fi
     fi
