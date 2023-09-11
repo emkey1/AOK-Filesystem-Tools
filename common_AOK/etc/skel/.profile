@@ -1,3 +1,12 @@
+#!/bin/sh
+#   Fake bangpath to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
 # ~/.profile: executed by the command interpreter for login shells.
 # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
 # exists.
@@ -8,27 +17,20 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
-#  If not running interactively, don't go further
-case $- in
-
-    *i*) ;;
-
-    *) return  ;;
-
-esac
-
 case "$0" in
 
-    "-ash" | "ash" | "-dash" | "dash" )
-        ENV=$HOME/.ash_init; export ENV
-        # echo ">> ENV is set to: $ENV"
+    "-ash" | "ash" | "/bin/ash" | "-dash" | "dash" )
+	#
+	#  If ENV is defined  ash & dash will use it
+	#
+	[ -f "$HOME/.ash_init" ] && export ENV="$HOME/.ash_init"
         ;;
-
-    "-bash" | "bash" )
-        if [ -n "$PS1" -a -n "$BASH_VERSION" ]; then
-	    . "$HOME/.bashrc"
-        fi
-        ;;
+    #
+    #  A bash login shell reads the first found of:
+    #  ~/.bash_profile ~/.bash_login ~/.profile
+    #  Since ~/.bash_profile is provided in AOK_FS
+    #  There will normally not be a need to handle bash here.
+    #
 
     *) ;;
 
