@@ -12,9 +12,9 @@
 
 copy_skel_files() {
     csf_dest="$1"
-    if [ -z "$csf_dest" ]; then
+    if [[ -z "$csf_dest" ]]; then
         error_msg "copy_skel_files() needs a destination param"
-    elif [ ! -d "$csf_dest" ]; then
+    elif [[ ! -d "$csf_dest" ]]; then
         error_msg "copy_skel_files($csf_dest) - not indicating a directory"
     fi
 
@@ -50,6 +50,11 @@ setup_environment() {
     echo "$AOK_VERSION" >"$file_aok_release"
 
     copy_local_bins common_AOK
+
+    cp "$aok_content"/common_AOK/usr_local_lib/do_shutdown /usr/local/lib
+    #  this one should not be executable
+    chmod -x /usr/local/lib/do_shutdown
+
     #
     #  special case this should not be directly runnable,
     #  perhaps it should not be in /usr/local/sbin,
@@ -86,8 +91,8 @@ setup_environment() {
     #  With the exception that if USER_SHELL is the default for the FS
     #  no change will happen
     #
-    if (destfs_is_alpine && [ "$USER_SHELL" != "/bin/ash" ]) || \
-	   (! destfs_is_alpine && [ "$USER_SHELL" != "/bin/bash" ]); then
+    if (destfs_is_alpine && [[ "$USER_SHELL" != "/bin/ash" ]]) || \
+	   (! destfs_is_alpine && [[ "$USER_SHELL" != "/bin/bash" ]]); then
 	msg_3 "Changing root shell into USER_SHELL: $USER_SHELL"
 	awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
 	    /etc/passwd > /tmp/passwd && \
@@ -123,7 +128,7 @@ setup_environment() {
     #  Removing default hostname service
     #
     hostn_service=/etc/init.d/hostname
-    if [ -f "$hostn_service" ]; then
+    if [[ -f "$hostn_service" ]]; then
 	msg_2 "Disabling hostname service not working on iSH"
 	mv -f "$hostn_service" /etc/init.d/NOT-hostname
     fi
@@ -168,8 +173,8 @@ setup_root_env() {
     #  Extra sanity check, if this is undefined, the rest of this would
     #  ruin the build host root env...
     #
-    [ ! -f "$f_host_deploy_state" ]  && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
-    [ -z "$d_build_root" ]
+    [[ ! -f "$f_host_deploy_state" ]]  && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
+    [[ -z "$d_build_root" ]]
 
     #
     #  root user env
