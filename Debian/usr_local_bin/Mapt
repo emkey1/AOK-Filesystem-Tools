@@ -45,12 +45,6 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-#
-#  This seems to be the way to fix the man pages: mandb -pq
-#  Investigate...
-#
-
-#sudo apt autoremove && sudo apt update && sudo apt -y upgrade
 apt autoremove -y && apt clean && apt -y upgrade
 
 purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
