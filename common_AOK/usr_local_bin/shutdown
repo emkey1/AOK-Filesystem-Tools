@@ -77,4 +77,9 @@ sleep "$hold_time"
 #  it has no shebang, so intended shell must be mentioned by the caller.
 #
 date > /var/log/shutdown.log
-/bin/sh /usr/local/sbin/do_shutdown | tee -a /var/log/shutdown.log &
+
+#
+#  Since do_shutdown does an instant shutdown, place it in /usr/local/lib
+#  and dont give it a shebang. To minimize risk of unintentional triggering
+#
+/bin/sh /usr/local/lib/do_shutdown | tee -a /var/log/shutdown.log &
