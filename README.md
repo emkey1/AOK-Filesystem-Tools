@@ -6,7 +6,7 @@ You can select what distro to base your File System on, so far Alpine and Debian
 
 ## Disclaimer
 
-I typically work on this on a workstation and test it on multiple devices to ensure it functions as intended in various scenarios. I don't use branches extensively to isolate experimental changes. If you want to try it out, I recommend starting with the latest release. These releases are thoroughly tested and should be stable. While the main branch usually works fine, there are no guarantees.
+I typically work on this on a workstation and test it on multiple devices to ensure it functions as intended in various scenarios. I don't use branches extensively to isolate experimental changes. If you want to try it out, I recommend starting with the latest release. These releases are thoroughly tested and should always be stable. While the main branch usually works fine, there are no guarantees.
 
 ## Installation
 
@@ -96,9 +96,17 @@ The simplest way to start using this override file is to copy `AOK_VARS` into `.
 
 The default command when running `do_chroot.sh` is to examine /etc/password on the dest_fs and select the shell used by root.
 
-When testing setups in a chroot environment, some extra steps might be needed to complete the deploy. Any remaining deploy steps are copied to /etc/profile
+When testing setups in a chroot environment, some extra steps might be needed to complete the deploy. Any remaining deploy steps are copied to /etc/profile, since in virtually all cases that is run at startup.
 
-If you start with a shell not running /etc/profile, the deploy will not progress. If that happens, it is not much of an issue. Just exit the chroot and run
+If you start with a shell not running /etc/profile, the deploy will not progress. If that happens, it is not much of an issue.
+
+Either run it manually inside the chrooted env:
+
+```bash
+/etc/profile
+```
+
+Or exit the chroot and run
 
 
 ```bash
