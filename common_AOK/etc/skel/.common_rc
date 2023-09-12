@@ -10,12 +10,39 @@
 #  Common settings that can be used by most shells
 #
 
+prepend_path() {
+    extra_p="$1"
+
+    if [ -z "$extra_p" ]; then
+        echo
+        echo "ERROR: ~/.common_rc prepend_path called with no param"
+        echo
+        exit
+    fi
+
+    #  shellcheck disable=SC2292 #  Used by Bash and other shells
+    if [ -d "$extra_p" ] && ! echo "$PATH" | grep -q "$extra_p"; then
+        #  Only prepend if path exists and is not already in PATH
+        export PATH="$extra_p:$PATH"
+    fi
+}
+
+#
+#  Some common bin locations in home dir,
+#  add in reverse order, last will be first in PATH
+#
+prepend_path "$HOME"/bin
+prepend_path "$HOME"/.local/bin
+unset prepend_path
+
+#
 # enable color support of ls and also add handy aliases
+#
 if test -x /usr/bin/dircolors; then
     if test -r ~/.dircolors; then
-	eval "$(dircolors -b ~/.dircolors)"
+        eval "$(dircolors -b ~/.dircolors)"
     else
-	eval "$(dircolors -b)"
+        eval "$(dircolors -b)"
     fi
     alias ls='ls --color=auto'
     #alias dir='dir --color=auto'

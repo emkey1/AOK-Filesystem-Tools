@@ -12,10 +12,9 @@
 #  that if they get here via idirect sourcing, they abort.
 #
 case $- in
-    *i*) ;;
-      *) return;; # If not running interactively, don't do anything
+*i*) ;;
+*) return ;; # If not running interactively, don't do anything
 esac
-
 
 # the default umask is set in /etc/profile; for setting the umask
 # for ssh logins, install and configure the libpam-umask package.
@@ -23,30 +22,19 @@ esac
 
 case "$0" in
 
-    "-ash" | "ash" | "/bin/ash" | "-dash" | "dash" )
-	#
-	#  If ENV is defined  ash & dash will use it
-	#
-	[ -f "$HOME/.ash_init" ] && export ENV="$HOME/.ash_init"
-        ;;
+"-ash" | "ash" | "/bin/ash" | "-dash" | "dash")
     #
-    #  A bash login shell reads the first found of:
-    #  ~/.bash_profile ~/.bash_login ~/.profile
-    #  Since ~/.bash_profile is provided in AOK_FS
-    #  There will normally not be a need to handle bash here.
+    #  If ENV is defined  ash & dash will use it
     #
+    [ -f "$HOME/.ash_init" ] && export ENV="$HOME/.ash_init"
+    ;;
+#
+#  A bash login shell reads the first found of:
+#  ~/.bash_profile ~/.bash_login ~/.profile
+#  Since ~/.bash_profile is provided in AOK_FS
+#  There will normally not be a need to handle bash here.
+#
 
-    *) ;;
+*) ;;
 
 esac
-
-
-# set PATH so it includes user's bin if it exists
-if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
-fi
-
-# set PATH so it includes user's local bin if it exists
-if [ -d "$HOME/.local/bin" ] ; then
-    PATH="$HOME/.local/bin:$PATH"
-fi
