@@ -41,14 +41,13 @@ setup_cron_env() {
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
-	msg_3 "Activating cron service"
-	[ "$(command -v cron)" != /usr/sbin/cron ] && error_msg "cron service requested, cron does not seem to be installed"
-	rc-update add cron default
+        msg_3 "Activating cron service"
+        # [ -z "$(command -v cron)" ] && error_msg "cron service requested, cron does not seem to be installed"
+        rc-update add cron default
     else
-	msg_3 "Inactivating cron service"
-	#  Action only needs to be taken if it was active
-	#  shellcheck disable=SC2143  # TODO fix and test
-	[ -n "$(find /etc/runlevels/ |grep cron)" ] && rc-update del cron default
+        msg_3 "Inactivating cron service"
+        #  Action only needs to be taken if it was active
+        find /etc/runlevels | grep -q cron && rc-update del cron default
     fi
     # msg_3 "setup_cron_env() - done"
 }
@@ -197,7 +196,6 @@ setup_login
 
 debian_services
 
-
 #
 #  Overriding common runbg with Debian specific, work in progress...
 #
@@ -211,7 +209,7 @@ debian_services
 #
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
-    is_prebuilt=1  # shorthand to avoid doing the above check again
+    is_prebuilt=1 # shorthand to avoid doing the above check again
 else
     "$setup_final"
 fi
