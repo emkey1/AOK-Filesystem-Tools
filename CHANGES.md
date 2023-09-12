@@ -4,6 +4,9 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- root shell can only be set to bash or ash during deploy, to ensure
+deploy can complete
+
 ## release 0.9.7
 
 - Updated skel files, now ash & zsh setup like bash
