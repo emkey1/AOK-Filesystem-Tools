@@ -15,7 +15,7 @@ I typically work on this on a workstation and test it on multiple devices to ens
 For general usage, it is recommended to use the latest release, as mentioned in the Disclaimer. Once you have downloaded it, follow these steps (please note that release numbers change over time):
 
 ```sh
-unzip AOK-Filesystem-Tools-0.9.2.zip 
+unzip AOK-Filesystem-Tools-0.9.2.zip
 sudo rm -rf /opt/AOK  # Remove the previous instance if present
 sudo mv AOK-Filesystem-Tools-0.9.2 /opt/AOK
 ```
@@ -23,7 +23,7 @@ sudo mv AOK-Filesystem-Tools-0.9.2 /opt/AOK
 To try out the latest changes:
 
 ```sh
-git clone https://github.com/jaclu/AOK-Filesystem-Tools.git 
+git clone https://github.com/jaclu/AOK-Filesystem-Tools.git
 sudo rm -rf /opt/AOK  # Remove the previous instance if present
 sudo mv AOK-Filesystem-Tools /opt/AOK
 ```
@@ -56,12 +56,20 @@ You can achieve this by adding the following in your config
 DEB_PKGS_SKIP="man-db"
 ```
 
-This will disable the man system in new File Systems you create
+This will disable the man system in new File Systems you create.
+
+If you can use prebuild when you generate your FS, DEB_PKGS_SKIP will be processed on the build host, completing the task in seconds instead of minutes
 
 In an already deployed Debian 10, instead do:
 
 ```sh
 apt remove man-db
+```
+
+You can always reactivate man pages by installing it again
+
+```sh
+apt install man-db
 ```
 
 ### Devuan File System

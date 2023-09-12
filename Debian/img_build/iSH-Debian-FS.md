@@ -1,3 +1,10 @@
+# Creating Debian Images for ISH
+
+Since iSH is so slow, deploying packages is better done in advance.
+For this reason the Debian image comes with all the AOK FS stuff
+pre installed. You can add or drop packages during prebuild in order to
+get the content to match your expectations without having to add/delete
+apt packages on the device itself.
 
 ## image-history.txt
 

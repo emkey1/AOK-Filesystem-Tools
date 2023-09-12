@@ -4,6 +4,9 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+## release 0.9.8
+
+- Updated README - Performance issues running Debian
 - Simplified check when toggling Debian cron service
 - zsh history config
 - New Debian src-img: Debian10-6-aok-1.tgz
