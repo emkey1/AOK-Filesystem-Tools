@@ -9,127 +9,14 @@
 #   out where they come from. Feel free to remove if you think differently :)
 #
 
-
 #
 #  Non-interactive shells wont read this by themselves. This ensures
 #  that if they get here via idirect sourcing, they abort.
 #
 case $- in
-    *i*) ;;
-      *) return;; # If not running interactively, don't do anything
+*i*) ;;
+*) return ;; # If not running interactively, don't do anything
 esac
-
-
-#
-#   Sets up prompt for ash in a similar manner to bash
-#
-if [ -x /usr/bin/tput ] && tput setaf 1 > /dev/null 2>&1; then
-    # We have color support; assume it's compliant with Ecma-48
-    # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-    # a case would tend to support setf rather than setaf.)
-
-    #
-    #   Displays all colors, those not defined will just not be used and those
-    #   lines will be printed in the displays default colors
-    #
-    _ainit_display_defined_colors() {
-	echo "${_ainit_whiteBg}${_ainit_black}black on white bg${_ainit_no_color}"
-	echo "${_ainit_gray_dark}gray_dark${_ainit_no_color}"
-	echo "${_ainit_red}red${_ainit_no_color}"
-	echo "${_ainit_redBold}redBold${_ainit_no_color}"
-	echo "${_ainit_green}green${_ainit_no_color}"
-	echo "${_ainit_greenBold}greenBold${_ainit_no_color}"
-	echo "${_ainit_brown}brown${_ainit_no_color}"
-	echo "${_ainit_yellow}yellow${_ainit_no_color}"
-	echo "${_ainit_blue}blue${_ainit_no_color}"
-	echo "${_ainit_blueBold}blueBold${_ainit_no_color}"
-	echo "${_ainit_purple}purple${_ainit_no_color}"
-	echo "${_ainit_purpleBold}purpleBold${_ainit_no_color}"
-	echo "${_ainit_cyan}cyan${_ainit_no_color}"
-	echo "${_ainit_cyanBold}cyanBold${_ainit_no_color}"
-	echo "${_ainit_grayBold}grayBold${_ainit_no_color}"
-	echo "${_ainit_white}${_ainit_blueBg}white - using blue bg in case screen bg is white...${_ainit_no_color}"
-	#
-	#  In order to make the bg color more visible I have added whitespace to stretch out the lines
-	#
-	echo "${_ainit_redBg}${_ainit_grayBold}redBg           ${_ainit_no_color}"
-	echo "${_ainit_greenBg}${_ainit_grayBold}greenBg       ${_ainit_no_color}"
-	echo "${_ainit_brownBg}${_ainit_blue}brownBg           ${_ainit_no_color}"
-	echo "${_ainit_yellowBg}${_ainit_blue}yellowBg         ${_ainit_no_color}"
-	echo "${_ainit_blueBg}${_ainit_grayBold}blueBg         ${_ainit_no_color}"
-	echo "${_ainit_purpleBg}${_ainit_grayBold}purpleBg     ${_ainit_no_color}"
-	echo "${_ainit_cyanBg}${_ainit_grayBold}cyanBg         ${_ainit_no_color}"
-	echo "${_ainit_cyanBoldBg}${_ainit_grayBold}cyanBoldBg ${_ainit_no_color}"
-    }
-
-    #
-    #   To avoid having to type the prefix and suffix all the time...
-    #
-    _ainit_color_wrap() {
-	c_pre="\033["
-	c_suf="m"
-
-	printf '%b' "${c_pre}${1}${c_suf}"
-    }
-
-    #
-    #   In order to not polute the shell namespace too much,
-    #   I only define the colors that I am actually using.
-    #
-    _ainit_no_color="$(_ainit_color_wrap "0")"
-    #_ainit_black="$(_ainit_color_wrap      "30")"
-    #_ainit_gray_dark="$(_ainit_color_wrap  "1;30")"
-    # _ainit_red="$(_ainit_color_wrap "31")" # wine red to dark pink
-    #_ainit_redBold="$(_ainit_color_wrap    "1;31")" # pinkish
-    #_ainit_green="$(_ainit_color_wrap "32")"
-    _ainit_greenBold="$(_ainit_color_wrap  "1;32")"
-    #_ainit_brown="$(_ainit_color_wrap      "33")"
-    #_ainit_yellow="$(_ainit_color_wrap     "1;33")"
-    #_ainit_blue="$(_ainit_color_wrap       "34")"  # dark blue
-    _ainit_blueBold="$(_ainit_color_wrap "1;34")" # touch of purple
-    #_ainit_purple="$(_ainit_color_wrap     "35")"     # wine red to dark pink
-    #_ainit_purpleBold="$(_ainit_color_wrap "1;35")" # pinkish
-    #_ainit_cyan="$(_ainit_color_wrap       "36")"
-    #_ainit_cyanBold="$(_ainit_color_wrap   "1;36")"  # bright
-    #_ainit_grayBold="$(_ainit_color_wrap   "37")"
-    #_ainit_white="$(_ainit_color_wrap      "1;37")"
-    #_ainit_redBg="$(_ainit_color_wrap      "41")"
-    #_ainit_greenBg="$(_ainit_color_wrap    "42")"
-    #_ainit_brownBg="$(_ainit_color_wrap    "43")"
-    #_ainit_yellowBg="$(_ainit_color_wrap   "1;43")"
-    #_ainit_blueBg="$(_ainit_color_wrap     "44")"
-    #_ainit_purpleBg="$(_ainit_color_wrap   "45")"
-    #_ainit_cyanBg="$(_ainit_color_wrap     "46")"
-    #_ainit_cyanBoldBg="$(_ainit_color_wrap "1;46")"
-    #_ainit_whiteBg="$(_ainit_color_wrap    "1;47")"
-
-    #
-    #   ash can't do ${TEXT/replace/with}
-    #   so I use sed instead to be POSIX compatible
-    #
-    _ainit_display_path() {
-	printf '%s' "$PWD" | sed -e "s@$HOME@~@g"
-    }
-
-    #
-    #   Indicate root in prompt
-    #
-    if [ "$(id -u)" -eq 0 ]; then
-	_ainit_user_mark="#"
-    else
-	_ainit_user_mark="\$"
-    fi
-
-    #
-    #  If you want to make it a bit more obvious that this is not a
-    #  bash shell, replace : below with something like |
-    #
-
-    PS1='$(printf '%b' "${_ainit_greenBold}$USER@$(hostname -s)${_ainit_no_color}:${_ainit_blueBold}$(_ainit_display_path)${_ainit_no_color}${_ainit_user_mark} ")'
-else
-    #  no color support
-    PS1='\u@\h:\w\$ '
-fi
 
 #
 #  Common settings that can be used by most shells
@@ -137,4 +24,113 @@ fi
 if [ -f ~/.common_rc ]; then
     # shellcheck source=/opt/AOK/common_AOK/etc/skel/.common_rc
     . ~/.common_rc
+fi
+
+#
+#   Displays all colors, those not defined will just not be used and those
+#   lines will be printed in the displays default colors
+#
+_ainit_display_defined_colors() {
+    echo "${_ainit_whiteBg}${_ainit_black}black on white bg${_ainit_no_color}"
+    echo "${_ainit_gray_dark}gray_dark${_ainit_no_color}"
+    echo "${_ainit_red}red${_ainit_no_color}"
+    echo "${_ainit_redBold}redBold${_ainit_no_color}"
+    echo "${_ainit_green}green${_ainit_no_color}"
+    echo "${_ainit_greenBold}greenBold${_ainit_no_color}"
+    echo "${_ainit_brown}brown${_ainit_no_color}"
+    echo "${_ainit_yellow}yellow${_ainit_no_color}"
+    echo "${_ainit_blue}blue${_ainit_no_color}"
+    echo "${_ainit_blueBold}blueBold${_ainit_no_color}"
+    echo "${_ainit_purple}purple${_ainit_no_color}"
+    echo "${_ainit_purpleBold}purpleBold${_ainit_no_color}"
+    echo "${_ainit_cyan}cyan${_ainit_no_color}"
+    echo "${_ainit_cyanBold}cyanBold${_ainit_no_color}"
+    echo "${_ainit_grayBold}grayBold${_ainit_no_color}"
+    echo "${_ainit_white}${_ainit_blueBg}white - using blue bg in case screen bg is white...${_ainit_no_color}"
+    #
+    #  In order to make the bg color more visible I have added whitespace to stretch out the lines
+    #
+    echo "${_ainit_redBg}${_ainit_grayBold}redBg           ${_ainit_no_color}"
+    echo "${_ainit_greenBg}${_ainit_grayBold}greenBg       ${_ainit_no_color}"
+    echo "${_ainit_brownBg}${_ainit_blue}brownBg           ${_ainit_no_color}"
+    echo "${_ainit_yellowBg}${_ainit_blue}yellowBg         ${_ainit_no_color}"
+    echo "${_ainit_blueBg}${_ainit_grayBold}blueBg         ${_ainit_no_color}"
+    echo "${_ainit_purpleBg}${_ainit_grayBold}purpleBg     ${_ainit_no_color}"
+    echo "${_ainit_cyanBg}${_ainit_grayBold}cyanBg         ${_ainit_no_color}"
+    echo "${_ainit_cyanBoldBg}${_ainit_grayBold}cyanBoldBg ${_ainit_no_color}"
+}
+
+#
+#   To avoid having to type the prefix and suffix all the time...
+#
+_ainit_color_wrap() {
+    c_pre="\033["
+    c_suf="m"
+
+    printf '%b' "${c_pre}${1}${c_suf}"
+}
+
+#
+#   In order to not polute the shell namespace too much,
+#   I only define the colors that I am actually using.
+#
+_ainit_no_color="$(_ainit_color_wrap "0")"
+#_ainit_black="$(_ainit_color_wrap      "30")"
+#_ainit_gray_dark="$(_ainit_color_wrap  "1;30")"
+# _ainit_red="$(_ainit_color_wrap "31")" # wine red to dark pink
+#_ainit_redBold="$(_ainit_color_wrap    "1;31")" # pinkish
+#_ainit_green="$(_ainit_color_wrap "32")"
+_ainit_greenBold="$(_ainit_color_wrap "1;32")"
+#_ainit_brown="$(_ainit_color_wrap      "33")"
+#_ainit_yellow="$(_ainit_color_wrap     "1;33")"
+#_ainit_blue="$(_ainit_color_wrap       "34")"  # dark blue
+_ainit_blueBold="$(_ainit_color_wrap "1;34")" # touch of purple
+#_ainit_purple="$(_ainit_color_wrap     "35")"     # wine red to dark pink
+#_ainit_purpleBold="$(_ainit_color_wrap "1;35")" # pinkish
+#_ainit_cyan="$(_ainit_color_wrap       "36")"
+#_ainit_cyanBold="$(_ainit_color_wrap   "1;36")"  # bright
+#_ainit_grayBold="$(_ainit_color_wrap   "37")"
+#_ainit_white="$(_ainit_color_wrap      "1;37")"
+#_ainit_redBg="$(_ainit_color_wrap      "41")"
+#_ainit_greenBg="$(_ainit_color_wrap    "42")"
+#_ainit_brownBg="$(_ainit_color_wrap    "43")"
+#_ainit_yellowBg="$(_ainit_color_wrap   "1;43")"
+#_ainit_blueBg="$(_ainit_color_wrap     "44")"
+#_ainit_purpleBg="$(_ainit_color_wrap   "45")"
+#_ainit_cyanBg="$(_ainit_color_wrap     "46")"
+#_ainit_cyanBoldBg="$(_ainit_color_wrap "1;46")"
+#_ainit_whiteBg="$(_ainit_color_wrap    "1;47")"
+
+#
+#   ash can't do ${TEXT/replace/with}
+#   so I use sed instead to be POSIX compatible
+#
+_ainit_display_path() {
+    printf '%s' "$PWD" | sed -e "s@$HOME@~@g"
+}
+
+#
+#   Sets up prompt for ash in a similar manner to bash
+#
+if [ -x /usr/bin/tput ] && tput setaf 1 >/dev/null 2>&1; then
+    # We have color support; assume it's compliant with Ecma-48
+    # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+    # a case would tend to support setf rather than setaf.)
+
+    #
+    #   Indicate root in prompt
+    #
+    if [ "$(id -u)" -eq 0 ]; then
+        _ainit_user_mark="#"
+    else
+        _ainit_user_mark="\$"
+    fi
+    #
+    #  If you want to make it a bit more obvious that this is not a
+    #  bash shell, replace : below with something like |
+    #
+    PS1='$(printf '%b' "${_ainit_greenBold}$USER@$(hostname -s)${_ainit_no_color}:${_ainit_blueBold}$(_ainit_display_path)${_ainit_no_color}${_ainit_user_mark} ")'
+else
+    #  no color support
+    PS1='\u@\h:\w\$ '
 fi

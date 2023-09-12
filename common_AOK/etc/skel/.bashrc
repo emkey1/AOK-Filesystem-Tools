@@ -9,10 +9,17 @@
 #  that if they get here via idirect sourcing, they abort.
 #
 case $- in
-    *i*) ;;
-      *) return;; # If not running interactively, don't do anything
+*i*) ;;
+*) return ;; # If not running interactively, don't do anything
 esac
 
+#
+#  Common settings that can be used by most shells
+#
+if [[ -f ~/.common_rc ]]; then
+    # shellcheck source=/opt/AOK/common_AOK/etc/skel/.common_rc
+    . ~/.common_rc
+fi
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -36,12 +43,10 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 #[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-
 #
 #  The prompt settings below are borrowed from Debian, they seem to work
 #  fine on Alpine as well
 #
-
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [[ -z "${debian_chroot:-}" ]] && [[ -r /etc/debian_chroot ]]; then
@@ -50,8 +55,8 @@ fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color|*-256color) color_prompt=yes;;
-    *);;
+xterm-color | *-256color) color_prompt=yes ;;
+*) ;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -61,12 +66,12 @@ esac
 
 if [[ -n "$force_color_prompt" ]]; then
     if [[ -x /usr/bin/tput ]] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
+        # We have color support; assume it's compliant with Ecma-48
+        # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.)
+        color_prompt=yes
     else
-	color_prompt=
+        color_prompt=
     fi
 fi
 
@@ -79,23 +84,14 @@ unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
+xterm* | rxvt*)
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
     ;;
-*)
-    ;;
+*) ;;
 esac
 
 # colored GCC warnings and errors
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-#
-#  Common settings that can be used by most shells
-#
-if [[ -f ~/.common_rc ]]; then
-    # shellcheck source=/opt/AOK/common_AOK/etc/skel/.common_rc
-    . ~/.common_rc
-fi
 
 #
 # enable programmable completion features (you don't need to enable
@@ -104,10 +100,10 @@ fi
 #
 if ! shopt -oq posix; then
     if [[ -f /usr/share/bash-completion/bash_completion ]]; then
-	# shellcheck source=/dev/null
-	. /usr/share/bash-completion/bash_completion
+        # shellcheck source=/dev/null
+        . /usr/share/bash-completion/bash_completion
     elif [[ -f /etc/bash_completion ]]; then
-	# shellcheck source=/dev/null
-	. /etc/bash_completion
+        # shellcheck source=/dev/null
+        . /etc/bash_completion
     fi
 fi

@@ -9,10 +9,16 @@
 #  that if they get here via idirect sourcing, they abort.
 #
 case $- in
-    *i*) ;;
-      *) return;; # If not running interactively, don't do anything
+*i*) ;;
+*) return ;; # If not running interactively, don't do anything
 esac
 
+#
+#  Common settings that can be used by most shells
+#
+if [ -f ~/.common_rc ]; then
+    . ~/.common_rc
+fi
 
 #
 #  Bash style prompt
@@ -25,11 +31,3 @@ esac
 #
 PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
 RPROMPT='%F{green}%n@%m %F{240}%*%f'
-
-
-#
-#  Common settings that can be used by most shells
-#
-if [ -f ~/.common_rc ]; then
-    . ~/.common_rc
-fi
