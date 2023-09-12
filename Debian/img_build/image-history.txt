@@ -1,0 +1,11 @@
+--- Debian10-minim-5  2023-09-09
+apt upgrade
+  libssh2-1
+
+--- Debian10-minim-4
+Removed some pkgs not usable in iSH
+Ran mandb -c to hopefully get future updates of mandb to run quicker
+
+--- Debian10-minim-3
+Added some locales:
+  en_US.utf8 en_GB.utf8                                                      

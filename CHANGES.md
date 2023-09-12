@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- updated info on Debian image build
 - root shell can only be set to bash or ash during deploy, to ensure
 deploy can complete
 
