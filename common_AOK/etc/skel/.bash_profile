@@ -1,14 +1,19 @@
 #!/bin/bash
-#   Fake bangpath to help editors and linters
-#
-#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
-#
-#  License: MIT
-#
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Fake bangpath to help editors and linters
 #
 # ~/.bash_profile: executed by bash(1) for login shells.
 #
+
+
+#
+#  Non-interactive shells wont read this by themselves. This ensures
+#  that if they get here via idirect sourcing, they abort.
+#
+case $- in
+    *i*) ;;
+      *) return;; # If not running interactively, don't do anything
+esac
+
 
 #
 #  If found, run the common init script used by non-login shells,

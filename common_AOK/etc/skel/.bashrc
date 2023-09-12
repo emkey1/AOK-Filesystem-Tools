@@ -1,14 +1,18 @@
 #!/bin/bash
-#   Fake bangpath to help editors and linters
-#
-#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
-#
-#  License: MIT
-#
-#  Based on Debian .bashrc
+#  Fake bangpath to help editors and linters
 #
 # executed by bash(1) for non-login shells.
 #
+
+#
+#  Non-interactive shells wont read this by themselves. This ensures
+#  that if they get here via idirect sourcing, they abort.
+#
+case $- in
+    *i*) ;;
+      *) return;; # If not running interactively, don't do anything
+esac
+
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options

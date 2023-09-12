@@ -2,18 +2,23 @@
 #  Fake bangpath to help editors and linters
 #  shellcheck disable=SC2154
 #
-#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
-#
-#  License: MIT
-#
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
-#
 #   Sets up ash to be somewhat similar to bash
 #
 #   Since the variables and functions in here will be visible inside the shell,
 #   I have given them a prefix, so that it should be somewhat easier to figure
 #   out where they come from. Feel free to remove if you think differently :)
 #
+
+
+#
+#  Non-interactive shells wont read this by themselves. This ensures
+#  that if they get here via idirect sourcing, they abort.
+#
+case $- in
+    *i*) ;;
+      *) return;; # If not running interactively, don't do anything
+esac
+
 
 #
 #   Sets up prompt for ash in a similar manner to bash

@@ -1,17 +1,21 @@
 #!/bin/sh
-#   Fake bangpath to help editors and linters
-#
-#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
-#
-#  License: MIT
-#
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
-#
+# Fake bangpath to help editors and linters
+
 # ~/.profile: executed by the command interpreter for login shells.
 # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
 # exists.
 # see /usr/share/doc/bash/examples/startup-files for examples.
 # the files are located in the bash-doc package.
+
+#
+#  Non-interactive shells wont read this by themselves. This ensures
+#  that if they get here via idirect sourcing, they abort.
+#
+case $- in
+    *i*) ;;
+      *) return;; # If not running interactively, don't do anything
+esac
+
 
 # the default umask is set in /etc/profile; for setting the umask
 # for ssh logins, install and configure the libpam-umask package.
