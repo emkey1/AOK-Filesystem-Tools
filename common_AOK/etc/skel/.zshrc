@@ -15,13 +15,17 @@ esac
 
 
 #
-#  Add colors to prompt if terminal supports it
+#  Bash style prompt
 #
-if [[ $EUID -eq 0 ]]; then
-    PS1='%F{%(?.red.bold.normal)}%n@%m:%F{%(?.blue.normal)}%~%f# '
-else
-    PS1='%F{%(?.green.bold.normal)}%n@%m:%F{%(?.blue.normal)}%~%f$ '
-fi
+# PROMPT='%(?..%F{red}?%?)%F{46}%n@%m%f%b:%F{12}%~%f%b%# '
+
+#
+#  Folder and success of last cmd on left
+#  user@machine time on right
+#
+PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
+RPROMPT='%F{green}%n@%m %F{240}%*%f'
+
 
 #
 #  Common settings that can be used by most shells
