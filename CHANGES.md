@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- zsh history config
 - New Debian src-img: Debian10-6-aok-1.tgz
 - Added things to remove from Debian image
 - root shell can only be set to bash or ash during deploy, to ensure
