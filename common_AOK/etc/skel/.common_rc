@@ -34,7 +34,6 @@ prepend_path() {
 #
 prepend_path "$HOME"/bin
 prepend_path "$HOME"/.local/bin
-unset prepend_path
 
 #
 # enable color support of ls and also add handy aliases
@@ -60,3 +59,8 @@ fi
 alias ll='ls -l'
 alias la='ls -A'
 alias l='ls -CF'
+
+#
+#  Cleanup env
+#
+unset -f prepend_path

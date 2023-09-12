@@ -134,3 +134,8 @@ else
     #  no color support
     PS1='\u@\h:\w\$ '
 fi
+
+#
+#  Cleanup env
+#
+unset -f _ainit_color_wrap
