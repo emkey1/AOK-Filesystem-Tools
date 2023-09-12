@@ -88,15 +88,16 @@ setup_environment() {
     #  If USER_SHELL has been defined, the assumption would be to use
     #  the same for user root, since if logins are not enabled,
     #  you wold start up as user root.
-    #  With the exception that if USER_SHELL is the default for the FS
-    #  no change will happen
     #
-    if (destfs_is_alpine && [[ "$USER_SHELL" != "/bin/ash" ]]) || \
-	   (! destfs_is_alpine && [[ "$USER_SHELL" != "/bin/bash" ]]); then
-	msg_3 "Changing root shell into USER_SHELL: $USER_SHELL"
-	awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
-	    /etc/passwd > /tmp/passwd && \
-	    mv /tmp/passwd /etc/passwd
+    #  Only allow root to get bash or ash during deploy, in order to
+    #  ensure /etc/profile will be launched and deployt can complete
+    #
+
+    if [[ "$USER_SHELL" = "/bin/ash" ]] || [[ "$USER_SHELL" = "/bin/bash" ]]; then
+        msg_3 "Setting root shell into USER_SHELL: $USER_SHELL"
+        awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
+            /etc/passwd >/tmp/passwd &&
+            mv /tmp/passwd /etc/passwd
     fi
 
     #
@@ -129,15 +130,15 @@ setup_environment() {
     #
     hostn_service=/etc/init.d/hostname
     if [[ -f "$hostn_service" ]]; then
-	msg_2 "Disabling hostname service not working on iSH"
-	mv -f "$hostn_service" /etc/init.d/NOT-hostname
+        msg_2 "Disabling hostname service not working on iSH"
+        mv -f "$hostn_service" /etc/init.d/NOT-hostname
     fi
     if hostfs_is_debian || hostfs_is_devuan; then
-	msg_3 "Removing hostname service files not meaningfull on iSH"
-	rm -f /etc/init.d/hostname
-	rm -f /etc/init.d/hostname.sh
-	rm -f /etc/rcS.d/S01hostname.sh
-	rm -f /etc/systemd/system/hostname.service
+        msg_3 "Removing hostname service files not meaningfull on iSH"
+        rm -f /etc/init.d/hostname
+        rm -f /etc/init.d/hostname.sh
+        rm -f /etc/rcS.d/S01hostname.sh
+        rm -f /etc/systemd/system/hostname.service
     fi
 
     if [[ -f /etc/ssh/sshd_config ]]; then
@@ -153,7 +154,7 @@ setup_environment() {
 
     setup_cron_env
 
-    echo  # Spacer to next task
+    echo # Spacer to next task
 
     #
     #  If chrooted inside tmux TERM causes whiptail to fail, set it to something
@@ -161,7 +162,6 @@ setup_environment() {
     #
     # TERM=xterm
 }
-
 
 setup_root_env() {
     #
@@ -173,7 +173,7 @@ setup_root_env() {
     #  Extra sanity check, if this is undefined, the rest of this would
     #  ruin the build host root env...
     #
-    [[ ! -f "$f_host_deploy_state" ]]  && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
+    [[ ! -f "$f_host_deploy_state" ]] && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
     [[ -z "$d_build_root" ]]
 
     #
@@ -261,15 +261,15 @@ fi
 
 if [[ -n "$USER_SHELL" ]]; then
     if ! destfs_is_alpine && [[ "$USER_SHELL" = "/bin/ash" ]]; then
-	msg_1 "Only Alpine has /bin/ash - USER_SHELL set to /bin/bash"
-	USER_SHELL="/bin/bash"
+        msg_1 "Only Alpine has /bin/ash - USER_SHELL set to /bin/bash"
+        USER_SHELL="/bin/bash"
     fi
     [[ ! -x "$USER_SHELL" ]] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
 else
     if destfs_is_alpine; then
-	USER_SHELL="/bin/ash"
+        USER_SHELL="/bin/ash"
     else
-	USER_SHELL="/bin/bash"
+        USER_SHELL="/bin/bash"
     fi
     msg_2 "USER_SHELL was undefined, set to the default: $USER_SHELL"
 fi
@@ -279,6 +279,5 @@ setup_root_env
 create_user
 
 msg_1 "^^^  setup_common_env.sh done  ^^^"
-
 
 exit 0 # indicate no error
