@@ -16,7 +16,7 @@
 if [[ $EUID -eq 0 ]]; then
     PS1='%F{%(?.red.bold.normal)}%n@%m:%F{%(?.blue.normal)}%~%f# '
 else
-    PS1='%F{%(?.green.bold.normal)}%n@%m:%F{%(?.blue.normal)}$ '
+    PS1='%F{%(?.green.bold.normal)}%n@%m:%F{%(?.blue.normal)}%~%f$ '
 fi
 
 #
