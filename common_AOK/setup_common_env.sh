@@ -55,13 +55,6 @@ setup_environment() {
     #  this one should not be executable
     chmod -x /usr/local/lib/do_shutdown
 
-    #
-    #  special case this should not be directly runnable,
-    #  perhaps it should not be in /usr/local/sbin,
-    #  what other location would be more apropriate?
-    #
-    chmod 644 /usr/local/sbin/do_shutdown
-
     msg_2 "Configure some /etc files"
 
     #

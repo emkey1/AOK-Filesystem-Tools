@@ -148,9 +148,6 @@ initiate_deploy Debian "$(cat /etc/debian_version)"
 
 prepare_env_etc
 
-# msg_1 "apt update"
-# apt update -y
-
 msg_1 "apt upgrade"
 apt upgrade -y
 
