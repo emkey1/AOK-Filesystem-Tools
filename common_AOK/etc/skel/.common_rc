@@ -13,6 +13,7 @@
 prepend_path() {
     extra_p="$1"
 
+    #  shellcheck disable=SC2292 #  Used by Bash and other shells
     if [ -z "$extra_p" ]; then
         echo
         echo "ERROR: ~/.common_rc prepend_path called with no param"
