@@ -1,3 +1,6 @@
+--- Debian10-minim-6  2023-09-12
+Fine tuned what items can be removed without impacting iSH
+
 --- Debian10-minim-5  2023-09-09
 apt upgrade
   libssh2-1
@@ -8,4 +11,4 @@ Ran mandb -c to hopefully get future updates of mandb to run quicker
 
 --- Debian10-minim-3
 Added some locales:
-  en_US.utf8 en_GB.utf8                                                      
+  en_US.utf8 en_GB.utf8

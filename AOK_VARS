@@ -210,7 +210,7 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/hg7h99hhmdt9qd87p4jf0/Debian10-5-aok-2.tgz?rlkey=09uh0t53f5w6rh9xhzlnfeh9o"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/j7981bq484q925b0lb38k/Debian10-6-aok-1.tgz?rlkey=5i6u810pum8fcxha127gbro63"
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
 
 #

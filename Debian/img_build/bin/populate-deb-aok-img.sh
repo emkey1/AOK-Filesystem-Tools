@@ -48,14 +48,9 @@ apt install -y $CORE_APTS
 #  Remove stuff not needed by iSH
 #
 apt purge -y dirmngr gnupg-l10n gnupg-utils gpg gpgconf gpgsm libapparmor1 \
-  libdbus-1-3 libelogind0 pinentry-curses python3-asn1crypto \
-  python3-cffi-backend python3-cryptography python3-dbus python3-entrypoints
-
-# candidates 1
-# libx11-6 libx11-data libxext6 libxmuu1
-
-# candidates 1
-# dbus elogind gpg-agent xdg-user-dirs
+  libdbus-1-3 libelogind0 libxau6 libxcb1 libxext6 libx11-6 libx11-data \
+  libxmuu1 pinentry-curses python3-asn1crypto python3-cffi-backend \
+  python3-cryptography python3-dbus python3-entrypoints xauth xdg-user-dirs
 
 #
 #  Remember to run Mapt once this is done!

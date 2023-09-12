@@ -6,8 +6,6 @@
 
 # sqlite3 /tmp/package_info.db 'select priority,section,name,is_leaf FROM packages ORDER By priority,section,is_leaf,name'
 
-
-
 # Create an SQLite database or connect to an existing one
 
 database="/tmp/package_info.db"
@@ -43,12 +41,12 @@ for package in $(dpkg-query -f '${Package}\n' -W); do
     #
     #  Check if the package has dependencies
 
-    is_leaf=""  #  Defaults to not be a leaf
+    is_leaf="" #  Defaults to not be a leaf
     if [[ "$check_dependencies" = 1 ]]; then
-	# If the package has no dependencies, it's a leaf package
-	if apt-cache depends "$package" 2>/dev/null | ! grep -q "Depends:"; then
-	    is_leaf="*"
-	fi
+        # If the package has no dependencies, it's a leaf package
+        if ! apt-cache depends "$package" 2>/dev/null | grep -q "Depends:"; then
+            is_leaf="*"
+        fi
     fi
 
     # Get package section and priority
@@ -58,7 +56,7 @@ for package in $(dpkg-query -f '${Package}\n' -W); do
     # Store the package in the appropriate array
     sqlite3 "$database" "INSERT INTO packages (priority, section, name, is_leaf) \
 	VALUES ('$priority', '$section', '$package', '$is_leaf');"
-    
+
     print_progress_dot
 done
 

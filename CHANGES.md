@@ -4,7 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
-- updated info on Debian image build
+- New Debian src-img: Debian10-6-aok-1.tgz
+- Added things to remove from Debian image
 - root shell can only be set to bash or ash during deploy, to ensure
 deploy can complete
 
@@ -46,7 +47,6 @@ The service will only be activated if USE_CRON_SERVICE is "Y"
 - removed some utils - fingers purpose illudes me on a one user system, and the option to automount /iCloud has made a sepate util redundant
 common_AOK/usr_local_bin/finger
 common_AOK/usr_local_bin/iCloud
-
 
 ## release 0.9.4
 
