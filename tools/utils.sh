@@ -20,22 +20,22 @@
 log_it() {
     _li="$1"
     if [ -z "$_li" ]; then
-	unset LOG_FILE
-	error_msg "log_it() - no param!"
+        unset LOG_FILE
+        error_msg "log_it() - no param!"
     fi
     if [ -z "$LOG_FILE" ]; then
-	unset LOG_FILE
-	error_msg "log_it() called without LOG_FILE defined!"
+        unset LOG_FILE
+        error_msg "log_it() called without LOG_FILE defined!"
     fi
     #  Ensure dir for LOG_FILE exists
     _log_dir="$(dirname -- "${d_build_root}$LOG_FILE")"
     if [ ! -d "$_log_dir" ]; then
-	echo "Will create log_dir: $_log_dir"
-	# sleep 3
-	mkdir -p "$_log_dir"
+        echo "Will create log_dir: $_log_dir"
+        # sleep 3
+        mkdir -p "$_log_dir"
     fi
 
-    echo "$_li" >> "${d_build_root}$LOG_FILE" # 2>&1
+    echo "$_li" >>"${d_build_root}$LOG_FILE" # 2>&1
     unset _li
     unset _log_dir
 }
@@ -240,7 +240,7 @@ create_fs() {
 
     case "$src_tarball" in
     *alpine*) _cf_time_estimate="Should not take that long" ;;
-    *) _cf_time_estimate="will take a while (iPad 5th:14 iPad 7th:6 minutes)" ;;
+    *) _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)" ;;
     esac
     msg_3 "Extracting... $_cf_time_estimate"
     msg_3 "$_cf_tarball"
