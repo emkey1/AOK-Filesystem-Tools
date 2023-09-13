@@ -2,7 +2,9 @@
 
 The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI.
 
-You can select what distro to base your File System on, so far Alpine and Debian are fully usable. They offer a very similar user experience. More or less the same apps are installed, and they offer the same custom tools. Alpine uses fewer resources, so things will be a bit "faster," but in the iSH universe, speed is a relative concept.
+You can choose between the distributions Alpine or Debian. For shells, it comes with a basic setup for Bash, Zsh, and Ash, using a common init file shared between the different shells, for settings not bound to a specific shell, such as PATH aliases and so on.
+
+Both Alpine and Debian offer a fairly similar user experience. More or less the same apps are installed, and they offer the same custom tools. Alpine uses fewer resources, so things will be a bit "faster," but in the iSH universe, speed is a relative concept.
 
 ## Disclaimer
 
