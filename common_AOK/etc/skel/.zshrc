@@ -13,6 +13,14 @@ case $- in
 *) return ;; # If not running interactively, don't do anything
 esac
 
+#
+#  Common settings that can be used by most shells, should be done early
+#  So shell specific init can override anything in here
+#
+if [ -f ~/.common_rc ]; then
+    . ~/.common_rc
+fi
+
 zsh_history_config() {
     #
     # Configure how history should be used
@@ -44,13 +52,6 @@ zsh_history_config() {
     # Has no effect if SHARE_HISTORY is set
     setopt INC_APPEND_HISTORY_TIME
 }
-
-#
-#  Common settings that can be used by most shells
-#
-if [ -f ~/.common_rc ]; then
-    . ~/.common_rc
-fi
 
 #
 #  Bash style prompt

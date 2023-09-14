@@ -14,10 +14,10 @@ case $- in
 esac
 
 #
-#  Common settings that can be used by most shells
+#  Common settings that can be used by most shells, should be done early
+#  So shell specific init can override anything in here
 #
-if [[ -f ~/.common_rc ]]; then
-    # shellcheck source=/opt/AOK/common_AOK/etc/skel/.common_rc
+if [ -f ~/.common_rc ]; then
     . ~/.common_rc
 fi
 
