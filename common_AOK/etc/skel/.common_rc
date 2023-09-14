@@ -26,6 +26,8 @@ prepend_path() {
         #  Only prepend if path exists and is not already in PATH
         export PATH="$extra_p:$PATH"
     fi
+
+    unset extra_p
 }
 
 #
