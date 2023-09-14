@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- ensure ~/.common_rc in sourced early, expanded explaination of purpose
+
 ## release 0.9.8
 
 - Updated README - Performance issues running Debian
