@@ -127,16 +127,10 @@ if [ -x /usr/bin/tput ] && tput setaf 1 >/dev/null 2>&1; then
         _ainit_user_mark="\$"
     fi
     #
-    #  If you want to make it a bit more obvious that this is not a
-    #  bash shell, replace : below with something like |
-    #
-    PS1='$(printf '%b' "${_ainit_greenBold}$USER@$(hostname -s)${_ainit_no_color}:${_ainit_blueBold}$(_ainit_display_path)${_ainit_no_color}${_ainit_user_mark} ")'
+    #  If you want to make it look the same as when using the bash shell
+    #  replace the separator below with :                           separator ---v
+    PS1='$(printf '%b' "${_ainit_greenBold}$USER@$(hostname -s)${_ainit_no_color} ${_ainit_blueBold}$(_ainit_display_path)${_ainit_no_color}${_ainit_user_mark} ")'
 else
     #  no color support
     PS1='\u@\h:\w\$ '
 fi
-
-#
-#  Cleanup env
-#
-unset -f _ainit_color_wrap
