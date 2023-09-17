@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.8-2"
+AOK_VERSION="0.9.8-3"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -149,8 +149,8 @@ ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #  Always installed packages
 #
 pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
-    shadow-login tzdata findutils sed tar file gawk grep less git \
-    sqlite fzf py3-pip ncdu"
+    shadow-login tzdata findutils sed tar file gawk grep htop less \
+    git sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
@@ -166,7 +166,7 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #  Will only be installed if the kernel is identified as iSH-AOK
 #  on first boot at dest device,
 #
-AOK_APKS="procps nload"
+AOK_APKS="procps procps-ng-doc nload nload-doc"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
@@ -178,23 +178,25 @@ AOK_APKS="procps nload"
 #
 #  You can add/modify groups to your liking.
 #
-VNC_APKS="x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status \
-    i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc \
-    ttf-dejavu"
-
+VNC_APKS="x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy \
+    i3wm i3wm-doc i3lock i3lock-doc i3status i3status-doc xdpyinfo \
+    xdpyinfo-doc ttf-dejavu"
 DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
     ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
     bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev \
     libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
-
-DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
-    tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc \
-    elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc \
-    tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc \
-    util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc \
-    i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc \
-    strace-doc procps-doc rsync-doc"
+#
+#  This only contains apps installed by default, not development related
+#  man pages, those doing development are assumed to know what man pages
+#  they might need :)
+#
+DOCS_APKS="mandoc busybox-doc coreutils-doc sudo-doc shadow-doc \
+    shadow-login-doc findutils-doc sed-doc tar-doc grep-doc htop-doc \
+    less-doc git-doc sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc \
+    zsh-doc openrc-doc dcron-doc openssh-doc rsync-doc curl-doc wget-doc \
+    elinks-doc mosh-doc vim-doc nano-doc mg-doc newt-doc tmux-doc \
+    fortune-doc"
 
 ########################################################################
 #
