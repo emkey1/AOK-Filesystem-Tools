@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Final tasks does a better job of adjusting config depending on  iSH / iSH-AOK
+- Updated Alpine/usr_local_bin/aok_groups, to adjust package selection depending on release
 - Updated DOCS_APKS to better match what is installed
 - Changed Ash prompt somewhat to make it stand out from the Bash prompt. Also added a hint where to change if you do want them to look the same
 - ensure ~/.common_rc in sourced early, expanded explaination of purpose

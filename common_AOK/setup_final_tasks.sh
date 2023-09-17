@@ -15,21 +15,20 @@
 #  so it can be assumed this is running on deploy destination
 #
 
-install_aok_apks() {
+aok_kernel_consideration() {
+    msg_2 "aok_kernel_consideration()"
     if ! this_is_aok_kernel; then
-        msg_1 "Skipping AOK only packages on non AOK kernel"
-        return
-    elif [ -z "$AOK_APKS" ]; then
-        msg_1 "No AOK_APKS defined"
-        return
+        if ! min_release 3.18; then
+            msg_3 "procps wont work on regular iSH for Alpine < 3.18"
+            apk del procps
+        fi
+    elif [ -n "$AOK_APKS" ]; then
+        msg_3 "Install packages only for AOK kernel"
+        # In this case we want the variable to expand into its components
+        # shellcheck disable=SC2086
+        apk add $AOK_APKS
     fi
-
-    msg_1 "Install packages only for AOK kernel"
-
-    # In this case we want the variable to expand into its components
-    # shellcheck disable=SC2086
-    apk add $AOK_APKS
-    echo
+    # msg_3 "aok_kernel_consideration() - done"
 }
 
 replace_home_dirs() {
@@ -146,7 +145,11 @@ fi
 
 user_interactions
 
-hostfs_is_alpine && install_aok_apks
+#
+#  Currently Debian doesnt seem to have to take the iSH app into
+#  consideration
+#
+hostfs_is_alpine && aok_kernel_consideration
 
 "$aok_content"/common_AOK/aok_hostname/set_aok_hostname.sh
 
