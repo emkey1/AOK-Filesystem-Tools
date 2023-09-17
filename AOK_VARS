@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.8-4"
+AOK_VERSION="0.9.8-5"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -116,10 +116,10 @@ INITIAL_LOGIN_MODE="enable"
 #
 #  ALPINE_VERSION defines what Alpine release will be used
 #
-ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.7 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
+# ALPINE_VERSION=3.16.7  # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
-# ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
+ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #
 #  For edge releases - Current development tree
 #  format is the isodate featured in the minirootfs filename
@@ -148,7 +148,7 @@ ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
 #
 #  Always installed packages
 #
-pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
+pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep htop less \
     git sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
@@ -165,8 +165,8 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #  iSH-AOK and will probably work with the Linux Kernel iSH
 #  Will only be installed if the kernel is identified as iSH-AOK
 #  on first boot at dest device,
-#
-AOK_APKS="procps procps-doc nload nload-doc"
+#  not 3.17
+AOK_APKS="nload nload-doc"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
@@ -191,7 +191,7 @@ NODEJS_APKS='nodejs nodejs-dev'
 #  man pages, those doing development are assumed to know what man pages
 #  they might need :)
 #
-DOCS_APKS="mandoc busybox-doc coreutils-doc sudo-doc shadow-doc \
+DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc shadow-doc \
     shadow-login-doc findutils-doc sed-doc tar-doc grep-doc htop-doc \
     less-doc git-doc sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc \
     zsh-doc openrc-doc dcron-doc openssh-doc rsync-doc curl-doc wget-doc \
