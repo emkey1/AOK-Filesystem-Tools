@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- preparing Debian FS for 1st boot
 - procps in general install, since it now works on iSH
 - Final tasks does a better job of adjusting config depending on  iSH / iSH-AOK
 - Updated Alpine/usr_local_bin/aok_groups, to adjust package selection depending on release

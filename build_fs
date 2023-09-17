@@ -1,8 +1,9 @@
 #!/bin/sh
-#
 #  shellcheck disable=SC2154
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2021-2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -47,7 +48,7 @@ check_dependencies() {
     [ -z "$(command -v rsync)" ] && _deps="$_deps rsync"
     _wget_cmd="$(command -v wget)"
     if [ -z "$_wget_cmd" ]; then
-	_deps="$_deps wget"
+        _deps="$_deps wget"
     elif [ -n "$_wget_cmd" ] && readlink "$_wget_cmd" | grep -q busybox; then
         _deps="$_deps wget"
         msg_3 "You need to install a real wget, the busybox one does not handle redirects"
@@ -121,12 +122,12 @@ parse_arguments() { # Multi OK 1
             pre_build_FS=true
             ;;
 
-	"-f" | "--force")
-	    force_chroot="-f"
-	    ;;
+        "-f" | "--force")
+            force_chroot="-f"
+            ;;
 
         "-c" | "--clear")
-           do_clear
+            do_clear
             exit 0
             ;;
 
@@ -219,7 +220,7 @@ display_build_target() { # Multi OK 1
     elif [ "$build_target" = "$distro_devuan" ]; then
         release_msg="Devuan"
     else
-	[ -z "$ALPINE_VERSION" ] && error_msg "ALPINE_VERSION is undefined"
+        [ -z "$ALPINE_VERSION" ] && error_msg "ALPINE_VERSION is undefined"
         release_msg="Alpine: $ALPINE_VERSION"
     fi
     msg_1 "Building iSH-AOK $release_msg filesystem - $AOK_VERSION"
@@ -313,16 +314,35 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
+    intial_fs_prep_debian
+
     # buildtype_set "$distro_debian"
     set_new_etc_profile "$setup_debian_scr"
+
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
 
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
+    #
+    #  fix_dev is run by the AOK inittab, so needs to be present
+    #  from the start in case this is not a pre-build
+    #
+    msg_3 "Installing fix_dev"
+    cp "${aok_content}"/common_AOK/usr_local_sbin/fix_dev "$d_build_root"/usr/local/sbin
+
+    #
+    #  This modified inittab is needed on firstboot, in order to be
+    #  able to set runlevels, it forcefully clears /run/openrc before
+    #  going to runlevel S
+    #
+    msg_3 "Devuan AOK inittab"
+    cp -a "${aok_content}"/Devuan/etc/inittab "$d_build_root"/etc
+
     # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"
+
     # msg_3 "setup_Devuan_on_1st_boot() done"
 }
 
@@ -340,7 +360,7 @@ select_distro_on_1st_boot() {
     #  the same.
     #
     if [ "$build_env" != "$be_other" ]; then
-	[ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
+        [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
         if ! "$aok_content"/tools/do_chroot.sh "$force_chroot" /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
@@ -377,6 +397,17 @@ prebuild_fs() {
 
     msg_1 "Returned from prebuild chroot"
 
+    #
+    #  This ensures openrc doesnt detect previous runstates during
+    #  1st boot and thus triggering some errors during boot & sysinit
+    #
+    msg_2 "Clearing run states after pre-build"
+    rm "$d_build_root"/run/openrc -rf
+
+    #  Make sure no leftover fixdev pid file remains
+    rm "$d_build_root"/tmp/fixdev.pid -f
+
+    echo
     # msg_3 "prebuild_fs() done"
 }
 
@@ -399,9 +430,9 @@ consider_generating_tarball() {
             rm "$d_build_root"/iCloud/* -rf
         fi
 
-	#
-	#  Here the tarball is generated
-	#
+        #
+        #  Here the tarball is generated
+        #
         #  shellcheck disable=SC2086,SC2248
         if ! "$aok_content"/compress_image $cgt_extra_params; then
             error_msg "detected in compress_image"
@@ -438,10 +469,12 @@ display_build_time() {
 AOK_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 
 # shellcheck source=/opt/AOK/tools/run_as_root.sh
-hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
+hide_run_as_root=1 . "$AOK_DIR"/tools/run_as_root.sh
 
 # shellcheck source=/opt/AOK/tools/utils.sh
-. "$AOK_DIR/tools/utils.sh"
+. "$AOK_DIR"/tools/utils.sh
+
+. "$AOK_DIR"/Debian/deb_utils.sh
 
 t_start="$(date +%s)"
 

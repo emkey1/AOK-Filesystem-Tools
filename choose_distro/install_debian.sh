@@ -7,6 +7,8 @@
 
 . /opt/AOK/tools/utils.sh
 
+. /opt/AOK/Debian/deb_utils.sh
+
 tid_start="$(date +%s)"
 
 msg_script_title "install_debian.sh  Downloading & Installing Debian"
@@ -39,6 +41,12 @@ t_extract="$(date +%s)"
 msg_1 "Extracting Debian (will show unpack time, once done)"
 distro_tmp_dir="/Debian"
 create_fs "$src_tarball" "$distro_tmp_dir"
+
+#
+#  Clear openrc status
+#
+rm "$distro_tmp_dir"/run/openrc -rf
+
 duration="$(($(date +%s) - t_extract))"
 display_time_elapsed "$duration" "Unpacking Debian"
 unset duration
@@ -142,6 +150,11 @@ msg_2 "Removing last traces of Alpine - busybox"
 rm /busybox
 rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
+
+intial_fs_prep_debian
+
+msg_2 "Set openrc to runlevel default"
+/usr/sbin/openrc default
 
 "$setup_debian_scr"
 

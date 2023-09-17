@@ -1,6 +1,9 @@
 #!/bin/sh
+#  shellcheck disable=SC2154
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
