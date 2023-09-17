@@ -53,5 +53,11 @@ apt purge -y dirmngr gnupg-l10n gnupg-utils gpg gpgconf gpgsm libapparmor1 \
   python3-cryptography python3-dbus python3-entrypoints xauth xdg-user-dirs
 
 #
+# Disable ssh service
+#
+rc-update del ssh default
+
+
+#
 #  Remember to run Mapt once this is done!
 #
