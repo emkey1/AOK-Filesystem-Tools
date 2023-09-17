@@ -1,31 +1,16 @@
 #!/bin/sh
 #
-#  Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
 #  License: MIT
 #
-#  Who said you couldn't do nested arrays in POSIX ??
+#  Copyright (c) 2022,2023: Jacob.Lundqvist@gmail.com
 #
-version="1.0.0  2023-02-06"
-
-prog_name=$(basename "$0")
-
-force_mode=0
-
-#
-#  By only displaying actions on other OS
-#  I can edit this on my workstation
-#
-if [ -d "/proc/ish" ]; then
-    this_is_ish=1
-else
-    this_is_ish=0
-fi
-
 check_for_option() {
     case "$1" in
 
     "" | "-h" | "--help")
-        echo "usage: $prog_name [-h] | [-g] | [-l] | [-f] | group1 group2 -group3 ..."
+        echo "usage: $prog_name [-h] | [-g] | [-l] | | group1 group2 -group3 ..."
         echo
         echo "This is a tool to install/uninstall groups of packages"
         echo "prefixing a group name with - means uninstall that group"
@@ -34,8 +19,6 @@ check_for_option() {
         echo "  -h, --help   show this help message and exit"
         echo "  -g           list available groups and exit"
         echo "  -l           list groups and items and exit"
-        echo "  -f  --force  installs/deletes will be done even if not running"
-        echo "               on iSH. This is for preparing a FS when chrooted"
         echo
         exit 0
         ;;
@@ -53,17 +36,12 @@ check_for_option() {
         exit 0
         ;;
 
-    "-f" | "--force")
-        force_mode=1
-        this_is_ish=1
-        ;;
-
     *) ;;
 
     esac
 }
 
-use_aok_groups() {
+create_aok_groups() {
     conf_file="/opt/AOK/AOK_VARS"
     if [ ! -f "$conf_file" ]; then
         echo "ERROR: $conf_file not found!"
@@ -96,16 +74,18 @@ pkg_handling() {
         ;;
     esac
 
-    cmd="sudo apk $action $packages"
-
-    if [ "$this_is_ish" -eq 1 ]; then
-        $cmd
-    else
-        #
-        #  Allows me to edit this on my Workstation :)
-        #
-        echo "** Would run **  $cmd"
+    #
+    #  Some packages change depending on Alpine release
+    #
+    if ! min_release 3.18; then
+        packages="$(echo "$packages" | sed 's/procps-ng/procps/')"
+        if ! min_release 3.16; then
+            packages="$(echo "$packages" | sed 's/shadow-login-doc//')"
+        fi
     fi
+
+    #  shellcheck disable=SC2086 # in this case it should expand
+    sudo apk $action $packages
     task_done=1
 }
 
@@ -185,35 +165,38 @@ process_items() {
     done
 }
 
-main() {
-    echo "$prog_name  $version"
+#===============================================================
+#
+#   Main
+#
+#===============================================================
 
-    check_for_option "$1"
+prog_name=$(basename "$0")
 
-    # get rid of the force option
-    [ "$force_mode" -eq 1 ] && shift
+. /opt/AOK/tools/utils.sh
 
-    while [ -n "$1" ]; do
-        item="$1"
+create_aok_groups
 
-        if [ "$(echo "$item" | cut -b1)" = "-" ]; then
-            item="${item#?}"
-            task="uninstall"
-            echo "-----   Removing group:    $item"
-            process_items
-        else
-            task="install"
-            echo "-----   Installing group:  $item"
-            process_items
-        fi
-        if [ "$task_done" -eq 0 ]; then
-            echo "ERROR: $item is not a valid group!"
-            exit 1
-        fi
-        shift
-    done
-}
+echo "$prog_name"
 
-use_aok_groups
+check_for_option "$1"
 
-main "$@"
+while [ -n "$1" ]; do
+    item="$1"
+
+    if [ "$(echo "$item" | cut -b1)" = "-" ]; then
+        item="${item#?}"
+        task="uninstall"
+        echo "-----   Removing group:    $item"
+        process_items
+    else
+        task="install"
+        echo "-----   Installing group:  $item"
+        process_items
+    fi
+    if [ "$task_done" -eq 0 ]; then
+        echo "ERROR: $item is not a valid group!"
+        exit 1
+    fi
+    shift
+done
