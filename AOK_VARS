@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.8-3"
+AOK_VERSION="0.9.8-4"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -116,10 +116,10 @@ INITIAL_LOGIN_MODE="enable"
 #
 #  ALPINE_VERSION defines what Alpine release will be used
 #
-# ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
+ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
 # ALPINE_VERSION=3.16.7 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
-ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #
 #  For edge releases - Current development tree
 #  format is the isodate featured in the minirootfs filename
@@ -166,7 +166,7 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #  Will only be installed if the kernel is identified as iSH-AOK
 #  on first boot at dest device,
 #
-AOK_APKS="procps procps-ng-doc nload nload-doc"
+AOK_APKS="procps procps-doc nload nload-doc"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups

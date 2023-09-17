@@ -26,11 +26,6 @@ install_aok_apks() {
 
     msg_1 "Install packages only for AOK kernel"
 
-    if ! min_release 3.18; then
-        msg_3 "Modifying selection to fit pre 3.18"
-        AOK_APKS="$(echo "$AOK_APKS" | sed 's/procps-ng/procps/')"
-    fi
-
     # In this case we want the variable to expand into its components
     # shellcheck disable=SC2086
     apk add $AOK_APKS
