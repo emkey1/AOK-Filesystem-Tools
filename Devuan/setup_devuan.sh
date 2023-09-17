@@ -33,9 +33,6 @@ install_sshd() {
 prepare_env_etc() {
     msg_2 "prepare_env_etc()"
 
-    msg_3 "Devuan AOK inittab"
-    cp -a "${aok_content}/Devuan/etc/inittab" /etc
-
     msg_3 "hosts file helping apt tools"
     cp -a "${aok_content}/Devuan/etc/hosts" /etc
 
@@ -101,6 +98,17 @@ echo "-->  Running fix_dev  <--"
 echo
 
 . /opt/AOK/tools/utils.sh
+
+#
+#  Skip if chrooted
+#
+if this_is_ish && ! this_fs_is_chrooted; then
+    msg_2 "Waiting for runlevel default to be ready, normally < 10s"
+    while ! rc-status -r | grep -q default; do
+        msg_3 "not ready"
+        sleep 2
+    done
+fi
 
 deploy_starting
 
