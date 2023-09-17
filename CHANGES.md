@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Debian & Devuan waits for runlevel default before deploy
 - New Debian src-img: Debian10-6-aok-2.tgz
 - preparing Debian FS for 1st boot
 - procps in general install, since it now works on iSH
