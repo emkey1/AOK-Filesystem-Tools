@@ -33,9 +33,9 @@ install_apks() {
     #  be replaced by an apt upgrade
     #
     msg_2 "Custom apks"
-    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1 ; then
-	msg_3 "mtr - a full screen traceroute"
-	apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk
+    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1; then
+        msg_3 "mtr - a full screen traceroute"
+        apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk
     fi
 }
 
@@ -60,9 +60,9 @@ prepare_env_etc() {
     #
     testing_repo="https://dl-cdn.alpinelinux.org/alpine/edge/testing"
     if [ "$alpine_release" = "edge" ]; then
-	msg_2 "Adding apk repository - testing"
-	#    cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-	echo "$testing_repo" >>/etc/apk/repositories
+        msg_2 "Adding apk repository - testing"
+        #    cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+        echo "$testing_repo" >>/etc/apk/repositories
     elif min_release 3.17; then
         #
         #  Only works for fairly recent releases, otherwise dependencies won't
@@ -117,13 +117,13 @@ setup_cron_env() {
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
-	msg_3 "Activating dcron service, but not starting it now"
-	[ "$(command -v crond)" != /usr/sbin/crond ] && error_msg "cron service requested, dcron does not seem to be installed"
-	rc-update add dcron default
+        msg_3 "Activating dcron service, but not starting it now"
+        [ "$(command -v crond)" != /usr/sbin/crond ] && error_msg "cron service requested, dcron does not seem to be installed"
+        rc-update add dcron default
     else
-	msg_3 "Inactivating cron service"
-	#  Action only needs to be taken if it was active
-	find /etc/runlevels/ | grep -q dcron && rc-update del dcron default
+        msg_3 "Inactivating cron service"
+        #  Action only needs to be taken if it was active
+        find /etc/runlevels/ | grep -q dcron && rc-update del dcron default
     fi
     # msg_3 "setup_cron_env() - done"
 }
@@ -217,7 +217,7 @@ setup_cron_env
 #
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
-    is_prebuilt=1  # shorthand to avoid doing the above check again
+    is_prebuilt=1 # shorthand to avoid doing the above check again
 else
     "$setup_final"
 fi
