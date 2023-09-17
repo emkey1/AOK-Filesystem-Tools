@@ -537,7 +537,7 @@ deploy_starting() {
 #
 #===============================================================
 
-while [ -f "/run/fixdev.pid" ]; do
+while [ -f "/tmp/fixdev.pid" ]; do
     msg_3 "Waiting for fix_dev to complete"
     sleep 1
 done
