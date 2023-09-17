@@ -14,9 +14,6 @@
 prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
-    msg_3 "Debian AOK inittab"
-    cp -a "$aok_content"/Debian/etc/inittab /etc
-
     #
     #  Most of the Debian services, mounting fs, setting up networking etc
     #  serve no purpose in iSH, since all this is either handled by iOS
@@ -120,15 +117,18 @@ debian_services() {
 
 tsd_start="$(date +%s)"
 
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
-
 . /opt/AOK/tools/utils.sh
+
+#
+#  Skip if chrooted
+#
+if this_is_ish && ! this_fs_is_chrooted; then
+    msg_2 "Waiting for runlevel default to be ready, normally < 10s"
+    while ! rc-status -r | grep -q default; do
+        msg_3 "not ready"
+        sleep 2
+    done
+fi
 
 deploy_starting
 
@@ -219,9 +219,4 @@ display_time_elapsed "$duration" "Setup Debian"
 if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"
     exit
-else
-    msg_1 "Please reboot/restart this app now!"
-    echo "/etc/inittab was changed during the install."
-    echo "In order for this new version to be used, a restart is needed."
-    echo
 fi
