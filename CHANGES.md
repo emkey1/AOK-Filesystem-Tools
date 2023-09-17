@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Alpine >= 3.18 uses procps-ng instead of procps
 - Changed Ash prompt somewhat to make it stand out from the Bash prompt. Also added a hint where to change if you do want them to look the same
 - ensure ~/.common_rc in sourced early, expanded explaination of purpose
 

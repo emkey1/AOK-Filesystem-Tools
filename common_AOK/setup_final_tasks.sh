@@ -26,6 +26,11 @@ install_aok_apks() {
 
     msg_1 "Install packages only for AOK kernel"
 
+    if ! min_release 3.18; then
+        msg_3 "Modifying selection to fit pre 3.18"
+        AOK_APKS="$(echo "$AOK_APKS" | sed 's/procps-ng/procps/')"
+    fi
+
     # In this case we want the variable to expand into its components
     # shellcheck disable=SC2086
     apk add $AOK_APKS
@@ -40,9 +45,9 @@ replace_home_dirs() {
             cd "/home" || error_msg "Failed cd /home"
             rm -rf "$USER_NAME"
             tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
-	else
-	    error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
-	fi
+        else
+            error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
+        fi
     fi
 
     if [ -n "$HOME_DIR_ROOT" ]; then
@@ -51,9 +56,9 @@ replace_home_dirs() {
             mv /root /root.ORIG
             cd / || error_msg "Failed to cd into: /"
             tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
-	else
-	    error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
-	fi
+        else
+            error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
+        fi
     fi
 }
 
@@ -77,24 +82,24 @@ start_cron_if_active() {
     [ "$USE_CRON_SERVICE" != "Y" ] && return
 
     if this_fs_is_chrooted || ! this_is_ish; then
-	msg_3 "Cant attempt to start cron on a chrooted/non-iSH device"
-	return
+        msg_3 "Cant attempt to start cron on a chrooted/non-iSH device"
+        return
     fi
 
     cron_service="/etc/init.d"
     if hostfs_is_alpine; then
-	cron_service="$cron_service/dcron"
+        cron_service="$cron_service/dcron"
     elif hostfs_is_debian; then
-	cron_service="$cron_service/cron"
+        cron_service="$cron_service/cron"
     else
-	error_msg "cron service not available for this FS"
+        error_msg "cron service not available for this FS"
     fi
 
     openrc_might_trigger_errors
     [ ! -x "$cron_service" ] && error_msg "Cron service not found: $cron_service"
-    if ! "$cron_service" status > /dev/null; then
-	msg_3 "Starting cron service"
-	"$cron_service" start
+    if ! "$cron_service" status >/dev/null; then
+        msg_3 "Starting cron service"
+        "$cron_service" start
     fi
     # msg_3 "start_cron_if_active() - done"
 }
@@ -104,10 +109,10 @@ run_additional_tasks_if_found() {
 
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
         msg_1 "Running additional setup tasks"
-	echo "---------------"
-	echo "$FIRST_BOOT_ADDITIONAL_TASKS"
-	echo "---------------"
-	/bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS"
+        echo "---------------"
+        echo "$FIRST_BOOT_ADDITIONAL_TASKS"
+        echo "---------------"
+        /bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS"
     fi
     msg_3 "run_additional_tasks_if_found()  done"
 }
@@ -119,7 +124,6 @@ deploy_state_clear() {
 
     # msg_3 "deploy_state_clear() - done"
 }
-
 
 #===============================================================
 #
@@ -176,7 +180,6 @@ set_new_etc_profile "$next_etc_profile"
 /usr/local/sbin/ensure_hostname_in_host_file.sh
 
 replace_home_dirs
-
 
 run_additional_tasks_if_found
 
