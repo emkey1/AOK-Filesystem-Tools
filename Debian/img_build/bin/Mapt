@@ -45,7 +45,7 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-apt autoremove -y && apt clean && apt -y upgrade
+apt autoremove -y && apt autoclean && apt -y upgrade
 
 purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
 if [ -n "$purge_candidates" ]; then
