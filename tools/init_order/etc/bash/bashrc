@@ -1,0 +1,15 @@
+#  If not running interactively, don't go further
+case $- in
+
+    *i*) ;;
+
+    *) return  ;;
+
+esac
+
+echo "><>   /etc/bash/bashrc [$0] [$1]"
+
+for f in /etc/bash/*.sh; do
+	[ -r "$f" ] && . "$f"
+done
+unset f

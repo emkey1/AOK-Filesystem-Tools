@@ -1,0 +1,114 @@
+#
+#  Read down the appropriate column. Executes A, then B, then C, etc.
+#  The B1, B2, B3 means it executes only the first of those files found.
+#  The table lists the locations accoring to official documentation.
+#  In some case the zsh /etc items are in /etc/zsh instead
+#  These alternate location inint scripts are also provided.
+#  They all report their file name, and when in a non-default
+#  location, like /etc/zsh/zlogin it will report G! instead of G
+#
+
+init for direct started scripts:
+  .bashrc
+  .zshenv
+
+Summary:
+- For bash, put stuff in ~/.bashrc, and make ~/.bash_profile source it.
+- For zsh, put stuff in ~/.zshrc, which is always executed.
+- For ash set ENV=$HOME/.ash_init (or similar) in ~/.profile,
+  this will then be used by any ash shell, be it interactive or script.
+  It will be essential to have a script exit point early on for
+  perforamce reasons
+
+
+                      Bash
+
++----------------+-----------+-----------+------+
+|                |Interactive|Interactive|Script|
+|                |login      |non-login  |      |
++----------------+-----------+-----------+------+
+|/etc/profile    |   A       |           |      |
++----------------+-----------+-----------+------+
+|/etc/bash.bashrc|           |    A      |      |
++----------------+-----------+-----------+------+
+|~/.bashrc       |           |    B      |      |  <-
++----------------+-----------+-----------+------+
+|~/.bash_profile |   B1      |           |      |  source ~/.bashrc
++----------------+-----------+-----------+------+
+|~/.bash_login   |   B2      |           |      |
++----------------+-----------+-----------+------+
+|~/.profile      |   B3      |           |      |
++----------------+-----------+-----------+------+
+|BASH_ENV        |           |           |  A   |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|~/.bash_logout  |    C      |           |      |
++----------------+-----------+-----------+------+
+
+
+
+                      zsh
+
+On some distros the global config files are
+in /etc/zsh
++----------------+-----------+-----------+------+
+|                |Interactive|Interactive|Script|
+|                |login      |non-login  |      |
++----------------+-----------+-----------+------+
+|/etc/zshenv     |    A      |    A      |  A   |
++----------------+-----------+-----------+------+
+|~/.zshenv       |    B      |    B      |  B   | 
++----------------+-----------+-----------+------+
+|/etc/zprofile   |    C      |           |      |
++----------------+-----------+-----------+------+
+|~/.zprofile     |    D      |           |      |
++----------------+-----------+-----------+------+
+|/etc/zshrc      |    E      |    C      |      |
++----------------+-----------+-----------+------+
+|~/.zshrc        |    F      |    D      |      |  <-
++----------------+-----------+-----------+------+
+|/etc/zlogin     |    G      |           |      |
++----------------+-----------+-----------+------+
+|~/.zlogin       |    H      |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|~/.zlogout      |    I      |           |      |
++----------------+-----------+-----------+------+
+|/etc/zlogout    |    J      |           |      |
++----------------+-----------+-----------+------+
+
+
+                      ash
+
++----------------+-----------+-----------+------+
+|                |Interactive|Interactive|Script|
+|                |login      |non-login  |      |
++----------------+-----------+-----------+------+
+|/etc/profile    |  A        |           |      |
++----------------+-----------+-----------+------+
+|~/.profile      |  B        |           |      | ENV=$HOME/.ash_init
++----------------+-----------+-----------+------+
+|ENV             |  C        | A         | A    | <-
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
