@@ -133,7 +133,10 @@ tsaft_start="$(date +%s)"
 #
 #  Only run if prebuild and not chrooted on iSH
 #
-if deploy_state_is_it "$deploy_state_pre_build" && this_is_ish && ! this_fs_is_chrooted; then
+if deploy_state_is_it "$deploy_state_pre_build" &&
+    this_is_ish &&
+    ! hostfs_is_devuan &&
+    ! this_fs_is_chrooted; then
     msg_2 "Waiting for runlevel default to be ready, normally < 10s"
     while ! rc-status -r | grep -q default; do
         msg_3 "not ready"
