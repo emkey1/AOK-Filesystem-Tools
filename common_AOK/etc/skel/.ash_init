@@ -10,8 +10,9 @@
 #
 
 #
-#  Non-interactive shells wont read this by themselves. This ensures
-#  that if they get here via idirect sourcing, they abort.
+#  In the ash case,  Non-interactive shells will read this, as long as
+#  ENV points to this file, so this is an essential component!
+#  Only do things needed for non-interactive script before this point.
 #
 case $- in
 *i*) ;;
