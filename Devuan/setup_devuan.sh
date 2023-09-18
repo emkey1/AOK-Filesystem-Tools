@@ -89,26 +89,7 @@ setup_login() {
 
 tsd_start="$(date +%s)"
 
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
-
 . /opt/AOK/tools/utils.sh
-
-#
-#  Skip if chrooted
-#
-if this_is_ish && ! this_fs_is_chrooted; then
-    msg_2 "Waiting for runlevel default to be ready, normally < 10s"
-    while ! rc-status -r | grep -q default; do
-        msg_3 "not ready"
-        sleep 2
-    done
-fi
 
 deploy_starting
 
@@ -142,24 +123,6 @@ if [ -n "$DEB_PKGS" ]; then
     bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
 fi
 
-# install_sshd
-
-# msg_2 "Add boot init.d items suitable for iSH"
-# rc-update add urandom boot
-
-# msg_2 "Add shutdown init.d items suitable for iSH"
-# rc-update add sendsigs off
-# rc-update add umountroot off
-# rc-update add urandom off
-
-# skipping openrc
-#msg_2 "Disable some auto-enabled services that wont make sense in iSH"
-#openrc_might_trigger_errors
-#rc-update del dbus default
-#rc-update del elogind default
-#rc-update del rsync default
-#rc-update del sudo default
-
 #
 #  Common deploy, used both for Alpine & Debian
 #
@@ -168,6 +131,27 @@ if ! "$setup_common_aok"; then
 fi
 
 setup_login
+
+#
+#  Depending on if prebuilt or not, either setup final tasks to run
+#  on first boot or now.
+#
+if deploy_state_is_it "$deploy_state_pre_build"; then
+    set_new_etc_profile "$setup_final"
+    is_prebuilt=1 # shorthand to avoid doing the above check again
+else
+    "$setup_final"
+fi
+
+msg_1 "Setup complete!"
+
+duration="$(($(date +%s) - tsd_start))"
+display_time_elapsed "$duration" "Setup Devuan"
+
+if [ -n "$is_prebuilt" ]; then
+    msg_1 "Prebuild completed, exiting"
+    exit
+fi
 
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"

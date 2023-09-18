@@ -91,21 +91,6 @@ debian_services() {
     msg_3 "Remove previous ssh host keys if present"
     rm -f /etc/ssh/ssh_host*key*
 
-    # msg_2 "Add services for runlevel boot"
-    # rc-update add urandom boot
-
-    #msg_3 "Add services for runlevel off"
-    #rc-update add sendsigs off
-    #rc-update add urandom off
-
-    #msg_3 "Disable some auto-enabled services that wont make sense in iSH"
-    #openrc_might_trigger_errors
-
-    #rc-update del dbus default
-    #rc-update del elogind default
-    #rc-update del rsync default
-    #rc-update del sudo default
-
     setup_cron_env
 }
 
@@ -192,13 +177,6 @@ fi
 setup_login
 
 debian_services
-
-#
-#  Overriding common runbg with Debian specific, work in progress...
-#
-# msg_2 "Adding runbg service"
-# cp -a "$aok_content"/Devuan/etc/init.d/runbg /etc/init.d
-# ln -sf /etc/init.d/runbg /etc/rc2.d/S04runbg
 
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
