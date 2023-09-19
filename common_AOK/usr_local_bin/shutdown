@@ -30,7 +30,7 @@ notification="
 
     *** SYSTEM SHUTDOWN NOTICE ***
 
-This machine will be shutdown in 10 seconds!!
+$(hostname) will be shutdown in 10 seconds!!
 "
 
 #

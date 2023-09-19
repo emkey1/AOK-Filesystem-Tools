@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- shutdown now mentions which host is being shutdown
 - tools/init_order info and test scripts to trace script init order
 
 ## release 0.9.9
