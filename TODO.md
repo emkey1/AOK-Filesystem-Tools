@@ -1,5 +1,37 @@
 # TODO
 
+## Using /dev/console within the iSH limitations
+
+This actually works much better in Debian than in Alpine, since in Alpine as of now only autologin as root works. agetty fails to change ownership of /dev/pts/0 on Alpine
+
+
+1 Add this as Launch cmd to avoid harmless but annoying error msg everytime ish is started and offensive login BEFORE init is run, but still ensure /dev/pts/0 is bound
+`/bin/sleep infinity`
+
+
+2 Replace console with this alternate content in /usr/local/sbin/fix_dev if you use it via inittab, otherwise  run it in a shell as root, in order to ensure anything can print to 
+/dev/console, without being restricted when agetty locks down /dev/pts/0
+With this normal bootup console output can be seen!
+
+```sh
+#rm -f /dev/console && mknod -m 666 /dev/console c 5 1                                                                                 
+rm -f /dev/console && mknod -m 222 /dev/console c 136 0 
+```
+
+3a Add this towards end of /etc/inittab if you want a login prompt for console screen
+
+```
+pts0::respawn:/sbin/agetty pts/0 linux
+```
+
+
+3b Alternatively use this if you want to use -a to login as a user without prompting for password, be aware that in this case logout / exit will instantly automatically log you back in again 🙂  You will have to use shutdown to terminate the iSH app
+pts0::respawn:/sbin/agetty -a root pts/0 linux
+
+IMPORTANT UPDATE: Please be aware that in Alpine you cant use pts0 as an inittab identifier for whatever reason, despite it being no longer than 4 chars, in such cases labeling it as tty1 works and will give you a prompt.
+On Debian pts0 works, and makes more sense since it hints what device this is using
+
+
 ## Wait for bootup to complete
 
 This could be used from /etc/profile for bash/ash and from /etc/zprofile for zsh
