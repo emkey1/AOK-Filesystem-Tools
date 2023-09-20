@@ -46,5 +46,5 @@ sleep 2
 #
 echo "will do   killall -9 login init" >> /var/log/shutdown.log
 #  Should be a guaranteed insta-kill of iSH
-killall -9 login
+killall -9 login init
 echo "completed killall -9 login init" >> /var/log/shutdown.log
