@@ -76,6 +76,7 @@ while [ -n "$1" ]; do
             exit 1
         fi
         echo "$sync_file" >"$hostname_sync_fname"
+        shift
         ;;
 
     *) show_help ;;
