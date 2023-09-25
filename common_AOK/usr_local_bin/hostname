@@ -41,13 +41,15 @@ get_hostname() {
         echo "ERROR: no syncfile defined, run with -h to see help!"
         exit 1
     fi
-    sync_file="$(cat $hostname_sync_fname)"
+
+    sync_file="$(cat "$hostname_sync_fname")"
     if [ ! -f "$sync_file" ]; then
         echo "ERROR: syncfile not pressent!"
         echo "       If it is correctly defined, Make sure the shortcut runs"
         echo "       when iSH is starting."
         exit 1
     fi
+
     awk 'END {print $1}' "$sync_file" >"$hostname_cached"
 
     #
@@ -71,13 +73,8 @@ while [ -n "$1" ]; do
 
     case "$1" in
 
-    "-f" | "--fqdn" | "--long") ;; # ignored, but accepted for compatability
-
-    "-s" | "--short")
-        full_hostname="$("$0")"
-        echo "${full_hostname%%.*}" # Extract the part before the first dot
-        exit 0
-        ;;
+    #  ignored, but accepted for compatability
+    "-f" | "--fqdn" | "--long" | "-s" | "--short") ;;
 
     "-S" | "--syncfile")
         sync_file="$2"
