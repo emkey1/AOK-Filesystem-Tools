@@ -19,8 +19,9 @@ syncfile.
 Second step is to create a Personal Automation, that runs this every time
 iSH starts
 
-Third step is to use a custom hostname bin, placed early in your PATH,
-so that whenever something runs hostname, this is what will be run.
+Third step is to use a custom hostname bin that picks up the hostname
+provided by the shortcut, placed early in your PATH, so that whenever
+something runs hostname, this is what will be run.
 
 ## Shortcut Syncing Hostname
 
@@ -40,6 +41,9 @@ Create Personal Automation - App
 - Point it to the shortcut syncing hostname defined above
 
 ## Using this shortcut info
+
+Make sure the sync file is accessible inside iSH, you probably will need
+to mount that resource using something like `mount -t ios . /mnt/point`
 
 Install a custom hostname, that uses the shortcut info, here is mine
 [hostname using shortcut](https://raw.githubusercontent.com/jaclu/AOK-Filesystem-Tools/main/common_AOK/usr_local_bin/hostname)
