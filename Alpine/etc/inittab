@@ -1,8 +1,15 @@
 # inittab
 
-# Ensure all devices  are ok
-::sysinit:/usr/local/sbin/fix_dev
+#
+#  Ensure all devices  are ok, doesnt seem to be needed anymore
+#  left here for now
+#
+# ::sysinit:/usr/local/sbin/fix_dev
 
+#
+#
+#
+::sysinit:/usr/local/bin/hostname --update
 #
 #  Login crashes if /etc/issue is not pressent.
 #  This ensures at least an empty file is there

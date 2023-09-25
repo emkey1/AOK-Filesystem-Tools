@@ -9,8 +9,8 @@ id:2:initdefault:
 #  These two items should be the very first sysinit entries
 #  to ensure iSH is in a usable state for openrc!
 #
-# Ensure devs are ok
-fx1::sysinit:/usr/local/sbin/fix_dev
+#  hostname is not set automatically since iOS 17, this does it manually
+fx1::sysinit:/bin/hostname -F /etc/hostname
 
 # Clear /run/openrc to an initial state with no services running
 fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
