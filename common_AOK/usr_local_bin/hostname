@@ -80,11 +80,12 @@ while [ -n "$1" ]; do
 
     "-s")
         input="$("$0")"
-        while [ -n "$input" ]; do
-            part="${input%%.*}" # Extract the part before the first dot
-            echo "$part"        # Display the part
-            input="${input#*.}" # Remove the part before the first dot
-        done
+        echo "><> input [$input]"
+        #while [ -n "$input" ]; do
+        part="${input%%.*}" # Extract the part before the first dot
+        echo "$part"        # Display the part
+        #     input="${input#*.}" # Remove the part before the first dot
+        # done
         ;;
 
     *) show_help ;;
