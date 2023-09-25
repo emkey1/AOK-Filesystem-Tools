@@ -26,8 +26,13 @@ check https://github.com/jaclu/AOK-Filesystem-Tools/Docs/hostname-shortcut.md
 Available options:
 
 -h  --help         Print this help and exit
--f  --force        Re-read shortcut hint
--S  --syncfile     Informs this tool what file to check for the shortcut hint"
+-f, --fqdn, --long Ignored but accepted for compatability
+-s, --short        Display the short host name. This is the host name cut at the first dot.
+
+Custom options for this hostname implementation:
+
+-S  --syncfile     Informs this tool what file to check for the shortcut hint
+-u  --update       Re-read shortcut hint"
     exit 0
 }
 
@@ -66,7 +71,13 @@ while [ -n "$1" ]; do
 
     case "$1" in
 
-    "-f" | "--force") rm -f "$hostname_cached" ;;
+    "-f" | "--fqdn" | "--long") ;; # ignored, but accepted for compatability
+
+    "-s" | "--short")
+        full_hostname="$("$0")"
+        echo "${full_hostname%%.*}" # Extract the part before the first dot
+        exit 0
+        ;;
 
     "-S" | "--syncfile")
         sync_file="$2"
@@ -78,15 +89,7 @@ while [ -n "$1" ]; do
         shift
         ;;
 
-    "-s")
-        input="$("$0")"
-        echo "><> input [$input]"
-        #while [ -n "$input" ]; do
-        part="${input%%.*}" # Extract the part before the first dot
-        echo "$part"        # Display the part
-        #     input="${input#*.}" # Remove the part before the first dot
-        # done
-        ;;
+    "-u" | "--update") rm -f "$hostname_cached" ;;
 
     *) show_help ;;
 
