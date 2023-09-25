@@ -25,7 +25,7 @@ copy_doing_backup() {
 	f_bu="$f_dst".old
 	echo "  Creating backup: $f_bu"
 	mv "$f_dst" "$f_bu" || {
-	    echo "ERROR: Failed to create BU: $f_dst - $fb_bu"
+	    echo "ERROR: Failed to create BU: $f_dst - $f_bu"
 	    echo "       Need sudo?"
 	    exit 1
 	}
