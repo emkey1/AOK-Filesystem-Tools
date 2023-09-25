@@ -32,7 +32,8 @@ make sure "Make New Line" is activated!
 
 ## Automation Personal
 
-- Create Personal Automation App
+Create Personal Automation App
+
 - App - Choose iSH, click Done.
 - Select "Run Immediately"
 - Click Next
