@@ -49,5 +49,5 @@ to tell it where the file containing hostname fed by the shortcut is
 located. Once that is done it acts as a normal hostname
 
 As long as it is in something like /usr/local/bin and that is globbaly
-added to PATH ash and bash will use it the normal (h) wau if you want to
-use hostname in your prompt.
+added to PATH ash and bash will use it the normal (h) correctly,
+if you want to use hostname in your prompt.
