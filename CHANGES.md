@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Added iOS 17 hostname workarround
 - shutdown now mentions which host is being shutdown
 - tools/init_order info and test scripts to trace script init order
 

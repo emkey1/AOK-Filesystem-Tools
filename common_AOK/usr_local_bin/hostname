@@ -1,0 +1,90 @@
+#!/bin/sh
+#  shellcheck disable=SC2154
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+
+show_help() { # Multi OK 1
+    echo "Usage: hostname [-h] [-f] [ -s /full/path/to/syncfile ]
+
+Uses hint provided by shortcut to update hostname
+If you run iSH on multiple iOS devices and you have iCloud syncing of
+shortcuts turned on. This syncfile will contain hostnames for various
+devices. Therefore this value is only read if there is no local cache
+on this instance of iSH.
+
+If you change hostname of your iOS device, run this with -f to force it
+to reread the syncfile.
+
+To see an example of how to create the shortcut needed that feeds this
+check https://github.com/jaclu/AOK-Filesystem-Tools/Docs/hostname-shortcut.md
+
+Available options:
+
+-h  --help         Print this help and exit
+-f  --force        Re-read shortcut hint
+-s  --syncfile     Informs this tool what file to check for the shortcut hint"
+    exit 0
+}
+
+get_hostname() {
+    if [ ! -f "$hostname_sync_fname" ]; then
+        echo "ERROR: no syncfile defined, run with -h to see help!"
+        exit 1
+    fi
+    sync_file="$(echo $hostname_sync_fname)"
+    if [ ! -f "$sync_file" ]; then
+        echo "ERROR: syncfile not pressent!"
+        echo "       If it is correctly defined, Make sure the shortcut runs"
+        echo "       when iSH is starting."
+        exit 1
+    fi
+
+    awk 'END {print $1}' "$sync_file" >"$hostname_cached"
+
+    #
+    #  Clear sync file content, doesnt have to be done, but prevents
+    #  file to slowly grow over time, since one line is added every time
+    #  iSH is started.
+    #
+    rm -f "$sync_file"
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+hostname_sync_fname="/etc/opt/hostname_sync_fname"
+hostname_cached="/etc/opt/hostname_cached"
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+    "-f" | "--force") rm -f "$hostname_cached" ;;
+
+    "-s" | "--syncfile")
+        sync_file="$2"
+        if [ -z "$sync_file" ]; then
+            echo "ERROR: -s needs a filename as additional param!"
+            exit 1
+        fi
+        echo "$sync_file" >"$hostname_sync_fname"
+        ;;
+
+    *) show_help ;;
+
+    esac
+    shift
+
+done
+
+[ ! -f "$hostname_cached" ] && get_hostname
+
+cat "$hostname_cached"
