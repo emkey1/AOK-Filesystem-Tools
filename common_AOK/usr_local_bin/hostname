@@ -36,14 +36,13 @@ get_hostname() {
         echo "ERROR: no syncfile defined, run with -h to see help!"
         exit 1
     fi
-    sync_file="$(echo $hostname_sync_fname)"
+    sync_file="$(cat $hostname_sync_fname)"
     if [ ! -f "$sync_file" ]; then
         echo "ERROR: syncfile not pressent!"
         echo "       If it is correctly defined, Make sure the shortcut runs"
         echo "       when iSH is starting."
         exit 1
     fi
-
     awk 'END {print $1}' "$sync_file" >"$hostname_cached"
 
     #
