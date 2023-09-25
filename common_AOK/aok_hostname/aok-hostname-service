@@ -20,11 +20,41 @@ stop_post() {
 }
 
 start() {
+	#
+	#  This init script should not be present
+	#  on a regular iSH, but if an FS was imported it could in
+	#  theory happen...
+	#
+	if grep -qi aok /proc/ish/version; then
+		#
+		#  Since it is not needed for iSH-AOK, remove AOK FS custom
+		#  hostname, it is only run during bootup to get the current
+		#  hostname. Once retrieved the normal hostname is able to
+		#  use this.
+		#
+		rm -f /usr/local/bin/hostname
+	fi
+
 	h_suffix="aok"
-	#  Ensure suffix is not added multiple times if this is restarted
-	hostname | grep -q "\-$h_suffix" || {
-            echo "$(hostname)-$h_suffix" > /etc/hostname
-        }
+
+	#  If this file is present, assume iOS 17 hostname workarround should be used
+	if [ -f /etc/opt/hostname_cached ]; then
+		#
+		#
+		#  Since current hostname is provided via a Shortcut run as app
+		#  starts, always use this without caching to ensure that if iOS
+		#  devis is given a new name, it is picked up
+		#
+		hostname_by_shortcut="$(/opt/AOK/common_AOK/usr_local_bin/hostname -update)"
+		echo "$hostname_by_shortcut" | grep -q "\-$h_suffix" || {
+			echo "${hostname_by_shortcut}-$h_suffix" >/etc/hostname
+		}
+	else
+		#  Assume iOS provides initial hostname
+		hostname | grep -q "\-$h_suffix" || {
+			echo "$(hostname)-$h_suffix" >/etc/hostname
+		}
+	fi
 
 	ebegin "Setting hostname"
 	hostname -F /etc/hostname
