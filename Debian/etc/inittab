@@ -9,8 +9,13 @@ id:2:initdefault:
 #  These two items should be the very first sysinit entries
 #  to ensure iSH is in a usable state for openrc!
 #
-#  hostname is not set automatically since iOS 17, this does it manually
-fx1::sysinit:/bin/hostname -F /etc/hostname
+#
+#  hostname is not set automatically since iOS 17, since iSH-AOK can
+#  set hostname the normal way with `hostname -F /etc/hostname`
+#  the custom hostname is only used during bootup, to retrieve hostname
+#  from the shortcut
+#
+fx1::sysinit:/opt/AOK/common_AOK/usr_local_bin/hostname --update
 
 # Clear /run/openrc to an initial state with no services running
 fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
