@@ -24,7 +24,8 @@ so that whenever something runs hostname, this is what will be run.
 
 ## Shortcut Syncing Hostname
 
-- Create a Shortcut with the following items
+Create a Shortcut with the following items
+
 - Get Device Details - Select Device Hostname
 - Append to Text File - Append Device Hostname and select what file to use
 make sure "Make New Line" is activated!
