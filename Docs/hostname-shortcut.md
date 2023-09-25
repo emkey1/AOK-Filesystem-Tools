@@ -7,7 +7,8 @@ to retrieve hostname from iOS. Until that is resolved this is a
 workaround to handle this.
 
 First thing is to create a shortcut that writes hostname to a file that
-iSH has access to, be it local, iCloud or other cloud storage does not matter
+iSH has access to, be it local, iCloud or other cloud storage does not
+matter
 
 If you have more than one device where you run iSH, it would propably
 make most sense to use an iCloud file, the Shortcuts would normally be
@@ -32,12 +33,21 @@ make sure "Make New Line" is activated!
 
 ## Automation Personal
 
-Create Personal Automation App
-App - Choose iSH, click Done.
-Select "Run Immediately"
-Click Next
-Point it to the shortcut syncing hostname defined above
+- Create Personal Automation App
+- App - Choose iSH, click Done.
+- Select "Run Immediately"
+- Click Next
+- Point it to the shortcut syncing hostname defined above
 
 ## Using this shortcut info
 
 Install a custom hostname, that uses the shortcut info, here is mine
+[hostname using shortcut](https://raw.githubusercontent.com/jaclu/AOK-Filesystem-Tools/main/common_AOK/usr_local_bin/hostname)
+
+First time you run my implementation it will complain that you need
+to tell it where the file containing hostname fed by the shortcut is
+located. Once that is done it acts as a normal hostname
+
+As long as it is in something like /usr/local/bin and that is globbaly
+added to PATH ash and bash will use it the normal (h) wau if you want to
+use hostname in your prompt.

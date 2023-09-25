@@ -1,11 +1,12 @@
 #!/bin/sh
-#  shellcheck disable=SC2154
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
+#
+#  Custom hostname, that is fed hostname by an iOS shortcut
 #
 
 show_help() { # Multi OK 1
@@ -32,7 +33,10 @@ Available options:
 Custom options for this hostname implementation:
 
 -S  --syncfile     Informs this tool what file to check for the shortcut hint
--u  --update       Re-read shortcut hint"
+-u  --update       Re-read shortcut hint. Be aware if you use this on
+                   multiple devices the syncfile will contain the name
+                   of the latest iSH started, in such cases do update
+                   just after starting this iSH"
     exit 0
 }
 
