@@ -2,16 +2,11 @@
 
 I will try to keep track of changes between releases here
 
-## Changes newest first
+## release 0.9.10
 
-- Added agetty to inittab, commented out by default
-- Moved hostname_fix to early part of setup_final_tasks.sh
-- Added HOSTNAME_SYNC_FILE config for hostname workarround
-- Trying inittab sbin script to setup hostname for both aok and regular
-- Added hostname workarround suport in inittabs
-- Fixing aok-hostname service to use hostname workarround
+- Added iOS 17 hostname workarrounds, added HOSTNAME_SYNC_FILE config
+- Added getty's to Alpine & Debian inittab, commented out by default
 - reintroduced some skel files unintentionally deleted - .tmux.conf & .vimrc
-- Added iOS 17 hostname workarround
 - shutdown now mentions which host is being shutdown
 - tools/init_order info and test scripts to trace script init order
 
