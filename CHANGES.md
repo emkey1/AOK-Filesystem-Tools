@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Moved hostname_fix to early part of setup_final_tasks.sh
 - Added HOSTNAME_SYNC_FILE config for hostname workarround
 - Trying inittab sbin script to setup hostname for both aok and regular
 - Added hostname workarround suport in inittabs
