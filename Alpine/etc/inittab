@@ -53,7 +53,20 @@
 #  I highly doubt these states can be triggered in iSH
 #
 # Stuff to do for the 3-finger salute
-::ctrlaltdel:/sbin/reboot
+# ::ctrlaltdel:/sbin/reboot
 
 # Stuff to do before rebooting
-::shutdown:/sbin/openrc shutdown
+# ::shutdown:/sbin/openrc shutdown
+
+#
+#  Before enabling either of the agetty's for pts/0 Launch cmd should be
+#  changed into this: /bin/sleep infinity
+#  If you want to use /dev/console for general output, also do
+#    rm -f /dev/console && mknod -m 222 /dev/console c 136 0
+#
+
+#  Using login prompt
+# tty1::respawn:/sbin/agetty pts/0 linux
+
+#  Autologin as selected user, be aware that logout will instantly log you in again...
+# tty1::respawn:/sbin/agetty -a root pts/0 linux

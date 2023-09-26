@@ -85,12 +85,18 @@ while [ -n "$1" ]; do
 
     "-S" | "--syncfile")
         sync_file="$2"
+        shift # This one uses two items, so do an extra shift
         if [ -z "$sync_file" ]; then
             echo "ERROR: -s needs a filename as additional param!"
             exit 1
         fi
         echo "$sync_file" >"$hostname_sync_fname"
-        shift
+
+        #
+        #  To ensure the hostname from the syncfile is picked up,
+        #  clear the current name
+        #
+        rm -f "$hostname_cached"
         ;;
 
     "-u" | "--update") rm -f "$hostname_cached" ;;

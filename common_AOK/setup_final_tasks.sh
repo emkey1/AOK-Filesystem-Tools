@@ -137,6 +137,7 @@ hostname_fix() {
         if /opt/AOK/common_AOK/usr_local_bin/hostname -S "$hn_syncfile"; then
             msg_3 "Intented hostname should have been displayed above"
             /usr/local/sbin/hostname_sync.sh
+
         else
             echo "It seems there was some issue using that syncfile. Please run"
             echo "/opt/AOK/common_AOK/usr_local_bin/hostname -h for instructions"
@@ -153,11 +154,8 @@ hostname_fix() {
 
 tsaft_start="$(date +%s)"
 
-#
-#  Ensure usr local bin is first in path, to not risk the wrong
-#  hostname is used
-#
-export PATH="/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+#  Ensure usr local bin is first in path, so our custom stuff is picked up
+export PATH="/usr/local/bin:$PATH"
 
 . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/user_interactions.sh
