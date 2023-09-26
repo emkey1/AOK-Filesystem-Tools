@@ -7,10 +7,12 @@
 # ::sysinit:/usr/local/sbin/fix_dev
 
 #
-#  hostname is not set automatically since iOS 17, this picks up the
-#  current hostname via a shortcut
+#  hostname is not set automatically since iOS 17, since iSH-AOK can
+#  set hostname the normal way with `hostname -F /etc/hostname`
+#  the custom hostname is only used during bootup, to retrieve hostname
+#  from the shortcut
 #
-::sysinit:/usr/local/bin/hostname --update
+::sysinit:/usr/local/sbin/hostname_sync.sh
 
 #
 #  Login crashes if /etc/issue is not pressent.
