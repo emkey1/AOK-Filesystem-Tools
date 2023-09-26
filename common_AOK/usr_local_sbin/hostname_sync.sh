@@ -21,15 +21,14 @@
 #
 #===============================================================
 
-log_file="/var/log/hostnaming.log"
+# log_file="/var/log/hostnaming.log"
 
 /opt/AOK/common_AOK/usr_local_bin/hostname --update >/etc/hostname
 
-echo "[$(date)] ><> hostname by shortcut [$(/opt/AOK/common_AOK/usr_local_bin/hostname)] def [$(/bin/hostname)]" >>"$log_file"
+# echo "[$(date)] ><> hostname by shortcut [$(/opt/AOK/common_AOK/usr_local_bin/hostname)] def [$(/bin/hostname)]" >>"$log_file"
 
 if grep -qi aok /proc/ish/version 2>/dev/null; then
     rm -f /usr/local/bin/hostname
     /bin/hostname -F /etc/hostname
+    # echo "[$(date)] ><> hostfile content [$(cat /etc/hostname)] assigned hostname [$(/bin/hostname)]" >>"$log_file"
 fi
-
-echo "[$(date)] ><> assigned hostname [$(/bin/hostname)]" >>"$log_file"

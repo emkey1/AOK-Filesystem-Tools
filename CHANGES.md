@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Changes newest first
 
+- Added HOSTNAME_SYNC_FILE config for hostname workarround
 - Trying inittab sbin script to setup hostname for both aok and regular
 - Added hostname workarround suport in inittabs
 - Fixing aok-hostname service to use hostname workarround

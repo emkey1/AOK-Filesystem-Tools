@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.9-8"
+AOK_VERSION="0.9.9-9"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -65,6 +65,14 @@ INITIAL_LOGIN_MODE="enable"
 #
 # HOME_DIR_USER="/iCloud/ish_config/home_user.tgz"
 # HOME_DIR_ROOT="/iCloud/ish_config/home_root.tgz"
+
+#
+#  Since iOS 17 iSH is no longer able to provide hostname.
+#  One way to work arround this I have described in
+#  https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/Docs/hostname-shortcut.md
+#  For this to work smooth you need to provide the intended syncfile
+#
+# HOSTNAME_SYNC_FILE="/mnt/iCloud/hostname-by-shortcut.txt"
 
 #
 #  If you run both iSH-AOK and regular iSH on the same device

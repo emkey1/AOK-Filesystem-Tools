@@ -200,6 +200,25 @@ display_time_elapsed "$duration" "Setup Final tasks"
 
 deploy_state_clear
 
+if [ -n "$HOSTNAME_SYNC_FILE" ]; then
+    hn_syncfile="$HOSTNAME_SYNC_FILE"
+else
+    echo "If you are using Shortcuts to provide hostname, plz give your"
+    echo "hostname sync file, so it can be used during bootup."
+    read hn_syncfile
+fi
+
+if [ -n "$hn_syncfile" ]; then
+    msg_3 "Setting hostname synfile to: $hn_syncfile"
+    if /opt/AOK/common_AOK/usr_local_bin/hostname -S "$hn_syncfile"; then
+        msg_3 "Intented hostname should have been displayed above"
+        /usr/local/sbin/hostname_sync.sh
+    else
+        echo "It seems there was some issue using that syncfile"
+        echo "Please run /opt/AOK/common_AOK/usr_local_bin/hostname -h for instructions"
+    fi
+fi
+
 msg_1 "This system has completed the last deploy steps and is ready!"
 echo "You are recomended to reboot in order to ensure all services"
 echo "will start correctly."
