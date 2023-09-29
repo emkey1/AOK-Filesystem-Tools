@@ -2,6 +2,8 @@
 
 I will try to keep track of changes between releases here
 
+- fixed read without -r
+
 ## release 0.9.10
 
 - Added iOS 17 hostname workarrounds, added HOSTNAME_SYNC_FILE config

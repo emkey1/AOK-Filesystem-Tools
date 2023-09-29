@@ -129,7 +129,7 @@ hostname_fix() {
     else
         echo "If you are using Shortcuts to provide hostname, plz give your"
         echo "hostname sync file, so it can be used during bootup."
-        read hn_syncfile
+        read -r hn_syncfile
     fi
 
     if [ -n "$hn_syncfile" ]; then
