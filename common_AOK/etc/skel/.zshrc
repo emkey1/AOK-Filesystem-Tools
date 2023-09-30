@@ -13,23 +13,21 @@ case $- in
 *) return ;; # If not running interactively, don't do anything
 esac
 
-#
-#  Common settings that can be used by most shells, should be done early
-#  So shell specific init can override anything in here
-#
-if [ -f ~/.common_rc ]; then
-    . ~/.common_rc
-fi
-
-zsh_history_config() {
-    #
-    # Configure how history should be used
-    #
+zsh_history_conf() {
     HISTSIZE=1000000
     # shellcheck disable=SC2034
     SAVEHIST=1000000
-    HISTFILE=${ZDOTDIR:=$HOME}/.zsh_history
+    HISTFILE=${_SE_ZSH_HISTORY_LOCATION:=${ZDOTDIR:=$HOME}}/.zsh_history
     HISTTIMEFORMAT="[%F %T] "
+
+    # ignore case when expanding PATH params
+    setopt NO_CASE_GLOB
+    # With AUTO_CD enabled in zsh, the shell will automatically change directory
+    # if you forget to prefix with cd
+    setopt AUTO_CD
+
+    # Corrects misspelled path and commands
+    # setopt CORRECT  # this just seems annoying, "thefuck" does a better job
 
     #
     #  History related
@@ -54,17 +52,33 @@ zsh_history_config() {
 }
 
 #
-#  Bash style prompt
+#  Common settings that can be used by most shells
 #
-# PROMPT='%(?..%F{red}?%?)%F{46}%n@%m%f%b:%F{12}%~%f%b%# '
+if [ -f ~/.common_rc ]; then
+    . ~/.common_rc
+fi
+
+zsh_history_conf
+
+if grep -qi aok /proc/ish/version 2>/dev/null; then
+    #
+    #  ish-aok can set hostname the normal way, so no special handling
+    #  is needed
+    #
+    _hn="%m"
+else
+    #
+    #  regular iSH must run custom hostname since the default will just
+    #  say localhost
+    #
+    _hn="$(/usr/local/bin/hostname -s)"
+fi
 
 #
 #  Folder and success of last cmd on left
 #  user@machine time on right
 #
 PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
-RPROMPT='%F{green}%n@%m %F{240}%*%f'
 
-zsh_history_config
-
-unset -f zsh_history_config
+#  Inside tmux user and time is displayed on status line
+[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@$_hn %F{240}%*%f"

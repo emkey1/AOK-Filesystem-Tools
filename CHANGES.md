@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- updated skel files to handle the custom hostname, when needed
 - fixed read without -r
 
 ## release 0.9.10

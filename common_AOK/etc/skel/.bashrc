@@ -1,5 +1,5 @@
 #!/bin/bash
-#  Fake bangpath to help editors and linters
+#   Fake bangpath to help editors and linters
 #
 # executed by bash(1) for non-login shells.
 #
@@ -10,7 +10,7 @@
 #
 case $- in
 *i*) ;;
-*) return ;; # If not running interactively, don't do anything
+*) return ;; # If not running interactively, exit now!
 esac
 
 #
@@ -77,17 +77,27 @@ if [[ -n "$force_color_prompt" ]]; then
     fi
 fi
 
-if [[ "$color_prompt" = yes ]]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+if grep -qi aok /proc/ish/version 2>/dev/null; then
+    #
+    #  ish-aok can set hostname the normal way, so no special handling
+    #  is needed
+    #
+    _hn="\h"
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    _hn="$(/usr/local/bin/hostname)"
+fi
+
+if [[ "$color_prompt" = yes ]]; then
+    PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@${_hn}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+else
+    PS1="${debian_chroot:+($debian_chroot)}\u@${_hn}:\w\$ "
 fi
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm* | rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@${_hn}: \w\a\]$PS1"
     ;;
 *) ;;
 esac
