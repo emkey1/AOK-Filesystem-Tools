@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- getty term linux -> xterm-256color to get default color prompt
 - ALPINE_VERSION=3.18.4
 - typo fixed in copy "$hostname_cached" to /etc/hostname
 - myip rewritten to display all local devices

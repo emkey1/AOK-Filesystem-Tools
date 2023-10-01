@@ -65,7 +65,7 @@ z6:6:respawn:/sbin/sulogin --force
 #
 
 #  Using login prompt
-# pts0::respawn:/sbin/agetty pts/0 linux
+# pts0::respawn:/sbin/agetty pts/0 xterm-256color
 
 #  Autologin as selected user, be aware that logout will instantly log you in again...
-# pts0::respawn:/sbin/agetty -a root pts/0 linux
+# pts0::respawn:/sbin/agetty -a root pts/0 xterm-256color
