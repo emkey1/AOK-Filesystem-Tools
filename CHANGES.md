@@ -2,7 +2,7 @@
 
 I will try to keep track of changes between releases here
 
-- whereisthis installd deps if needed on both Alpine & Debian
+- whereisthis & whereami installs deps if needed on both Alpine & Debian
 - /etc/hostname is updated, on regular iSH just for information, since it cant be used to set hostname there
 - updated skel files to handle the custom hostname, when needed
 - fixed read without -r
