@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- /etc/hostname is updated, on regular iSH just for information, since it cant be used to set hostname there
 - updated skel files to handle the custom hostname, when needed
 - fixed read without -r
 

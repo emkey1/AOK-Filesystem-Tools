@@ -57,6 +57,13 @@ get_hostname() {
     awk 'END {print $1}' "$sync_file" >"$hostname_cached"
 
     #
+    #  /etc/hostname can be updated also on regular iSH, so makes sense
+    #  to update it since this is where hostname is expected to be
+    #  found.
+    #
+    cp "$hostname_cached" >/etc/hostname
+
+    #
     #  Since only the last line is of interest normally, make sure the
     #  sync_file doesnt grow to much
     #

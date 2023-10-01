@@ -23,7 +23,8 @@
 
 # log_file="/var/log/hostnaming.log"
 
-/opt/AOK/common_AOK/usr_local_bin/hostname --update >/etc/hostname
+#  This also updates /etc/hostname
+/opt/AOK/common_AOK/usr_local_bin/hostname --update
 
 # echo "[$(date)] ><> hostname by shortcut [$(/opt/AOK/common_AOK/usr_local_bin/hostname)] def [$(/bin/hostname)]" >>"$log_file"
 
