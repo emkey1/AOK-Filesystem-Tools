@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- typo fixed in copy "$hostname_cached" to /etc/hostname
 - myip rewritten to display all local devices
 - showip was found to be redundant, myip should be enough
 - whereisthis & whereami installs deps if needed on both Alpine & Debian

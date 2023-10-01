@@ -61,7 +61,7 @@ get_hostname() {
     #  to update it since this is where hostname is expected to be
     #  found.
     #
-    cp "$hostname_cached" >/etc/hostname
+    cp "$hostname_cached" /etc/hostname
 
     #
     #  Since only the last line is of interest normally, make sure the
