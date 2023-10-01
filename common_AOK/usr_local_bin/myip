@@ -1,44 +1,103 @@
 #!/usr/bin/env bash
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Displays local and public IPs - this only works on iSH-AOK!
+#
 
-printf "Internet IP:  "
-if curl -s http://ifconfig.me; then
+#
+#  This usually works fine, but in some cases when I use a VPN and it
+#  fails to route ip6  the curl -6 hangs for ever with no error output
+#  so until that is figured out use the old style check for now
+#
+# pubip4="$(curl -f -s -4 https://ifconfig.me)"
+# pubip6="$(curl -f -s -6 https://ifconfig.me)"
+
+# [[ -n "$pubip4" ]] && printf 'Public IPv4: %s\n' "$pubip4"
+# [[ -n "$pubip6" ]] && printf 'Public IPv6: %s\n' "$pubip6"
+
+# if [[ -z "$pubip4" ]] && [[ -z "$pubip4" ]]; then
+#     #  Fallback, trying http instead
+printf "Public IP:  "
+if curl -s https://ifconfig.me; then
     printf '\n'
 else
     echo "Error: Unable to determine"
 fi
+# fi
 
 if ! grep -qi aok /proc/ish/version 2>/dev/null; then
-    echo "Not running on iSH-AOK, exiting."
+    echo "Not running on iSH-AOK, can not check local networking. Exiting."
     exit 1
 fi
 
+#  Not really needed, but makes code easier to read if arrays are initialized
+ipv4s=()
+ipv6s=()
 
 if [[ -f "/proc/ish/ips" ]]; then
-    declare -A OUTPUT_ARRAY
     while read -r line; do
+        dev_name="$(echo "$line" | awk '{ print $1 }')"
+        if [[ "$dev_name" = "pdp_ip0" ]]; then
+            dev_type="Cellular"
+        elif [[ $dev_name == utun* ]]; then
+            dev_type="VPN utun"
+        elif [[ $dev_name == ipsec* ]]; then
+            dev_type="VPN IPsec"
+        elif [[ $dev_name == en* ]]; then
+            dev_type="Wi-Fi"
+        else
+            #  loopback, personal hotspot and some oddities are ignored
+            continue
+        fi
+        ip="$(echo "$line" | awk '{ print $2 }')"
+        #  this is alligned with Unknown warning
+        new_item="$(printf '%-11s %s' "$dev_type" "$ip")"
+
         if [[ $line =~ ^en.*INET6 ]]; then
-            OUTPUT_ARRAY["v6"]=$(echo "$line" | awk '{print $2}')
+            ipv6s+=("$new_item")
         elif [[ $line =~ ^.*INET\  ]]; then
-            OUTPUT_ARRAY["v4"]=$(echo "$line" | awk '{print $2}')
+            ipv4s+=("$new_item")
         fi
     done <"/proc/ish/ips"
-    if [[ -n "${OUTPUT_ARRAY[v4]}" ]]; then
-        LOCAL_IP="${OUTPUT_ARRAY[v4]}"
-    else
-        LOCAL_IP="Unknown"
-    fi
-    if [[ -n "${OUTPUT_ARRAY[v6]}" ]]; then
-        LOCAL_IP_V6="${OUTPUT_ARRAY[v6]}"
-    fi
 else
-    LOCAL_IP=$(idev_ip 2>/dev/null | cut -d: -f2)
-    if [[ -z "$LOCAL_IP" ]]; then
-        LOCAL_IP="Unknown"
-    fi
+    echo "ERROR: /proc/ish/ips not found!"
+    exit 1
+    # idev_ip no longer works, since it depends on gethostbyname()
+    # LOCAL_IP=$(idev_ip 2>/dev/null | cut -d: -f2)
+    # if [[ -z "$LOCAL_IP" ]]; then
+    #     LOCAL_IP="Unknown"
+    # fi
 fi
 
-#
-#  Local IPs are indented a full tab, to make internet IP stand out
-#
-printf 'Local IP(V4):\t%s\n' "$LOCAL_IP"
-[[ -n "$LOCAL_IP_V6" ]] && printf 'Local IP(V6):\t%s\n' "$LOCAL_IP_V6"
+echo
+printf "Local IPv4:"
+if [[ ${#ipv4s[@]} -gt 0 ]]; then
+    echo #  Force new line
+    for ipv4 in "${ipv4s[@]}"; do
+        printf "  %s\n" "$ipv4"
+    done
+elif [[ ${#ipv6s[@]} -gt 0 ]]; then
+    #  If the other type is defined, this is probably a positive absense
+    printf " None defined\n"
+else
+    printf " Unknown\n"
+fi
+
+printf "Local IPv6:"
+if [[ ${#ipv6s[@]} -gt 0 ]]; then
+    echo #  Force new line
+    for ipv6 in "${ipv6s[@]}"; do
+        printf "  %s\n" "$ipv6"
+    done
+elif [[ ${#ipv4s[@]} -gt 0 ]]; then
+    #  If the other type is defined, this is probably a positive absense
+    printf " None defined\n"
+else
+    #  Neither found, hard to tell if this is no network or error
+    printf " Unknown\n"
+fi
