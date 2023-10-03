@@ -46,13 +46,13 @@ if destfs_is_alpine && [[ -n "$ALPINE_CUSTOM_FILES_TEMPLATE" ]]; then
     if [[ -f "$ALPINE_CUSTOM_FILES_TEMPLATE" ]]; then
         process_custom_file_list "$ALPINE_CUSTOM_FILES_TEMPLATE"
     else
-        error_msg "ALPINE_CUSTOM_FILES_TEMPLATE does not point to a file" "no_exit"
+        error_msg "ALPINE_CUSTOM_FILES_TEMPLATE [$ALPINE_CUSTOM_FILES_TEMPLATE] does not point to a file"
     fi
 fi
 if destfs_is_debian && [[ -n "$DEBIAN_CUSTOM_FILES_TEMPLATE" ]]; then
     if [[ -f "$DEBIAN_CUSTOM_FILES_TEMPLATE" ]]; then
         process_custom_file_list "$DEBIAN_CUSTOM_FILES_TEMPLATE"
     else
-        error_msg "DEBIAN_CUSTOM_FILES_TEMPLATE does not point to a file" "no_exit"
+        error_msg "DEBIAN_CUSTOM_FILES_TEMPLATE [$DEBIAN_CUSTOM_FILES_TEMPLATE] does not point to a file"
     fi
 fi

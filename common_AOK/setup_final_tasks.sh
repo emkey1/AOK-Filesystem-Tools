@@ -106,7 +106,9 @@ run_additional_tasks_if_found() {
         echo "---------------"
         echo "$FIRST_BOOT_ADDITIONAL_TASKS"
         echo "---------------"
-        /bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS"
+        /bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS" || {
+            error_msg "FIRST_BOOT_ADDITIONAL_TASKS returned error"
+        }
     fi
     msg_3 "run_additional_tasks_if_found()  done"
 }
@@ -197,7 +199,7 @@ user_interactions
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-"$aok_content"/common_AOK/aok_hostname/set_aok_hostname.sh
+"$aok_content"/common_AOK/aok_hostname/set_aok_hostname.sh || exit 99
 
 set_initial_login_mode
 
@@ -219,9 +221,10 @@ set_new_etc_profile "$next_etc_profile"
 #
 #  Handling custom files
 #
-"$aok_content"/common_AOK/custom/custom_files.sh
+"$aok_content"/common_AOK/custom/custom_files.sh || exit 99
 
-/usr/local/sbin/ensure_hostname_in_host_file.sh
+
+/usr/local/sbin/ensure_hostname_in_host_file.sh || exit 99
 
 replace_home_dirs
 
