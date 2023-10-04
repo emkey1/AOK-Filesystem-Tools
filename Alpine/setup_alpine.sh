@@ -14,7 +14,9 @@
 
 find_fastest_mirror() {
     msg_1 "Find fastest mirror"
-    apk add alpine-conf
+    apk add alpine-conf || {
+	error_msg "apk add alpine-conf failed"
+    }
     setup-apkrepos -f
 }
 
@@ -24,7 +26,9 @@ install_apks() {
 
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
-        apk add $CORE_APKS
+        apk add $CORE_APKS || {
+	    error_msg "apk add CORE_APKS failed"
+	}
     else
         msg_1 "No CORE_APKS defined"
     fi
@@ -33,12 +37,14 @@ install_apks() {
     #  Install some custom apks, where the current repo version cant
     #  be used, so we use the last known to work on Debian version
     #  Since they are installed as a file, they are pinned, and wont
-    #  be replaced by an apt upgrade
+    #  be replaced by an apk upgrade
     #
     msg_2 "Custom apks"
     if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1; then
         msg_3 "mtr - a full screen traceroute"
-        apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk
+        apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk || {
+	    error_msg "apk add mtr failed"
+	}
     fi
 }
 
@@ -178,11 +184,10 @@ fi
 
 prepare_env_etc
 
-#msg_1 "apk update"
-#apk update
-
 msg_1 "apk upgrade"
-apk upgrade
+apk upgrade || {
+    error_msg "apk upgrade failed"
+}
 
 install_apks
 

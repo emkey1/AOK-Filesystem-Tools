@@ -134,7 +134,9 @@ initiate_deploy Debian "$(cat /etc/debian_version)"
 prepare_env_etc
 
 msg_1 "apt upgrade"
-apt upgrade -y
+apt upgrade -y  || {
+    error_msg "apt upgrade failed"
+}
 
 #
 #  To ensure that
@@ -155,7 +157,10 @@ if [ -n "$DEB_PKGS_SKIP" ]; then
     #  we do purge instead of remove, purge implies a remove
     #
     #  shellcheck disable=SC2086
-    apt purge -y $DEB_PKGS_SKIP
+    apt purge -y $DEB_PKGS_SKIP || {
+	error_msg "apt remove failed"
+    }
+
 fi
 
 if [ -n "$DEB_PKGS" ]; then
@@ -163,7 +168,9 @@ if [ -n "$DEB_PKGS" ]; then
     echo "$DEB_PKGS"
     echo
     #  shellcheck disable=SC2086
-    apt install -y $DEB_PKGS
+    apt install -y $DEB_PKGS || {
+	error_msg "apt install failed"
+    }
 fi
 echo
 

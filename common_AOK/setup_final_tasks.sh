@@ -20,13 +20,17 @@ aok_kernel_consideration() {
     if ! this_is_aok_kernel; then
         if ! min_release 3.18; then
             msg_3 "procps wont work on regular iSH for Alpine < 3.18"
-            apk del procps
+            apk del procps || {
+		error_msg "apk del procps failed"
+	    }
         fi
     elif [ -n "$AOK_APKS" ]; then
         msg_3 "Install packages only for AOK kernel"
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
-        apk add $AOK_APKS
+        apk add $AOK_APKS  || {
+	    error_msg "apk add AOK_APKS failed"
+	}
     fi
     # msg_3 "aok_kernel_consideration() - done"
 }

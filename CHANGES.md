@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- Check for error after all apt/apk actions
 - Additional checks for errors in sub-scripts
 - getty term linux -> xterm-256color to get default color prompt
 - ALPINE_VERSION=3.18.4
