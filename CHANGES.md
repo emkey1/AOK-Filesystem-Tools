@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- bash prompt setting window title reverted back to ""
 - Reverted back to single quote for bash prompts otherwise \$ wont display # for root
 - Check for error after all apt/apk actions
 - Additional checks for errors in sub-scripts
