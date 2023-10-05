@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- Better documentation of hostname_sync.sh and its inittab entries
 - in setup_final_tasks.sh syncs potential iCloud params to ensure content is up to date
 - bash prompt setting window title reverted back to ""
 - Reverted back to single quote for bash prompts otherwise \$ wont display # for root
