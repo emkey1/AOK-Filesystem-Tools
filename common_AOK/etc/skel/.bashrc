@@ -82,7 +82,7 @@ if grep -qi aok /proc/ish/version 2>/dev/null; then
     #  ish-aok can set hostname the normal way, so no special handling
     #  is needed
     #
-    _hn="\h"
+    _hn="$(/bin/hostname -s)"
 else
     _hn="$(/usr/local/bin/hostname)"
 fi
