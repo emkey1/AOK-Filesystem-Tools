@@ -15,28 +15,67 @@
 #  so it can be assumed this is running on deploy destination
 #
 
+sync_dir() {
+    #
+    #  In case this is an iCloud location, give iCloud a nudge to sync it
+    #  to minimize risk that the file hasnt been synced yet
+    #
+
+    # msg_2 "sync_dir()"
+    [ -z "$1" ] && return
+
+    # extract dir path of $1 param
+    if [ -d "$1" ]; then
+        dir_name="$1"
+    else
+        dir_name="$(dirname "$1")" # probably was file
+    fi
+
+    [ ! -d "$dir_name" ] && return # dir not found
+
+    #
+    #  Abort in case dir is obviously not an icloud mount and/or would take
+    #  a considerable time to process with find
+    #
+    case "$dir_name" in
+    "." | "/" | "/usr") return ;;
+    *) ;;
+    esac
+
+    #
+    #  Since we verified that dir_name exists, the only normal reason
+    #  to get an error from find is if a file needed to be synced by
+    #  iCloud and thus gave an error indication
+    #
+    find "$dir_name" >/dev/null 2>&1 || {
+        msg_2 "sync_dir $dir_name - Location was synced!"
+    }
+    # msg_3 "sync_dir() - done"
+}
+
 aok_kernel_consideration() {
     msg_2 "aok_kernel_consideration()"
     if ! this_is_aok_kernel; then
         if ! min_release 3.18; then
             msg_3 "procps wont work on regular iSH for Alpine < 3.18"
             apk del procps || {
-		error_msg "apk del procps failed"
-	    }
+                error_msg "apk del procps failed"
+            }
         fi
     elif [ -n "$AOK_APKS" ]; then
         msg_3 "Install packages only for AOK kernel"
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
-        apk add $AOK_APKS  || {
-	    error_msg "apk add AOK_APKS failed"
-	}
+        apk add $AOK_APKS || {
+            error_msg "apk add AOK_APKS failed"
+        }
     fi
     # msg_3 "aok_kernel_consideration() - done"
 }
 
 replace_home_dirs() {
     if [ -n "$HOME_DIR_USER" ]; then
+        sync_dir "$HOME_DIR_USER"
         if [ -f "$HOME_DIR_USER" ]; then
             [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
             msg_2 "Replacing /home/$USER_NAME"
@@ -49,6 +88,7 @@ replace_home_dirs() {
     fi
 
     if [ -n "$HOME_DIR_ROOT" ]; then
+        sync_dir "$HOME_DIR_ROOT"
         if [ -f "$HOME_DIR_ROOT" ]; then
             msg_2 "Replacing /root"
             mv /root /root.ORIG
@@ -131,6 +171,7 @@ hostname_fix() {
     #  in iSH
     #
     if [ -n "$HOSTNAME_SYNC_FILE" ]; then
+        sync_dir "$HOSTNAME_SYNC_FILE"
         hn_syncfile="$HOSTNAME_SYNC_FILE"
     else
         echo "If you are using Shortcuts to provide hostname, plz give your"
@@ -226,7 +267,6 @@ set_new_etc_profile "$next_etc_profile"
 #  Handling custom files
 #
 "$aok_content"/common_AOK/custom/custom_files.sh || exit 99
-
 
 /usr/local/sbin/ensure_hostname_in_host_file.sh || exit 99
 
