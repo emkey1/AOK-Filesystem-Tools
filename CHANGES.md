@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- if no syncfile is given, default to use hostname localhost
 - Handles case where LOG_FILE is defined and deploy step is done as a user
 - Better documentation of hostname_sync.sh and its inittab entries
 - in setup_final_tasks.sh syncs potential iCloud params to ensure content is up to date
