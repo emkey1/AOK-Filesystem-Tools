@@ -2,23 +2,24 @@
 
 I will try to keep track of changes between releases here
 
-- if no syncfile is given, default to use hostname localhost
-- Handles case where LOG_FILE is defined and deploy step is done as a user
+## release 0.10.0
+
+- Uses v3.18.4 for Alpine installs
+- if no syncfile is given, defaults to use /etc/hostname
+- /etc/hostname is updated, on regular iSH just for information, since it cant be used to set hostname there
 - Better documentation of hostname_sync.sh and its inittab entries
-- in setup_final_tasks.sh syncs potential iCloud params to ensure content is up to date
+- typo fixed in copy "$hostname_cached" to /etc/hostname
+- updated skel files to handle the custom hostname, when needed
+- in setup_final_tasks.sh syncs potentially iCloud related PATH params to ensure content is up to date
 - bash prompt setting window title reverted back to ""
 - Reverted back to single quote for bash prompts otherwise \$ wont display # for root
-- Check for error after all apt/apk actions
 - Additional checks for errors in sub-scripts
+- Check for error after all apt/apk actions
 - getty term linux -> xterm-256color to get default color prompt
-- ALPINE_VERSION=3.18.4
-- typo fixed in copy "$hostname_cached" to /etc/hostname
 - myip rewritten to display all local devices
 - showip was found to be redundant, myip should be enough
 - whereisthis & whereami installs deps if needed on both Alpine & Debian
-- /etc/hostname is updated, on regular iSH just for information, since it cant be used to set hostname there
-- updated skel files to handle the custom hostname, when needed
-- fixed read without -r
+- fixed a read without -r
 
 ## release 0.9.10
 
