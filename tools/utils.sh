@@ -20,11 +20,11 @@
 log_it() {
     _li="$1"
     if [ -z "$_li" ]; then
-        unset LOG_FILE
+        unset LOG_FILE  # ensure new call to error_msg doesnt suffer logfile
         error_msg "log_it() - no param!"
     fi
     if [ -z "$LOG_FILE" ]; then
-        unset LOG_FILE
+        unset LOG_FILE  # ensure new call to error_msg doesnt suffer logfile
         error_msg "log_it() called without LOG_FILE defined!"
     fi
     #  Ensure dir for LOG_FILE exists
@@ -35,7 +35,25 @@ log_it() {
         mkdir -p "$_log_dir"
     fi
 
-    echo "$_li" >>"${d_build_root}$LOG_FILE" # 2>&1
+    #
+    #  In case this was run in a FIRST_BOOT_ADDITIONAL_TASKS
+    #  and in a script run as USER_NAME, sudo will avoid
+    #  Permission denied errors
+    #
+    if [ "$(whoami)" != "root" ]; then
+	_lf_path="$(dirname "$LOG_FILE")"
+	_lf_name="$(basename "$LOG_FILE")"
+	_log_file="$_lf_path/${USER_NAME}-$_lf_name"
+	unset _lf_path
+	unset _lf_name
+	sudo touch "$_log_file"
+	sudo chown "$USER_NAME" "$_log_file"
+    else
+	_log_file="${d_build_root}$LOG_FILE"
+    fi
+    echo "$_li" >>"$_log_file" # 2>&1
+
+    unset _log_file
     unset _li
     unset _log_dir
 }
