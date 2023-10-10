@@ -2,6 +2,8 @@
 
 I will try to keep track of changes between releases here
 
+- New Debian src-img: Debian10-7-aok-1.tgz
+
 ## release 0.10.0
 
 - Uses v3.18.4 for Alpine installs
