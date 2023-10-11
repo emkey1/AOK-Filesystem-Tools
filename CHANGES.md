@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- Skips new hostname procedure if version is detected to be < 17
 - New Debian src-img: Debian10-7-aok-1.tgz
 
 ## release 0.10.0

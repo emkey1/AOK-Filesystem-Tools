@@ -83,6 +83,15 @@ get_hostname() {
 hostname_sync_fname="/etc/opt/hostname_sync_fname"
 hostname_cached="/etc/opt/hostname_cached"
 
+# shellcheck source=/opt/AOK/tools/utils.sh
+. /opt/AOK/tools/utils.sh
+
+if ! ios_matching "17.0"; then
+    # This iOS is not running vers 17, use normal hostname for now
+    /bin/hostname -s
+    exit "$?"
+fi
+
 while [ -n "$1" ]; do
 
     case "$1" in

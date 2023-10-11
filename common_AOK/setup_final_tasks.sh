@@ -170,15 +170,17 @@ hostname_fix() {
     #  Workarrounds for iOS 17 no longer supporting hostname detection
     #  in iSH
     #
+    [ -n "$(host_ios_version)" ] && ! ios_matching "17.0" && return
+
     if [ -n "$HOSTNAME_SYNC_FILE" ]; then
         sync_dir "$HOSTNAME_SYNC_FILE"
         hn_syncfile="$HOSTNAME_SYNC_FILE"
     else
         echo "If you are using Shortcuts to provide hostname, plz give your"
         echo "hostname sync file, so it can be used during bootup."
-	echo "Press <Enter> without a file name, if you are fine with using 'localhost'"
+        echo "Press <Enter> without a file name, if you are fine with using 'localhost'"
         read -r hn_syncfile
-	[ -z "$hn_syncfile" ] && hn_syncfile="/etc/hostname"
+        [ -z "$hn_syncfile" ] && hn_syncfile="/etc/hostname"
     fi
 
     if [ -n "$hn_syncfile" ]; then
@@ -187,7 +189,7 @@ hostname_fix() {
             msg_3 "Intented hostname should have been displayed above"
             /usr/local/sbin/hostname_sync.sh
 
-       else
+        else
             echo "It seems there was some issue using that syncfile. Please run"
             echo "/opt/AOK/common_AOK/usr_local_bin/hostname -h for instructions"
         fi
