@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- setup_final_tasks.sh now defines a full PATH including /usr/local/bin
 - Now hostname workaround can be enabled/disabled by running /usr/local/bin/aok
 - wrap deploy script in outer scr to prevent errors from aborting
 - Skips new hostname procedure if version is detected to be < 17

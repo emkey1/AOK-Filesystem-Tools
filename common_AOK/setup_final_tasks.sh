@@ -211,6 +211,8 @@ hostname_fix() {
 #
 #===============================================================
 
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 tsaft_start="$(date +%s)"
 
 #  Ensure usr local bin is first in path, so our custom stuff is picked up
