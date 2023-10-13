@@ -1,0 +1,52 @@
+#!/sbin/openrc-run
+
+alt_hostname=/usr/local/bin/hostname
+hostname_cached=/etc/opt/hostname_cached
+
+#
+#  Needed on iSH-AOK to use my hostname convention with -aok suffix
+#
+description="Sets the -aok hostname of the machine."
+
+depend() {
+    if [ -f /etc/init.d/runbg ]; then
+        after runbg
+    fi
+}
+
+start_post() {
+    echo "[$(date)] $RC_SVCNAME started" >>/var/log/services.log
+}
+
+stop_post() {
+    echo "[$(date)] $RC_SVCNAME stopped" >>/var/log/services.log
+}
+
+start() {
+    #
+    #  This init script should not be present
+    #  on a regular iSH, but if an FS was imported it could in
+    #  theory happen...
+    #
+    h_suffix="aok"
+
+    new_hostname="$(hostname)-$h_suffix"
+
+    hostname | grep -q "\-$h_suffix" || {
+        echo "$new_hostname" >/etc/hostname
+        #  if workaround hostname is used, update it to use new hostname
+        [ -x "$alt_hostname" ] && echo "$new_hostname" >"$hostname_cached"
+    }
+
+    ebegin "Setting hostname"
+    hostname -F /etc/hostname
+    /usr/local/bin/wall -n "hostname is now: $(hostname)"
+
+    #
+    #  This one is run from /etc/inittab, so most likely before this
+    #  has started, running it again here ensures that the now active
+    #  hostname is in /etc/hosts
+    #
+    /usr/local/sbin/ensure_hostname_in_host_file.sh
+    eend $?
+}

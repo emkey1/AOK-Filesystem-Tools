@@ -70,6 +70,7 @@ error_msg() {
     echo
     echo "$_em_msg"
     echo
+
     [ -n "$LOG_FILE" ] && log_it "$_em_msg"
     [ "$_em_exit_code" != "no_exit" ] && exit "$_em_exit_code"
     unset _em_msg
@@ -224,7 +225,21 @@ set_new_etc_profile() {
     #
     rm "$d_build_root"/etc/profile
 
-    cp -a "$sp_new_profile" "$d_build_root"/etc/profile
+    if [ "$(basename "$sp_new_profile")" = "profile" ]; then
+        cp -a "$sp_new_profile" "$d_build_root"/etc/profile
+    else
+        (
+            echo "#!/bin/sh"
+            echo "#"
+            echo "#  Script that is part of deploy,  wrap it inside other script"
+            echo "#  so that any error exits dont exit ish, just aborts deploy"
+            echo "#  special case exit 123 exits the profile, useful for prebuild"
+            echo "#  to exit out of the chroot"
+            echo "#"
+            echo "$sp_new_profile"
+            echo '[ "$?" = "123" ] && exit' # use single quotes so $? isnt expanded here
+        ) >"$d_build_root"/etc/profile
+    fi
 
     #
     #  Normaly profile is sourced, but in order to be able to directly
@@ -549,131 +564,6 @@ deploy_starting() {
     fi
 }
 
-#---------------------------------------------------------------
-#
-#   UIDevice  handling
-#
-#  Sample content
-# cat /proc/ish/UIDevice
-# Model: iPad
-# OS Name: iPadOS
-# OS Version: 16.6
-#
-#---------------------------------------------------------------
-
-if [ -f "$d_build_root/proc/ish/UIDevice" ]; then
-    f_UIDevice="$d_build_root"/proc/ish/UIDevice
-else
-    f_UIDevice="$d_build_root"/etc/opt/fake_UIDevice
-    echo "Model: iPad" >"$f_UIDevice"
-    echo "OS Version: 16.6" >>"$f_UIDevice"
-fi
-
-host_os() {
-    msg_2 "host_os(()"
-    if head -n 1 "$f_UIDevice" | grep -qi ipad; then
-        echo "iPad"
-    else
-        echo "iPhone"
-    fi
-    # msg_3 "host_os(() - done"
-}
-
-host_ios_version() {
-    #
-    #  Prints ios version if supported otherwise ""
-    #
-    # msg_2 "host_ios_version(()"
-    _os_version="$(tail -n 1 "$f_UIDevice" | sed -n 's/OS Version: \([0-9.]\+\)/\1/p')"
-    [ "$_os_version" = "0.0" ] && _os_version=""
-    echo "$_os_version"
-    # msg_3 "host_ios_version(() - done"
-}
-
-is_first_vers_str_larger() {
-    version1="$1"
-    version2="$2"
-
-    [ -z "$version1" ] && error_msg "is_first_vers_str_larger - missing param 1"
-    [ -z "$version2" ] && error_msg "is_first_vers_str_larger - missing param 2"
-
-    # msg_2 "is_first_vers_str_larger($version1,$version2)"
-
-    IFS='.' read -r v1_major v1_minor v1_patch <<EOF
-$version1
-EOF
-
-    IFS='.' read -r v2_major v2_minor v2_patch <<EOF
-$version2
-EOF
-    if [ "$v1_major" -lt "$v2_major" ]; then
-        _result=1 # False
-    elif [ -z "$v1_minor" ] && [ -n "$v2_minor" ]; then
-        _result=1 # False
-    elif [ -n "$v1_minor" ] && [ -z "$v2_minor" ]; then
-        _result=0 # True
-    elif [ "$v1_minor" -lt "$v2_minor" ]; then
-        _result=1 # False
-    elif [ -z "$v1_patch" ] && [ -n "$v2_patch" ]; then
-        _result=1 # False
-    elif [ -n "$v1_patch" ] && [ -z "$v2_patch" ]; then
-        _result=0 # True
-    elif [ "$v1_patch" -lt "$v2_patch" ]; then
-        _result=1 # False
-    else
-        _result=0 # True - default result
-    fi
-
-    unset version1
-    unset version2
-    unset v1_major v1_minor v1_patch
-    unset v2_major v2_minor v2_patch
-    # msg_3 "is_first_vers_str_larger() - done"
-    return "$_result"
-}
-
-ios_matching() {
-    #
-    #  Returns 0 - true if
-    #  compare_vers is same or lower than os_version
-    #
-    # msg_2 "ios_matching(()"
-    compare_vers="$1"
-    [ -z "$compare_vers" ] && error_msg "ios_matching() needs a param"
-
-    os_version="$(host_ios_version)"
-    #
-    #  if os_version is not supported by the device this check will allways
-    #  fail, since we cant gurantee a min version
-    #  If you check for a min version, but the default is to do it if
-    #  vers info is not available add an [ -n "$(host_ios_version)" ] condition
-    #
-    if [ -n "$os_version" ] && is_first_vers_str_larger "$os_version" "$compare_vers"; then
-        _result=0 # True
-    else
-        _result=1 # False
-    fi
-    unset compare_vers
-    unset os_version
-    # msg_4 "ios_matching(() - done"
-    return "$_result"
-}
-
-# <
-# host_os
-# host_ios_version
-
-# f_host_os_info=/proc/ish/version
-# if [ -f "f_host_os_info" ]; then
-#     # bla bla is for code i didnt
-#     # have time to enter yet
-#     host_device="bla bla iPadOS"
-#     host_vers="bla bla 16.6"
-# else
-#     host_device="Unknown"
-#     host_vers="0.0"
-# fi
-
 #===============================================================
 #
 #   Main
@@ -751,9 +641,6 @@ f_host_deploy_state="${aok_content_etc}/deploy_state"
 
 if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
     d_build_root="$TMPDIR/aok_fs"
-#    msg_3 "><>===  This is run by Build host"
-#else
-#    msg_3 "><>===  This runs inside dest FS"
 fi
 
 f_dest_fs_is_chrooted="${d_build_root}${f_host_fs_is_chrooted}"
