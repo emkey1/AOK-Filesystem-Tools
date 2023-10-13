@@ -6,7 +6,7 @@
 #
 #  License: MIT
 #
-#  Workarround an iOS 17 issue that the builtin hostanme provided by
+#  workaround an iOS 17 issue that the builtin hostanme provided by
 #  the iSH app no longer works.
 #
 #  For more details see
@@ -31,11 +31,14 @@
 #
 #===============================================================
 
-#  This also updates /etc/hostname
-/opt/AOK/common_AOK/usr_local_bin/hostname --update
+alt_hostname=/usr/local/bin/hostname
 
+#  Only continue if alt hostname is available
+[ ! -x "$alt_hostname" ] && exit 0
+
+# skip extra displayal of hostname, but dont filter out errors
+"$alt_hostname" --update >/dev/null
 if grep -qi aok /proc/ish/version 2>/dev/null; then
-    rm -f /usr/local/bin/hostname
     #
     #  Set hostname the normal way, and from now on it can be used
     #  without special considerations

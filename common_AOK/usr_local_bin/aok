@@ -20,7 +20,8 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)"
+-l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
+-H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)"
     exit 0
 }
 
@@ -148,12 +149,63 @@ display_login_method() {
 
     change_login_procedure "$mthd"
 }
+change_hostname_method() {
+    requested_method="$1"
+
+    case "$requested_method" in
+
+    "enable")
+        echo "Enabling hostname from syncfile."
+        cp /opt/AOK/common_AOK/custom_hostname/hostname "$alt_hostname"
+        if [ ! -f /etc/opt/hostname_sync_fname ]; then
+            echo "If you are using Shortcuts to provide hostname, plz give your"
+            echo "hostname sync file, so it can be used during bootup."
+            echo "Press <Enter> without a file name, if you are fine with using '/etc/hostname'"
+            read -r hn_syncfile
+            [ -z "$hn_syncfile" ] && hn_syncfile="/etc/hostname"
+            if "$alt_hostname" --syncfile "$hn_syncfile"; then
+                echo "Intented hostname should have been displayed above"
+                /usr/local/sbin/hostname_sync.sh
+            else
+                echo "It seems there was some issue using that syncfile. Please run"
+                echo "$alt_hostname -h for instructions"
+            fi
+        fi
+        exit 0
+        ;;
+
+    "disable")
+        echo "Reverting to native hostname prog."
+        rm -f "$alt_hostname"
+        exit 0
+        ;;
+
+    *)
+        echo
+        echo "ERROR: Bad param to change_hostname_method: $1"
+        exit 1
+        ;;
+
+    esac
+}
+
+display_hostname_method() {
+    if [ -f "$alt_hostname" ]; then
+        echo "Enabled"
+    else
+        echo "Disabled"
+    fi
+}
 
 #===============================================================
 #
 #   Main
 #
 #===============================================================
+
+. /opt/AOK/tools/utils.sh
+
+alt_hostname=/usr/local/bin/hostname
 
 #
 #  Store login method, so that if /bin/login was updated
@@ -213,6 +265,15 @@ while true; do
         else
             printf "Current login method: "
             display_login_method
+        fi
+        ;;
+
+    "-H" | "--hostname")
+        if [ -n "$2" ]; then
+            change_hostname_method "$2"
+        else
+            printf "Current login method: "
+            display_hostname_method
         fi
         ;;
 

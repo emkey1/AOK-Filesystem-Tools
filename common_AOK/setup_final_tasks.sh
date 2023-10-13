@@ -120,8 +120,7 @@ start_cron_if_active() {
     [ "$USE_CRON_SERVICE" != "Y" ] && return
 
     if this_fs_is_chrooted || ! this_is_ish; then
-        msg_3 "Cant attempt to start cron on a chrooted/non-iSH device"
-        return
+        error_msg "Cant attempt to start cron on a chrooted/non-iSH device"
     fi
 
     cron_service="/etc/init.d"
@@ -167,32 +166,41 @@ deploy_state_clear() {
 
 hostname_fix() {
     #
-    #  Workarrounds for iOS 17 no longer supporting hostname detection
-    #  in iSH
+    #  workarounds for iOS 17 no longer supporting hostname detection
+    #  in iSH, if ios version cant be detected, default to
+    #  USE_SYNC_FILE_HOSTNAME
+    #  should be Y if default is to use the feature
     #
-    [ -n "$(host_ios_version)" ] && ! ios_matching "17.0" && return
+    case "$(ios_matching 17.0 $USE_SYNC_FILE_HOSTNAME)" in
 
-    if [ -n "$HOSTNAME_SYNC_FILE" ]; then
-        sync_dir "$HOSTNAME_SYNC_FILE"
-        hn_syncfile="$HOSTNAME_SYNC_FILE"
-    else
-        echo "If you are using Shortcuts to provide hostname, plz give your"
-        echo "hostname sync file, so it can be used during bootup."
-        echo "Press <Enter> without a file name, if you are fine with using 'localhost'"
-        read -r hn_syncfile
-        [ -z "$hn_syncfile" ] && hn_syncfile="/etc/hostname"
+    "Yes" | "Y" | "y")
+        msg_3 "Will assume this runs on iOS >= 17, hostname workaround will be used"
+        ;;
+
+    *)
+        msg_3 "Will assume this runs on iOS < 17, so hostname can be set by the app"
+        return
+        ;;
+
+    esac
+
+    if [ -f "$HOSTNAME_SYNC_FILE" ]; then
+        echo "$HOSTNAME_SYNC_FILE" >/etc/opt/hostname_sync_fname
     fi
+    /usr/local/bin/aok -H enable
 
-    if [ -n "$hn_syncfile" ]; then
-        msg_3 "Setting hostname synfile to: $hn_syncfile"
-        if /opt/AOK/common_AOK/usr_local_bin/hostname -S "$hn_syncfile"; then
-            msg_3 "Intented hostname should have been displayed above"
-            /usr/local/sbin/hostname_sync.sh
+    #
+    #  Hostname should be set now
+    #
+    msg_3 "custom hostname $(/usr/local/bin/hostname)"
+    regular_hostname="$(/bin/hostname)"
+    msg_3 "regular hostname: [$regular_hostname]"
+    cat /etc/hostname
+    msg_3 "above is /etc/hostname content"
 
-        else
-            echo "It seems there was some issue using that syncfile. Please run"
-            echo "/opt/AOK/common_AOK/usr_local_bin/hostname -h for instructions"
-        fi
+    if this_is_aok_kernel; then
+        [ "$regular_hostname" = "localhost" ] && error_msg "ABORT should not be localhost on iSH-AOK"
+        msg_3 "verifying ish-aok /bin/hostname doesnt report localhost"
     fi
 }
 
@@ -208,6 +216,7 @@ tsaft_start="$(date +%s)"
 export PATH="/usr/local/bin:$PATH"
 
 . /opt/AOK/tools/utils.sh
+. /opt/AOK/tools/vers_checks.sh
 . /opt/AOK/tools/user_interactions.sh
 
 #
@@ -247,7 +256,10 @@ user_interactions
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-"$aok_content"/common_AOK/aok_hostname/set_aok_hostname.sh || exit 99
+"$aok_content"/common_AOK/custom_hostname/set_aok_hostname.sh || {
+    echo "ERROR: set_aok_hostname.sh failed"
+    return
+}
 
 set_initial_login_mode
 
@@ -269,9 +281,13 @@ set_new_etc_profile "$next_etc_profile"
 #
 #  Handling custom files
 #
-"$aok_content"/common_AOK/custom/custom_files.sh || exit 99
+"$aok_content"/common_AOK/custom/custom_files.sh || {
+    error_msg "ERROR: common_AOK/custom/custom_files.sh failed"
+}
 
-/usr/local/sbin/ensure_hostname_in_host_file.sh || exit 99
+/usr/local/sbin/ensure_hostname_in_host_file.sh || {
+    error_msg "ERROR: /usr/local/sbin/ensure_hostname_in_host_file.sh failed!"
+}
 
 replace_home_dirs
 
@@ -283,8 +299,7 @@ display_time_elapsed "$duration" "Setup Final tasks"
 deploy_state_clear
 
 msg_1 "This system has completed the last deploy steps and is ready!"
-echo "You are recomended to reboot in order to ensure all services"
-echo "will start correctly."
+echo "You are recomended to reboot in order to ensure that your environment is used."
 echo
 
 cd || error_msg "Failed to cd home"
