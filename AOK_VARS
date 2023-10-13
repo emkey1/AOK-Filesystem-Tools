@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.10.2"
+AOK_VERSION="0.10.25"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -31,7 +31,8 @@ AOK_VERSION="0.10.2"
 USER_NAME="ish"
 
 #
-# Shell for account USER_NAME (if defined)
+# Shell for account USER_NAME (if defined) if  USER_NAME is defined
+# root will also use this shell by default, to make switching used simpler
 #
 USER_SHELL="/bin/bash"
 
@@ -67,23 +68,17 @@ INITIAL_LOGIN_MODE="enable"
 # HOME_DIR_ROOT="/iCloud/ish_config/home_root.tgz"
 
 #
-#  Since iOS 17 iSH is no longer able to provide hostname.
-#  One way to work arround this I have described in
-#  https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/Docs/hostname-shortcut.md
-#  For this to work smooth you need to provide the intended syncfile
-#
-# HOSTNAME_SYNC_FILE="/mnt/iCloud/hostname-by-shortcut.txt"
-
-#
 #  If you run both iSH-AOK and regular iSH on the same device
 #  this setting modifies the hostname for aok kernels to have -aok suffix
 #  So my iPad JacPad would be calling itself JacPad-aok if you check
 #  `hostname` on iSH-AOK and JacPad if you check on regular iSH
+#  This is not influenced by the iOS >= 17 hostname issue, and works the
+#  same for any version of iOS
 #
 # AOK_HOSTNAME_SUFFIX="Y"
 
 #
-#  If you want to manuallyadd something to the new FS, before deploy
+#  If you want to manually add something to the new FS, before deploy
 #  begins. Remember that from the outside, the new FS is located at
 #  $TMPDIR/aok_fs, if TMPDIR is undefined it defaults to /tmp
 #  I use this when I want to simulate a mounted /iCloud env like what I
@@ -113,7 +108,49 @@ INITIAL_LOGIN_MODE="enable"
 #  an idea of how far things progressed before something broke.
 #  The path defines will be inside the new FS
 #
+#  OBSOLETE, no longer needed since deploy steps are wrapped inside
+#  an outes shell - will be removed very soon!
 # LOG_FILE=/var/log/aokfs-build.log
+
+########################################################################
+#
+#                   hostname workaround
+#
+########################################################################
+
+#
+#  Since iOS 17 iSH is no longer able to provide hostname at startup.
+#  One way to work arround this I have described in
+#  https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/Docs/hostname-shortcut.md
+#
+#  The next two settings intends to help with this
+#
+
+#
+#  If this is set to "Y" it is assumed that the running iOS can not provide
+#  hostname info as iSH is started, so a workaround using a syncfile that
+#  is updated when iSH starts with the current hostname will be read
+#  instead.
+#  If not specified, the default is "N" ie assume hostname is set by the app,
+#  failing that hostname inside iSH will be 'localhost'
+#
+#  iSH-AOK starting wth release 500 can detect iOS version it runs under,
+#  so for recent iSH-AOK this setting is ignored.
+#
+#  For all other iSH instances this decides if the workaround hostname
+#  should be used or not initially.
+#
+#  At any post-install time this can be changed by running
+#    /usr/local/bin/aok
+#  in order to enable/disable this workaround
+#
+USE_SYNC_FILE_HOSTNAME="Y"
+
+#
+#  Declare what syncfile is to be used. If not provided you will be
+#  prompted to provide one if and when syncfile is first activated
+#
+# HOSTNAME_SYNC_FILE="/mnt/iCloud/hostname-by-shortcut.txt"
 
 ########################################################################
 #
