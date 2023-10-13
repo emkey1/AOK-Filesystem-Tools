@@ -171,7 +171,7 @@ hostname_fix() {
     #  USE_SYNC_FILE_HOSTNAME
     #  should be Y if default is to use the feature
     #
-    case "$(ios_matching 17.0 $USE_SYNC_FILE_HOSTNAME)" in
+    case "$(ios_matching 17.0 "$USE_SYNC_FILE_HOSTNAME")" in
 
     "Yes" | "Y" | "y")
         msg_3 "Will assume this runs on iOS >= 17, hostname workaround will be used"
@@ -184,6 +184,7 @@ hostname_fix() {
 
     esac
 
+    #  shellcheck disable=SC2154
     if [ -f "$HOSTNAME_SYNC_FILE" ]; then
         echo "$HOSTNAME_SYNC_FILE" >/etc/opt/hostname_sync_fname
     fi

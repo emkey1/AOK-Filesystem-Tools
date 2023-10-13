@@ -25,6 +25,7 @@ Available options:
     exit 0
 }
 
+#  shellcheck disable=SC2317
 destfs_is_alpine() {
     test -f /etc/alpine-release
 }

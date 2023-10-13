@@ -24,6 +24,7 @@
 
 uidevice_handling_prepare() {
     msg_2 "uidevice_handling_prepare()"
+    #  shellcheck disable=SC2154
     if [ ! -f "$d_build_root/proc/ish/UIDevice" ]; then
         f_UIDevice="$d_build_root"/etc/opt/fake_UIDevice
         echo "Model: iPad" >"$f_UIDevice"
