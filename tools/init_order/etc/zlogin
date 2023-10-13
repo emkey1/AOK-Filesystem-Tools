@@ -1,1 +1,1 @@
-echo "--- G  /etc/zlogin [$0] [$1]"
+echo "--- G  /etc/zlogin [$$] [$0] [$1]"

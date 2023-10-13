@@ -1,5 +1,5 @@
 
-echo "--- E! /etc/zsh/zshrc (no login: C2) [$0] [$1]"
+echo "--- E! /etc/zsh/zshrc (no login: C2) [$$] [$0] [$1]"
 echo "       ZDOTDIR [$ZDOTDIR]"
 
 # If ZSH startup files exist both in $HOME and XDG-based config directory,

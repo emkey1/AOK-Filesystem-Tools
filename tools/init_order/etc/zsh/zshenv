@@ -1,7 +1,7 @@
 
 ENV="$HOME/.env_init"; export ENV
 
-echo "--- A!  /etc/zsh/zshenv [$0] [$1]"
+echo "--- A!  /etc/zsh/zshenv [$$] [$0] [$1]"
 echo "       testing with ENV [$ENV]"
 echo "       ZDOTDIR [$ZDOTDIR]"
 

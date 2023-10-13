@@ -60,6 +60,7 @@ deploy_2_home_dir() {
     # echo "Would do deploy_2_home_dir -> $home_dir" ; return
 
     copy_doing_backup home_dir/.ash_init "$home_dir"/.ash_init
+    copy_doing_backup home_dir/.ashrc "$home_dir"/.ashrc
     copy_doing_backup home_dir/.bash_login "$home_dir"/.bash_login
     copy_doing_backup home_dir/.bash_logout "$home_dir"/.bash_logout
     copy_doing_backup home_dir/.bash_profile "$home_dir"/.bash_profile

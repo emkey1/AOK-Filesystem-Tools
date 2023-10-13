@@ -1,1 +1,1 @@
-echo "--- C  /etc/zprofile [$0] [$1]"
+echo "--- C  /etc/zprofile [$$] [$0] [$1]"

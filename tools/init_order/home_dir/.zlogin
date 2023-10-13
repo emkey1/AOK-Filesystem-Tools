@@ -1,1 +1,1 @@
-echo "--- H  ~/.zlogin [$0] [$1]"
+echo "--- H  ~/.zlogin [$$] [$0] [$1]"

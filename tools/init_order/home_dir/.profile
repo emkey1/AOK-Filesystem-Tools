@@ -7,7 +7,7 @@ case $- in
 
 esac
 
-echo "--- ~/.profile [$0] [$1]"
+echo "--- ~/.profile [$$] [$0] [$1]"
 
 case "$0" in
 
