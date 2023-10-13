@@ -215,9 +215,6 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 tsaft_start="$(date +%s)"
 
-#  Ensure usr local bin is first in path, so our custom stuff is picked up
-export PATH="/usr/local/bin:$PATH"
-
 . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/vers_checks.sh
 . /opt/AOK/tools/user_interactions.sh

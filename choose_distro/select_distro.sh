@@ -69,6 +69,12 @@ Select distro:
 #
 #===============================================================
 
+#
+#  Mostly needed in case nav_keys.sh or some other config task
+#  would be run before the first re-boot
+#
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
+
 tcd_start="$(date +%s)"
 
 #
@@ -93,9 +99,3 @@ select_distro
 
 duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
-
-#
-#  Mostly needed in case nav_keys.sh or some other config task
-#  would be run before the first re-boot
-#
-export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
