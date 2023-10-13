@@ -23,7 +23,6 @@ if hostname | grep -q '\-aok'; then
     exit 0
 fi
 
-new_hostname="$(hostname)-aok"
 hostname_service="/etc/init.d/hostname"
 
 msg_2 "Using service to set hostname with -aok suffix"
@@ -38,17 +37,5 @@ msg_3 "hostname service will announce new hostname using: wall -n"
 chmod 755 "$hostname_service"
 rc-update add hostname default
 rc-service hostname start
-
-# msg_2 "Manually setting hostname, so that it is valid during rest of deploy"
-# echo "$new_hostname" >/etc/hostname
-
-# alt_hostname=/usr/local/bin/hostname
-# hostname_cached=/etc/opt/hostname_cached
-
-# #  if workaround hostname is used, update it to use new hostname
-# [ -x "$alt_hostname" ] && echo "$new_hostname" >"$hostname_cached"
-
-# # updated regular hostname, no check needed this will only run on ish-aok
-# /bin/hostname -F /etc/hostname
 
 msg_3 "Hostname is now: $(hostname)"
