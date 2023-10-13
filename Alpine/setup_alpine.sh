@@ -15,7 +15,7 @@
 find_fastest_mirror() {
     msg_1 "Find fastest mirror"
     apk add alpine-conf || {
-	error_msg "apk add alpine-conf failed"
+        error_msg "apk add alpine-conf failed"
     }
     setup-apkrepos -f
 }
@@ -27,8 +27,8 @@ install_apks() {
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
         apk add $CORE_APKS || {
-	    error_msg "apk add CORE_APKS failed"
-	}
+            error_msg "apk add CORE_APKS failed"
+        }
     else
         msg_1 "No CORE_APKS defined"
     fi
@@ -42,10 +42,10 @@ install_apks() {
     msg_2 "Custom apks"
     if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1; then
         msg_3 "mtr - a full screen traceroute"
-	#  shellcheck disable=SC2015
+        #  shellcheck disable=SC2015
         apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk || {
-	    error_msg "apk add mtr failed"
-	}
+            error_msg "apk add mtr failed"
+        }
     fi
 }
 
@@ -238,7 +238,7 @@ display_time_elapsed "$duration" "Setup Debian"
 
 if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"
-    exit
+    exit 123
 else
     msg_1 "Please reboot/restart this app now!"
     echo "/etc/inittab was changed during the install."
