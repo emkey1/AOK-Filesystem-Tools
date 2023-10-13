@@ -1,7 +1,7 @@
 
 ENV="$HOME/.env_init"; export ENV
 
-echo "><> A  /etc/zshenv [$0] [$1]"
+echo "--- A  /etc/zshenv [$0] [$1]"
 echo "       testing with ENV [$ENV]"
 echo "       ZDOTDIR [$ZDOTDIR]"
 
@@ -17,4 +17,3 @@ if [[ -z "${ZDOTDIR-}" ]] && _x=("$HOME"/.z{shenv,profile,shrc,login}(N)) && (( 
 fi
 
 unset _x
-

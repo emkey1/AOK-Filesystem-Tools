@@ -1,2 +1,1 @@
-
-echo "><> B  ~/.zshenv [$0] [$1]"
+echo "--- B  ~/.zshenv [$0] [$1]"

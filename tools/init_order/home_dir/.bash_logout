@@ -1,2 +1,1 @@
-
-echo "><> C  ~/.bash_logout [$0] [$1]"
+echo "--- C  ~/.bash_logout [$0] [$1]"

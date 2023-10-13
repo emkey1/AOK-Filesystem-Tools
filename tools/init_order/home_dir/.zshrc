@@ -1,2 +1,1 @@
-
-echo "><> F  ~/.zshrc (no login: D) [$0] [$1] "
+echo "--- F  ~/.zshrc (no login: D) [$0] [$1] "

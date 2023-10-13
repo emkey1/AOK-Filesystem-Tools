@@ -1,3 +1,1 @@
-
-echo "><> J! /etc/zsh/zlogout [$0] [$1]"
-
+echo "--- J! /etc/zsh/zlogout [$0] [$1]"

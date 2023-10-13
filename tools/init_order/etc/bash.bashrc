@@ -1,3 +1,1 @@
-
-echo "><> A  /etc/bash.bashrc [$0] [$1]"
-
+echo "--- A  /etc/bash.bashrc [$0] [$1]"

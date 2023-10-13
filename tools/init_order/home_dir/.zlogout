@@ -1,2 +1,1 @@
-
-echo "><> J  ~/.zlogout [$0] [$1]"
+echo "--- J  ~/.zlogout [$0] [$1]"

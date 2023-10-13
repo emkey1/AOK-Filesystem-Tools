@@ -1,5 +1,5 @@
 
-echo "><> E  /etc/zshrc (no login: C) [$0] [$1]"
+echo "--- E  /etc/zshrc (no login: C) [$0] [$1]"
 echo "       ZDOTDIR [$ZDOTDIR]"
 
 # If ZSH startup files exist both in $HOME and XDG-based config directory,
@@ -15,4 +15,3 @@ if [[ -z "${ZDOTDIR-}" && -o login ]]; then
         fi
         unset _xdgdir _xdgrcs _homercs
 fi
-

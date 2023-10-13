@@ -1,2 +1,1 @@
-
-echo "><> B  ~/.bashrc [$0] [$1]"
+echo "--- B  ~/.bashrc [$0] [$1]"

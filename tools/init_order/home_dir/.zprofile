@@ -1,2 +1,1 @@
-
-echo "><> D  ~/.zprofile [$0] [$1]"
+echo "--- D  ~/.zprofile [$0] [$1]"
