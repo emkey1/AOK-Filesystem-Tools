@@ -529,9 +529,16 @@ msg_2 "Create directory /iCloud inside new filesystem"
 mkdir -p "$d_build_root"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
-    msg_1 "POPULATE_FS: $POPULATE_FS"
-    /bin/sh -c "$POPULATE_FS" || {
-        error_msg "POPULATE_FS [$POPULATE_FS] returned error"
+    #
+    #  So far unofficial hack, if you put D_BUILD_ROOT in POPULATE_FS
+    #  it will be replaced with actual build_root during creation of
+    #  FS, most likely will never be used by anyone but me during chroot
+    #  test deploys
+    #
+    pop_fs="$(echo "$POPULATE_FS" | sed "s#D_BUILD_ROOT#$d_build_root#g")"
+    msg_1 "POPULATE_FS: $pop_fs"
+    /bin/sh -c "$pop_fs" || {
+        error_msg "POPULATE_FS [$pop_fs] returned error"
     }
 fi
 
