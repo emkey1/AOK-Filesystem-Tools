@@ -18,7 +18,7 @@ copy_skel_files() {
         error_msg "copy_skel_files($csf_dest) - not indicating a directory"
     fi
 
-    cp -r "$aok_content"/common_AOK/etc/skel/. "$csf_dest"
+    cp -r /etc/skel/. "$csf_dest"
 
     #
     #  Ensure all files are owned by owner of this after skel copy
