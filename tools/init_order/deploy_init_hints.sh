@@ -4,37 +4,35 @@ copy_doing_backup() {
     f_src="$1"
     f_dst="$2"
 
-    #echo "><> copy_doing_backup($f_src, $f_dst)"
-
     if [ -z "$f_src" ]; then
-	echo "ERROR: copy_doing_backup() - No src param!"
-	exit 1
+        echo "ERROR: copy_doing_backup() - No src param!"
+        exit 1
     fi
     if [ -z "$f_dst" ]; then
-	echo "ERROR: copy_doing_backup() - No dest param!"
-	exit 1
+        echo "ERROR: copy_doing_backup() - No dest param!"
+        exit 1
     fi
 
     if [ ! -f "$f_src" ]; then
-	echo "ERROR: copy_doing_backup() - src not found: $f_src"
-	exit 1
+        echo "ERROR: copy_doing_backup() - src not found: $f_src"
+        exit 1
     fi
 
     echo "Copying $f_src -> $f_dst"
     if [ -f "$f_dst" ]; then
-	f_bu="$f_dst".old
-	echo "  Creating backup: $f_bu"
-	mv "$f_dst" "$f_bu" || {
-	    echo "ERROR: Failed to create BU: $f_dst - $f_bu"
-	    echo "       Need sudo?"
-	    exit 1
-	}
+        f_bu="$f_dst".old
+        echo "  Creating backup: $f_bu"
+        mv "$f_dst" "$f_bu" || {
+            echo "ERROR: Failed to create BU: $f_dst - $f_bu"
+            echo "       Need sudo?"
+            exit 1
+        }
     fi
 
     cp "$f_src" "$f_dst" || {
-	echo "ERROR: Failed to copy $f_src - $f_dst"
-	echo "       Need sudo?"
-	exit 1
+        echo "ERROR: Failed to copy $f_src - $f_dst"
+        echo "       Need sudo?"
+        exit 1
     }
 }
 
@@ -42,38 +40,38 @@ deploy_2_etc() {
     # echo "Would do deploy_2_etc -> $mount_point/etc" ; return
 
     mkdir -p "$mount_point/etc/bash"
-    copy_doing_backup etc/bash/bashrc  "$mount_point"/etc/bash/bashrc
+    copy_doing_backup etc/bash/bashrc "$mount_point"/etc/bash/bashrc
 
     mkdir -p "$mount_point/etc/zsh"
-    copy_doing_backup etc/zsh/zlogin   "$mount_point"/etc/zsh/zlogin
-    copy_doing_backup etc/zsh/zlogout  "$mount_point"/etc/zsh/zlogout
+    copy_doing_backup etc/zsh/zlogin "$mount_point"/etc/zsh/zlogin
+    copy_doing_backup etc/zsh/zlogout "$mount_point"/etc/zsh/zlogout
     copy_doing_backup etc/zsh/zprofile "$mount_point"/etc/zsh/zprofile
-    copy_doing_backup etc/zsh/zshenv   "$mount_point"/etc/zsh/zshenv
-    copy_doing_backup etc/zsh/zshrc    "$mount_point"/etc/zsh/zshrc
+    copy_doing_backup etc/zsh/zshenv "$mount_point"/etc/zsh/zshenv
+    copy_doing_backup etc/zsh/zshrc "$mount_point"/etc/zsh/zshrc
 
-    copy_doing_backup etc/bash.bashrc  "$mount_point"/etc/bash.bashrc
-    copy_doing_backup etc/profile      "$mount_point"/etc/profile
-    copy_doing_backup etc/zprofile     "$mount_point"/etc/zprofile
-    copy_doing_backup etc/zshenv       "$mount_point"/etc/zshenv
-    copy_doing_backup etc/zshrc        "$mount_point"/etc/zshrc
+    copy_doing_backup etc/bash.bashrc "$mount_point"/etc/bash.bashrc
+    copy_doing_backup etc/profile "$mount_point"/etc/profile
+    copy_doing_backup etc/zprofile "$mount_point"/etc/zprofile
+    copy_doing_backup etc/zshenv "$mount_point"/etc/zshenv
+    copy_doing_backup etc/zshrc "$mount_point"/etc/zshrc
 }
 
 deploy_2_home_dir() {
     # echo "Would do deploy_2_home_dir -> $home_dir" ; return
 
-    copy_doing_backup home_dir/.ash_init     "$home_dir"/.ash_init
-    copy_doing_backup home_dir/.bash_login   "$home_dir"/.bash_login
-    copy_doing_backup home_dir/.bash_logout  "$home_dir"/.bash_logout
+    copy_doing_backup home_dir/.ash_init "$home_dir"/.ash_init
+    copy_doing_backup home_dir/.bash_login "$home_dir"/.bash_login
+    copy_doing_backup home_dir/.bash_logout "$home_dir"/.bash_logout
     copy_doing_backup home_dir/.bash_profile "$home_dir"/.bash_profile
-    copy_doing_backup home_dir/.bashrc       "$home_dir"/.bashrc
-    copy_doing_backup home_dir/.env_init     "$home_dir"/.env_init
-    copy_doing_backup home_dir/.profile      "$home_dir"/.profile
-    copy_doing_backup home_dir/.shinit       "$home_dir"/.shinit
-    copy_doing_backup home_dir/.zlogin       "$home_dir"/.zlogin
-    copy_doing_backup home_dir/.zlogout      "$home_dir"/.zlogout
-    copy_doing_backup home_dir/.zprofile     "$home_dir"/.zprofile
-    copy_doing_backup home_dir/.zshenv       "$home_dir"/.zshenv
-    copy_doing_backup home_dir/.zshrc        "$home_dir"/.zshrc
+    copy_doing_backup home_dir/.bashrc "$home_dir"/.bashrc
+    copy_doing_backup home_dir/.env_init "$home_dir"/.env_init
+    copy_doing_backup home_dir/.profile "$home_dir"/.profile
+    copy_doing_backup home_dir/.shinit "$home_dir"/.shinit
+    copy_doing_backup home_dir/.zlogin "$home_dir"/.zlogin
+    copy_doing_backup home_dir/.zlogout "$home_dir"/.zlogout
+    copy_doing_backup home_dir/.zprofile "$home_dir"/.zprofile
+    copy_doing_backup home_dir/.zshenv "$home_dir"/.zshenv
+    copy_doing_backup home_dir/.zshrc "$home_dir"/.zshrc
 }
 
 #===============================================================
