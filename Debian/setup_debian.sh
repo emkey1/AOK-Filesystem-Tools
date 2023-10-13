@@ -134,7 +134,7 @@ initiate_deploy Debian "$(cat /etc/debian_version)"
 prepare_env_etc
 
 msg_1 "apt upgrade"
-apt upgrade -y  || {
+apt upgrade -y || {
     error_msg "apt upgrade failed"
 }
 
@@ -158,7 +158,7 @@ if [ -n "$DEB_PKGS_SKIP" ]; then
     #
     #  shellcheck disable=SC2086
     apt purge -y $DEB_PKGS_SKIP || {
-	error_msg "apt remove failed"
+        error_msg "apt remove failed"
     }
 
 fi
@@ -169,7 +169,7 @@ if [ -n "$DEB_PKGS" ]; then
     echo
     #  shellcheck disable=SC2086
     apt install -y $DEB_PKGS || {
-	error_msg "apt install failed"
+        error_msg "apt install failed"
     }
 fi
 echo
@@ -203,5 +203,10 @@ display_time_elapsed "$duration" "Setup Debian"
 
 if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"
-    exit
+    exit 123
+else
+    msg_1 "Please reboot/restart this app now!"
+    echo "/etc/inittab was changed during the install."
+    echo "In order for this new version to be used, a restart is needed."
+    echo
 fi
