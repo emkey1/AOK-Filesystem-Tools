@@ -2,6 +2,8 @@
 
 I will try to keep track of changes between releases here
 
+- Now hostname workaround can be enabled/disabled by running /usr/local/bin/aok
+- wrap deploy script in outer scr to prevent errors from aborting
 - Skips new hostname procedure if version is detected to be < 17
 - New Debian src-img: Debian10-7-aok-1.tgz
 
@@ -26,7 +28,7 @@ I will try to keep track of changes between releases here
 
 ## release 0.9.10
 
-- Added iOS 17 hostname workarrounds, added HOSTNAME_SYNC_FILE config
+- Added iOS 17 hostname workarounds, added HOSTNAME_SYNC_FILE config
 - Added getty's to Alpine & Debian inittab, commented out by default
 - reintroduced some skel files unintentionally deleted - .tmux.conf & .vimrc
 - shutdown now mentions which host is being shutdown
