@@ -300,28 +300,8 @@ copy_AOK_to_dest() {
 
     chown -R root: "$aok_files"
 
-    # msg_2 "starting iOS vers checks"
-    # dummy_vers_check "12.2"
-    # dummy_vers_check "16.6"
-    # # dummy_vers_check "16.6.0"
-    # dummy_vers_check "16.6.1"
-    # dummy_vers_check "16.7"
-    # dummy_vers_check "16.8"
-    # dummy_vers_check "17"
-    # dummy_vers_check "17.0.1"
-    # error_msg "ABORT after testing vers checks"
-    msg_3 "copy_AOK_to_dest() done"
+    # msg_3 "copy_AOK_to_dest() done"
 }
-
-# dummy_vers_check() {
-#     _dvc_vers="$1"
-#     if ios_matching "$_dvc_vers"; then
-#         msg_3 "$_dvc_vers ok"
-#     else
-#         msg_3 "$_dvc_vers NOT"
-#     fi
-
-# }
 
 setup_Alpine_on_1st_boot() {
     msg_2 "setup_Alpine_on_1st_boot()"
@@ -479,7 +459,7 @@ hide_run_as_root=1 . "$AOK_DIR"/tools/run_as_root.sh
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
-. "$AOK_DIR"/Debian/deb_utils.sh
+# . "$AOK_DIR"/Debian/deb_utils.sh
 
 t_start="$(date +%s)"
 
