@@ -119,7 +119,7 @@ capture_keypress() {
 
 select_esc_key() {
     text="
-This is a workarround to map Escape + arrows to the nav keys.
+This is a workaround to map Escape + arrows to the nav keys.
 Be aware that the drawback of using this is that in order to generate Escape
 inside tmux, you need to hit Esc twice.
 If this outweighs the benefit of having the additional navigation keys
@@ -137,10 +137,10 @@ For such keyboards, this will also enable the intended key to generate Escape
 in the first place inside tmux.
 "
     if [[ -n "$1" ]]; then
-	sequence="$1"
+        sequence="$1"
     else
-	echo "$text"
-	capture_keypress
+        echo "$text"
+        capture_keypress
     fi
     tmux_esc_prefix "$sequence"
 }
@@ -158,10 +158,10 @@ Select modifier:
 
 "
     if [[ -n "$1" ]]; then
-	selection="$1"
+        selection="$1"
     else
-	echo "$text"
-	read -r selection
+        echo "$text"
+        read -r selection
     fi
 
     case "$selection" in
