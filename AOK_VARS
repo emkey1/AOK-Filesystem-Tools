@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.10.32"
+AOK_VERSION="0.10.33"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -72,8 +72,8 @@ INITIAL_LOGIN_MODE="enable"
 #  this setting modifies the hostname for aok kernels to have -aok suffix
 #  So my iPad JacPad would be calling itself JacPad-aok if you check
 #  `hostname` on iSH-AOK and JacPad if you check on regular iSH
-#  This is not influenced by the iOS >= 17 hostname issue, and works the
-#  same for any version of iOS
+#  This feature is not really meaningful for iOS >= 17,
+#  since hostname is no longer provided by iOS
 #
 # AOK_HOSTNAME_SUFFIX="Y"
 
@@ -109,7 +109,9 @@ INITIAL_LOGIN_MODE="enable"
 #  The path defines will be inside the new FS
 #
 #  OBSOLETE, no longer needed since deploy steps are wrapped inside
-#  an outes shell - will be removed very soon!
+#  an outes shell, and will no longer crash the deploy
+#  code related to this will be removed very soon!
+#
 # LOG_FILE=/var/log/aokfs-build.log
 
 ########################################################################

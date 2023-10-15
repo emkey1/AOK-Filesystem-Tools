@@ -2,9 +2,10 @@
 
 I will try to keep track of changes between releases here
 
+- ash & bash different prompts
 - Dropped the hostname sync aproach. Now just displaying /etc/hostname
 - moved alt_hostname and now is defined in tools/utils.sh
--  Removed USE_SYNC_FILE_HOSTNAME, now autodetects iOS 17 by checking if /bin/hostname returns localhost
+- Removed USE_SYNC_FILE_HOSTNAME, now autodetects iOS 17 by checking if /bin/hostname returns localhost
 - select_distro uses exit 123 for select_distro_prepare if chrooted
 - set_new_etc_profile - sets PATH if deploy script is aborted/completed
 - uses installed /etc/skel when creating accounts instead of copying from /opt/AOK
