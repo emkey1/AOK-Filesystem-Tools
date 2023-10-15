@@ -11,7 +11,13 @@
 #  Only relevant for aok kernels and if AOK_HOSTNAME_SUFFIX is "Y"
 #  shellcheck disable=SC2154
 if ! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ]; then
-    msg_2 "This env will not be setup for AOK_HOSTNAME_SUFFIX"
+    msg_2 "AOK_HOSTNAME_SUFFIX will be ignored since this is not iSH-AOK"
+    exit 0
+fi
+
+if [ -x "$alt_hostname" ]; then
+
+    msg_2 "alternate hostname is used, ignoring AOK_HOSTNAME_SUFFIX"
     exit 0
 fi
 
