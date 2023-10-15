@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- test imgs using TZ=UTC
 - ash & bash different prompts
 - Dropped the hostname sync aproach. Now just displaying /etc/hostname
 - moved alt_hostname and now is defined in tools/utils.sh
