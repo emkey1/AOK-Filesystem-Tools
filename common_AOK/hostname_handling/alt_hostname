@@ -10,7 +10,8 @@
 #
 
 show_help() { # Multi OK 1
-    echo "Usage: hostname [-h]
+    cat <<EOF
+Usage: hostname [-h]
 
 This alternate hostname just prints out what is in /etc/hosts
 all options except for help are ignored to ensure compatiblity.
@@ -31,8 +32,9 @@ Set your hostname like this (use sudo if not run as root):
 
 Available options:
 
--h  --help         Print this help and exit"
+-h  --help         Print this help and exit
 
+EOF
     exit 0
 }
 
