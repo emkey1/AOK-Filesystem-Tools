@@ -267,9 +267,6 @@ else
     msg_2 "USER_SHELL was undefined, set to the default: $USER_SHELL"
 fi
 
-# ><>
-echo "sune" >>"$d_build_root"/etc/hostname
-
 setup_environment
 setup_root_env
 create_user
