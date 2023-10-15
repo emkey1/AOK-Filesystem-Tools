@@ -30,7 +30,7 @@ msg_3 "This might fail during deploy if system wasnt booted with openrc"
 msg_3 "Will work normally on next boot."
 
 #  This will overwrite the generic hostname service
-cp /opt/AOK/common_AOK/custom_hostname/aok-hostname-service "$hostname_service"
+cp /opt/AOK/common_AOK/hostname_handling/aok-hostname-service "$hostname_service"
 
 msg_3 "hostname service will announce new hostname using: wall -n"
 

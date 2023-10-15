@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.10.29-5"
+AOK_VERSION="0.10.30"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -123,28 +123,6 @@ INITIAL_LOGIN_MODE="enable"
 #  One way to work arround this I have described in
 #  https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/Docs/hostname-shortcut.md
 #
-#  The next two settings intends to help with this
-#
-
-#
-#  If this is set to "Y" it is assumed that the running iOS can not provide
-#  hostname info as iSH is started, so a workaround using a syncfile that
-#  is updated when iSH starts with the current hostname will be read
-#  instead.
-#  If not specified, the default is "N" ie assume hostname is set by the app,
-#  failing that hostname inside iSH will be 'localhost'
-#
-#  iSH-AOK starting wth release 500 can detect iOS version it runs under,
-#  so for recent iSH-AOK this setting is ignored.
-#
-#  For all other iSH instances this decides if the workaround hostname
-#  should be used or not initially.
-#
-#  At any post-install time this can be changed by running
-#    /usr/local/bin/aok
-#  in order to enable/disable this workaround
-#
-USE_SYNC_FILE_HOSTNAME="Y"
 
 #
 #  Declare what syncfile is to be used. If not provided you will be

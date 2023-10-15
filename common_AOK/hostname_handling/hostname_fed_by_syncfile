@@ -40,11 +40,8 @@ Custom options for this hostname implementation:
     exit 0
 }
 
-get_hostname() {
-    if [ ! -f "$hostname_sync_fname" ]; then
-        echo "ERROR: no syncfile defined, run with -h to see help!"
-        exit 1
-    fi
+do_sync_hostname() {
+    msg_2 "do_sync_hostname(()"
 
     sync_file="$(cat "$hostname_sync_fname")"
     if [ ! -f "$sync_file" ]; then
@@ -62,7 +59,37 @@ get_hostname() {
     #  found.
     #
     cp "$hostname_cached" /etc/hostname
-    if grep -qi aok /proc/ish/version 2>/dev/null; then
+
+    #
+    #  Since only the last line is of interest normally, make sure the
+    #  sync_file doesnt grow to much, especially if multiple devices
+    #  write to the same file each time they start
+    #
+    if [ "$(wc -l <"$sync_file")" -gt 25 ]; then
+        # Truncate the file to the last 10 lines
+        tail -n 10 "$sync_file" >/tmp/sync_file
+        mv /tmp/sync_file "$sync_file"
+    fi
+
+    msg_3 "do_sync_hostname(() - done"
+}
+
+get_hostname() {
+    msg_2 "get_hostname(()"
+
+    if [ ! -f "$hostname_sync_fname" ]; then
+        echo "ERROR: no syncfile defined, run with -h to see help!"
+        exit 1
+    fi
+
+    #
+    #  If syncfile is /etc/hostname, then no syncing is needed, used
+    #  for manual setting of post iOS 17 hostname
+    #
+    [ "$hostname_sync_fname" != "/etc/hostname" ] && do_sync_hostname
+
+    if this_is_aok_kernel; then
+        msg_3 "is aok, attempting to do classic hostname set"
         #
         #  Set hostname the normal way, and from now on it can be used
         #  without special considerations
@@ -70,15 +97,7 @@ get_hostname() {
         /bin/hostname -F /etc/hostname
     fi
 
-    #
-    #  Since only the last line is of interest normally, make sure the
-    #  sync_file doesnt grow to much
-    #
-    if [ "$(wc -l <"$sync_file")" -gt 25 ]; then
-        # Truncate the file to the last 10 lines
-        tail -n 10 "$sync_file" >/tmp/sync_file
-        mv /tmp/sync_file "$sync_file"
-    fi
+    msg_3 "get_hostname(() - done"
 }
 
 #===============================================================

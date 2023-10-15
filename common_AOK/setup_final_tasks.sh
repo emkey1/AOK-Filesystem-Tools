@@ -167,11 +167,22 @@ deploy_state_clear() {
 hostname_fix() {
     #
     #  workarounds for iOS 17 no longer supporting hostname detection
-    #  in iSH, if ios version cant be detected, default to
-    #  USE_SYNC_FILE_HOSTNAME
-    #  should be Y if default is to use the feature
     #
-    case "$(ios_matching 17.0 "$USE_SYNC_FILE_HOSTNAME")" in
+
+    if this_is_aok_kernel; then
+        do_hostname_workaround="$(ios_matching 17.0)"
+    elif [ "$(/bin/hostname)" = "localhost" ]; then
+        #
+        #  If hostname is localhost, assume this runs on iOS >= 17
+        #  In the utterly rare case ths user has named his iOS device
+        #  localhost, this would be an incorrect assumption
+        #
+        do_hostname_workaround="Yes"
+    else
+        do_hostname_workaround="No"
+    fi
+
+    case "$do_hostname_workaround" in
 
     "Yes" | "Y" | "y")
         msg_3 "Will assume this runs on iOS >= 17, hostname workaround will be used"
@@ -193,7 +204,7 @@ hostname_fix() {
     #
     #  Hostname should be set now
     #
-    msg_3 "custom hostname $(/usr/local/bin/hostname)"
+    msg_3 "custom hostname $("$alt_hostname")"
     regular_hostname="$(/bin/hostname)"
     msg_3 "regular hostname: [$regular_hostname]"
     cat /etc/hostname
@@ -256,7 +267,7 @@ user_interactions
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-"$aok_content"/common_AOK/custom_hostname/set_aok_hostname.sh || {
+"$aok_content"/common_AOK/hostname_handling/set_aok_hostname.sh || {
     echo "ERROR: set_aok_hostname.sh failed"
     return
 }

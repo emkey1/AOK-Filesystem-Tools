@@ -237,7 +237,9 @@ set_new_etc_profile() {
             echo "#"
             echo "$sp_new_profile"
             echo 'ex_code="$?"'
+            #  shellcheck disable=SC2016
             echo '[ "$ex_code" = "123" ] && exit  # 123=prebuild done, exit without error' # use single quotes so $? isnt expanded here
+            #  shellcheck disable=SC2016
             echo 'if [ "$ex_code" -ne 0 ]; then'
 
             #
@@ -245,7 +247,8 @@ set_new_etc_profile() {
             #  do first part of line expanding variables, and second part
             #  not expanding them
             #
-            printf "    echo \"ERROR: $sp_new_profile exited with code: "
+            printf "    echo \"ERROR: %s exited with code: " "$sp_new_profile"
+            #  shellcheck disable=SC2016
             echo '$ex_code"'
             echo "fi"
             echo ""
@@ -766,3 +769,9 @@ destfs_select="select"
 destfs_select_hint="$d_build_root"/etc/opt/select_distro
 
 pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
+
+#
+#  Location for alternate hostname, should normally be in a path
+#  location before /bin/hostname is found
+#
+alt_hostname=/usr/local/bin/hostname
