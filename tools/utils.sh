@@ -229,7 +229,6 @@ set_new_etc_profile() {
         cp -a "$sp_new_profile" "$d_build_root"/etc/profile
     else
         (
-            echo "#!/bin/sh"
             echo "#"
             echo "#  Script that is part of deploy,  wrap it inside other script"
             echo "#  so that any error exits dont exit ish, just aborts deploy"
@@ -237,7 +236,25 @@ set_new_etc_profile() {
             echo "#  to exit out of the chroot"
             echo "#"
             echo "$sp_new_profile"
-            echo '[ "$?" = "123" ] && exit' # use single quotes so $? isnt expanded here
+            echo 'ex_code="$?"'
+            echo '[ "$ex_code" = "123" ] && exit  # 123=prebuild done, exit without error' # use single quotes so $? isnt expanded here
+            echo 'if [ "$ex_code" -ne 0 ]; then'
+
+            #
+            #  Use printf without linebreak to use continuation to
+            #  do first part of line expanding variables, and second part
+            #  not expanding them
+            #
+            printf "    echo \"ERROR: $sp_new_profile exited with code: "
+            echo '$ex_code"'
+            echo "fi"
+            echo ""
+            echo "#"
+            echo "#  Since the deploy script was run in a subshell, its path"
+            echo "#  cant be shared when exiting deploy and dropping into an"
+            echo "#  interactive env, so here comes a generic path"
+            echo "#"
+            echo "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         ) >"$d_build_root"/etc/profile
     fi
 

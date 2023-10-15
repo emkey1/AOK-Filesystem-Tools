@@ -38,9 +38,9 @@ apk add wget
 set_new_etc_profile "$setup_select_distro"
 
 if this_fs_is_chrooted; then
-    msg_1 "This is chrooted"
-    echo "It doesn't make sense to select Distro at this time"
-    exit
+    msg_2 "This is chrooted"
+    msg_3 "It doesn't make sense to select Distro at this time"
+    exit 123
 else
     msg_2 "System is prepared, now run distro selection"
     "$setup_select_distro"
