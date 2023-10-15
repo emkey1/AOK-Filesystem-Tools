@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.10.30-1"
+AOK_VERSION="0.10.31"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -111,24 +111,6 @@ INITIAL_LOGIN_MODE="enable"
 #  OBSOLETE, no longer needed since deploy steps are wrapped inside
 #  an outes shell - will be removed very soon!
 # LOG_FILE=/var/log/aokfs-build.log
-
-########################################################################
-#
-#                   hostname workaround
-#
-########################################################################
-
-#
-#  Since iOS 17 iSH is no longer able to provide hostname at startup.
-#  One way to work arround this I have described in
-#  https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/Docs/hostname-shortcut.md
-#
-
-#
-#  Declare what syncfile is to be used. If not provided you will be
-#  prompted to provide one if and when syncfile is first activated
-#
-# HOSTNAME_SYNC_FILE="/mnt/iCloud/hostname-by-shortcut.txt"
 
 ########################################################################
 #

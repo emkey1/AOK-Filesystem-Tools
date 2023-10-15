@@ -195,25 +195,13 @@ hostname_fix() {
 
     esac
 
-    #  shellcheck disable=SC2154
-    if [ -f "$HOSTNAME_SYNC_FILE" ]; then
-        echo "$HOSTNAME_SYNC_FILE" >/etc/opt/hostname_sync_fname
-    fi
     /usr/local/bin/aok -H enable
 
     #
     #  Hostname should be set now
     #
     msg_3 "custom hostname $("$alt_hostname")"
-    regular_hostname="$(/bin/hostname)"
-    msg_3 "regular hostname: [$regular_hostname]"
-    cat /etc/hostname
-    msg_3 "above is /etc/hostname content"
-
-    if this_is_aok_kernel; then
-        [ "$regular_hostname" = "localhost" ] && error_msg "ABORT should not be localhost on iSH-AOK"
-        msg_3 "verifying ish-aok /bin/hostname doesnt report localhost"
-    fi
+    msg_3 "regular hostname: [$(/bin/hostname)]"
 }
 
 #===============================================================

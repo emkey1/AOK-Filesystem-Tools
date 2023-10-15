@@ -62,6 +62,12 @@ alias ll='ls -l'
 alias la='ls -A'
 alias l='ls -CF'
 
+if [ -x /usr/local/bin/hostname ]; then
+    _hn="$(/usr/local/bin/hostname)"
+else
+    _hn="$(/bin/hostname -s)"
+fi
+
 #
 #  Cleanup env
 #

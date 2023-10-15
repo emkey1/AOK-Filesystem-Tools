@@ -60,20 +60,6 @@ fi
 
 zsh_history_conf
 
-if grep -qi aok /proc/ish/version 2>/dev/null; then
-    #
-    #  ish-aok can set hostname the normal way, so no special handling
-    #  is needed
-    #
-    _hn="%m"
-else
-    #
-    #  regular iSH must run custom hostname since the default will just
-    #  say localhost
-    #
-    _hn="$(/usr/local/bin/hostname -s)"
-fi
-
 #
 #  Folder and success of last cmd on left
 #  user@machine time on right
@@ -81,4 +67,4 @@ fi
 PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
 
 #  Inside tmux user and time is displayed on status line
-[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@$_hn %F{240}%*%f"
+[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@${_hn} %F{240}%*%f"

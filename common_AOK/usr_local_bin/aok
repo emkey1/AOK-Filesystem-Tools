@@ -151,28 +151,25 @@ display_login_method() {
     change_login_procedure "$mthd"
 }
 change_hostname_method() {
-    msg_2 "><> change_hostname_method()"
+    # msg_2 "><> change_hostname_method()"
     requested_method="$1"
 
     case "$requested_method" in
 
     "enable")
         echo "Enabling hostname from syncfile."
-        cp /opt/AOK/common_AOK/hostname_handling/hostname_fed_by_syncfile "$alt_hostname"
-        if [ ! -f /etc/opt/hostname_sync_fname ]; then
-            echo "If you are using Shortcuts to provide hostname, plz give your"
-            echo "hostname sync file, so it can be used during bootup."
-            echo "Press <Enter> without a file name, if you are fine with using '/etc/hostname'"
-            read -r hn_syncfile
-            [ -z "$hn_syncfile" ] && hn_syncfile="/etc/hostname"
-            if "$alt_hostname" --syncfile "$hn_syncfile"; then
-                echo "Intented hostname should have been displayed above"
-                /usr/local/sbin/hostname_sync.sh
-            else
-                echo "It seems there was some issue using that syncfile. Please run"
-                echo "$alt_hostname -h for instructions"
-            fi
-        fi
+        cp /opt/AOK/common_AOK/hostname_handling/alt_hostname "$alt_hostname"
+        chmod 755 "$alt_hostname"
+        s_hostname="$(cat /etc/hostname)"
+        [ "$s_hostname" = "localhost" ] && s_hostname="iSH"
+        echo "Enter hostname, if none is provided it will default to"
+        echo "  $s_hostname"
+        read -r new_hostname
+        [ -z "$new_hostname" ] && new_hostname="$s_hostname"
+        echo "$new_hostname" >/etc/hostname
+        echo
+        echo "New hostname will take effect in your prompt"
+        echo "on next login or next time App starts"
         exit 0
         ;;
 
@@ -189,17 +186,17 @@ change_hostname_method() {
         ;;
 
     esac
-    msg_3 "><> change_hostname_method() - done"
+    # msg_3 "><> change_hostname_method() - done"
 }
 
 display_hostname_method() {
-    msg_2 "><> display_hostname_method()"
+    # msg_2 "><> display_hostname_method()"
     if [ -f "$alt_hostname" ]; then
         echo "Enabled"
     else
         echo "Disabled"
     fi
-    msg_3 "><> display_hostname_method() - done"
+    # msg_3 "><> display_hostname_method() - done"
 }
 
 #===============================================================

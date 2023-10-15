@@ -1,5 +1,11 @@
 # AppleNotSupprtingHostNameworkaround
 
+## Obsolete
+
+Here is a much simpler solution
+
+[hostname-localhost.md](https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/Docs/hostname-localhost.md)
+
 ## Introduction
 
 Starting with iOS 17 Apple no longer supports the API that iSH uses
@@ -46,7 +52,7 @@ Make sure the sync file is accessible inside iSH, you probably will need
 to mount that resource using something like `mount -t ios . /mnt/point`
 
 Install a custom hostname, that uses the shortcut info, here is mine
-[hostname using shortcut](https://github.com/jaclu/AOK-Filesystem-Tools/blob/main/common_AOK/hostname_handling/hostname_fed_by_syncfile)
+[hostname using shortcut](https://raw.githubusercontent.com/jaclu/AOK-Filesystem-Tools/main/common_AOK/usr_local_bin/hostname)
 
 First time you run my implementation it will complain that you need
 to tell it where the file containing hostname fed by the shortcut is

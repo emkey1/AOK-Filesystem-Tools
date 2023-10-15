@@ -23,8 +23,6 @@ if [ -f ~/.common_rc ]; then
     . ~/.common_rc
 fi
 
-_hn="$(hostname -s)"
-
 #
 #   Indicate root/user in prompt
 #

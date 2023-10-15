@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Custom hostname, that prints /etc/hostname
+#
+
+show_help() { # Multi OK 1
+    echo "Usage: hostname [-h]
+
+This alternate hostname just prints out what is in /etc/hosts
+all options except for help are ignored to ensure compatiblity.
+
+The reason this exists is that on iSH the Alpine /bin/hostname can not
+be updated, it is stuck presenting whatever iSH assigned as hostname when
+App starts.
+
+For iOS >= 17 this becomes a problem, since iOS no longer provides the
+actual hostname to Apps requesting it, it always uses "localhost".
+
+By having this earlier in PATH than /bin this will always be used.
+So /usr/local/bin would be a default recomendation.
+
+Set your hostname like this (use sudo if not run as root):
+  echo myhostname > /etc/hostname
+
+
+Available options:
+
+-h  --help         Print this help and exit"
+
+    exit 0
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+    "-h" | "--help") show_help ;;
+
+    *) ;;
+
+    esac
+    shift
+
+done
+
+cat /etc/hostname

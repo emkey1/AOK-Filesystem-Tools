@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- Dropped the hostname sync aproach. Now just displaying /etc/hostname
 - moved alt_hostname and now is defined in tools/utils.sh
 -  Removed USE_SYNC_FILE_HOSTNAME, now autodetects iOS 17 by checking if /bin/hostname returns localhost
 - select_distro uses exit 123 for select_distro_prepare if chrooted

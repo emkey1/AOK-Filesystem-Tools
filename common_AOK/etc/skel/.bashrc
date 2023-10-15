@@ -77,16 +77,6 @@ if [[ -n "$force_color_prompt" ]]; then
     fi
 fi
 
-if grep -qi aok /proc/ish/version 2>/dev/null; then
-    #
-    #  ish-aok can set hostname the normal way, so no special handling
-    #  is needed
-    #
-    _hn="$(/bin/hostname -s)"
-else
-    _hn="$(/usr/local/bin/hostname)"
-fi
-
 if [[ "$color_prompt" = yes ]]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@${_hn}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
