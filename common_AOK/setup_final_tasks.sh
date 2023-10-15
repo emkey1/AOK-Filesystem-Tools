@@ -153,7 +153,7 @@ run_additional_tasks_if_found() {
             error_msg "FIRST_BOOT_ADDITIONAL_TASKS returned error"
         }
     fi
-    msg_3 "run_additional_tasks_if_found()  done"
+    # msg_3 "run_additional_tasks_if_found()  done"
 }
 
 deploy_state_clear() {
