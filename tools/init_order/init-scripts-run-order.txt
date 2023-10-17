@@ -13,8 +13,18 @@ Summary:
 - For zsh, put stuff in ~/.zshrc, which is always executed.
 - For ash set ENV=$HOME/.ash_init (or similar) in ~/.profile,
   this will then be used by any ash shell, be it interactive or script.
-  It will be essential to have a script exit point early on for
-  perforamce reasons
+  It will be essential to have a script exit point early on something like this:
+
+#
+#  In the ash case,  Non-interactive shells will read this, as long as
+#  ENV points to this file, so this is an essential component!
+#  Only do things needed for non-interactive script before this point.
+#
+case $- in
+*i*) ;;
+*) return ;; # If not running interactively, exit now!
+esac
+
 
 
                       Bash
