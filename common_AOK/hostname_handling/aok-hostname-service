@@ -1,6 +1,6 @@
 #!/sbin/openrc-run
 
-alt_hostname=/usr/local/bin/hostname
+hostname_alt=/usr/local/bin/hostname
 hostname_cached=/etc/opt/hostname_cached
 
 #
@@ -35,7 +35,7 @@ start() {
     hostname | grep -q "\-$h_suffix" || {
         echo "$new_hostname" >/etc/hostname
         #  if workaround hostname is used, update it to use new hostname
-        [ -x "$alt_hostname" ] && echo "$new_hostname" >"$hostname_cached"
+        [ -x "$hostname_alt" ] && echo "$new_hostname" >"$hostname_cached"
     }
 
     ebegin "Setting hostname"

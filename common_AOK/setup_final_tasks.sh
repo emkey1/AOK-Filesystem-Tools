@@ -169,39 +169,24 @@ hostname_fix() {
     #  workarounds for iOS 17 no longer supporting hostname detection
     #
 
-    if this_is_aok_kernel; then
-        do_hostname_workaround="$(ios_matching 17.0)"
+    if [ "$(ios_matching 17.0)" = "Yes" ]; then
+        msg_2 "iOS >= 17, hostname workaround will be used"
     elif [ "$(/bin/hostname)" = "localhost" ]; then
         #
         #  If hostname is localhost, assume this runs on iOS >= 17
         #  In the utterly rare case ths user has named his iOS device
         #  localhost, this would be an incorrect assumption
         #
-        do_hostname_workaround="Yes"
+        msg_2 "Will assume this runs on iOS >= 17, hostname workaround will be used"
+    elif [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
     else
-        do_hostname_workaround="No"
+        msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
+        return
     fi
 
-    case "$do_hostname_workaround" in
-
-    "Yes" | "Y" | "y")
-        msg_3 "Will assume this runs on iOS >= 17, hostname workaround will be used"
-        ;;
-
-    *)
-        msg_3 "Will assume this runs on iOS < 17, so hostname can be set by the app"
-        return
-        ;;
-
-    esac
-
-    /usr/local/bin/aok -H enable
-
-    #
-    #  Hostname should be set now
-    #
-    msg_3 "custom hostname $("$alt_hostname")"
-    msg_3 "regular hostname: [$(/bin/hostname)]"
+    # if defined use setting from AOK_VARS, otherwise a prompt will be given
+    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
 }
 
 #===============================================================
@@ -245,9 +230,9 @@ if test -f /AOK; then
     rm -rf /AOK
 fi
 
-hostname_fix
-
 user_interactions
+
+hostname_fix
 
 #
 #  Currently Debian doesnt seem to have to take the iSH app into

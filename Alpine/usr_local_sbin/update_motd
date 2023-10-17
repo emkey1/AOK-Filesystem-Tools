@@ -24,7 +24,7 @@ motd_file="/etc/motd"
 motd_template="/etc/motd_template"
 aok_release="/etc/aok-release"
 
-echo "[35m===>  Welcome to: $(hostname)  <===" >"$motd_file"
+echo "[35m" >"$motd_file"
 if [ -e "$aok_release" ]; then
     echo "AOK release:    $(cat "$aok_release")" >>"$motd_file"
 fi

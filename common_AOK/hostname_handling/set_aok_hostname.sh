@@ -15,12 +15,6 @@ if ! this_is_aok_kernel || [ "$AOK_HOSTNAME_SUFFIX" != "Y" ]; then
     exit 0
 fi
 
-if [ -x "$alt_hostname" ]; then
-
-    msg_2 "alternate hostname is used, ignoring AOK_HOSTNAME_SUFFIX"
-    exit 0
-fi
-
 msg_1 "Setting -aok suffix for hostname"
 
 #  Ensure suffix is not added multiple times if this is restarted

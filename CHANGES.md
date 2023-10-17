@@ -2,6 +2,7 @@
 
 I will try to keep track of changes between releases here
 
+- New rewrite of handling hostname for iOS >= 17 now can use /etc/hostname in traditional way
 - added hostname_ settings to tools/utils.sh related to alt hostname handling iOS >= 17
 - test imgs using TZ=UTC
 - ash & bash different prompts

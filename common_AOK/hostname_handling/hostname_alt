@@ -1,0 +1,205 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Custom hostname, solving that iOS >= 17 no longer provides hostname
+#  to Apps.
+#
+#  Two modes of operation
+#
+#  1)  Working around regular iSH inability to use /etc/hostname, simple
+#      setup like traditional Linux, set the hostname once for a Device
+#      and unless you touch it all is good.
+#      To select this mode give /etc/hostname as sourcefile.
+#      This will skip any syncing, just displaying what is in /etc/hostname
+#
+#  2)  Using a source file, fed by an iOS Shortcut tied to the iSH App starting,
+#      then writing curent hostname to last line of this source file.
+#      This will automatically propagate to all iOS devices using the
+#      same AppleId, so a bit of a task to setup, but once done it will
+#      spread to all your devices and update iSH to whatever is the
+#      hostname when the app starts
+#      To select this mode give any filename other than /etc/hostname
+#      as sourcefile. For this to work this must be the same iOS filename
+#      as you use in the iOS shortcut
+
+show_help() { # Multi OK 1
+    echo "Usage: hostname [-h] [-U] [ -S /full/path/to/sourcefile ]
+
+Uses hint provided by shortcut to update hostname
+If you run iSH on multiple iOS devices and you have iCloud syncing of
+shortcuts turned on. This source file will contain hostnames for various
+devices. Therefore this value is only read if there is no local cache
+on this instance of iSH.
+
+If you change hostname of your iOS device, run this with -f to force it
+to reread the source file.
+
+To see an example of how to create the shortcut needed that feeds this
+check https://github.com/jaclu/AOK-Filesystem-Tools/Docs/hostname-shortcut.md
+
+Available options:
+
+-h  --help         Print this help and exit
+
+Custom options for this hostname implementation:
+
+-S  --sourcefile   Informs this tool what file to check for the shortcut hint
+                   Special case, if this is /etc/hostname content will not
+                   be cached, just displayed"
+    help_show_source_file
+    echo "
+-U  --update       Re-read sourcefile. If sourcefile is /etc/hostname
+                   nothing happens. For any other sourcefile, hostname
+                   will be asumed to be the last line in the sourcefile
+                   and it will be copied to /etc/hostname, to be used.
+                   Be aware if you use this on multiple devices the
+                   source file will contain the name of the latest iSH started,
+                   in such cases do this update just after starting this instance.
+                   AOK-FS provides /usr/local/sbin/hostname_sync.sh and
+                   runs it from inittab at startup to do this update
+
+All other options are ignored, in order to be compatible with the default
+hostnme"
+    exit 0
+}
+
+help_show_source_file() {
+    if [ -n "$f_src_file" ]; then
+        echo "                   Current source file: $f_src_file"
+    fi
+}
+read_source_file_name() {
+    f_src_file="$(cat "$hostname_source_fname" 2>/dev/null)"
+}
+
+hostname_read() {
+    ! this_is_aok_kernel && return
+    #
+    #  iSH-AOK can set hostname, so once this is done things
+    #  hardcoded to /bin/hostname will use the intended hostname
+    #
+    /bin/hostname -F /etc/hostname
+}
+
+do_sync_hostname() {
+    # msg_2 "do_sync_hostname(()"
+
+    if [ -z "$f_src_file" ]; then
+        error_msg "No sourcefile defined!"
+    elif [ ! -f "$f_src_file" ]; then
+        error_msg "source file ($f_src_file) not pressent!"
+    fi
+
+    #
+    #  Use last line of file as hostname
+    #
+    awk 'END {print $1}' "$f_src_file" >"$hostname_cached"
+
+    cp "$hostname_cached" /etc/hostname
+
+    #
+    #  Since only the last line is of interest normally, make sure
+    #  f_src_file doesnt grow to much, especially if multiple devices
+    #  write to the same file each time they start
+    #
+    if [ "$(wc -l <"$f_src_file")" -gt 25 ]; then
+        # Truncate the file to the last 10 lines
+        tail -n 10 "$f_src_file" >/tmp/sync_file
+        mv /tmp/sync_file "$f_src_file"
+    fi
+
+    # msg_3 "do_sync_hostname(() - done"
+}
+
+do_update() {
+    rm -f "$hostname_cached"
+    get_hostname
+    exit 0
+}
+
+get_hostname() {
+    # msg_2 "get_hostname(()"
+
+    if [ -z "$f_src_file" ]; then
+        echo "ERROR: no source file defined, run with -h to see help!"
+        exit 1
+    fi
+
+    #
+    #  If source file is /etc/hostname, then no syncing is needed, used
+    #  for manual setting of post iOS 17 hostname
+    #
+    [ "$f_src_file" != "/etc/hostname" ] && do_sync_hostname
+
+    hostname_read
+
+    # msg_3 "get_hostname(() - done"
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# shellcheck source=/opt/AOK/tools/utils.sh
+. /opt/AOK/tools/utils.sh
+
+read_source_file_name
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+    "-h" | "--help") show_help ;;
+
+    #  ignored, but accepted for compatability
+    "-f" | "--fqdn" | "--long" | "-s" | "--short") ;;
+
+    "-S" | "--sourcefile")
+        sync_file="$2"
+        shift # This one uses two items, so do an extra shift
+        if [ -z "$sync_file" ]; then
+            error_msg "-S / --sourcefile needs a filename as additional param!"
+        elif [ ! -f "$sync_file" ]; then
+            error_msg "-S / --sourcefile file not found: $sync_file"
+        fi
+        echo "$sync_file" >"$hostname_source_fname"
+        read_source_file_name
+
+        #
+        #  To ensure the hostname from the source file is picked up,
+        #  clear the current name
+        #
+        do_update
+        ;;
+
+    "-U" | "--update")
+        do_update
+        ;;
+
+    *) ;;
+
+    esac
+    shift
+
+done
+
+s_etc_hostname="$(cat /etc/hostname)"
+s_cached="$(cat "$hostname_cached" 2>/dev/null)"
+
+if [ "$(cat "$hostname_source_fname" 2>/dev/null)" = "/etc/hostname" ]; then
+    #
+    #  If it has changed, reread if for /bin/hostname on iSH-AOK
+    #
+    [ "$s_etc_hostname" != "$s_cached" ] && hostname_read
+else
+    [ ! -f "$hostname_cached" ] && get_hostname
+fi
+
+cat /etc/hostname

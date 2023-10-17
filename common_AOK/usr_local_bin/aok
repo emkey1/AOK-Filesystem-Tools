@@ -150,32 +150,89 @@ display_login_method() {
 
     change_login_procedure "$mthd"
 }
+
+install_hostname_alt() {
+    echo "Enabling alternate hostname $hostname_alt"
+    cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$hostname_alt"
+    chmod 755 "$hostname_alt"
+}
+
+remove_hostname_alt() {
+    rm -f "$hostname_alt"
+}
+
 change_hostname_method() {
-    # msg_2 "><> change_hostname_method()"
+    # msg_2 "change_hostname_method()"
     requested_method="$1"
+    source_file="$2"
 
     case "$requested_method" in
 
     "enable")
-        echo "Enabling hostname from syncfile."
-        cp /opt/AOK/common_AOK/hostname_handling/alt_hostname "$alt_hostname"
-        chmod 755 "$alt_hostname"
-        s_hostname="$(cat /etc/hostname)"
-        [ "$s_hostname" = "localhost" ] && s_hostname="iSH"
-        echo "Enter hostname, if none is provided it will default to"
-        echo "  $s_hostname"
-        read -r new_hostname
-        [ -z "$new_hostname" ] && new_hostname="$s_hostname"
-        echo "$new_hostname" >/etc/hostname
-        echo
-        echo "New hostname will take effect in your prompt"
-        echo "on next login or next time App starts"
+        if [ -z "$source_file" ]; then
+            f_current="$(cat "$hostname_source_fname" 2>/dev/null)"
+            if [ "$f_current" = "$f_etc_hostname" ]; then
+                s_old_value="$(cat "$f_etc_hostname" 2>/dev/null)"
+            else
+                s_old_value="$f_current"
+            fi
+            echo "Enter hostname, or if sourcefile should be used start with / and give full path"
+            [ -n "$s_old_value" ] && echo "  $s_old_value"
+            read -r s_new_value
+            if [ -z "$s_new_value" ]; then
+                if [ -z "$s_old_value" ]; then
+                    remove_hostname_alt
+                    echo "ERROR: Nothing given and no old value was found - will not activate $hostname_alt"
+                    echo "       this can be activated later by doing: aok -H enable"
+                    echo
+                    exit 1
+                fi
+                s_new_value="$s_old_value"
+            fi
+        else
+            s_new_value="$source_file"
+        fi
+
+        if [ "${s_new_value%"${s_new_value#?}"}" = "/" ]; then
+            #
+            #  Use it as a path
+            #
+            if [ -f "$s_new_value" ]; then
+                install_hostname_alt
+                msg_3 "hostname will be sourced from: $s_new_value"
+                "$hostname_alt" -S "$s_new_value"
+            else
+                echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
+                echo "       this can be activated later by doing: aok -H enable"
+                echo
+                exit 1
+            fi
+        else
+            #
+            #  Use it as old style hostname
+            #
+            install_hostname_alt
+            echo "$s_new_value" >"$f_etc_hostname"
+            msg_3 "/etc/hostname will be used, so no syncing will be done."
+            "$hostname_alt" -S "$f_etc_hostname"
+        fi
+        "$hostname_alt" -U
+        msg_3 "hostname set to: $($hostname_alt)"
+        if [ -z "$source_file" ]; then
+            #
+            #  source_file would typically only be set during initial deploy
+            #  and in that case this disclaimer wont be needed
+            #
+            msg_3 "Your shell prompt might have cached the hostname when the session started."
+        fi
         exit 0
         ;;
 
     "disable")
-        echo "Reverting to native hostname prog."
-        rm -f "$alt_hostname"
+        if [ -f "$hostname_alt" ]; then
+            echo "Removing $hostname_alt"
+            remove_hostname_alt
+        fi
         exit 0
         ;;
 
@@ -186,17 +243,17 @@ change_hostname_method() {
         ;;
 
     esac
-    # msg_3 "><> change_hostname_method() - done"
+    # msg_3 "change_hostname_method() - done"
 }
 
 display_hostname_method() {
-    # msg_2 "><> display_hostname_method()"
-    if [ -f "$alt_hostname" ]; then
+    # msg_2 "display_hostname_method()"
+    if [ -f "$hostname_alt" ]; then
         echo "Enabled"
     else
         echo "Disabled"
     fi
-    # msg_3 "><> display_hostname_method() - done"
+    # msg_3 "display_hostname_method() - done"
 }
 
 #===============================================================
@@ -206,6 +263,8 @@ display_hostname_method() {
 #===============================================================
 
 . /opt/AOK/tools/utils.sh
+
+f_etc_hostname=/etc/hostname
 
 #
 #  Store login method, so that if /bin/login was updated
@@ -270,7 +329,7 @@ while true; do
 
     "-H" | "--hostname")
         if [ -n "$2" ]; then
-            change_hostname_method "$2"
+            change_hostname_method "$2" "$3"
         else
             printf "Current login method: "
             display_hostname_method
