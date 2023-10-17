@@ -8,10 +8,6 @@
 #  location, like /etc/zsh/zlogin it will report G! instead of G
 #
 
-init for direct started scripts:
-  .bashrc
-  .zshenv
-
 Summary:
 - For bash, put stuff in ~/.bashrc, and make ~/.bash_profile source it.
 - For zsh, put stuff in ~/.zshrc, which is always executed.
@@ -60,7 +56,7 @@ in /etc/zsh
 +----------------+-----------+-----------+------+
 |/etc/zshenv     |    A      |    A      |  A   |
 +----------------+-----------+-----------+------+
-|~/.zshenv       |    B      |    B      |  B   | 
+|~/.zshenv       |    B      |    B      |  B   |
 +----------------+-----------+-----------+------+
 |/etc/zprofile   |    C      |           |      |
 +----------------+-----------+-----------+------+
