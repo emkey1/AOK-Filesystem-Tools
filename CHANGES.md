@@ -1,5 +1,6 @@
 # Changes
 
+- added version notice to select distro
 - if aok fails to (re-)enable alt hostname it is disabled
 I will try to keep track of changes between releases here
 - If /iCloud is an iOS mount, it will be synced to ensure normal operation

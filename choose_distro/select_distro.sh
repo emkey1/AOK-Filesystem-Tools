@@ -13,6 +13,8 @@
 
 select_distro() {
     text="
+This is AOK-Filesystem-Tools version: $AOK_VERSION
+
 Alpine is the regular AOK FS, fully stable.
 
 Debian is version 10 (Buster). It was end of lifed 2022-07-18 and is
@@ -30,7 +32,6 @@ Select distro:
  2 - Debian 10
  3 - Devuan 4
 "
-    echo
     echo "$text"
     read -r selection
     echo
