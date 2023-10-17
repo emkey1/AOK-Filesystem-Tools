@@ -74,7 +74,11 @@ help_show_source_file() {
     fi
 }
 read_source_file_name() {
-    f_src_file="$(cat "$hostname_source_fname" 2>/dev/null)"
+    if [ -z "$hostname_source_fname" ] || [ ! -f "$hostname_source_fname" ]; then
+        f_src_file=""
+    else
+        f_src_file="$(cat "$hostname_source_fname" 2>/dev/null)"
+    fi
 }
 
 hostname_read() {
@@ -190,13 +194,12 @@ while [ -n "$1" ]; do
 
 done
 
-s_etc_hostname="$(cat /etc/hostname)"
-s_cached="$(cat "$hostname_cached" 2>/dev/null)"
-
-if [ "$(cat "$hostname_source_fname" 2>/dev/null)" = "/etc/hostname" ]; then
+if [ "$f_src_file" = "/etc/hostname" ]; then
     #
     #  If it has changed, reread if for /bin/hostname on iSH-AOK
     #
+    s_etc_hostname="$(cat /etc/hostname)"
+    s_cached="$(cat "$hostname_cached" 2>/dev/null)"
     [ "$s_etc_hostname" != "$s_cached" ] && hostname_read
 else
     [ ! -f "$hostname_cached" ] && get_hostname

@@ -185,6 +185,10 @@ hostname_fix() {
         return
     fi
 
+    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        #  not sure if this is needed, in order to ensure no iCloud issues
+        cat "$ALT_HOSTNAME_SOURCE_FILE" >/dev/null 2>&1
+    fi
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
 }
@@ -204,7 +208,7 @@ tsaft_start="$(date +%s)"
 . /opt/AOK/tools/user_interactions.sh
 
 #
-#  Only run if prebuild and not chrooted on iSH
+#  Wait for bootup to complete if prebuild and not chrooted on iSH
 #
 if deploy_state_is_it "$deploy_state_pre_build" &&
     this_is_ish &&
@@ -231,6 +235,15 @@ if test -f /AOK; then
 fi
 
 user_interactions
+
+if grep -v "^#" /opt/AOK/AOK_VARS | grep -q /iCloud; then
+    # /iCloud is mentioned in config, so if mounted should be synced
+    if this_is_ish && mount | grep -q "/iCloud type ios"; then
+        msg_2 "Ensuring /iCloud is synchronized..."
+        find /iCloud >/dev/null
+        msg_3 "Syncing of /iCloud complete!"
+    fi
+fi
 
 hostname_fix
 
