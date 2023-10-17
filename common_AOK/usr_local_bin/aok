@@ -181,10 +181,10 @@ change_hostname_method() {
             read -r s_new_value
             if [ -z "$s_new_value" ]; then
                 if [ -z "$s_old_value" ]; then
-                    remove_hostname_alt
                     echo "ERROR: Nothing given and no old value was found - will not activate $hostname_alt"
                     echo "       this can be activated later by doing: aok -H enable"
                     echo
+                    remove_hostname_alt
                     exit 1
                 fi
                 s_new_value="$s_old_value"
@@ -205,6 +205,7 @@ change_hostname_method() {
                 echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
                 echo "       this can be activated later by doing: aok -H enable"
                 echo
+                remove_hostname_alt
                 exit 1
             fi
         else

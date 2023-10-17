@@ -1,5 +1,6 @@
 # Changes
 
+- if aok fails to (re-)enable alt hostname it is disabled
 I will try to keep track of changes between releases here
 - If /iCloud is an iOS mount, it will be synced to ensure normal operation
 - New rewrite of handling hostname for iOS >= 17 now can use /etc/hostname in traditional way
