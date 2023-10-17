@@ -774,4 +774,8 @@ pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
 #  Location for alternate hostname, should normally be in a path
 #  location before /bin/hostname is found
 #
-alt_hostname=/usr/local/bin/hostname
+hostname_alt=/usr/local/bin/hostname
+#  file alt hostname reads to find hostname
+hostname_source_fname=/etc/opt/hostname_source_fname
+#  Used when hostname_source_fname is other than /etc/hostname
+hostname_cached=/etc/opt/hostname_cached

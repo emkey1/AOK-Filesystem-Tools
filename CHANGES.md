@@ -2,10 +2,11 @@
 
 I will try to keep track of changes between releases here
 
+- added hostname_ settings to tools/utils.sh related to alt hostname handling iOS >= 17
 - test imgs using TZ=UTC
 - ash & bash different prompts
 - Dropped the hostname sync aproach. Now just displaying /etc/hostname
-- moved alt_hostname and now is defined in tools/utils.sh
+- moved hostname_alt and now is defined in tools/utils.sh
 - Removed USE_SYNC_FILE_HOSTNAME, now autodetects iOS 17 by checking if /bin/hostname returns localhost
 - select_distro uses exit 123 for select_distro_prepare if chrooted
 - set_new_etc_profile - sets PATH if deploy script is aborted/completed
@@ -50,7 +51,7 @@ I will try to keep track of changes between releases here
 - New Debian src-img: Debian10-6-aok-2.tgz
 - preparing Debian FS for 1st boot
 - procps in general install, since it now works on iSH
-- Final tasks does a better job of adjusting config depending on  iSH / iSH-AOK
+- Final tasks does a better job of adjusting config depending on iSH / iSH-AOK
 - Updated Alpine/usr_local_bin/aok_groups, to adjust package selection depending on release
 - Updated DOCS_APKS to better match what is installed
 - Changed Ash prompt somewhat to make it stand out from the Bash prompt. Also added a hint where to change if you do want them to look the same
@@ -64,7 +65,7 @@ I will try to keep track of changes between releases here
 - New Debian src-img: Debian10-6-aok-1.tgz
 - Added things to remove from Debian image
 - root shell can only be set to bash or ash during deploy, to ensure
-deploy can complete
+  deploy can complete
 
 ## release 0.9.7
 
@@ -93,17 +94,17 @@ deploy can complete
 - New Debian src-img: Debian10-4-aok-2.tar.gz
 - Since all services are disabled in the src_img no longer any need to manually diable them during deploy. Has been so for ages, had just forgotten about it
 - filtering more env variables before chroot
-I spent a ridicilos time trying to use env -i, but with no success
-so far, what ends up happening is that the HOME is undefined in the chrooted env. Pretty sure its a trivial fix if you have that know-how - I unfortunately dont.
-common_AOK/cron/periodic
+  I spent a ridicilos time trying to use env -i, but with no success
+  so far, what ends up happening is that the HOME is undefined in the chrooted env. Pretty sure its a trivial fix if you have that know-how - I unfortunately dont.
+  common_AOK/cron/periodic
 - cron (dcron for Alpine) will always be installed and configured
-The service will only be activated if USE_CRON_SERVICE is "Y"
+  The service will only be activated if USE_CRON_SERVICE is "Y"
 - common_AOK/etc/skel/.tmux.conf - Fixed typo
 - nav_keys.sh - Can now be used in scrips, give desired navkey as param
 - removed Debian/etc/init.d/runbg - I figured out that the generic openrc runbg works just as fine on Debian
 - removed some utils - fingers purpose illudes me on a one user system, and the option to automount /iCloud has made a sepate util redundant
-common_AOK/usr_local_bin/finger
-common_AOK/usr_local_bin/iCloud
+  common_AOK/usr_local_bin/finger
+  common_AOK/usr_local_bin/iCloud
 
 ## release 0.9.4
 
