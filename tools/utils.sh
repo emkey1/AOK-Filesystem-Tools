@@ -360,7 +360,6 @@ copy_local_bins() {
     fi
 
     _clb_src_dir="${aok_content}/${_clb_base_dir}/usr_local_sbin"
-    # if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
     if [ -d "$_clb_src_dir" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
         mkdir -p /usr/local/sbin
