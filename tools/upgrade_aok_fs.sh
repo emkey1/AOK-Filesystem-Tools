@@ -11,16 +11,14 @@
 #
 
 deploy_stuff() {
-    msg_2 "deploy_stuff()"
+    # msg_2 "deploy_stuff()"
     source="$1"
     d_dest="$2"
 
     [ -z "$source" ] && error_msg "deploy_stuff() no source param"
     [ -z "$d_dest" ] && error_msg "deploy_stuff() no dest param"
 
-    rsync -ahP "$source" "$d_dest"
-    # Fix ownership, since repo most likely is owned by a user
-    chown -R root: "$d_dest"
+    rsync -ahP --chown=root: "$source" "$d_dest"
 
     unset source
     unset d_dest
