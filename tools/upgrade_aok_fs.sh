@@ -30,18 +30,15 @@ if ! this_is_ish; then
     error_msg "This should only be run on an iSH platform!"
 fi
 
-
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
-    echo "Executing as root"
-    # using $0 instead of full path makes location not hardcoded
-    if ! sudo "$0" "$@"; then
-        echo
-        echo "ERROR: Failed to sudo $0"
-        echo
-    fi
-    exit 0
+    error_msg "Not executing as root"
 fi
+
+echo
+echo "Updating /etc/skel files"
+echo
+cp -a "$aok_content"/common_AOK/etc/skel /etc
 
 echo
 echo "Upgrading /usr/local/bin & /usr/local/sbin with current items from $aok_content"
