@@ -15,42 +15,74 @@
 #  so it can be assumed this is running on deploy destination
 #
 
-sync_dir() {
+ensure_path_items_are_available() {
     #
-    #  In case this is an iCloud location, give iCloud a nudge to sync it
-    #  to minimize risk that the file hasnt been synced yet
+    #  If this is run on an iOS device with limited storage, config
+    #  items located on iCloud mounts might not be synced.
+    #  Simplest thing is to look through config items that might contain
+    #  files or directories, and ensuring those items are present.
+    #  Any further specific sync are better done in
+    #  FIRST_BOOT_ADDITIONAL_TASKS, where precise knowledge of that
+    #  device should make specific requirements self explanatory.
+    #
+    msg_2 "ensure_path_items_are_available()"
+
+    # shellcheck disable=SC2154
+    items_to_check="\
+        $HOME_DIR_USER \
+        $HOME_DIR_ROOT \
+        $POPULATE_FS \
+        $FIRST_BOOT_ADDITIONAL_TASKS \
+        $ALT_HOSTNAME_SOURCE_FILE \
+        $ALPINE_CUSTOM_FILES_TEMPLATE \
+        $DEBIAN_CUSTOM_FILES_TEMPLATE"
+
+    # msg_3 "><> items_to_check [$items_to_check]"
+
+    while true; do
+        one_item="${items_to_check%% *}"
+        items_to_check="${items_to_check#* }"
+        if [ -e "$one_item" ]; then
+            msg_3 "Ensuring it is synced: $one_item"
+            find "$one_item" >/dev/null
+        # else
+        #     msg_3 "><> Ignoring [$one_item]"
+        fi
+        [ "$one_item" = "$items_to_check" ] && break # we have processed last item
+    done
+
+    unset items_to_check
+    unset one_item
+    # msg_3 "ensure_path_items_are_available() - done"
+}
+
+hostname_fix() {
+    #
+    #  workarounds for iOS 17 no longer supporting hostname detection
     #
 
-    # msg_2 "sync_dir()"
-    [ -z "$1" ] && return
-
-    # extract dir path of $1 param
-    if [ -d "$1" ]; then
-        dir_name="$1"
+    if [ "$(ios_matching 17.0)" = "Yes" ]; then
+        msg_2 "iOS >= 17, hostname workaround will be used"
+    elif [ "$(/bin/hostname)" = "localhost" ]; then
+        #
+        #  If hostname is localhost, assume this runs on iOS >= 17
+        #  In the utterly rare case ths user has named his iOS device
+        #  localhost, this would be an incorrect assumption
+        #
+        msg_2 "Will assume this runs on iOS >= 17, hostname workaround will be used"
+    elif [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
     else
-        dir_name="$(dirname "$1")" # probably was file
+        msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
+        return
     fi
 
-    [ ! -d "$dir_name" ] && return # dir not found
-
-    #
-    #  Abort in case dir is obviously not an icloud mount and/or would take
-    #  a considerable time to process with find
-    #
-    case "$dir_name" in
-    "." | "/" | "/usr") return ;;
-    *) ;;
-    esac
-
-    #
-    #  Since we verified that dir_name exists, the only normal reason
-    #  to get an error from find is if a file needed to be synced by
-    #  iCloud and thus gave an error indication
-    #
-    find "$dir_name" >/dev/null 2>&1 || {
-        msg_2 "sync_dir $dir_name - Location was synced!"
-    }
-    # msg_3 "sync_dir() - done"
+    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        #  not sure if this is needed, in order to ensure no iCloud issues
+        cat "$ALT_HOSTNAME_SOURCE_FILE" >/dev/null 2>&1
+    fi
+    # if defined use setting from AOK_VARS, otherwise a prompt will be given
+    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
 }
 
 aok_kernel_consideration() {
@@ -71,33 +103,6 @@ aok_kernel_consideration() {
         }
     fi
     # msg_3 "aok_kernel_consideration() - done"
-}
-
-replace_home_dirs() {
-    if [ -n "$HOME_DIR_USER" ]; then
-        sync_dir "$HOME_DIR_USER"
-        if [ -f "$HOME_DIR_USER" ]; then
-            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-            msg_2 "Replacing /home/$USER_NAME"
-            cd "/home" || error_msg "Failed cd /home"
-            rm -rf "$USER_NAME"
-            tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
-        else
-            error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
-        fi
-    fi
-
-    if [ -n "$HOME_DIR_ROOT" ]; then
-        sync_dir "$HOME_DIR_ROOT"
-        if [ -f "$HOME_DIR_ROOT" ]; then
-            msg_2 "Replacing /root"
-            mv /root /root.ORIG
-            cd / || error_msg "Failed to cd into: /"
-            tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
-        else
-            error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
-        fi
-    fi
 }
 
 set_initial_login_mode() {
@@ -141,6 +146,31 @@ start_cron_if_active() {
     # msg_3 "start_cron_if_active() - done"
 }
 
+replace_home_dirs() {
+    if [ -n "$HOME_DIR_USER" ]; then
+        if [ -f "$HOME_DIR_USER" ]; then
+            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
+            msg_2 "Replacing /home/$USER_NAME"
+            cd "/home" || error_msg "Failed cd /home"
+            rm -rf "$USER_NAME"
+            tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
+        else
+            error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
+        fi
+    fi
+
+    if [ -n "$HOME_DIR_ROOT" ]; then
+        if [ -f "$HOME_DIR_ROOT" ]; then
+            msg_2 "Replacing /root"
+            mv /root /root.ORIG
+            cd / || error_msg "Failed to cd into: /"
+            tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
+        else
+            error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
+        fi
+    fi
+}
+
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
@@ -162,35 +192,6 @@ deploy_state_clear() {
     rm "$f_dest_fs_deploy_state"
 
     # msg_3 "deploy_state_clear() - done"
-}
-
-hostname_fix() {
-    #
-    #  workarounds for iOS 17 no longer supporting hostname detection
-    #
-
-    if [ "$(ios_matching 17.0)" = "Yes" ]; then
-        msg_2 "iOS >= 17, hostname workaround will be used"
-    elif [ "$(/bin/hostname)" = "localhost" ]; then
-        #
-        #  If hostname is localhost, assume this runs on iOS >= 17
-        #  In the utterly rare case ths user has named his iOS device
-        #  localhost, this would be an incorrect assumption
-        #
-        msg_2 "Will assume this runs on iOS >= 17, hostname workaround will be used"
-    elif [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
-    else
-        msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
-        return
-    fi
-
-    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        #  not sure if this is needed, in order to ensure no iCloud issues
-        cat "$ALT_HOSTNAME_SOURCE_FILE" >/dev/null 2>&1
-    fi
-    # if defined use setting from AOK_VARS, otherwise a prompt will be given
-    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
 }
 
 #===============================================================
@@ -236,14 +237,7 @@ fi
 
 user_interactions
 
-if grep -v "^#" /opt/AOK/AOK_VARS | grep -q /iCloud; then
-    # /iCloud is mentioned in config, so if mounted should be synced
-    if this_is_ish && mount | grep -q "/iCloud type ios"; then
-        msg_2 "Ensuring /iCloud is synchronized..."
-        find /iCloud >/dev/null
-        msg_3 "Syncing of /iCloud complete!"
-    fi
-fi
+ensure_path_items_are_available
 
 hostname_fix
 

@@ -1,5 +1,11 @@
 # Changes
+'
 
+
+-====
+
+- setup_final_tasks.sh ensures all config variables referencing file items are synced if on iCloud
+- Changed /usr/local/bin/aok to use echo instead of msg_3 to make it not look like a deploy item
 - added version notice to select distro
 - if aok fails to (re-)enable alt hostname it is disabled
 I will try to keep track of changes between releases here

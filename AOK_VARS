@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.10.38"
+AOK_VERSION="0.10.41"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -43,10 +43,10 @@ USER_SHELL="/bin/bash"
 INITIAL_LOGIN_MODE="enable"
 
 #
-#  Should normally not be set! If you want to hard-code timezone,
-#  The FS will be setup without giving the option to select time-zone.
-#  During testing its a convenient thing to set, not having to select a TZ
-#  for every install.
+#  If you want to hard-code timezone, the FS will be setup without
+#  giving the option to select time-zone.
+#  During testing its a convenient thing to set, not having to select
+#  a TZ for every install.
 #
 # AOK_TIMEZONE="Europe/Berlin"
 
@@ -80,7 +80,6 @@ INITIAL_LOGIN_MODE="enable"
 #  kept in the compressed FS
 #
 # POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/aok_fs"
-
 #
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time
@@ -111,7 +110,7 @@ INITIAL_LOGIN_MODE="enable"
 ########################################################################
 
 #
-#  Since iOS 17 iSH is no longer able to provide hostname at startup.
+#  Since iOS 17.0 iSH is no longer able to provide hostname at startup.
 #  If this is set to /etc/hostname, its content will only be displayed,
 #  and that file needs to be manually changed.
 #  Any other path would be asumed to be a syncfile, written to by an iOS
