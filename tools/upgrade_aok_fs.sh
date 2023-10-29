@@ -10,6 +10,23 @@
 #  from /opt/AOK, both common and distro based items
 #
 
+deploy_stuff() {
+    msg_2 "deploy_stuff()"
+    source="$1"
+    d_dest="$2"
+
+    [ -z "$source" ] && error_msg "deploy_stuff() no source param"
+    [ -z "$d_dest" ] && error_msg "deploy_stuff() no dest param"
+
+    rsync -ahP "$source" "$d_dest"
+    # Fix ownership, since repo most likely is owned by a user
+    chown -R root: "$d_dest"
+
+    unset source
+    unset d_dest
+    # msg_3 "deploy_stuff() - done"
+}
+
 #===============================================================
 #
 #   Main
@@ -35,12 +52,11 @@ if [ "$(whoami)" != "root" ]; then
     error_msg "Not executing as root"
 fi
 
+
 echo
 echo "Updating /etc/skel files"
 echo
-rsync -ahP "$aok_content"/common_AOK/etc/skel /etc
-# Fix ownership, since repo is owned by a user
-chown -R root: /etc/skel
+deploy_stuff "$aok_content"/common_AOK/etc/skel /etc
 
 echo
 echo "Upgrading /usr/local/bin & /usr/local/sbin with current items from $aok_content"
@@ -50,24 +66,24 @@ echo
 #  Always copy common stuff
 #
 echo "Common stuff"
-rsync -ahP "$aok_content"/common_AOK/usr_local_bin/* /usr/local/bin
-rsync -ahP "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
+deploy_stuff "$aok_content"/common_AOK/usr_local_bin/* /usr/local/bin
+deploy_stuff "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
 
 #
 #  Copy distro specific stuff
 #
 if hostfs_is_alpine; then
     echo "Alpine specifics"
-    rsync -ahP "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
-    rsync -ahP "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
+    deploy_stuff "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
+    deploy_stuff "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
 elif hostfs_is_debian; then
     echo "Debian specifics"
-    rsync -ahP "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
-    rsync -ahP "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
+    deploy_stuff "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
+    deploy_stuff "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
 elif hostfs_is_devuan; then
     echo "Devuan specifics"
-    rsync -ahP "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
-    rsync -ahP "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
+    deploy_stuff "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
+    deploy_stuff "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
 else
     echo "ERROR: Failed to recognize Distro, aborting."
     exit 1
