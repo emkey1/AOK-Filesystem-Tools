@@ -1,7 +1,7 @@
 # Changes
 '
 
-
+- rsync_chown() -> tools/utils
 - tools/upgrade_aok_fs.sh make root: own /etc/skel files
 - setup_final_tasks.sh ensures all config variables referencing file items are synced if on iCloud
 - Changed /usr/local/bin/aok to use echo instead of msg_3 to make it not look like a deploy item

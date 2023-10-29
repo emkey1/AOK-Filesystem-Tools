@@ -39,7 +39,7 @@ setup_cron_env() {
     #  if USE_CRON_SERVICE="Y
     #
     msg_3 "Setting cron periodic files"
-    cp -a "$aok_content"/common_AOK/cron/periodic /etc
+    rsync_chown "$aok_content"/common_AOK/cron/periodic /etc
     #msg_3 "setup_cron_env() - done"
 }
 
@@ -64,7 +64,7 @@ setup_environment() {
     #
 
     msg_3 "Populate /etc/skel"
-    cp -a "$aok_content"/common_AOK/etc/skel /etc
+    rsync_chown "$aok_content"/common_AOK/etc/skel /etc
 
     msg_3 "Activating group sudo for no passwd sudo"
     cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d

@@ -429,6 +429,18 @@ destfs_clear_chrooted() {
     # msg_3 "destfs_clear_chrooted(() - done"
 }
 
+rsync_chown() {
+    # msg_2 "rsync_chown()"
+    source="$1"
+    d_dest="$2"
+    [ -z "$source" ] && error_msg "rsync_chown() no source param"
+    [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
+    rsync -ahP --chown=root: "$source" "$d_dest"
+    unset source
+    unset d_dest
+    # msg_3 "rsync_chown() - done"
+}
+
 #---------------------------------------------------------------
 #
 #   Host FS
