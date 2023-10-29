@@ -39,6 +39,7 @@ echo
 echo "Updating /etc/skel files"
 echo
 cp -a "$aok_content"/common_AOK/etc/skel /etc
+chown -R root: /etc/skel
 
 echo
 echo "Upgrading /usr/local/bin & /usr/local/sbin with current items from $aok_content"
