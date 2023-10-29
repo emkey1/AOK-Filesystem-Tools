@@ -38,7 +38,8 @@ fi
 echo
 echo "Updating /etc/skel files"
 echo
-cp -a "$aok_content"/common_AOK/etc/skel /etc
+rsync -ahP "$aok_content"/common_AOK/etc/skel /etc
+# Fix ownership, since repo is owned by a user
 chown -R root: /etc/skel
 
 echo
