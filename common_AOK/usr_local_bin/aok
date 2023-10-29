@@ -199,7 +199,7 @@ change_hostname_method() {
             #
             if [ -f "$s_new_value" ]; then
                 install_hostname_alt
-                msg_3 "hostname will be sourced from: $s_new_value"
+                echo "hostname will be sourced from: $s_new_value"
                 "$hostname_alt" -S "$s_new_value"
             else
                 echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
@@ -214,17 +214,17 @@ change_hostname_method() {
             #
             install_hostname_alt
             echo "$s_new_value" >"$f_etc_hostname"
-            msg_3 "/etc/hostname will be used, so no syncing will be done."
+            echo "/etc/hostname will be used, so no syncing will be done."
             "$hostname_alt" -S "$f_etc_hostname"
         fi
         "$hostname_alt" -U
-        msg_3 "hostname set to: $($hostname_alt)"
+        echo "hostname set to: $($hostname_alt)"
         if [ -z "$source_file" ]; then
             #
             #  source_file would typically only be set during initial deploy
             #  and in that case this disclaimer wont be needed
             #
-            msg_3 "Your shell prompt might have cached the hostname when the session started."
+            echo "Your shell prompt might have cached the hostname when the session started."
         fi
         exit 0
         ;;
