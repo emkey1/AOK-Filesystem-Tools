@@ -1,6 +1,6 @@
 # AOK-Filesystems-Tools
 
-The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI.
+The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI. Initially focused on the iSH-AOK fork, but this also works fine on the mainline iSH, with the exception that Debian/Devuan cant be used.
 
 You can choose between the distributions Alpine or Debian. For shells it comes with a basic setup for Bash, Zsh and Ash, using a common init file shared between the different shells, for settings not bound to a specific shell, such as PATH aliases and so on.
 
