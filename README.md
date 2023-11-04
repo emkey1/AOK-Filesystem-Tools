@@ -1,8 +1,8 @@
 # AOK-Filesystems-Tools
 
-The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI. Initially focused on the iSH-AOK fork, but this also works fine on the mainline iSH, with the exception that Debian/Devuan cant be used.
+The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI. Initially focused on the iSH-AOK fork, but this also works fine on the mainline iSH, with the exception that Debian/Devuan can't be used.
 
-You can choose between the distributions Alpine or Debian. For shells it comes with a basic setup for Bash, Zsh and Ash, using a common init file shared between the different shells, for settings not bound to a specific shell, such as PATH aliases and so on.
+You can choose between the distributions Alpine or Debian. For shells it comes with a basic setup for Bash, Zsh, and Ash, using a common init file shared between the different shells, for settings not bound to a specific shell, such as PATH aliases and so on.
 
 Both Alpine and Debian offer a fairly similar user experience. More or less the same apps are installed, and they offer the same custom tools. Alpine uses fewer resources, so things will be a bit "faster," but in the iSH universe, speed is a relative concept.
 
@@ -34,33 +34,33 @@ Please ensure that this is located in /opt/AOK, as various parts of the tool rel
 
 ## Compatability
 
-You can build the file system on any platform, but for chrooting, so that you can pre build, and/or run the dest env on the build platform, you need to build on iSH or Linux (x86).
+You can build the file system on any platform, but for chrooting, so that you can pre-build, and/or run the dest env on the build platform, you need to build on iSH or Linux (x86).
 
 ## Available Distros
 
 ### Alpine File System
 
-Fully usable. Release can be selected in AOK_VARS
+Fully usable. The release can be selected in AOK_VARS
 
 ### Debian File System
 
-Fully usable. Be aware that this is Debian 10, since that was the last version of Debian for 32-bit environs. Deb 10 has been end of lifed, so will no longer recieve updates, but you are unlikely to run any public services on iSH, so for experimenting with a local Debian, it should be fine.
+Fully usable. Be aware that this is Debian 10, since that was the last version of Debian for 32-bit environs. Deb 10 has been end of lifed, so will no longer receive updates, but you are unlikely to run any public services on iSH, so for experimenting with a local Debian, it should be fine.
 
 #### Performance issues running Debian
 
-Any time you add/delete a package containing man pages it will cause a man-db trigger to reindex all man pages. On a normal system this is so close to instantaneous that it is a non-issue. However when running Debian on iSH-AOK this reindexing takes a long time...
+Any time you add/delete a package containing man pages it will cause a man-db trigger to reindex all man pages. On a normal system, this is so close to instantaneous that it is a non-issue. However, when running Debian on iSH-AOK this reindexing takes a long time...
 
-By default the iSH-AOK Debaian base images includes the man tools, since it is normally expected to be present on a Debian. If you can live without them, getting rid of them will vastly improve responsiveness when adding/removing packages.
+By default, the iSH-AOK Debian base images include the man tools, since it is normally expected to be present on a Debian. If you can live without them, getting rid of them will vastly improve responsiveness when adding/removing packages.
 
-You can achieve this by adding the following in your config
+You can achieve this by adding the following to your config
 
 ```sh
 DEB_PKGS_SKIP="man-db"
 ```
 
-This will disable the man system in new File Systems you create.
+This will disable the man system in the new File Systems you create.
 
-If you can use prebuild when you generate your FS, DEB_PKGS_SKIP will be processed on the build host, completing the task in seconds instead of minutes
+If you can use prebuild when you generate your FS, DEB_PKGS_SKIP will be processed on the build host, completing the task in seconds, instead of minutes on the destination platform.
 
 In an already deployed Debian 10, instead do:
 
@@ -94,7 +94,7 @@ To create a File system allowing you to choose between Alpine, Debian, or Devuan
 build_fs -s
 ```
 
-This is the recommended build method if you don't need to prebuild. The initial tarball will be around 8MB, and assuming the target device is reasonably modern, the setup should not take too long.
+This is the recommended build method if you don't need to pre-build. The initial tarball will be around 8MB, and assuming the target device is reasonably modern, the setup should not take too long.
 
 ## Configuration
 
@@ -106,9 +106,9 @@ The simplest way to start using this override file is to copy `AOK_VARS` into `.
 
 The default command when running `do_chroot.sh` is to examine /etc/password on the dest_fs and select the shell used by root.
 
-When testing setups in a chroot environment, some extra steps might be needed to complete the deploy. Any remaining deploy steps are copied to /etc/profile, since in virtually all cases that is run at startup.
+When testing setups in a chroot environment, some extra steps might be needed to complete the deployment. Any remaining deploy steps are copied to /etc/profile, since in virtually all cases, it is run during startup.
 
-If you start with a shell not running /etc/profile, the deploy will not progress. If that happens, it is not much of an issue.
+If you start with a shell not running /etc/profile, the deployment will not progress. If that happens, it is not much of an issue.
 
 Either run it manually inside the chrooted env:
 
