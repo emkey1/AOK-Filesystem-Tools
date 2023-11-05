@@ -64,6 +64,9 @@ cmd="$cmd | grep -a -B 16 cmd\:${prog}="
 #
 #  reverse this output, and search for the line starting with P:
 #  this should be the corresponding package name
+#  This reversal will slightly improve the result in case the lines
+#  extracted above ends up spanning more than one package. Bad but
+#  at least the relevant package is listed first.
 #
 cmd="$cmd | sort -r | grep '^P:'"
 
