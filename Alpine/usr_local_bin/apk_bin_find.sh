@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
@@ -12,7 +12,7 @@
 
 error_msg() {
     msg="$1"
-    [[ -z "$msg" ]] && error_msg "error_msg() called with no param"
+    [ -z "$msg" ] && error_msg "error_msg() called with no param"
     echo "ERROR: $msg"
     exit 1
 }
@@ -36,33 +36,38 @@ case "$1" in
 
     "-h" | "--help") show_help ;;
 
-    *) cmd="$1" ;;
+    *) prog="$1" ;;
 
 esac
 
 #  Some param checks
-[[ -z "$cmd" ]] && error_msg "no param, try -h"
-echo "$cmd" | grep -q '/' &&  error_msg "Cant contain / chars"
+[ -z "$prog" ] && error_msg "no param, try -h"
+echo "$prog" | grep -q '/' &&  error_msg "Cant contain / chars"
 
-search_for_it=(
-    #  list all the tar files containing info about apks
-     "ls /var/cache/apk/*.tar.gz"
+#
+#  Creating cmd step by step, so that each sub-task can be explained
+#
 
-    #  Process each file, unpacking it and examining content
-    ' | xargs -I {} tar -zxf {} -O'
-    
-    #  For each match show the preceeding lines in order to find package
-    #  name, records seems to normally be 14 lines, so grab a bit more to
-    #  be somewhat future proof
-    " | grep -a -B 16 cmd\:${cmd}="
-    
-    #  reverse this output, and search for the line starting with P:
-    #  this should be the corresponding package name
-    ' | sort -r | grep "^P:"' # | echo ghepp'  # | head -n 1
-    
-    #  filter out the P: prefix
-    ' | cut -d: -f2'
-)
+#  list all the tar files containing info about apks
+cmd="ls /var/cache/apk/*.tar.gz"
 
-#  shellcheck disable=SC2294
-eval "${search_for_it[@]}"
+#  Process each file, unpacking it and examining content
+cmd="$cmd | xargs -I {} tar -zxf {} -O"
+    
+#
+#  For each match show the preceeding lines in order to find package
+#  name, records seems to normally be 14 lines, so grab a bit more to
+#  be somewhat future proof
+#
+cmd="$cmd | grep -a -B 16 cmd\:${prog}="
+
+#
+#  reverse this output, and search for the line starting with P:
+#  this should be the corresponding package name
+#
+cmd="$cmd | sort -r | grep '^P:'"
+
+#  filter out the P: prefix
+cmd="$cmd | cut -d: -f2"
+
+eval "$cmd"
