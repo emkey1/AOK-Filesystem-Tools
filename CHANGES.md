@@ -1,7 +1,6 @@
 # Changes
-'
 
-- new Alpine tool apk_bin_find.sh bash->sh
+- new Alpine tool apk_find_pkg.sh
 - rsync_chown() -> tools/utils
 - tools/upgrade_aok_fs.sh make root: own /etc/skel files
 - added version notice to select distro
