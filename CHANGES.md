@@ -1,7 +1,7 @@
 # Changes
 '
-## release 0.10.1
 
+- new Alpine tool apk_bin_find.sh
 - rsync_chown() -> tools/utils
 - tools/upgrade_aok_fs.sh make root: own /etc/skel files
 - added version notice to select distro
