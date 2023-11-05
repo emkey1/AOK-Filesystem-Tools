@@ -1,29 +1,41 @@
 # Changes
 '
+## release 0.10.1
 
 - rsync_chown() -> tools/utils
 - tools/upgrade_aok_fs.sh make root: own /etc/skel files
-- setup_final_tasks.sh ensures all config variables referencing file items are synced if on iCloud
-- Changed /usr/local/bin/aok to use echo instead of msg_3 to make it not look like a deploy item
 - added version notice to select distro
+
 - if aok fails to (re-)enable alt hostname it is disabled
-I will try to keep track of changes between releases here
-- If /iCloud is an iOS mount, it will be synced to ensure normal operation
+
+
 - New rewrite of handling hostname for iOS >= 17 now can use /etc/hostname in traditional way
-- added hostname_ settings to tools/utils.sh related to alt hostname handling iOS >= 17
-- test imgs using TZ=UTC
+- Now hostname workaround can be enabled/disabled by running /usr/local/bin/aok
+- Removed USE_SYNC_FILE_HOSTNAME, now autodetects iOS 17 by checking if /bin/hostname returns localhost
+- Changed /usr/local/bin/aok to use echo instead of msg_3 to make it not look like a deploy item
+
+
+- setup_final_tasks.sh ensures all config variables referencing file items are synced if on iCloud
 - ash & bash different prompts
+- select_distro uses exit 123 for select_distro_prepare if chrooted
+- uses installed /etc/skel when creating accounts instead of copying from /opt/AOK
+- New Debian src-img: Debian10-7-aok-1.tgz
+- set_new_etc_profile - sets PATH if deploy script is aborted/completed
+- wrap deploy script in outer scr to prevent errors from aborting
+
+- Alpine/etc/profile - added the sbins to common PATH
+
+I will try to keep track of changes between releases here
+
+- If /iCloud is an iOS mount, it will be synced to ensure normal operation
+- added hostname_ settings to tools/utils.sh related to alt hostname handling iOS >= 17
 - Dropped the hostname sync aproach. Now just displaying /etc/hostname
 - moved hostname_alt and now is defined in tools/utils.sh
-- Removed USE_SYNC_FILE_HOSTNAME, now autodetects iOS 17 by checking if /bin/hostname returns localhost
-- select_distro uses exit 123 for select_distro_prepare if chrooted
-- set_new_etc_profile - sets PATH if deploy script is aborted/completed
-- uses installed /etc/skel when creating accounts instead of copying from /opt/AOK
 - setup_final_tasks.sh now defines a full PATH including /usr/local/bin
-- Now hostname workaround can be enabled/disabled by running /usr/local/bin/aok
-- wrap deploy script in outer scr to prevent errors from aborting
 - Skips new hostname procedure if version is detected to be < 17
-- New Debian src-img: Debian10-7-aok-1.tgz
+
+=== not needed
+- test imgs using TZ=UTC
 
 ## release 0.10.0
 

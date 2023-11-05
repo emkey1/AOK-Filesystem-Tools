@@ -12,12 +12,7 @@
 
 # Let's set the path here since that covers both zsh and bash
 
-if [ "$(id -u)" -eq 0 ]; then
-    PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-else
-    PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
-fi
-export PATH
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 ID="$(id -u)"
 CHECK="$(/bin/rc-status 2>/dev/null | grep -c sshd)"
