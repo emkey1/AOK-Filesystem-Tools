@@ -31,6 +31,9 @@ pts0::respawn:/sbin/agetty -a root pts/0 linux
 IMPORTANT UPDATE: Please be aware that in Alpine you cant use pts0 as an inittab identifier for whatever reason, despite it being no longer than 4 chars, in such cases labeling it as tty1 works and will give you a prompt.
 On Debian pts0 works, and makes more sense since it hints what device this is using
 
+## Remove obsolete file
+
+Alpine/usr_local_bin/apk_find_pkg.sh it is now apk_find_pkg
 
 ## Wait for bootup to complete
 

@@ -1,5 +1,6 @@
 # Changes
 
+- apk_find_pkg.sh -> apk_find_pkg
 - new Alpine tool apk_find_pkg.sh
 - rsync_chown() -> tools/utils
 - tools/upgrade_aok_fs.sh make root: own /etc/skel files
