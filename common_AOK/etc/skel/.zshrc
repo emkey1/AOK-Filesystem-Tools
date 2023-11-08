@@ -67,4 +67,4 @@ zsh_history_conf
 PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
 
 #  Inside tmux user and time is displayed on status line
-[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@${HOSTNAME} %F{240}%*%f"
+[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@$_hn %F{240}%*%f"
