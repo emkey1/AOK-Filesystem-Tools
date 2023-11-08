@@ -1,5 +1,6 @@
 # Changes
 
+- tweaked skel files
 - apk_find_pkg.sh -> apk_find_pkg
 - new Alpine tool apk_find_pkg.sh
 - rsync_chown() -> tools/utils

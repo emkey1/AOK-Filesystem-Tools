@@ -30,45 +30,58 @@ prepend_path() {
     unset extra_p
 }
 
+basic_aliases() {
+    #
+    # enable color support of ls and also add handy aliases
+    #
+    if test -x /usr/bin/dircolors; then
+	if test -r ~/.dircolors; then
+            eval "$(dircolors -b ~/.dircolors)"
+	else
+            eval "$(dircolors -b)"
+	fi
+	alias ls='ls --color=auto'
+	#alias dir='dir --color=auto'
+	#alias vdir='vdir --color=auto'
+
+	alias grep='grep --color=auto'
+	alias fgrep='fgrep --color=auto'
+	alias egrep='egrep --color=auto'
+    fi
+
+    #
+    #  Some more ls aliases
+    #
+    alias ll='ls -alFh'
+    alias la='ls -A'
+    alias lt='ls -lt'
+    alias ld='ls -d */'
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 #
 #  Some common bin locations in home dir,
 #  add in reverse order, last will be first in PATH
 #
 prepend_path "$HOME"/bin
 prepend_path "$HOME"/.local/bin
-
-#
-# enable color support of ls and also add handy aliases
-#
-if test -x /usr/bin/dircolors; then
-    if test -r ~/.dircolors; then
-        eval "$(dircolors -b ~/.dircolors)"
-    else
-        eval "$(dircolors -b)"
-    fi
-    alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
-fi
-
-#
-#  Some more ls aliases
-#
-alias ll='ls -l'
-alias la='ls -A'
-alias l='ls -CF'
-
-if test -x /usr/local/bin/hostname; then
-    _hn="$(/usr/local/bin/hostname)"
-else
-    _hn="$(/bin/hostname -s)"
-fi
-
-#
-#  Cleanup env
-#
 unset -f prepend_path
+
+basic_aliases
+unset -f basic_aliases
+
+#
+#  This is a heper for setting hostname in prompts, since the typical \h
+#  Doesnt work on iOS >= 17
+#
+if test -x /usr/local/bin/hostname; then
+    HOSTNAME="$(/usr/local/bin/hostname)"
+else
+    HOSTNAME="$(/bin/hostname -s)"
+fi
+export HOSTNAME
