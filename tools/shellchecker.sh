@@ -124,11 +124,11 @@ do_vale() {
     local vale_tmp="/tmp/shlchk-vale"
     [[ -z "$fn1" ]] && error_msg "do_vale() - no paran given!" 1
     if [[ -n "${vale_p}" ]]; then
-	echo "checking text: $fn1"
-        if ! "$vale_p" "$fn1" > "$vale_tmp" ; then
-	    cat "$vale_tmp"
-	    exit 0
-	fi
+        echo "checking text: $fn1"
+        if ! "$vale_p" "$fn1" >"$vale_tmp"; then
+            cat "$vale_tmp"
+            exit 0
+        fi
     fi
 }
 
@@ -276,18 +276,18 @@ process_file_tree() {
         #  them just make a call like this:
         #    list_item_group "Python" "${items_python[@]}"
         #
-	if [[ "$f_type" == *"POSIX shell script"* ]]; then
-	    items_posix+=("$fname")
-	    [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_posix "$fname"
-	    continue
+        if [[ "$f_type" == *"POSIX shell script"* ]]; then
+            items_posix+=("$fname")
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_posix "$fname"
+            continue
         elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
-	    items_bash+=("$fname")
-	    [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
-	    continue
+            items_bash+=("$fname")
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
+            continue
         elif [[ "$f_type" == *"ASCII text"* ]]; then
             #  This must come after items_ucode_esc, otherwise this
             #  very generic string would match most files
-	    [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && do_vale "$fname"
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && do_vale "$fname"
             items_ascii+=("$fname")
             continue
         fi
@@ -410,7 +410,6 @@ cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for t
 #  Specifix excludes
 #
 excludes=(
-    ./common_AOK/cron/periodic/15min/dmesg_save
 )
 
 #
