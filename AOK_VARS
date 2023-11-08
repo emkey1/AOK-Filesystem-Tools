@@ -138,7 +138,7 @@ INITIAL_LOGIN_MODE="enable"
 ########################################################################
 
 #
-#  ALPINE_VERSION defines what Alpine release will be used
+#  ALPINE_VERSION defines what Alpine release (minirootfs) will be used
 #
 # ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
 # ALPINE_VERSION=3.16.7  # End of Alpine support 2024-05-23
@@ -146,7 +146,13 @@ INITIAL_LOGIN_MODE="enable"
 ALPINE_VERSION=3.18.4 # End of Alpine support 2025-05-09
 #
 #  For edge releases - Current development tree
-#  format is the isodate featured in the minirootfs filename
+#  Format is the isodate featured in the minirootfs filename
+#  Meaning that: alpine-minirootfs-20230901-x86.tar.gz
+#  Would be requested as: ALPINE_VERSION="20230901"
+#
+# ALPINE_VERSION="20230901"  # 3.19_alpha20230901
+# ALPINE_VERSION="20230329"  # 3.18_alpha20230329
+# ALPINE_VERSION="20221110"  # 3.17_alpha20221110
 #
 #  If you need to detect if the build is an edge release in your
 #  .AOK_VARS, when making config desicions,
@@ -155,10 +161,6 @@ ALPINE_VERSION=3.18.4 # End of Alpine support 2025-05-09
 #  if echo "$ALPINE_VERSION" | grep -Eq '^[0-9]{8}$'; then
 #      echo "this is edge"
 #  fi
-#
-# ALPINE_VERSION="20230901"  # 3.19_alpha20230901
-# ALPINE_VERSION="20230329"  # 3.18_alpha20230329
-# ALPINE_VERSION="20221110"  # 3.17_alpha20221110
 #
 
 #
