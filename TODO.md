@@ -1,5 +1,11 @@
 # TODO
 
+## Seems to be issues with latest  mdcat on 3.18
+
+investigate and if confirmed, try to find latest version that can be used, and add it to set of custom apks
+in Alpine/setup_alpine.sh
+
+
 ## Using /dev/console within the iSH limitations
 
 This actually works much better in Debian than in Alpine, since in Alpine as of now only autologin as root works. agetty fails to change ownership of /dev/pts/0 on Alpine
