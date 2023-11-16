@@ -120,7 +120,7 @@ INITIAL_LOGIN_MODE="enable"
 #  deploy unless iOS >= 17.
 #  It can be installed later by running: aok -H enable
 #
-# ALT_HOSTNAME_SOURCE_FILE="/mnt/iCloud/hostname-by-shortcut.txt"
+# ALT_HOSTNAME_SOURCE_FILE="/iCloud/temp/hostname_by_shortcut.txt"
 
 #
 #  If you run both iSH-AOK and regular iSH on the same device
