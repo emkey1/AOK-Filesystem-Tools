@@ -371,6 +371,44 @@ copy_local_bins() {
     # msg_3 "copy_local_bins() done"
 }
 
+setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    # SKIP_LOGIN
+
+    _distro="$(hostfs_detect)"
+
+    # Devuan shares login bins wirh Debian
+    [ "$_distro" = "$distro_devuan" ] && _distro="$distro_debian"
+
+    msg_2 "Install $_distro AOK login methods"
+    cp "$aok_content/$_distro/bin/login.loop" /bin
+    chmod +x /bin/login.loop
+    cp "$aok_content/$_distro/bin/login.once" /bin
+    chmod +x /bin/login.once
+
+    mv /bin/login /bin/login.original
+    ln -sf /bin/login.original /bin/login
+
+    #
+    #  In order to ensure 1st boot will be able to run, for now
+    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
+    #  method will be activated at the end of the setup
+    #
+    /usr/local/bin/aok -l disable >/dev/null || {
+        error_msg "Failed to disable login during deploy"
+    }
+
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
+    unset _distro
+}
+
 #---------------------------------------------------------------
 #
 #   boolean checks

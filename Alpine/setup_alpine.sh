@@ -88,36 +88,6 @@ prepare_env_etc() {
     # msg_3 "replace_key_etc_files() done"
 }
 
-setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default login that should work on all platforms.
-    #
-    msg_2 "Install Alpine login methods"
-    cp "$aok_content"/Alpine/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Alpine/bin/login.once /bin
-    chmod +x /bin/login.once
-
-    mv /bin/login /bin/login.original
-    ln -sf /bin/login.original /bin/login
-
-    #
-    #  In order to ensure 1st boot will be able to run, for now
-    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
-    #  method will be activated at the end of the setup
-    #
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
-}
-
 setup_cron_env() {
     msg_2 "Setup Alpine dcron"
 

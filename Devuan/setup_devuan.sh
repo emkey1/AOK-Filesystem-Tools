@@ -52,42 +52,13 @@ prepare_env_etc() {
     msg_3 "prepare_env_etc() done"
 }
 
-setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    # SKIP_LOGIN
-    msg_2 "Install Debian AOK login methods"
-    cp "${aok_content}/Debian/bin/login.loop" /bin
-    chmod +x /bin/login.loop
-    cp "${aok_content}/Debian/bin/login.once" /bin
-    chmod +x /bin/login.once
-
-    # TODO: enabled in Debian, verify it can be ignored here
-    # cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
-
-    mv /bin/login /bin/login.original
-    # ln -sf /bin/login.original /bin/login
-
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
-}
-
 #===============================================================
 #
 #   Main
 #
 #===============================================================
 
-tsd_start="$(date +%s)"
+tsdev_start="$(date +%s)"
 
 . /opt/AOK/tools/utils.sh
 
@@ -117,8 +88,33 @@ apt update -y
 msg_1 "apt upgrade"
 apt upgrade -y
 
+#
+#  To ensure that
+#  a) Deleting stuff, doesnt unintentionally delete what was supposed to
+#     be added in DEPB_PKGS
+#  b) If this is not prebuilt, and man-db is removed, saves the delay
+#     if DEB_PKGS adds something with a man page, just to then delete
+#     the man DB
+#
+#  It makes sense do first delete, then add
+#
+if [ -n "$DEB_PKGS_SKIP" ]; then
+    msg_1 "Removing Devuan packages"
+    echo "$DEB_PKGS_SKIP"
+    echo
+    #
+    #  To prevent leftovers having to potentially be purged later
+    #  we do purge instead of remove, purge implies a remove
+    #
+    #  shellcheck disable=SC2086
+    apt purge -y $DEB_PKGS_SKIP || {
+        error_msg "apt remove failed"
+    }
+
+fi
+
 if [ -n "$DEB_PKGS" ]; then
-    msg_1 "Add co43 Devuan packages"
+    msg_1 "Add Devuan packages"
     echo "$DEB_PKGS"
     bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
 fi
@@ -145,27 +141,13 @@ fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - tsd_start))"
+duration="$(($(date +%s) - tsdev_start))"
 display_time_elapsed "$duration" "Setup Devuan"
 
 if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"
-    exit
-fi
-
-if deploy_state_is_it "$deploy_state_pre_build"; then
-    set_new_etc_profile "$setup_final"
+    exit 123
 else
-    "$setup_final"
-    not_prebuilt=1
-fi
-
-msg_1 "Setup complete!"
-
-duration="$(($(date +%s) - tsd_start))"
-display_time_elapsed "$duration" "Setup Devuan"
-
-if [ "$not_prebuilt" = 1 ]; then
     msg_1 "Please reboot/restart this app now!"
     echo "/etc/inittab was changed during the install."
     echo "In order for this new version to be used, a restart is needed."

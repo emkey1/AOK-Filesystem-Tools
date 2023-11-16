@@ -49,39 +49,6 @@ setup_cron_env() {
     # msg_3 "setup_cron_env() - done"
 }
 
-setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    # SKIP_LOGIN
-    msg_2 "Install Debian AOK login methods"
-    cp "$aok_content"/Debian/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Debian/bin/login.once /bin
-    chmod +x /bin/login.once
-
-    #  Ensure that Debian requires login
-    cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
-
-    mv /bin/login /bin/login.original
-
-    #
-    #  In order to ensure 1st boot will be able to run, for now
-    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
-    #  method will be activated at the end of the setup
-    #
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
-}
-
 debian_services() {
     #
     #  Setting up suitable services, and removing those not meaningfull
@@ -104,17 +71,6 @@ tsd_start="$(date +%s)"
 
 . /opt/AOK/tools/utils.sh
 
-#
-#  Skip if chrooted
-#
-if this_is_ish && ! this_fs_is_chrooted; then
-    msg_2 "Waiting for runlevel default to be ready, normally < 10s"
-    while ! rc-status -r | grep -q default; do
-        msg_3 "not ready"
-        sleep 2
-    done
-fi
-
 deploy_starting
 
 if [ "$build_env" = "$be_other" ]; then
@@ -130,8 +86,10 @@ msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
 
 initiate_deploy Debian "$(cat /etc/debian_version)"
-
 prepare_env_etc
+
+msg_1 "apt update"
+apt update -y
 
 msg_1 "apt upgrade"
 apt upgrade -y || {
@@ -180,6 +138,9 @@ echo
 if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
+
+#  Ensure that Debian requires login
+cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
 
 setup_login
 
