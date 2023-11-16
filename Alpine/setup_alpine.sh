@@ -234,7 +234,7 @@ fi
 msg_1 "Setup complete!"
 
 duration="$(($(date +%s) - tsa_start))"
-display_time_elapsed "$duration" "Setup Debian"
+display_time_elapsed "$duration" "Setup Alpine"
 
 if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"
