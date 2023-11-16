@@ -2,7 +2,7 @@
 
 I will try to keep track of changes between releases here
 
-## release 0.10.1
+## release 0.11.0
 
 - alternate hostname handling for iOS >= 17 rewritten. Now has two modes
 1) Static - set custom hostname in /etc/hosts
