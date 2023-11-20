@@ -289,7 +289,8 @@ display_time_elapsed "$duration" "Setup Final tasks"
 
 deploy_state_clear
 
-msg_1 "This system has completed the last deploy steps and is ready!"
+msg_1 "File system: $AOK_VERSION"
+echo "Setup has completed the last deploy steps and is ready!"
 echo "You are recomended to reboot in order to ensure that your environment is used."
 echo
 
