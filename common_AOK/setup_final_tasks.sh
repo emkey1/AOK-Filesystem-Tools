@@ -289,7 +289,21 @@ display_time_elapsed "$duration" "Setup Final tasks"
 
 deploy_state_clear
 
-msg_1 "File system: $AOK_VERSION"
+msg_1 "File system deploy completed"
+
+#
+#  Display versions of deployed environment
+#
+if hostfs_is_alpine; then
+    cat /etc/motd | head -n 3
+    echo "[0m"
+else
+    /etc/update-motd.d/11-aok-release
+    /etc/update-motd.d/12-deb-vers
+    /etc/update-motd.d/13-ish-release
+    echo
+fi
+
 echo "Setup has completed the last deploy steps and is ready!"
 echo "You are recomended to reboot in order to ensure that your environment is used."
 echo

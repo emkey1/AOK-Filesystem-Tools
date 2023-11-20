@@ -4,6 +4,10 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+### 0.11.0.2
+
+- Display insalled versions at end of deploy
+
 ### 0.11.0.1
 
 - dispplay FS version $AOK_VERSION at end of deploy

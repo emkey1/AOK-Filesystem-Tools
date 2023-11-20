@@ -12,5 +12,5 @@
 deb_version="/etc/debian_version"
 
 if [ -e "$deb_version" ]; then
-    echo "[36mDebian release:  $(cat "$deb_version")[0m"
+    echo "[35mDebian release:  $(cat "$deb_version")[0m"
 fi

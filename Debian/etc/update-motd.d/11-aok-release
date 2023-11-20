@@ -11,5 +11,5 @@
 aok_release="/etc/aok-release"
 
 if [ -e "$aok_release" ]; then
-    echo "[36mAOK-FS release:  $(cat "$aok_release")[0m"
+    echo "[35mAOK-FS release:  $(cat "$aok_release")[0m"
 fi

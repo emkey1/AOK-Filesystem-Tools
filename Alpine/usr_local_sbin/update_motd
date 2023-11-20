@@ -23,21 +23,19 @@
 motd_file="/etc/motd"
 motd_template="/etc/motd_template"
 aok_release="/etc/aok-release"
+alp_rel="$(grep VERSION_ID /etc/os-release | cut -d'=' -f2)"
 
-echo "[35m" >"$motd_file"
 if [ -e "$aok_release" ]; then
-    echo "AOK release:    $(cat "$aok_release")" >>"$motd_file"
+    echo "[35mAOK release:    $(cat "$aok_release")[0m" >>"$motd_file"
 fi
 
-rel="$(grep VERSION_ID /etc/os-release | cut -d'=' -f2)"
+echo "[35mAlpine release: $alp_rel[0m" >>"$motd_file"
 
-echo "Alpine release: $rel" >>"$motd_file"
 if [ -d /proc/ish ]; then
-    # Dont do this whilst chrooted in linux etc
-    echo "iSH release:    $(cat /proc/ish/version)" >>"$motd_file"
+    ish_rel="$(cat /proc/ish/version)"
 else
-    echo "iSH release:    Can't be detected whilst chrooted" >>"$motd_file"
+    ish_rel="Can't be detected whilst chrooted"
 fi
+echo "[35miSH release:    $ish_rel[0m" >>"$motd_file"
 
-echo "[0m" >>"$motd_file"
 cat "$motd_template" >>"$motd_file"
