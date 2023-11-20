@@ -295,7 +295,8 @@ msg_1 "File system deploy completed"
 #  Display versions of deployed environment
 #
 if hostfs_is_alpine; then
-    cat /etc/motd | head -n 3
+    # cat /etc/motd | head -n 3
+    head -n 3 < /etc/motd
     echo "[0m"
 else
     /etc/update-motd.d/11-aok-release
