@@ -1,5 +1,10 @@
 # TODO
 
+## let aok toggle between direct console and getty
+
+## Start working on using a working /run
+
+
 ## Seems to be issues with latest  mdcat on 3.18
 
 investigate and if confirmed, try to find latest version that can be used, and add it to set of custom apks
