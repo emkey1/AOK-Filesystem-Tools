@@ -157,6 +157,8 @@ else
     "$setup_final"
 fi
 
+installed_versions_if_prebuilt
+
 msg_1 "Setup complete!"
 
 duration="$(($(date +%s) - tsd_start))"
