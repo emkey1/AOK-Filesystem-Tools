@@ -234,19 +234,18 @@ DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc shadow-doc \
 #  If this type of install is selected, this tarball will be used as
 #  base image. Since apt install tends to be really slow on iSH-AOK,
 #  these images comes with all the default AOK_FS stuff pre-installed
-#  If you want to get rid of default packages, use DEB_PKGS_SKIP
+#  If you want to get rid of some default packages, use DEB_PKGS_SKIP
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
 DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/tlj1rqz2b4pxrkghiyt8b/Debian10-7-aok-1.tgz?rlkey=hculgm6kqqihfqwe1ey2anb8q"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
 
 #
-#  Since the Debian image comes pre installed with all the aok related
-#  stuff, here you can list packages that should be deleted.
-#  This happens during the pre-build when used,
+#  Since the Debian src image comes pre installed as close as possibly
+#  matching the Alpine packages, here you can list packages that should
+#  be excluded. This happens during the pre-build when it isused,
 #  it saves time compared to having to do it on the target device.
-#  DEN_PKGS_SKIP is processed before DEB_PKGS to ensure that
+#  DEB_PKGS_SKIP is processed before DEB_PKGS to ensure that
 #  this doesnt unintentionally deelete something for DEB_PKGS
 #
 DEB_PKGS_SKIP=""
@@ -266,3 +265,45 @@ DEB_PKGS=""
 #  This points to a location on the destination device.
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
+
+
+########################################################################
+#
+#                   Devuan Specific
+#
+########################################################################
+
+#
+#  If this type of install is selected, this tarball will be used as
+#  base image. Since apt install tends to be really slow on iSH-AOK,
+#  these images comes with all the default AOK_FS stuff pre-installed
+#  If you want to get rid of some default packages, use DVU_PKGS_SKIP
+#  Best of all if you pre-build, this package removal happens on the
+#  buil-host, so will not have to be done on the dest device!
+#
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
+
+#
+#  Since the Devuan src image comes pre installed as close as possibly
+#  matching the Alpine packages, here you can list packages that should
+#  be excluded. This happens during the pre-build when it isused,
+#  it saves time compared to having to do it on the target device.
+#  DVU_PKGS_SKIP is processed before DVU_PKGS to ensure that
+#  this doesnt unintentionally deelete something for DVU_PKGS
+#
+DVU_PKGS_SKIP=""
+
+#
+#  Here one can add any additional packages to be installed during setup
+#  If pre-build is used, this will happen on the build host.
+#
+DVU_PKGS=""
+
+#
+#  Use this if you want to deploy your own /etc/hosts file etc
+#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
+#  template file.
+#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
+#  This points to a location on the destination device.
+#
+# DEVUAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
