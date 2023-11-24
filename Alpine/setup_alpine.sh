@@ -201,7 +201,10 @@ else
     "$setup_final"
 fi
 
+installed_versions_if_prebuilt
+
 msg_1 "Setup complete!"
+
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
