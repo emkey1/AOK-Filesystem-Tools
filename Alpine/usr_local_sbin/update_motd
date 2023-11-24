@@ -26,16 +26,16 @@ aok_release="/etc/aok-release"
 alp_rel="$(grep VERSION_ID /etc/os-release | cut -d'=' -f2)"
 
 if [ -e "$aok_release" ]; then
-    echo "[35mAOK release:    $(cat "$aok_release")[0m" >>"$motd_file"
+    echo "[35mAOK-FS release:  c$(cat "$aok_release")[0m" >>"$motd_file"
 fi
 
-echo "[35mAlpine release: $alp_rel[0m" >>"$motd_file"
+echo "[35mAlpine release:  $alp_rel[0m" >>"$motd_file"
 
 if [ -d /proc/ish ]; then
     ish_rel="$(cat /proc/ish/version)"
 else
     ish_rel="Can't be detected whilst chrooted"
 fi
-echo "[35miSH release:    $ish_rel[0m" >>"$motd_file"
+echo "[35miSH release:     $ish_rel[0m" >>"$motd_file"
 
 cat "$motd_template" >>"$motd_file"
