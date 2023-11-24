@@ -10,6 +10,7 @@
 
 # editor tmp files
 *~
+.*#
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files

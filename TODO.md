@@ -2,6 +2,10 @@
 
 ## let aok toggle between direct console and getty
 
+## update DEVUAN_SRC_IMAGE
+
+since it is about to become more usefull, i should update it to ensure it is in line with the debian image when it comes to what is installed out of the door
+
 ## Start working on using a working /run
 
 

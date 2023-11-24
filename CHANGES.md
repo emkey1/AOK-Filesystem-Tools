@@ -4,6 +4,12 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+### 0.11.0.3
+
+- corrected motd for Alpine to be in sync with Debians
+- Split up Debian and Devuan config in AOK_VARS
+- added common display_instlled_versions()
+
 ### 0.11.0.2
 
 - Display insalled versions at end of deploy
@@ -36,6 +42,8 @@ Now has two modes:
 - Alpine/etc/profile - added the sbins to common PATH, which makes sense since in most cases, this is run by root
 
 ## next release
+
+- added common display_instlled_versions function
 
 ### 0.11.0.1
 
