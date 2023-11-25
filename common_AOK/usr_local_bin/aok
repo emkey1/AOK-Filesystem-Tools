@@ -36,14 +36,14 @@ destfs_is_alpine() {
 #
 
 launch_cmd_get() {
-    tr -d '\n' < /proc/ish/defaults/launch_command  | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+    tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
 }
 
 launch_cmd_set() {
     new_cmd="$1"
     [ -z "$new_cmd" ] && error_msg "launch_cmd_set() - no param"
-	
-    echo "$1" > /proc/ish/defaults/launch_command
+
+    echo "$1" >/proc/ish/defaults/launch_command
 }
 
 change_console_procedure() {
@@ -67,27 +67,26 @@ display_console_method() {
     # Debian
     # pts0::respawn:/sbin/agetty
     #
-    
+
     if [ "$(launch_cmd_get)" = '[ "/bin/sleep", "infinity" ]' ]; then
         echo "Using getty"
     else
         echo "Using Launch cmd"
     fi
-    
-    
-    # [ "/bin/login", "-f", "root"]%
-    lc_current="$(launch_cmd_get)"
-    echo "current launch cmd: $lc_current"
 
-    launch_cmd_set '[ "/bin/sleep", "infinity" ]'
-    lc_current="$(launch_cmd_get)"
-    echo "current launch cmd: $lc_current"
+    # # [ "/bin/login", "-f", "root"]%
+    # lc_current="$(launch_cmd_get)"
+    # echo "current launch cmd: $lc_current"
 
-    launch_cmd_set '[ "/bin/login", "-f", "root" ]'
-    lc_current="$(launch_cmd_get)"
-    echo "current launch cmd: $lc_current"
+    # launch_cmd_set '[ "/bin/sleep", "infinity" ]'
+    # lc_current="$(launch_cmd_get)"
+    # echo "current launch cmd: $lc_current"
 
-error_msg "thats all!"
+    # launch_cmd_set '[ "/bin/login", "-f", "root" ]'
+    # lc_current="$(launch_cmd_get)"
+    # echo "current launch cmd: $lc_current"
+
+    error_msg "thats all!"
 }
 
 change_login_procedure() {
@@ -380,9 +379,9 @@ while true; do
         ;;
 
     "-c" | "--console")
-	hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
+        hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
         if [ -n "$2" ]; then
-	    this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
+            this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
             change_console_method "$2"
         else
             display_console_method
