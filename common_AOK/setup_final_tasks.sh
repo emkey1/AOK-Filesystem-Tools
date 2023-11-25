@@ -192,7 +192,8 @@ verify_alpine_uptime() {
 	return
     fi
     "$uptime_cmd" > /dev/null || {
-	msg_1 "Installed uptime not useable, reverting to busybox symbolic link"
+	msg_1 "WARNING: Installed uptime not useable!"
+	msg_2 "changing it to busybox symbolic link"
 	rm -f "$uptime_cmd"
 	ln -sf /bin/busybox "$uptime_cmd"
     }
