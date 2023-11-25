@@ -468,11 +468,15 @@ destfs_clear_chrooted() {
 }
 
 rsync_chown() {
+    #
+    #  Local copy, changing ovnership to root:
+    #
     # msg_2 "rsync_chown()"
     source="$1"
     d_dest="$2"
     [ -z "$source" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
+    msg_3 "><> rsync -ahP --chown=root: '$source' '$d_dest'"
     rsync -ahP --chown=root: "$source" "$d_dest"
     unset source
     unset d_dest
@@ -638,26 +642,26 @@ display_installed_versions() {
     #  Display versions of deployed environment
     #
     if hostfs_is_alpine; then
-	# cat /etc/motd | head -n 3
-	head -n 3 < /etc/motd
-	echo "[0m"
+        # cat /etc/motd | head -n 3
+        head -n 3 </etc/motd
+        echo "[0m"
     elif hostfs_is_debian; then
-	/etc/update-motd.d/11-aok-release
-	/etc/update-motd.d/12-deb-vers
-	/etc/update-motd.d/13-ish-release
-	echo
+        /etc/update-motd.d/11-aok-release
+        /etc/update-motd.d/12-deb-vers
+        /etc/update-motd.d/13-ish-release
+        echo
     elif hostfs_is_devuan; then
-	/etc/update-motd.d/11-aok-release
-	/etc/update-motd.d/12-devu-vers
-	/etc/update-motd.d/13-ish-release
-	echo
+        /etc/update-motd.d/11-aok-release
+        /etc/update-motd.d/12-devu-vers
+        /etc/update-motd.d/13-ish-release
+        echo
     fi
 }
 
 installed_versions_if_prebuilt() {
     if deploy_state_is_it "$deploy_state_pre_build"; then
-	echo
-	display_installed_versions
+        echo
+        display_installed_versions
     fi
 }
 
