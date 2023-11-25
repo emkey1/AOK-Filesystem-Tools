@@ -197,7 +197,6 @@ verify_alpine_uptime() {
 	rm -f "$uptime_cmd"
 	ln -sf /bin/busybox "$uptime_cmd"
     }
-
 }
 
 deploy_state_clear() {
