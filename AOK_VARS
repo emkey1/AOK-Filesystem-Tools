@@ -207,22 +207,23 @@ AOK_APKS="nload nload-doc"
 VNC_APKS="x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy \
     i3wm i3wm-doc i3lock i3lock-doc i3status i3status-doc xdpyinfo \
     xdpyinfo-doc ttf-dejavu"
-DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
-    ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
+DEVEL_APKS="build-base musl-dev linux-headers cmake automake autoconf \
+    byacc ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
     bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev \
     libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
 #
-#  This only contains apps installed by default, not development related
-#  man pages, those doing development are assumed to know what man pages
-#  they might need :)
+#  This only contains man pages for apps installed by default, 
+#  not development related man pages, those doing development are 
+#  assumed to know what man pages they might need :)
 #
-DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc shadow-doc \
-    shadow-login-doc findutils-doc sed-doc tar-doc grep-doc htop-doc \
-    less-doc git-doc sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc \
-    zsh-doc openrc-doc dcron-doc openssh-doc rsync-doc curl-doc wget-doc \
-    elinks-doc mosh-doc vim-doc nano-doc mg-doc newt-doc tmux-doc \
-    fortune-doc"
+DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
+    shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
+    tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
+    sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
+    dcron-doc openssh-doc rsync-doc curl-doc wget-doc elinks-doc \
+    mosh-doc vim-doc nano-doc mg-doc newt-doc tmux-doc fortune-doc"
+
 
 ########################################################################
 #
