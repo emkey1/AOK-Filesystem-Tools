@@ -31,12 +31,23 @@ destfs_is_alpine() {
     test -f /etc/alpine-release
 }
 
-change_console_procedure() {
-    error_msg "Not done: change_console_procedure()"
-}
+#
+#  Handling console origin
+#
 
 launch_cmd_get() {
-    tr -d '\n' < /proc/ish/defaults/launch_command  | sed 's/  \+/ /g'
+    tr -d '\n' < /proc/ish/defaults/launch_command  | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+}
+
+launch_cmd_set() {
+    new_cmd="$1"
+    [ -z "$new_cmd" ] && error_msg "launch_cmd_set() - no param"
+	
+    echo "$1" > /proc/ish/defaults/launch_command
+}
+
+change_console_procedure() {
+    error_msg "Not done: change_console_procedure()"
 }
 
 display_console_method() {
@@ -56,11 +67,27 @@ display_console_method() {
     # Debian
     # pts0::respawn:/sbin/agetty
     #
-
+    
+    if [ "$(launch_cmd_get)" = '[ "/bin/sleep", "infinity" ]' ]; then
+        echo "Using getty"
+    else
+        echo "Using Launch cmd"
+    fi
+    
+    
     # [ "/bin/login", "-f", "root"]%
     lc_current="$(launch_cmd_get)"
     echo "current launch cmd: $lc_current"
-    error_msg "thats all!"
+
+    launch_cmd_set '[ "/bin/sleep", "infinity" ]'
+    lc_current="$(launch_cmd_get)"
+    echo "current launch cmd: $lc_current"
+
+    launch_cmd_set '[ "/bin/login", "-f", "root" ]'
+    lc_current="$(launch_cmd_get)"
+    echo "current launch cmd: $lc_current"
+
+error_msg "thats all!"
 }
 
 change_login_procedure() {
@@ -233,10 +260,6 @@ change_hostname_method() {
             if [ -f "$s_new_value" ]; then
                 install_hostname_alt
                 echo "hostname will be sourced from: $s_new_value"
-		#
-		#  Sometimes there will be mv error arround here, if you
-		#  see such check fileprivs of ALT_HOSTNAME_SOURCE_FILE
-		#
                 "$hostname_alt" -S "$s_new_value"
             else
                 echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
@@ -362,7 +385,6 @@ while true; do
 	    this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
             change_console_method "$2"
         else
-            printf "Current login method: "
             display_console_method
         fi
         ;;
