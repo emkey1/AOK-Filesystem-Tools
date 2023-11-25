@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- For Alpine the installed uptime is tested, if it fails - usually a seg fault. It is replaced with a symbolic link to busybox
+
 ### 0.11.0.3
 
 - corrected motd for Alpine to be in sync with Debians

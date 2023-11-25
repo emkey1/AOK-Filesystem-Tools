@@ -178,6 +178,27 @@ run_additional_tasks_if_found() {
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
+verify_alpine_uptime() {
+    #
+    #  Some versions of uptime doesnt work in ish, test and
+    #  replace with softlink to busybox if that is the case
+    #
+    uptime_cmd="$(command -v uptime)"
+    uptime_cmd_real="$(realpath "$uptime_cmd")"
+    if [ "$uptime_cmd_real" = "/bin/busybox" ]; then
+	#
+	#  Already using busybox, nothing needs to be done
+	#
+	return
+    fi
+    "$uptime_cmd" > /dev/null || {
+	msg_1 "Installed uptime not useable, reverting to busybox symbolic link"
+	rm -f "$uptime_cmd"
+	ln -sf /bin/busybox "$uptime_cmd"
+    }
+
+}
+
 deploy_state_clear() {
     msg_2 "deploy_state_clear()"
 
@@ -249,6 +270,11 @@ set_initial_login_mode
 
 if hostfs_is_alpine; then
     next_etc_profile="$aok_content/Alpine/etc/profile"
+    #
+    #  Some versions of uptime doesnt work in ish, test and
+    #  replace with softlink to busybox if that is the case
+    #
+    verify_alpine_uptime
 elif hostfs_is_debian; then
     next_etc_profile="$aok_content/Debian/etc/profile"
 elif hostfs_is_devuan; then
