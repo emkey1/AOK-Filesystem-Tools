@@ -500,6 +500,9 @@ display_build_target
 
 msg_2 "Preparing build environment"
 
+[ -z "$d_build_root" ] && error_msg "build_root not assigned"
+[ -d "$d_build_root" ] || error_msg "build_root not a folder [$build_root]"
+
 msg_3 "Clearing build root $d_build_root"
 rm -rf "$d_build_root"
 
