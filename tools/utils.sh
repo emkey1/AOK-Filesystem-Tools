@@ -476,7 +476,6 @@ rsync_chown() {
     d_dest="$2"
     [ -z "$source" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
-    msg_3 "><> rsync -ahP --chown=root: '$source' '$d_dest'"
     rsync -ahP --chown=root: "$source" "$d_dest"
     unset source
     unset d_dest
