@@ -56,16 +56,16 @@ rsync_chown "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
 #
 if hostfs_is_alpine; then
     echo "Alpine specifics"
-    rsync_chown "$aok_content"/Alpine/usr_local_bin/* /usr/local/bin
-    rsync_chown "$aok_content"/Alpine/usr_local_sbin/* /usr/local/sbin
+    rsync_chown "$aok_content"/Alpine/usr_local_bin/ /usr/local/bin/
+    rsync_chown "$aok_content"/Alpine/usr_local_sbin/ /usr/local/sbin/
 elif hostfs_is_debian; then
     echo "Debian specifics"
-    rsync_chown "$aok_content"/Debian/usr_local_bin/* /usr/local/bin
-    rsync_chown "$aok_content"/Debian/usr_local_sbin/* /usr/local/sbin
+    rsync_chown "$aok_content"/Debian/usr_local_bin/ /usr/local/bin/
+    rsync_chown "$aok_content"/Debian/usr_local_sbin/ /usr/local/sbin/
 elif hostfs_is_devuan; then
     echo "Devuan specifics"
-    rsync_chown "$aok_content"/Devuan/usr_local_bin/* /usr/local/bin
-    rsync_chown "$aok_content"/Devuan/usr_local_sbin/* /usr/local/sbin
+    rsync_chown "$aok_content"/Devuan/usr_local_bin/ /usr/local/bin/
+    rsync_chown "$aok_content"/Devuan/usr_local_sbin/ /usr/local/sbin/
 else
     echo "ERROR: Failed to recognize Distro, aborting."
     exit 1
