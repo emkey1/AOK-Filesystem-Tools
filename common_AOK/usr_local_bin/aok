@@ -20,8 +20,8 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--c, --console   Toggles between using Launch cmd and getty
--l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
+-c, --console   Toggles between using Launch cmd and getty [launch|inittab] Now: $()
+-l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)"
 -H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)"
     exit 0
 }
@@ -46,20 +46,7 @@ launch_cmd_set() {
     echo "$1" >/proc/ish/defaults/launch_command
 }
 
-change_console_procedure() {
-    error_msg "Not done: change_console_procedure()"
-}
-
 display_console_method() {
-    #
-    # /proc/ish/defaults/launch_command
-    # /bin/sleep infinity
-    #
-    # [
-    #   "/bin/login",
-    #   "-f",
-    #   "root"
-    # ]
     #
     # Alpine
     # tty1::respawn:/sbin/agetty
@@ -85,8 +72,36 @@ display_console_method() {
     # launch_cmd_set '[ "/bin/login", "-f", "root" ]'
     # lc_current="$(launch_cmd_get)"
     # echo "current launch cmd: $lc_current"
+}
 
-    error_msg "thats all!"
+change_console_procedure() {
+    cons_mode="$1"
+
+    case "$cons_mode"
+
+    "launch")
+        error_msg "method 'launch' not implemented"
+        ;;
+
+    "inittab")
+        error_msg "method 'inittab' not implemented"
+        ;;
+
+    "")
+        echo
+        echo "ERROR: Missing param indicating new login procedure"
+        exit 1
+        ;;
+
+    *)
+        echo
+        echo "ERROR: Bad param to change login procedure: $1"
+        exit 1
+        ;;
+
+    esac
+
+    error_msg "Not done: change_console_procedure()"
 }
 
 change_login_procedure() {
@@ -336,7 +351,6 @@ login_original="/bin/login.original"
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
-    echo "Executing as root"
     # using $0 instead of full path makes location not hardcoded
     if ! sudo "$0" "$@"; then
         echo
