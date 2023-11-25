@@ -26,9 +26,9 @@ hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
-if ! this_is_ish; then
-    error_msg "This should only be run on an iSH platform!"
-fi
+# if ! this_is_ish; then
+#     error_msg "This should only be run on an iSH platform!"
+# fi
 
 # execute again as root
 if [ "$(whoami)" != "root" ]; then
@@ -48,8 +48,8 @@ echo
 #  Always copy common stuff
 #
 echo "Common stuff"
-rsync_chown "$aok_content"/common_AOK/usr_local_bin/* /usr/local/bin
-rsync_chown "$aok_content"/common_AOK/usr_local_sbin/* /usr/local/sbin
+rsync_chown "$aok_content"/common_AOK/usr_local_bin/ /usr/local/bin/
+rsync_chown "$aok_content"/common_AOK/usr_local_sbin/ /usr/local/sbin/
 
 #
 #  Copy distro specific stuff
