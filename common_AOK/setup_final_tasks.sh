@@ -37,16 +37,12 @@ ensure_path_items_are_available() {
         $ALPINE_CUSTOM_FILES_TEMPLATE \
         $DEBIAN_CUSTOM_FILES_TEMPLATE"
 
-    # msg_3 "><> items_to_check [$items_to_check]"
-
     while true; do
         one_item="${items_to_check%% *}"
         items_to_check="${items_to_check#* }"
         if [ -e "$one_item" ]; then
             msg_3 "Ensuring it is synced: $one_item"
             find "$one_item" >/dev/null
-        # else
-        #     msg_3 "><> Ignoring [$one_item]"
         fi
         [ "$one_item" = "$items_to_check" ] && break # we have processed last item
     done
@@ -77,10 +73,6 @@ hostname_fix() {
         return
     fi
 
-    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        #  not sure if this is needed, in order to ensure no iCloud issues
-        cat "$ALT_HOSTNAME_SOURCE_FILE" >/dev/null 2>&1
-    fi
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
 }
@@ -216,6 +208,7 @@ if deploy_state_is_it "$deploy_state_pre_build" &&
     ! hostfs_is_devuan &&
     ! this_fs_is_chrooted; then
     msg_2 "Waiting for runlevel default to be ready, normally < 10s"
+    msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
     while ! rc-status -r | grep -q default; do
         msg_3 "not ready"
         sleep 2
