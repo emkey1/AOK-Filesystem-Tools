@@ -233,6 +233,10 @@ change_hostname_method() {
             if [ -f "$s_new_value" ]; then
                 install_hostname_alt
                 echo "hostname will be sourced from: $s_new_value"
+		#
+		#  Sometimes there will be mv error arround here, if you
+		#  see such check fileprivs of ALT_HOSTNAME_SOURCE_FILE
+		#
                 "$hostname_alt" -S "$s_new_value"
             else
                 echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
