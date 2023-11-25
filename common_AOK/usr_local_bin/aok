@@ -20,6 +20,7 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
+-c, --console   Toggles between using Launch cmd and getty
 -l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
 -H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)"
     exit 0
@@ -28,6 +29,38 @@ Available options:
 #  shellcheck disable=SC2317
 destfs_is_alpine() {
     test -f /etc/alpine-release
+}
+
+change_console_procedure() {
+    error_msg "Not done: change_console_procedure()"
+}
+
+launch_cmd_get() {
+    tr -d '\n' < /proc/ish/defaults/launch_command  | sed 's/  \+/ /g'
+}
+
+display_console_method() {
+    #
+    # /proc/ish/defaults/launch_command
+    # /bin/sleep infinity
+    #
+    # [
+    #   "/bin/login",
+    #   "-f",
+    #   "root"
+    # ]
+    #
+    # Alpine
+    # tty1::respawn:/sbin/agetty
+    #
+    # Debian
+    # pts0::respawn:/sbin/agetty
+    #
+
+    # [ "/bin/login", "-f", "root"]%
+    lc_current="$(launch_cmd_get)"
+    echo "current launch cmd: $lc_current"
+    error_msg "thats all!"
 }
 
 change_login_procedure() {
@@ -316,6 +349,17 @@ while true; do
         else
             echo
             echo "WARNING: Multiple verbose options are ignored"
+        fi
+        ;;
+
+    "-c" | "--console")
+	hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
+        if [ -n "$2" ]; then
+	    this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
+            change_console_method "$2"
+        else
+            printf "Current login method: "
+            display_console_method
         fi
         ;;
 
