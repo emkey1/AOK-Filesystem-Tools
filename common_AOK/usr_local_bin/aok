@@ -20,8 +20,8 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--c, --console   Toggles between using Launch cmd and getty [launch|inittab] Now: $()
--l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)"
+-c, --console   Toggles between using Launch cmd and getty [launch|inittab] Now: $(display_console_method)
+-l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
 -H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)"
     exit 0
 }
@@ -55,9 +55,9 @@ display_console_method() {
     #
 
     if [ "$(launch_cmd_get)" = '[ "/bin/sleep", "infinity" ]' ]; then
-        echo "Using getty"
+        echo "inittab"
     else
-        echo "Using Launch cmd"
+        echo "launch"
     fi
 
     # # [ "/bin/login", "-f", "root"]%
@@ -76,7 +76,7 @@ display_console_method() {
 change_console_procedure() {
     cons_mode="$1"
 
-    case "$cons_mode"
+    case "$cons_mode" in
 
     "launch")
         error_msg "method 'launch' not implemented"
