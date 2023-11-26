@@ -42,7 +42,6 @@ launch_cmd_get() {
 launch_cmd_set() {
     new_cmd="$1"
     [ -z "$new_cmd" ] && error_msg "launch_cmd_set() - no param"
-
     echo "$1" >/proc/ish/defaults/launch_command
 }
 
