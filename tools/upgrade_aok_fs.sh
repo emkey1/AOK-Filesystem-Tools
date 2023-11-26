@@ -26,37 +26,26 @@ hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
 # shellcheck source=/opt/AOK/tools/utils.sh
 . "$AOK_DIR"/tools/utils.sh
 
-# if ! this_is_ish; then
-#     error_msg "This should only be run on an iSH platform!"
-# fi
+this_is_ish || error_msg "This should only be run on an iSH platform!"
 
-# execute again as root
-if [ "$(whoami)" != "root" ]; then
-    error_msg "Not executing as root"
-fi
+msg_1 "Updating /etc/skel files"
+rsync_chown "$aok_content"/common_AOK/etc/skel/ /etc/skel
 
-echo
-echo "Updating /etc/skel files"
-echo
-rsync_chown "$aok_content"/common_AOK/etc/skel /etc
-
-echo
-echo "Upgrading /usr/local/bin & /usr/local/sbin with current items from $aok_content"
-echo
+msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
 
 #
 #  Always copy common stuff
 #
-echo "Common stuff"
-rsync_chown "$aok_content"/common_AOK/usr_local_bin/ /usr/local/bin/
-rsync_chown "$aok_content"/common_AOK/usr_local_sbin/ /usr/local/sbin/
+msg_2 "Common stuff"
+rsync_chown "$aok_content"/common_AOK/usr_local_bin/ /usr/local/bin
+rsync_chown "$aok_content"/common_AOK/usr_local_sbin/ /usr/local/sbin
 echo
 
 #
 #  Copy distro specific stuff
 #
 if hostfs_is_alpine; then
-    echo "Alpine specifics"
+    msg_3 "Alpine specifics"
     rsync_chown "$aok_content"/Alpine/usr_local_bin/ /usr/local/bin
     rsync_chown "$aok_content"/Alpine/usr_local_sbin/ /usr/local/sbin
 elif hostfs_is_debian; then

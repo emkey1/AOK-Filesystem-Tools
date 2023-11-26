@@ -472,12 +472,13 @@ rsync_chown() {
     #  Local copy, changing ovnership to root:
     #
     # msg_2 "rsync_chown()"
-    source="$1"
+    src="$1"
     d_dest="$2"
-    [ -z "$source" ] && error_msg "rsync_chown() no source param"
+    [ -z "$src" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
-    rsync -ahP --chown=root: "$source" "$d_dest"
-    unset source
+    # echo "[$src] -> [$d_dest]"
+    rsync -ahP --chown=root:root "$src" "$d_dest" | grep -v ^./$
+    unset src
     unset d_dest
     # msg_3 "rsync_chown() - done"
 }
