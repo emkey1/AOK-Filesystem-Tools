@@ -117,7 +117,6 @@ change_console_procedure() {
     error_msg "Not done: change_console_procedure()"
 }
 
-
 #===============================================================
 #
 #
@@ -246,7 +245,6 @@ display_login_method() {
     change_login_procedure "$mthd"
 }
 
-
 #===============================================================
 #
 #
@@ -279,19 +277,19 @@ change_hostname_method() {
             else
                 s_old_value="$f_current"
             fi
-	    echo "For detailed instructions about creating an iOS hostname Shortcut"
-	    echo "see /opt/APK/Docs/hostname-shortcut.md"
+            echo "For detailed instructions about creating an iOS hostname Shortcut"
+            echo "see /opt/APK/Docs/hostname-shortcut.md"
             echo "Enter a static hostname, or if Shortcut sourcefile should be used"
-	    echo "start with / and give full path, hit enter to keep the previous setting"
+            echo "start with / and give full path, hit enter to keep the previous setting"
 
-	    [ -n "$s_old_value" ] && echo "  $s_old_value"
+            [ -n "$s_old_value" ] && echo "  $s_old_value"
             read -r s_new_value
-	    [ -z "$s_old_value" ] && echo
-	    
+            [ -z "$s_old_value" ] && echo
+
             if [ -z "$s_new_value" ]; then
                 if [ -z "$s_old_value" ]; then
                     echo "ERROR: Nothing given and no old value was found"
-		    echo "       will not activate $hostname_alt"
+                    echo "       will not activate $hostname_alt"
                     echo "       this can be activated later by doing: aok -H enable"
                     echo
                     remove_hostname_alt
@@ -334,9 +332,9 @@ change_hostname_method() {
             #  source_file would typically only be set during initial deploy
             #  and in that case this disclaimer wont be needed
             #
-	    echo
+            echo
             echo "Your shell prompt might have cached the hostname when the session started."
-	    echo "It will then be updated next time you login."
+            echo "It will then be updated next time you login."
         fi
         exit 0
         ;;
@@ -413,7 +411,7 @@ while true; do
         if [ "$verbose" -eq 0 ]; then
             echo "===  Enabeling verbose mode  ==="
             verbose=1
-	    set -x
+            set -x
         else
             echo
             echo "WARNING: Multiple verbose options are ignored"
