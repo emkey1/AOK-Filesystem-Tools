@@ -27,6 +27,8 @@
 #  printout preceede your commant or the sourcing with: hide_run_as_root=1
 #
 
+AOK_DIR="${AOK_DIR:-/opt/AOK}"
+
 [ -z "$AOK_DIR" ] && {
     echo "ERROR: tools/run_as_root.sh needs AOK_DIR set to base dir of repo"
     exit 1
