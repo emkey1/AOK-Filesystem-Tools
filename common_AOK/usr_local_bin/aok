@@ -14,15 +14,25 @@ show_help() {
 
 An AOK-only script that manages iSH/AOK specific things.
 
-Currently only login procedure can be altered.
-
 Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--c, --console   Toggles between using Launch cmd and getty [launch|inittab] Now: $(display_console_method)
--l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)
--H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)"
+-c, --console   Console method [launch|inittab] Now: $(display_console_method)
+                How the console is initiated.
+                launch  - launched directly from iSH via 'Launch Cmd'
+                inittab - launched via getty in inittab
+-l, --login     Decides login procedure [disable|enable|once] Now: $(display_login_method)
+                disable - session starts directly logged in as root
+                enable  - session starts wirh a login prompt
+                once    - one login session, then iSH terminates
+-H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)
+                disable - Use the normal hostname program,
+                          always displays localhost for iOS >= 17
+                enable  - Use alternate hostname program, this can either
+                          use /etc/hostname for a static name, or via a
+                          Shortcut read the iOS device name as iSH starts
+"
     exit 0
 }
 
@@ -31,9 +41,13 @@ destfs_is_alpine() {
     test -f /etc/alpine-release
 }
 
+#===============================================================
 #
-#  Handling console origin
 #
+#       Handling console origin
+#
+#
+#===============================================================
 
 launch_cmd_get() {
     tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
@@ -103,6 +117,14 @@ change_console_procedure() {
     error_msg "Not done: change_console_procedure()"
 }
 
+
+#===============================================================
+#
+#
+#       login method
+#
+#
+#===============================================================
 change_login_procedure() {
     requested_method="$1"
 
@@ -224,6 +246,14 @@ display_login_method() {
     change_login_procedure "$mthd"
 }
 
+
+#===============================================================
+#
+#
+#       hostname method
+#
+#
+#===============================================================
 install_hostname_alt() {
     echo "Enabling alternate hostname $hostname_alt"
     cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$hostname_alt"
@@ -249,12 +279,19 @@ change_hostname_method() {
             else
                 s_old_value="$f_current"
             fi
-            echo "Enter hostname, or if sourcefile should be used start with / and give full path"
-            [ -n "$s_old_value" ] && echo "  $s_old_value"
+	    echo "For detailed instructions about creating an iOS hostname Shortcut"
+	    echo "see /opt/APK/Docs/hostname-shortcut.md"
+            echo "Enter a static hostname, or if Shortcut sourcefile should be used"
+	    echo "start with / and give full path, hit enter to keep the previous setting"
+
+	    [ -n "$s_old_value" ] && echo "  $s_old_value"
             read -r s_new_value
+	    [ -z "$s_old_value" ] && echo
+	    
             if [ -z "$s_new_value" ]; then
                 if [ -z "$s_old_value" ]; then
-                    echo "ERROR: Nothing given and no old value was found - will not activate $hostname_alt"
+                    echo "ERROR: Nothing given and no old value was found"
+		    echo "       will not activate $hostname_alt"
                     echo "       this can be activated later by doing: aok -H enable"
                     echo
                     remove_hostname_alt
@@ -297,7 +334,9 @@ change_hostname_method() {
             #  source_file would typically only be set during initial deploy
             #  and in that case this disclaimer wont be needed
             #
+	    echo
             echo "Your shell prompt might have cached the hostname when the session started."
+	    echo "It will then be updated next time you login."
         fi
         exit 0
         ;;
@@ -336,6 +375,7 @@ display_hostname_method() {
 #
 #===============================================================
 
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
 f_etc_hostname=/etc/hostname
@@ -347,17 +387,6 @@ f_etc_hostname=/etc/hostname
 login_method_stored="/etc/opt/AOK-login_method"
 
 login_original="/bin/login.original"
-
-# execute again as root
-if [ "$(whoami)" != "root" ]; then
-    # using $0 instead of full path makes location not hardcoded
-    if ! sudo "$0" "$@"; then
-        echo
-        echo "ERROR: Failed to sudo $0"
-        echo
-    fi
-    exit 0
-fi
 
 if destfs_is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
     #
@@ -382,9 +411,9 @@ while true; do
 
     "-v" | "--verbose")
         if [ "$verbose" -eq 0 ]; then
-            echo "===  Enabling verbose mode  ==="
+            echo "===  Enabeling verbose mode  ==="
             verbose=1
-            set -x
+	    set -x
         else
             echo
             echo "WARNING: Multiple verbose options are ignored"
