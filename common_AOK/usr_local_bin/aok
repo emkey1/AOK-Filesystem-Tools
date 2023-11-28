@@ -26,7 +26,7 @@ Available options:
                 disable - session starts directly logged in as root
                 enable  - session starts wirh a login prompt
                 once    - one login session, then iSH terminates
--H, --hostname  Reads hostname from syncfile [disable|enable] Now: $(display_hostname_method)
+-H, --hostname  Reads hostname from sync file [disable|enable] Now: $(display_hostname_method)
                 disable - Use the normal hostname program,
                           always displays localhost for iOS >= 17
                 enable  - Use alternate hostname program, this can either
