@@ -16,15 +16,8 @@
 #
 #===============================================================
 
-#  Allowing this to be run from anywhere using path
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-AOK_DIR="$(dirname -- "$current_dir")"
-
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
-hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
-
-# shellcheck source=/opt/AOK/tools/utils.sh
-. "$AOK_DIR"/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
 
 this_is_ish || error_msg "This should only be run on an iSH platform!"
 
@@ -39,6 +32,9 @@ msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
 msg_2 "Common stuff"
 rsync_chown "$aok_content"/common_AOK/usr_local_bin/ /usr/local/bin
 rsync_chown "$aok_content"/common_AOK/usr_local_sbin/ /usr/local/sbin
+[ -f /etc/init.d/hostname ] && rsync_chown "$aok_content"/common_AOK/common_AOK/aok-hostname-service /etc/init.d/hostname
+[ -f /usr/local/bin/hostname ] && rsync_chown "$aok_content"/common_AOK/common_AOK/hostname_alt /usr/local/bin/hostname
+[ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown "$aok_content"/common_AOK/common_AOK/hostname_sync.sh /usr/local/sbin
 echo
 
 #
