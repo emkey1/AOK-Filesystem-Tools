@@ -22,18 +22,29 @@
 #
 #---------------------------------------------------------------
 
-uidevice_handling_prepare() {
-    msg_2 "uidevice_handling_prepare()"
-    #  shellcheck disable=SC2154
-    if [ ! -f "$d_build_root/proc/ish/UIDevice" ]; then
-        f_UIDevice="$d_build_root"/etc/opt/fake_UIDevice
-        echo "Model: iPad" >"$f_UIDevice"
-        echo "OS Version: 16.6" >>"$f_UIDevice"
+create_fake_dev_details() {
+    d_base="$d_build_root"/proc/ish/.defaults
+    if [ -f "$d_base/CarCapabilities" ]; then
+        _dev_type="iPhone"
+    else
+        _dev_type="iPad"
     fi
-    # msg_3 "uidevice_handling_prepare() - done"
+    if [ -f "$d_base/WebKitShowLinkPreviews" ] ||
+        [ -f "$d_base/WebKitShowLinkPreviews" ]; then
+        _ios_version="17.0"
+    else
+        _ios_version="16.0"
+    fi
+
+    echo ">> updating [$f_UIDevice]"
+    echo "Model: $_dev_type" >"$f_UIDevice"
+    echo "OS Version: $_ios_version" >>"$f_UIDevice"
+
+    unset _dev_type
+    unset _ios_version
 }
 
-host_os() {
+host_type() {
     # msg_2 "host_os(()"
     if [ ! -f "$f_UIDevice" ]; then
         echo "Unknown"
@@ -184,5 +195,14 @@ ios_matching() {
 #  about tne device where iSH is running:
 #    Model: iPad
 #    OS Version: 0.0
+#  Regular iSH doesnt support iOS version yet
 #
 f_UIDevice="$d_build_root"/proc/ish/UIDevice
+
+if [ ! -f "$f_UIDevice" ]; then
+    #
+    #  Reglar iSH doesnt support this, so will have to guestemate
+    #
+    f_UIDevice="$d_build_root"/etc/opt/fake_UIDevice
+    [ ! -f "$f_UIDevice" ] && create_fake_dev_details
+fi
