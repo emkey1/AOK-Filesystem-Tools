@@ -37,8 +37,7 @@ msg_2 "Downloading $src_image"
 #  Ensure basename for tar ball is used
 wget "$src_image" -O "$debian_src_tb"
 
-t_extract="$(date +%s)"
-msg_1 "Extracting Debian (will show unpack time, once done)"
+msg_1 "Extracting Devuan (will show unpack time)"
 distro_tmp_dir="/Debian"
 create_fs "$src_tarball" "$distro_tmp_dir"
 
@@ -46,10 +45,6 @@ create_fs "$src_tarball" "$distro_tmp_dir"
 #  Clear openrc status
 #
 rm "$distro_tmp_dir"/run/openrc -rf
-
-duration="$(($(date +%s) - t_extract))"
-display_time_elapsed "$duration" "Unpacking Debian"
-unset duration
 
 msg_3 "Extracted Debian tarball"
 

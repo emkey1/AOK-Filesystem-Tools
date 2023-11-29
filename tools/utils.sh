@@ -189,13 +189,13 @@ create_fs() {
         error_msg "Failed to cd into: $_cf_fs_location"
     }
 
+    msg_3 "Extracting tarball, unpack time will be displayed"
     case "$src_tarball" in
-    *alpine*) _cf_time_estimate="Should not take that long" ;;
-    *)
-        _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
+    *alpine*) _cf_time_estimate="A minirootfs should not take that long" ;;
+    *)  _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
         ;;
     esac
-    msg_3 "Extracting... $_cf_time_estimate"
+    msg_3 "  $_cf_time_estimate"
     msg_3 "$_cf_tarball"
     unset _cf_time_estimate
 

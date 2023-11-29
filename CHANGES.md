@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- removed duplicated extract image time elapsed for select distro
+
 ### 0.11.0.4
 
 - Reworked hostname_alt and related tools

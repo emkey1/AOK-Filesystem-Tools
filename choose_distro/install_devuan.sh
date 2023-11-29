@@ -34,13 +34,9 @@ msg_2 "Downloading $src_image"
 #  Ensure basename for tar ball is used
 wget "$src_image" -O "$devuan_src_tb"
 
-t_extract="$(date +%s)"
 msg_1 "Extracting Devuan (will show unpack time)"
 distro_tmp_dir="/Devuan"
 create_fs "$src_tarball" "$distro_tmp_dir"
-duration="$(($(date +%s) - t_extract))"
-display_time_elapsed "$duration" "Unpacking Devuan"
-unset duration
 
 msg_3 "Extracted Devuan tarball"
 
