@@ -4,7 +4,13 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+### 0.11.0.4
+
+- Reworked hostname_alt and related tools
 - For Alpine the installed uptime is tested, if it fails - usually a seg fault. It is replaced with a symbolic link to busybox
+- Started work on detecting ios and dev type by guessing
+- upgrade also handles alt hostname files
+- Displays time to unpack File system image
 
 ### 0.11.0.3
 
@@ -77,7 +83,7 @@ Now has two modes:
 ## release 0.10.0
 
 - Uses v3.18.4 for Alpine installs
-- if no syncfile is given, defaults to use /etc/hostname
+- if no sync file is given, defaults to use /etc/hostname
 - /etc/hostname is updated, on regular iSH just for information, since it cant be used to set hostname there
 - Better documentation of hostname_sync.sh and its inittab entries
 - typo fixed in copy "$hostname_cached" to /etc/hostname

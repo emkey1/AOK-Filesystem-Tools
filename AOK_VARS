@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.0.3m"
+AOK_VERSION="0.11.0.4"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -113,7 +113,7 @@ INITIAL_LOGIN_MODE="enable"
 #  Since iOS 17.0 iSH is no longer able to provide hostname at startup.
 #  If this is set to /etc/hostname, its content will only be displayed,
 #  and that file needs to be manually changed.
-#  Any other path would be asumed to be a syncfile, written to by an iOS
+#  Any other path would be asumed to be a sync file, written to by an iOS
 #  shortcut providing current hostname. The last line of this file will
 #  be copied to /etc/hostname when /usr/local/bin/hostname is run with -U
 #  If this is not defined alternate hostname will not be installed during
@@ -213,8 +213,8 @@ DEVEL_APKS="build-base musl-dev linux-headers cmake automake autoconf \
     libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
 #
-#  This only contains man pages for apps installed by default, 
-#  not development related man pages, those doing development are 
+#  This only contains man pages for apps installed by default,
+#  not development related man pages, those doing development are
 #  assumed to know what man pages they might need :)
 #
 DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
@@ -223,7 +223,6 @@ DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
     sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
     dcron-doc openssh-doc rsync-doc curl-doc wget-doc elinks-doc \
     mosh-doc vim-doc nano-doc mg-doc newt-doc tmux-doc fortune-doc"
-
 
 ########################################################################
 #
@@ -266,7 +265,6 @@ DEB_PKGS=""
 #  This points to a location on the destination device.
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
-
 
 ########################################################################
 #
