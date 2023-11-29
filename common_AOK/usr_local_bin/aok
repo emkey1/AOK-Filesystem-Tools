@@ -262,6 +262,12 @@ remove_hostname_alt() {
     rm -f "$hostname_alt"
 }
 
+hostname_do_source() {
+    f_src="$1"
+    [ -z "$f_src" ] && error_msg "hostname_do_source() - called without parameter"
+    echo "Hostname set to: $("$hostname_alt" -S "$f_src")"
+}
+
 change_hostname_method() {
     # msg_2 "change_hostname_method()"
     requested_method="$1"
@@ -308,7 +314,7 @@ change_hostname_method() {
             if [ -f "$s_new_value" ]; then
                 install_hostname_alt
                 echo "hostname will be sourced from: $s_new_value"
-                "$hostname_alt" -S "$s_new_value"
+                hostname_do_source "$s_new_value"
             else
                 echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
                 echo "       this can be activated later by doing: aok -H enable"
@@ -323,10 +329,9 @@ change_hostname_method() {
             install_hostname_alt
             echo "$s_new_value" >"$f_etc_hostname"
             echo "/etc/hostname will be used, so no syncing will be done."
-            "$hostname_alt" -S "$f_etc_hostname"
+            hostname_do_source "$f_etc_hostname"
         fi
-        "$hostname_alt" -U
-        echo "hostname set to: $($hostname_alt)"
+
         if [ -z "$source_file" ]; then
             #
             #  source_file would typically only be set during initial deploy

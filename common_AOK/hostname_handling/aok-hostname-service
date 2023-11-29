@@ -1,12 +1,27 @@
 #!/sbin/openrc-run
-
-hostname_alt=/usr/local/bin/hostname
-hostname_cached=/etc/opt/hostname_cached
-
 #
-#  Needed on iSH-AOK to use my hostname convention with -aok suffix
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-description="Sets the -aok hostname of the machine."
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Appends -aok to hostname if the kernel is iSH-AOK
+#  This is only installed if AOK_HOSTNAME_SUFFIX was "Y"
+#
+
+hn_alt_bin="/usr/local/bin/hostname"
+if [ -x "$hn_alt_bin" ]; then
+    hn_bin="$hn_alt_bin"
+else
+    hn_bin=/bin/hostname
+fi
+
+hn_current="$($hn_bin -s)"
+#  file alternate hostname reads to find hostname
+hn_source_fname="/etc/opt/hn_source_fname"
+
+description="Ensures hostname has -aok suffix for iSH-AOK kernels."
 
 depend() {
     if [ -f /etc/init.d/runbg ]; then
@@ -28,25 +43,26 @@ start() {
     #  on a regular iSH, but if an FS was imported it could in
     #  theory happen...
     #
-    h_suffix="aok"
+    hn_suffix="aok"
 
-    new_hostname="$(hostname)-$h_suffix"
+    #  If hostname -s allready ends with $hn_suffix, nothing needs to be done
+    echo "$hn_current" | grep -q "\-$hn_suffix" && return
 
-    hostname | grep -q "\-$h_suffix" || {
-        echo "$new_hostname" >/etc/hostname
-        #  if workaround hostname is used, update it to use new hostname
-        [ -x "$hostname_alt" ] && echo "$new_hostname" >"$hostname_cached"
-    }
+    #  Only continue if this is iSH-AOK
+    grep -qi aok /proc/ish/version || return
 
-    ebegin "Setting hostname"
-    hostname -F /etc/hostname
-    /usr/local/bin/wall -n "hostname is now: $(hostname)"
+    echo "$hn_current-$hn_suffix" >/etc/hostname
 
     #
-    #  This one is run from /etc/inittab, so most likely before this
-    #  has started, running it again here ensures that the now active
-    #  hostname is in /etc/hosts
+    #  iSH-AOK can set hostname, so once this is done things hardcoded
+    #  to use the default /bin/hostname will use the intended hostname
     #
+    /bin/hostname -F /etc/hostname
+
+    #  Since hostname might have changed, ensure it is in /etc/hosts
     /usr/local/sbin/ensure_hostname_in_host_file.sh
-    eend $?
+
+    /usr/local/bin/wall -n "hostname is now: $($hn_bin)"
+
+    eend 0 # we have gotten this far, so it should be safe to signal success
 }

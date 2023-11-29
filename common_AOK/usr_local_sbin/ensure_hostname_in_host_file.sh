@@ -2,11 +2,13 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  License: MIT
-#
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
+#  License: MIT
+#
 #  Ensure that hostname is in /etc/hosts, if not add it to loopback
+#  some stuff looks up 'hostname' and fail or display warnings if
+#  it cant be resolved, its not a CPU drain, and it never hurts...
 #
 
 host_file="/etc/hosts"

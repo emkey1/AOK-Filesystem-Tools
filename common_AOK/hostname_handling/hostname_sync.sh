@@ -38,10 +38,3 @@ hostname_alt=/usr/local/bin/hostname
 
 # skip extra displayal of hostname, but dont filter out errors
 "$hostname_alt" --update >/dev/null
-if grep -qi aok /proc/ish/version 2>/dev/null; then
-    #
-    #  Set hostname the normal way, and from now on it can be used
-    #  without special considerations
-    #
-    /bin/hostname -F /etc/hostname
-fi
