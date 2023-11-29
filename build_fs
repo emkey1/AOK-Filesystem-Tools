@@ -365,7 +365,6 @@ prebuild_fs() {
     if [ "$build_env" = "$be_other" ]; then
         error_msg "Not possible to pre-build on this environment!"
     fi
-
     #
     # chrooting and doing setup
     #
@@ -376,6 +375,7 @@ prebuild_fs() {
     deploy_state_set "$deploy_state_pre_build"
 
     [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
+
     "$aok_content"/tools/do_chroot.sh "$force_chroot" /etc/profile || {
         error_msg "There was an error during prebuild"
     }
@@ -454,16 +454,9 @@ display_build_time() {
 #
 #===============================================================
 
-#  Allowing this to be run from anywhere using path
-AOK_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
-
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
-hide_run_as_root=1 . "$AOK_DIR"/tools/run_as_root.sh
-
-# shellcheck source=/opt/AOK/tools/utils.sh
-. "$AOK_DIR"/tools/utils.sh
-
-. "$AOK_DIR"/Debian/deb_utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
+. /opt/AOK/Debian/deb_utils.sh
 
 t_start="$(date +%s)"
 
@@ -522,6 +515,14 @@ create_fs "${src_img_cache_d}/$src_tarball" "$d_build_root" "$verbose"
 
 copy_AOK_to_dest
 msg_3 "Deployed $aok_content on new filesystem"
+
+#  Announce what AOK release this is
+msg_2 "Set $(echo "$file_aok_release" | sed "s|$d_build_root||") to $AOK_VERSION"
+
+# /mnt/HC_Volume_36916115/aok_tmp/aok_fs/etc/aok-release
+# etc/aok-release
+
+echo "$AOK_VERSION" >"$file_aok_release"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH

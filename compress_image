@@ -30,9 +30,9 @@ clear_build_triggered_logfiles() {
     br_fd_log="${d_build_root}$f_fd_log"
     br_sys_log="${d_build_root}$f_sys_log"
     if [ -f "$br_fd_log" ] || [ -f "br_sys_log" ]; then
-	msg_2 "Removing log files generated during preparations on client FS"
-	[ -f "$br_fd_log" ] && msg_3 "$f_fd_log" && rm -f "$br_fd_log"
-	[ -f "$br_sys_log" ] && msg_3 "$f_sys_log" && rm -f "$br_sys_log"
+        msg_2 "Removing log files generated during preparations on client FS"
+        [ -f "$br_fd_log" ] && msg_3 "$f_fd_log" && rm -f "$br_fd_log"
+        [ -f "$br_sys_log" ] && msg_3 "$f_sys_log" && rm -f "$br_sys_log"
     fi
 }
 
@@ -42,14 +42,8 @@ clear_build_triggered_logfiles() {
 #
 #===============================================================
 
-#  Allowing this to be run from anywhere using path
-AOK_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
-
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
-hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
-
-# shellcheck source=/opt/AOK/tools/utils.sh
-. "$AOK_DIR/tools/utils.sh"
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
 
 prog_name=$(basename "$0")
 use_bzip2=false

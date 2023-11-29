@@ -1,18 +1,7 @@
 #!/usr/bin/env bash
 
-#  Allowing this to be run from anywhere using path
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-AOK_DIR="$(dirname -- "$current_dir")"
-
-#
-#  Automatic sudo if run by a user account, do this before
-#  sourcing tools/utils.sh !!
-#
-# shellcheck source=/dev/null
-hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
-
-# shellcheck source=/dev/null
-. "$AOK_DIR"/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
 
 # destfs_is_alpine && echo "is alpine" || echo "NOT alpine"
 # destfs_is_select && echo "is select" || echo "NOT select"

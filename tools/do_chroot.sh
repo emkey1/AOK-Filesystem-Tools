@@ -69,12 +69,12 @@ can_chroot_run_now() {
     # shellcheck disable=SC2143  # TODO fix and test
     if ! hostfs_is_alpine && [ -n "$(mount | grep "$TMPDIR/aok_fs")" ]; then
         echo "ERROR: Something has mounted sys folders inside $CHROOT_TO!"
-	echo "       Most likely another process is already chrooted to"
-	echo "       this location."
+        echo "       Most likely another process is already chrooted to"
+        echo "       this location."
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         tools/do_chroot.sh -c"
-	echo
-	exit 1
+        echo
+        exit 1
     fi
 
     [ "$_fnc_calls" = 2 ] && msg_3 "can_chroot_run_now() - done"
@@ -136,17 +136,17 @@ ensure_dev_paths_are_defined() {
     defined_and_existing "$d_proc"
     defined_and_existing "$d_dev"
     if [ "$build_env" = "$be_linux" ]; then
-	defined_and_existing "$d_sys"
-	if [ "$1" = "skip_pts" ]; then
-	    #
-	    #  Before mounting the resources dev/pts will not exist, so
-	    #  preparational checks will need to handle /dev/pts as a special case.
-	    #  At that point all that can be done is to verify that it has been set
-	    #
-	    [ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
-	else
-	    defined_and_existing "$d_dev_pts"
-	fi
+        defined_and_existing "$d_sys"
+        if [ "$1" = "skip_pts" ]; then
+            #
+            #  Before mounting the resources dev/pts will not exist, so
+            #  preparational checks will need to handle /dev/pts as a special case.
+            #  At that point all that can be done is to verify that it has been set
+            #
+            [ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
+        else
+            defined_and_existing "$d_dev_pts"
+        fi
     fi
 
     [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined($1) - done"
@@ -170,11 +170,10 @@ cleanout_dir() {
     [ -z "$d_clear" ] && error_msg "cleanout_dir() no param provided"
 
     if [ -n "${d_clear##"$CHROOT_TO"*}" ]; then
-	error_msg "cleanout_dir($d_clear) not part of chroot point! [$CHROOT_TO]"
+        error_msg "cleanout_dir($d_clear) not part of chroot point! [$CHROOT_TO]"
     elif [ "$d_clear" = "$CHROOT_TO" ]; then
-	error_msg "cleanout_dir($d_clear) is chroot point!"
+        error_msg "cleanout_dir($d_clear) is chroot point!"
     fi
-
 
     if [ "$(find "$d_clear"/ 2>/dev/null | wc -l)" -gt 1 ]; then
         msg_1 "Found residual files in: $d_clear"
@@ -208,16 +207,16 @@ set_ch_procs() {
     export SUDO_COMMAND=none
 
     if hostfs_is_alpine; then
-	#
-	#  Be aware that sometimes calling lsof will cause iSH-AOK
-	#  to crash hard
-	#
-	_procs="$(lsof |grep aok_fs | awk '{print $1}' | uniq  | tr '\n' ' ')"
+        #
+        #  Be aware that sometimes calling lsof will cause iSH-AOK
+        #  to crash hard
+        #
+        _procs="$(lsof | grep aok_fs | awk '{print $1}' | uniq | tr '\n' ' ')"
     else
-	# shellcheck disable=SC2009,2086  # TODO: fix and test
-	_procs="$(ps axe |grep SUDO_COMMAND=$cmd_line | \
- 	          grep -v " $cmd_line" | grep -v SUDO_COMMAND=none | \
-		  awk '{print $1 }' | tr '\n' ' ')"
+        # shellcheck disable=SC2009,2086  # TODO: fix and test
+        _procs="$(ps axe | grep SUDO_COMMAND=$cmd_line |
+            grep -v " $cmd_line" | grep -v SUDO_COMMAND=none |
+            awk '{print $1 }' | tr '\n' ' ')"
     fi
 
     # Trim trailing whitespace
@@ -231,7 +230,7 @@ kill_remaining_procs() {
     msg_3 "Ensuring chroot env didn't leave any process running..."
 
     set_ch_procs
-    [ -z "$ch_procs" ] && return  # nothing needs killing
+    [ -z "$ch_procs" ] && return # nothing needs killing
 
     msg_3 "remaining procs to kill: [$ch_procs]"
     # shellcheck disable=SC2016,SC2086  # TODO: fix and test
@@ -243,17 +242,17 @@ kill_remaining_procs() {
     msg_3 "Making sure nothing remains"
     set_ch_procs
     if [ -n "$ch_procs" ]; then
-	msg_3 "***  WARNING - remaining procs: [$ch_procs]  ***"
+        msg_3 "***  WARNING - remaining procs: [$ch_procs]  ***"
 
-	echo "Remaining mounts:"
-	echo
+        echo "Remaining mounts:"
+        echo
 
-	mount | grep "$CHROOT_TO"
+        mount | grep "$CHROOT_TO"
 
-	echo
-	echo "Must be manually unmouunted once offending process are gone"
-	echo
-	exit 1
+        echo
+        echo "Must be manually unmouunted once offending process are gone"
+        echo
+        exit 1
     fi
 
     [ "$_fnc_calls" = 2 ] && msg_3 "kill_remaining_procs() - done"
@@ -265,12 +264,12 @@ umount_mounted() {
     _um="$1"
 
     if mount | grep -q "$_um"; then
-	defined_and_existing "$_um"
+        defined_and_existing "$_um"
         umount "$_um" || error_msg "Failed to unmount $_um"
-	[ -d "$_um" ] && cleanout_dir "$_um"
+        [ -d "$_um" ] && cleanout_dir "$_um"
     else
         #msg_3 "$_um - was not mounted"
-	cleanout_dir "$_um"
+        cleanout_dir "$_um"
     fi
     unset _um
 
@@ -290,8 +289,8 @@ define_chroot_env() {
     d_dev="${CHROOT_TO}/dev"   #; exists_and_empty "$d_dev"
 
     if [ "$build_env" = "$be_linux" ]; then
-	d_sys="${CHROOT_TO}/sys" #   ; exists_and_empty "$d_sys"
-	d_dev_pts="${CHROOT_TO}/dev/pts"
+        d_sys="${CHROOT_TO}/sys" #   ; exists_and_empty "$d_sys"
+        d_dev_pts="${CHROOT_TO}/dev/pts"
     fi
     ensure_dev_paths_are_defined "skip_pts"
 
@@ -329,25 +328,25 @@ env_prepare() {
 
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
 
-#    if mount | grep -q "$CHROOT_TO"; then
-#        error_msg "This [$CHROOT_TO] is already chrooted!"
-#    fi
+    #    if mount | grep -q "$CHROOT_TO"; then
+    #        error_msg "This [$CHROOT_TO] is already chrooted!"
+    #    fi
 
     msg_3 "Mounting system resources"
 
     mount -t proc proc "$d_proc"
 
     if [ "$build_env" = "$be_ish" ]; then
-	#
-	#  I havent figured out how to mount /dev on iSH for the
-	#  chrooted env, so for now, I simply copy the host /dev files
-	#  into the chroot env. And remove them when exiting
-	#
-	cp -a /dev/* "$d_dev"
+        #
+        #  I havent figured out how to mount /dev on iSH for the
+        #  chrooted env, so for now, I simply copy the host /dev files
+        #  into the chroot env. And remove them when exiting
+        #
+        cp -a /dev/* "$d_dev"
     elif [ "$build_env" = "$be_linux" ]; then
-#	mount -t sysfs sys "$d_sys"
-	mount -o bind /dev "$d_dev"
-	mount -o bind /dev/pts "$d_dev_pts"
+        #	mount -t sysfs sys "$d_sys"
+        mount -o bind /dev "$d_dev"
+        mount -o bind /dev/pts "$d_dev_pts"
     fi
 
     # msg_3 "copying current /etc/resolv.conf"
@@ -380,12 +379,12 @@ env_restore() {
     umount_mounted "$d_proc"
     if [ "$build_env" = "$be_ish" ]; then
         rm -rf "${d_dev:?}"/*
-	#  ensure it is empty
-    	cleanout_dir "$d_dev"
+        #  ensure it is empty
+        cleanout_dir "$d_dev"
     elif [ "$build_env" = "$be_linux" ]; then
-	umount_mounted "$d_sys"
-	umount_mounted "$d_dev_pts"
-	umount_mounted "$d_dev"
+        umount_mounted "$d_sys"
+        umount_mounted "$d_dev_pts"
+        umount_mounted "$d_dev"
     fi
 
     #
@@ -465,19 +464,9 @@ chroot_statuses() {
 #
 cmd_line="$0"
 prog_name="$(basename "$cmd_line")"
-#  Allowing this to be run from anywhere using path
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-AOK_DIR="$(dirname -- "$current_dir")"
 
-#
-#  Automatic sudo if run by a user account, do this before
-#  sourcing tools/utils.sh !!
-#
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
-hide_run_as_root=1 . "$AOK_DIR/tools/run_as_root.sh"
-
-# shellcheck source=/opt/AOK/tools/utils.sh
-. "$AOK_DIR"/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
 
 CHROOT_TO="$d_build_root"
 
@@ -500,64 +489,64 @@ while [ -n "$1" ]; do
 
     firstchar="$(echo "$1" | cut -c1-1)"
     if [ "$firstchar" != "-" ]; then
-	#  No more options, continue
-	break
+        #  No more options, continue
+        break
     fi
 
     case "$1" in
 
-	"-h" | "--help")
-	    show_help
-	    exit 0
-	    ;;
+    "-h" | "--help")
+        show_help
+        exit 0
+        ;;
 
-	"-a" | "--available")
-	    can_chroot_run_now
-	    msg_1 "$prog_name not running, can be started!"
-	    #
-	    #  This check should already have exited, exit busy, now in case
-	    #  something went wrong
-	    #
-	    exit 1
-	    ;;
+    "-a" | "--available")
+        can_chroot_run_now
+        msg_1 "$prog_name not running, can be started!"
+        #
+        #  This check should already have exited, exit busy, now in case
+        #  something went wrong
+        #
+        exit 1
+        ;;
 
-	"-p" | "--path")
-	    if [ -d "$2" ]; then
-		CHROOT_TO="$2"
-		shift # get rid of the dir
-	    else
-		error_msg "-p assumes a param pointing to where to chroot!"
-	    fi
-	    ;;
+    "-p" | "--path")
+        if [ -d "$2" ]; then
+            CHROOT_TO="$2"
+            shift # get rid of the dir
+        else
+            error_msg "-p assumes a param pointing to where to chroot!"
+        fi
+        ;;
 
-	"-c" | "--cleanup")
-	    cleanup_sleep=2
-	    can_chroot_run_now
-	    echo
-	    echo "Will cleanup the mount point: $CHROOT_TO"
-	    echo
-	    echo "Please be aware that if you attempt to clean up after a chroot"
-	    echo "to a non-standard path (ie you used -p), you must use this notation"
-	    echo "in order to attempt to clean up the right things."
-	    echo
-	    echo "$prog_name -p /custom/path -c"
-	    echo
-	    echo "This will continue in $cleanup_sleep secnods, hit Ctrl-C if you want to abort"
-	    sleep "$cleanup_sleep"
+    "-c" | "--cleanup")
+        cleanup_sleep=2
+        can_chroot_run_now
+        echo
+        echo "Will cleanup the mount point: $CHROOT_TO"
+        echo
+        echo "Please be aware that if you attempt to clean up after a chroot"
+        echo "to a non-standard path (ie you used -p), you must use this notation"
+        echo "in order to attempt to clean up the right things."
+        echo
+        echo "$prog_name -p /custom/path -c"
+        echo
+        echo "This will continue in $cleanup_sleep secnods, hit Ctrl-C if you want to abort"
+        sleep "$cleanup_sleep"
 
-	    define_chroot_env
-	    env_restore
-	    exit 0
-	    ;;
+        define_chroot_env
+        env_restore
+        exit 0
+        ;;
 
-	"-f" | "--force")
-	    msg_1 "Using force!"
-	    force_this=1
-	    ;;
+    "-f" | "--force")
+        msg_1 "Using force!"
+        force_this=1
+        ;;
 
-	*)
-	    error_msg "invalid option! Try using: -h"
-	    ;;
+    *)
+        error_msg "invalid option! Try using: -h"
+        ;;
 
     esac
     shift
@@ -570,7 +559,6 @@ if this_is_ish && hostfs_is_debian && [ "$force_this" != "1" ]; then
     echo "************"
     exit 1
 fi
-
 
 define_chroot_env
 can_chroot_run_now

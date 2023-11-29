@@ -45,10 +45,6 @@ setup_cron_env() {
 
 setup_environment() {
 
-    #  Announce what AOK release this is
-    msg_2 "Set $file_aok_release to $AOK_VERSION"
-    echo "$AOK_VERSION" >"$file_aok_release"
-
     copy_local_bins common_AOK
 
     cp "$aok_content"/common_AOK/usr_local_lib/do_shutdown /usr/local/lib
