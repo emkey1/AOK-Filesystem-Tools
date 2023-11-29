@@ -57,7 +57,9 @@ hostname_fix() {
     #  workarounds for iOS 17 no longer supporting hostname detection
     #
 
-    if [ "$(ios_matching 17.0)" = "Yes" ]; then
+    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
+    elif [ "$(ios_matching 17.0)" = "Yes" ]; then
         msg_2 "iOS >= 17, hostname workaround will be used"
     elif [ "$(/bin/hostname)" = "localhost" ]; then
         #
@@ -66,8 +68,6 @@ hostname_fix() {
         #  localhost, this would be an incorrect assumption
         #
         msg_2 "Will assume this runs on iOS >= 17, hostname workaround will be used"
-    elif [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
     else
         msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
         return
@@ -109,6 +109,27 @@ set_initial_login_mode() {
         msg_2 "No login mode defined, disabling console login"
         /usr/local/bin/aok -l disable
     fi
+}
+
+verify_alpine_uptime() {
+    #
+    #  Some versions of uptime doesnt work in iSH, test and
+    #  replace with softlink to busybox if that is the case
+    #
+    uptime_cmd="$(command -v uptime)"
+    uptime_cmd_real="$(realpath "$uptime_cmd")"
+    if [ "$uptime_cmd_real" = "/bin/busybox" ]; then
+        #
+        #  Already using busybox, nothing needs to be done
+        #
+        return
+    fi
+    "$uptime_cmd" >/dev/null || {
+        msg_2 "WARNING: Installed uptime not useable!"
+        msg_3 "changing it to busybox symbolic link"
+        rm -f "$uptime_cmd"
+        ln -sf /bin/busybox "$uptime_cmd"
+    }
 }
 
 start_cron_if_active() {
@@ -178,27 +199,6 @@ run_additional_tasks_if_found() {
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
-verify_alpine_uptime() {
-    #
-    #  Some versions of uptime doesnt work in ish, test and
-    #  replace with softlink to busybox if that is the case
-    #
-    uptime_cmd="$(command -v uptime)"
-    uptime_cmd_real="$(realpath "$uptime_cmd")"
-    if [ "$uptime_cmd_real" = "/bin/busybox" ]; then
-	#
-	#  Already using busybox, nothing needs to be done
-	#
-	return
-    fi
-    "$uptime_cmd" > /dev/null || {
-	msg_2 "WARNING: Installed uptime not useable!"
-	msg_3 "changing it to busybox symbolic link"
-	rm -f "$uptime_cmd"
-	ln -sf /bin/busybox "$uptime_cmd"
-    }
-}
-
 deploy_state_clear() {
     msg_2 "deploy_state_clear()"
 
@@ -262,8 +262,7 @@ hostname_fix
 hostfs_is_alpine && aok_kernel_consideration
 
 "$aok_content"/common_AOK/hostname_handling/set_aok_hostname.sh || {
-    echo "ERROR: set_aok_hostname.sh failed"
-    return
+    error_msg "set_aok_hostname.sh failed" no_exit
 }
 
 set_initial_login_mode
@@ -271,7 +270,7 @@ set_initial_login_mode
 if hostfs_is_alpine; then
     next_etc_profile="$aok_content/Alpine/etc/profile"
     #
-    #  Some versions of uptime doesnt work in ish, test and
+    #  Some versions of Alpine uptime doesnt work in ish, test and
     #  replace with softlink to busybox if that is the case
     #
     verify_alpine_uptime
