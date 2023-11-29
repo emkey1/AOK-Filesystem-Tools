@@ -21,7 +21,7 @@
 #  the right/expected path
 #
 #   # auto sudo this script if run by user
-#   . tools/run_as_root.sh
+#   . /opt/AOK/tools/run_as_root.sh
 #
 #  If you do not want to get the: Executing $app as root
 #  printout preceede your commant or the sourcing with: hide_run_as_root=1
