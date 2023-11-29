@@ -65,14 +65,25 @@ error_msg() {
         echo
         echo "error_msg() no param"
         exit 9
+    elif [ "$_em_exit_code" = "0" ]; then
+        echo
+        echo "error_msg() second parameter was 0"
+        echo "            if continuation is desired use no_exit"
+        exit 9
     fi
+
     _em_msg="ERROR: $_em_msg"
     echo
     echo "$_em_msg"
     echo
-
     [ -n "$LOG_FILE" ] && log_it "$_em_msg"
-    [ "$_em_exit_code" != "no_exit" ] && exit "$_em_exit_code"
+
+    if [ "$_em_exit_code" = "no_exit" ]; then
+        echo "no_exit given, will continue"
+        echo
+    else
+        exit "$_em_exit_code"
+    fi
     unset _em_msg
     unset _em_exit_code
 }
@@ -128,9 +139,93 @@ msg_script_title() {
     echo
     echo "***"
     echo "***  $1"
+    if [ -f "$file_aok_release" ]; then
+        echo "***"
+        echo "***    creating AOK-FS: $(cat "$file_aok_release")"
+    fi
     echo "***"
     echo
 
+}
+
+display_time_elapsed() {
+    _dte_t_in="$1"
+    _dte_label="$2"
+
+    _dte_mins="$((_dte_t_in / 60))"
+    _dte_seconds="$((_dte_t_in - _dte_mins * 60))"
+
+    #  Add zero prefix when < 10
+    [ "$_dte_mins" -gt 0 ] && [ "$_dte_mins" -lt 10 ] && _dte_mins="0$_dte_mins"
+    [ "$_dte_seconds" -lt 10 ] && _dte_seconds="0$_dte_seconds"
+
+    echo
+    echo "Time elapsed: $_dte_mins:$_dte_seconds - $_dte_label"
+    echo
+    unset _dte_t_in
+    unset _dte_label
+    unset _dte_mins
+    unset _dte_seconds
+}
+
+create_fs() {
+    #
+    #  Extract a $1 tarball at $2 location - verbose flag $3
+    #
+    msg_2 "create_fs()"
+    _cf_tarball="$1"
+    [ -z "$_cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
+    _cf_fs_location="${2:-$d_build_root}"
+    msg_3 "will be deployed in: $_cf_fs_location"
+    _cf_verbose="${3:-false}"
+    if $_cf_verbose; then # verbose mode
+        _cf_verbose="v"
+    else
+        _cf_verbose=""
+    fi
+    [ -z "$_cf_fs_location" ] && error_msg "no _cf_fs_location detected"
+    mkdir -p "$_cf_fs_location"
+    cd "$_cf_fs_location" || {
+        error_msg "Failed to cd into: $_cf_fs_location"
+    }
+
+    case "$src_tarball" in
+    *alpine*) _cf_time_estimate="Should not take that long" ;;
+    *)
+        _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
+        ;;
+    esac
+    msg_3 "Extracting... $_cf_time_estimate"
+    msg_3 "$_cf_tarball"
+    unset _cf_time_estimate
+
+    if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
+        _cf_filter="z"
+    else
+        msg_3 "detected bzip2 format"
+        _cf_filter="j"
+    fi
+
+    t_img_extract_start="$(date +%s)"
+    tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
+        echo "ERROR: Failed to untar image"
+        echo
+        echo "Try to remove the cached file and run this again"
+        echo "$src_img_cache_d/$src_tarball"
+        exit 1
+    }
+    t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
+    display_time_elapsed "$t_img_extract_duration" "Extract image"
+    unset t_img_extract_start
+    unset t_img_extract_duration
+
+    deploy_state_set "$deploy_state_initializing"
+
+    unset _cf_tarball
+    unset _cf_fs_location
+    unset _cf_verbose
+    unset _cf_filter
+    # msg_3 "create_fs() done"
 }
 
 min_release() {
@@ -200,7 +295,7 @@ initiate_deploy() {
     fi
     echo
 
-    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${_ss_distro_name}: $_ss_vers_info"
+    msg_1 "Setting up ${_ss_distro_name}: $_ss_vers_info"
 
     manual_runbg
 
@@ -270,78 +365,6 @@ set_new_etc_profile() {
     # msg_3 "set_new_etc_profile() done"
 }
 
-create_fs() {
-    #
-    #  Extract a $1 tarball at $2 location - verbose flag $3
-    #
-    msg_2 "create_fs()"
-    _cf_tarball="$1"
-    [ -z "$_cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
-    _cf_fs_location="${2:-$d_build_root}"
-    msg_3 "will be deployed in: $_cf_fs_location"
-    _cf_verbose="${3:-false}"
-    if $_cf_verbose; then # verbose mode
-        _cf_verbose="v"
-    else
-        _cf_verbose=""
-    fi
-    [ -z "$_cf_fs_location" ] && error_msg "no _cf_fs_location detected"
-    mkdir -p "$_cf_fs_location"
-    cd "$_cf_fs_location" || {
-        error_msg "Failed to cd into: $_cf_fs_location"
-    }
-
-    case "$src_tarball" in
-    *alpine*) _cf_time_estimate="Should not take that long" ;;
-    *) _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)" ;;
-    esac
-    msg_3 "Extracting... $_cf_time_estimate"
-    msg_3 "$_cf_tarball"
-    unset _cf_time_estimate
-
-    if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
-        _cf_filter="z"
-    else
-        msg_3 "detected bzip2 format"
-        _cf_filter="j"
-    fi
-
-    tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
-        echo "ERROR: Failed to untar image"
-        echo
-        echo "Try to remove the cached file and run this again"
-        echo "$src_img_cache_d/$src_tarball"
-        exit 1
-    }
-    deploy_state_set "$deploy_state_initializing"
-
-    unset _cf_tarball
-    unset _cf_fs_location
-    unset _cf_verbose
-    unset _cf_filter
-    # msg_3 "create_fs() done"
-}
-
-display_time_elapsed() {
-    _dte_t_in="$1"
-    _dte_label="$2"
-
-    _dte_mins="$((_dte_t_in / 60))"
-    _dte_seconds="$((_dte_t_in - _dte_mins * 60))"
-
-    #  Add zero prefix when < 10
-    [ "$_dte_mins" -gt 0 ] && [ "$_dte_mins" -lt 10 ] && _dte_mins="0$_dte_mins"
-    [ "$_dte_seconds" -lt 10 ] && _dte_seconds="0$_dte_seconds"
-
-    echo
-    echo "Time elapsed: $_dte_mins:$_dte_seconds - $_dte_label"
-    echo
-    unset _dte_t_in
-    unset _dte_label
-    unset _dte_mins
-    unset _dte_seconds
-}
-
 copy_local_bins() {
     msg_2 "copy_local_bins($1)"
     _clb_base_dir="$1"
@@ -409,6 +432,50 @@ setup_login() {
     unset _distro
 }
 
+rsync_chown() {
+    #
+    #  Local copy, changing ovnership to root:
+    #
+    # msg_2 "rsync_chown()"
+    src="$1"
+    d_dest="$2"
+    [ -z "$src" ] && error_msg "rsync_chown() no source param"
+    [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
+    # echo "[$src] -> [$d_dest]"
+    rsync -ahP --chown=root:root "$src" "$d_dest" | grep -v ^./$
+    unset src
+    unset d_dest
+    # msg_3 "rsync_chown() - done"
+}
+
+display_installed_versions() {
+    #
+    #  Display versions of deployed environment
+    #
+    if hostfs_is_alpine; then
+        # cat /etc/motd | head -n 3
+        head -n 3 </etc/motd
+        echo "[0m"
+    elif hostfs_is_debian; then
+        /etc/update-motd.d/11-aok-release
+        /etc/update-motd.d/12-deb-vers
+        /etc/update-motd.d/13-ish-release
+        echo
+    elif hostfs_is_devuan; then
+        /etc/update-motd.d/11-aok-release
+        /etc/update-motd.d/12-devu-vers
+        /etc/update-motd.d/13-ish-release
+        echo
+    fi
+}
+
+installed_versions_if_prebuilt() {
+    if deploy_state_is_it "$deploy_state_pre_build"; then
+        echo
+        display_installed_versions
+    fi
+}
+
 #---------------------------------------------------------------
 #
 #   boolean checks
@@ -465,22 +532,6 @@ destfs_clear_chrooted() {
         error_msg "destfs_clear_chrooted() - could not find chroot indicator"
     fi
     # msg_3 "destfs_clear_chrooted(() - done"
-}
-
-rsync_chown() {
-    #
-    #  Local copy, changing ovnership to root:
-    #
-    # msg_2 "rsync_chown()"
-    src="$1"
-    d_dest="$2"
-    [ -z "$src" ] && error_msg "rsync_chown() no source param"
-    [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
-    # echo "[$src] -> [$d_dest]"
-    rsync -ahP --chown=root:root "$src" "$d_dest" | grep -v ^./$
-    unset src
-    unset d_dest
-    # msg_3 "rsync_chown() - done"
 }
 
 #---------------------------------------------------------------
@@ -634,34 +685,6 @@ deploy_starting() {
         deploy_state_set "$deploy_state_dest_build"
     elif ! deploy_state_is_it "$deploy_state_pre_build"; then
         error_msg "Dest FS in an unknown state [$(deploy_state_get)], can't continue"
-    fi
-}
-
-display_installed_versions() {
-    #
-    #  Display versions of deployed environment
-    #
-    if hostfs_is_alpine; then
-        # cat /etc/motd | head -n 3
-        head -n 3 </etc/motd
-        echo "[0m"
-    elif hostfs_is_debian; then
-        /etc/update-motd.d/11-aok-release
-        /etc/update-motd.d/12-deb-vers
-        /etc/update-motd.d/13-ish-release
-        echo
-    elif hostfs_is_devuan; then
-        /etc/update-motd.d/11-aok-release
-        /etc/update-motd.d/12-devu-vers
-        /etc/update-motd.d/13-ish-release
-        echo
-    fi
-}
-
-installed_versions_if_prebuilt() {
-    if deploy_state_is_it "$deploy_state_pre_build"; then
-        echo
-        display_installed_versions
     fi
 }
 
@@ -856,7 +879,9 @@ pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
 #  location before /bin/hostname is found
 #
 hostname_alt=/usr/local/bin/hostname
+
 #  file alt hostname reads to find hostname
+#  the variable has been renamed to
 hostname_source_fname=/etc/opt/hostname_source_fname
-#  Used when hostname_source_fname is other than /etc/hostname
-hostname_cached=/etc/opt/hostname_cached
+
+#hostname_sync_fname
