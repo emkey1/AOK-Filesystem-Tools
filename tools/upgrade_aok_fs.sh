@@ -32,6 +32,7 @@ msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
 msg_2 "Common stuff"
 rsync_chown "$aok_content"/common_AOK/usr_local_bin/ /usr/local/bin
 rsync_chown "$aok_content"/common_AOK/usr_local_sbin/ /usr/local/sbin
+msg_3 "alternate hostname related"
 [ -f /etc/init.d/hostname ] && rsync_chown "$aok_content"/common_AOK/common_AOK/aok-hostname-service /etc/init.d/hostname
 [ -f /usr/local/bin/hostname ] && rsync_chown "$aok_content"/common_AOK/common_AOK/hostname_alt /usr/local/bin/hostname
 [ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown "$aok_content"/common_AOK/common_AOK/hostname_sync.sh /usr/local/sbin
