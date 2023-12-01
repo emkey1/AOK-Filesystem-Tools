@@ -42,18 +42,17 @@ echo
 #  Copy distro specific stuff
 #
 if hostfs_is_alpine; then
-    msg_3 "Alpine specifics"
+    msg_2 "Alpine specifics"
     rsync_chown "$aok_content"/Alpine/usr_local_bin/ /usr/local/bin
     rsync_chown "$aok_content"/Alpine/usr_local_sbin/ /usr/local/sbin
 elif hostfs_is_debian; then
-    echo "Debian specifics"
+    msg_2 "Debian specifics"
     rsync_chown "$aok_content"/Debian/usr_local_bin/ /usr/local/bin
     rsync_chown "$aok_content"/Debian/usr_local_sbin/ /usr/local/sbin
 elif hostfs_is_devuan; then
-    echo "Devuan specifics"
+    msg_2 "Devuan specifics"
     rsync_chown "$aok_content"/Devuan/usr_local_bin/ /usr/local/bin
     rsync_chown "$aok_content"/Devuan/usr_local_sbin/ /usr/local/sbin
 else
-    echo "ERROR: Failed to recognize Distro, aborting."
-    exit 1
+    error_msg "ERROR: Failed to recognize Distro, aborting."
 fi
