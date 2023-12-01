@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+# shellcheck source=/dev/null
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+
+# shellcheck source=/dev/null
 . /opt/AOK/tools/utils.sh
 
 # destfs_is_alpine && echo "is alpine" || echo "NOT alpine"
