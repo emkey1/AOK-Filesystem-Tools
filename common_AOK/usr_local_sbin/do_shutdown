@@ -8,18 +8,11 @@
 #
 #  this is called by 'shutdown' and does the actual shutdown procedure.
 #
-#  If shutdown was a single script and was triggered in a remote
-#  session, the 'openrc shutdown' bellow might terminate that session,
-#  thereby pottentially aborting the shutdown before it completes.
+#  For normall shutdown, do: shutdown
+#  it will announce the pending shutdown to all connected sessions
+#  and can be aborted
 #
-#  Thus this, the actual shutdown is run in a separate backgrounded
-#  script that will ignore if the triggering session disapears.
-#
-#  Apropriate warnings and abort possibility are offered in 'shutdown'
-#
-#  Triggering this one unintentionally will shutdown the system without
-#  any warning. Therefore it should not have a shebang, forcing
-#  the caller to really want to run this.
+#  This scriot will do instant shutdown.
 #
 
 display_msg() {
@@ -29,55 +22,49 @@ display_msg() {
     unset _msg
 }
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 uid="$(id | awk -F'[(=]' '{print $2}')"
 if [ "$uid" -ne 0 ]; then
     echo "ERROR: shutdown requires root privileges!"
     exit 1
 fi
 
-display_msg "dummy notice"
-
 echo
 echo "Commencing shutdown..."
 
-#
-#  Terminates all running services, not completing until all are done.
-#  During this, most remote sessions will be terminated...
-#
-# echo "will do openrc shutdown" >>/var/log/shutdown.log
-# openrc shutdown
-# echo "completed openrc shutdown" >>/var/log/shutdown.log
-
-# on console, give an oportunity to see the openrc shutdown complete
-#sleep 2
-
-long_sleep="$(ps ax | grep 'sleep infinity' | awk '!/grep/ {print $1}')"
-if [ -n "$long_sleep" ]; then
-    # aok has requested console via inittab
-    kill_this="$long_sleep"
-    msg="Will kill the long sleep [$kill_this]"
-else
-    kill_this="$(ps ax | grep 'pts/0' | grep -v login | head -n 1 | awk '!/grep/ { print $1 }')"
-    msg="Will kill the console shell [$kill_this]"
+if [ "$1" = "nice" ]; then
+    #
+    #  Terminates all running services, not completing until all are done.
+    #  During this, most remote sessions will be terminated...
+    #
+    display_msg "will do openrc shutdown"
+    openrc shutdown
+    display_msg "completed openrc shutdown"
 fi
 
-if [ -n "$kill_this" ]; then
-    display_msg "$msg"
-    kill -9 "$kill_this"
+key_process="$(ps ax | grep 'pts/0' | awk '!/grep/ { print $1 }' | head -n 1)"
+if [ -n "$key_process" ]; then
+    display_msg "Will kill the key_process [$key_process]"
+    kill -9 "$key_process"
 else
-    display_msg "Could not identify what to kill, in 5s brutal kill will happen"
+    display_msg "*** failed to find key process!"
 fi
+
 #
-#  Havent fully figured out if login or init should be killed
-#  on iSH-AOK killall -9 login  results in an ish crash popup,
-#  but the app is gone. killall -9 login init seemingly kills it
-#  but the app window is still there if it was not in FG, and wont
-#  close until it is made the FG app
+#  Havent fully figured out how to do "brutal" kill wihout somwrimes
+#  triggering an ish crash popup,
 #
 sleep 5
-display_msg "Controlleed kill failed, now doing it brutually, might leave crash popup"
+display_msg "Controlleed kill failed, doing it brutually, might leave crash popup"
 killall -9 login init
 
+#
+#  Should never show up, just to indicate complete shutdown failure
+#
 sleep 5
-
 display_msg "shutdown failed"

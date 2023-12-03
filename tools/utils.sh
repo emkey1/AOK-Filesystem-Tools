@@ -139,9 +139,9 @@ msg_script_title() {
     echo
     echo "***"
     echo "***  $1"
-    if [ -f "$file_aok_release" ]; then
+    if [ -f "$f_aok_fs_release" ]; then
         echo "***"
-        echo "***    creating AOK-FS: $(cat "$file_aok_release")"
+        echo "***    creating AOK-FS: $(cat "$f_aok_fs_release")"
     fi
     echo "***"
     echo
@@ -192,7 +192,8 @@ create_fs() {
     msg_3 "Extracting tarball, unpack time will be displayed"
     case "$src_tarball" in
     *alpine*) _cf_time_estimate="A minirootfs should not take that long" ;;
-    *)  _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
+    *)
+        _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
         ;;
     esac
     msg_3 "  $_cf_time_estimate"
@@ -211,7 +212,7 @@ create_fs() {
         echo "ERROR: Failed to untar image"
         echo
         echo "Try to remove the cached file and run this again"
-        echo "$src_img_cache_d/$src_tarball"
+        echo "$d_src_img_cache/$src_tarball"
         exit 1
     }
     t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
@@ -374,7 +375,7 @@ copy_local_bins() {
 
     # msg_1 "Copying /usr/local stuff from $_clb_base_dir"
 
-    _clb_src_dir="${aok_content}/${_clb_base_dir}/usr_local_bin"
+    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_bin"
     if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
         mkdir -p /usr/local/bin
@@ -382,7 +383,7 @@ copy_local_bins() {
         chmod +x /usr/local/bin/*
     fi
 
-    _clb_src_dir="${aok_content}/${_clb_base_dir}/usr_local_sbin"
+    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
     if [ -d "$_clb_src_dir" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
         mkdir -p /usr/local/sbin
@@ -394,7 +395,7 @@ copy_local_bins() {
     # msg_3 "copy_local_bins() done"
 }
 
-setup_login() {
+obsolete_setup_login() {
     #
     #  What login method will be used is setup during FIRST_BOOT,
     #  at this point we just ensure everything is available and initial boot
@@ -408,9 +409,9 @@ setup_login() {
     [ "$_distro" = "$distro_devuan" ] && _distro="$distro_debian"
 
     msg_2 "Install $_distro AOK login methods"
-    cp "$aok_content/$_distro/bin/login.loop" /bin
+    cp "$d_aok_base/$_distro/bin/login.loop" /bin
     chmod +x /bin/login.loop
-    cp "$aok_content/$_distro/bin/login.once" /bin
+    cp "$d_aok_base/$_distro/bin/login.once" /bin
     chmod +x /bin/login.once
 
     mv /bin/login /bin/login.original
@@ -442,7 +443,8 @@ rsync_chown() {
     [ -z "$src" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
     # echo "[$src] -> [$d_dest]"
-    rsync -ahP --chown=root:root "$src" "$d_dest" | grep -v ^./$
+    rsync -ahP --exclude=.~ --chown=root:root "$src" "$d_dest" | grep -v ^./$
+    # rsync -ahv --exclude=.~ --chown=root:root "$src" "$d_dest"
     unset src
     unset d_dest
     # msg_3 "rsync_chown() - done"
@@ -474,6 +476,14 @@ installed_versions_if_prebuilt() {
         echo
         display_installed_versions
     fi
+}
+
+ensure_ish_or_chrooted() {
+    #
+    #  Simple test to make sure this is not run on a non iSH host
+    #
+    this_is_ish && return
+    this_fs_is_chrooted && return
 }
 
 #---------------------------------------------------------------
@@ -581,7 +591,7 @@ hostfs_detect() {
 #---------------------------------------------------------------
 
 destfs_is_alpine() {
-    ! destfs_is_select && test -f "$file_alpine_release"
+    ! destfs_is_select && test -f "$f_alpine_release"
 }
 
 destfs_is_debian() {
@@ -593,7 +603,7 @@ destfs_is_devuan() {
 }
 
 destfs_is_select() {
-    [ -f "$destfs_select_hint" ]
+    [ -f "$f_destfs_select_hint" ]
 }
 
 destfs_detect() {
@@ -710,23 +720,23 @@ LOG_FILE=""
 #  both on build platforms and dest systems
 #  Due to necesity, this file needs to be sourced as: . /opt/AOK/toold/utils.sh
 #  Please do not use the abs path /opt/AOK for anything else, in all other
-#  references, use $aok_content
+#  references, use $d_aok_base
 #  If this location is ever changed, this will keep the changes in the
 #  code to a minimum.
 #
-aok_content="/opt/AOK"
+d_aok_base="/opt/AOK"
 
 #
 #  Import default settings
 #
 #  shellcheck source=/opt/AOK/AOK_VARS
-. "$aok_content"/AOK_VARS || exit 1
+. "$d_aok_base"/AOK_VARS || exit 1
 
 #
 #  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
 #
 # if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
-conf_overrides="${aok_content}/.AOK_VARS"
+conf_overrides="${d_aok_base}/.AOK_VARS"
 if [ -f "$conf_overrides" ]; then
     # msg_2 "Found .AOK_VARS"
     #  shellcheck disable=SC1090
@@ -750,7 +760,7 @@ d_images="$TMPDIR/aok_imgs"
 #
 #  Used for keeping track of deploy / chroot status
 #
-aok_content_etc="/etc$aok_content"
+d_aok_base_etc="/etc$d_aok_base"
 
 #
 #  Figure out if this script is run as a build host
@@ -760,8 +770,8 @@ aok_content_etc="/etc$aok_content"
 #  a prefix to all absolute paths - d_build_root
 #  pointing to where the dest fs is located in the host fs
 #
-f_host_fs_is_chrooted="/etc/opt/this_fs_is_chrooted"
-f_host_deploy_state="${aok_content_etc}/deploy_state"
+f_host_fs_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
+f_host_deploy_state="${d_aok_base_etc}/deploy_state"
 
 if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
     d_build_root="$TMPDIR/aok_fs"
@@ -794,13 +804,13 @@ fi
 #
 
 #  Location for src images
-src_img_cache_d="$TMPDIR/aok_cache"
+d_src_img_cache="$TMPDIR/aok_cache"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
 #  copied to this location
 #
-icloud_archive_d="/iCloud/AOK_Archive"
+d_icloud_archive="/iCloud/AOK_Archive"
 
 #
 #  Names of the rootfs tarballs used for initial population of FS
@@ -832,11 +842,11 @@ debian_tb="AOK-Debian-10-$AOK_VERSION"
 devuan_tb="AOK-Devuan-4-$AOK_VERSION"
 
 #  Where to find native FS version
-file_alpine_release="$d_build_root"/etc/alpine-release
-file_debian_version="$d_build_root"/etc/debian_version
+f_alpine_release="$d_build_root"/etc/alpine-release
+f_debian_version="$d_build_root"/etc/debian_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
-file_aok_release="$d_build_root"/etc/aok-release
+f_aok_fs_release="$d_build_root"/etc/aok-fs-release
 
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
@@ -848,13 +858,13 @@ additional_tasks_script="$d_build_root/opt/additional_tasks"
 #  Either run this script chrooted if the host OS supports it, or run it
 #  inside iSH-AOK once it has booted this FS
 #
-setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
-setup_alpine_scr="$aok_content"/Alpine/setup_alpine.sh
-setup_debian_scr="$aok_content"/Debian/setup_debian.sh
-setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
-setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
-setup_select_distro="$aok_content"/choose_distro/select_distro.sh
-setup_final="$aok_content"/common_AOK/setup_final_tasks.sh
+setup_common_aok="$d_aok_base"/common_AOK/setup_common_env.sh
+setup_alpine_scr="$d_aok_base"/Alpine/setup_alpine.sh
+setup_debian_scr="$d_aok_base"/Debian/setup_debian.sh
+setup_devuan_scr="$d_aok_base"/Devuan/setup_devuan.sh
+setup_select_distro_prepare="$d_aok_base"/choose_distro/select_distro_prepare.sh
+setup_select_distro="$d_aok_base"/choose_distro/select_distro.sh
+setup_final="$d_aok_base"/common_AOK/setup_final_tasks.sh
 
 #
 #  When reported what distro is used on Host or Dest FS uses this
@@ -870,7 +880,7 @@ deploy_state_dest_build="dest build"     # building FS on dest, dest details can
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
 destfs_select="select"
-destfs_select_hint="$d_build_root"/etc/opt/select_distro
+f_destfs_select_hint="$d_build_root"/etc/opt/select_distro
 
 pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
 
@@ -878,10 +888,10 @@ pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
 #  Location for alternate hostname, should normally be in a path
 #  location before /bin/hostname is found
 #
-hostname_alt=/usr/local/bin/hostname
+f_hostname_alt=/usr/local/bin/hostname
 
 #  file alt hostname reads to find hostname
 #  the variable has been renamed to
-hostname_source_fname=/etc/opt/hostname_source_fname
+f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
 
 #hostname_sync_fname

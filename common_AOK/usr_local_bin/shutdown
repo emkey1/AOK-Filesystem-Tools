@@ -13,7 +13,9 @@
 #  Just doing start is not 100% to take effect
 #  depending on service states
 #
-#  Optional param 1 is appended to the system shutdown notice
+#  if first parameter is now, this will happen without delay
+#  if there is an additional parameter, it will be used
+#  in the system shutdown notice
 #
 
 # Define a function to handle Ctrl+C
@@ -24,23 +26,14 @@ interrupt_handler() {
     exit 1
 }
 
-hold_time=10
-
-notification="
-
-    *** SYSTEM SHUTDOWN NOTICE ***
-
-$(hostname) will be shutdown in 10 seconds!!
-"
-
 #
-#  Append param 1 if pressent on new line
+#  Set the interrupt_handler function to be called when Ctrl+C is pressed
+#  Since this will wall announcing shutdown is cancelled, it is better
+#  to activate after the initial wall is made
 #
-[ -n "$1" ] && notification="${notification}
-$1"
+trap interrupt_handler INT
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
-
 if [ "$uid" -ne 0 ]; then
     echo "ERROR: shutdown requires root privileges!"
     exit 1
@@ -51,21 +44,35 @@ if ! mount | grep -qw "/"; then
     exit 2
 fi
 
+if [ "$1" = "now" ]; then
+    shift # if there is also a shutdown notice...
+    hold_time=0
+else
+    hold_time=10
+fi
+
+notification="
+
+    *** SYSTEM SHUTDOWN NOTICE ***
+
+$(hostname) will be shutdown in $hold_time seconds!!
+"
+#
+#  Append param 1 if pressent on new line
+#
+[ -n "$1" ] && notification="${notification}
+$*"
+
 /usr/local/bin/wall "$notification"
 
-#
-#  Set the interrupt_handler function to be called when Ctrl+C is pressed
-#  Since this will wall announcing shutdown is cancelled, it is better
-#  to activate after the initial wall is made
-#
-trap interrupt_handler INT
+if [ "$hold_time" != "0" ]; then
+    echo
+    echo "Abort shut down by hitting Ctrl-C within $hold_time secoonds"
+    echo
 
-echo
-echo "Abort shut down by hitting Ctrl-C within $hold_time secoonds"
-echo
-
-echo
-sleep "$hold_time"
+    echo
+    sleep "$hold_time"
+fi
 
 #
 #  If this is done via remote connection, the openrc shutdown
@@ -76,10 +83,13 @@ sleep "$hold_time"
 #  Since do_shutdown will shut the system down without any warning,
 #  it has no shebang, so intended shell must be mentioned by the caller.
 #
-date > /var/log/shutdown.log
+(
+    echo
+    date
+) >>/var/log/shutdown.log
 
 #
 #  Since do_shutdown does an instant shutdown, place it in /usr/local/lib
 #  and dont give it a shebang. To minimize risk of unintentional triggering
 #
-/bin/sh /usr/local/lib/do_shutdown | tee -a /var/log/shutdown.log &
+/usr/local/sbin/do_shutdown nice &
