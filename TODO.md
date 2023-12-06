@@ -1,6 +1,18 @@
 # TODO
 
-## let aok toggle between direct console and getty
+## Investigate respawn issue
+
+it seems a respawn process only is run once
+
+## aok should have an option for logging console to pts/0
+
+## /usr/local/sbin/dynamic_login
+
+When used as a Launch cmd, and autologins to a zsh user
+the console session is logged out after a copple of minutes  - investigate
+
+- ensure NavKey.md has correct paths
+
 
 ## update DEVUAN_SRC_IMAGE
 
