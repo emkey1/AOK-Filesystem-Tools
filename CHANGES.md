@@ -4,11 +4,16 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- Added support for pigz (if installed) when packing and unpacking File images
+- gave more aparantly used files obs- prefix, and I don't see any errors. Will delete them eventually
+- stopped using custom logins,since now it is controlled via aok -c and no patched logins are needed
 - removed duplicated extract image time elapsed for select distro
+- new feature dynamic_login handles console login
+- shutdown reworked
 
 ### 0.11.0.4
 
-- Reworked hostname_alt and related tools
+- Reworked f_hostname_alt and related tools
 - For Alpine the installed uptime is tested, if it fails - usually a seg fault. It is replaced with a symbolic link to busybox
 - Started work on detecting ios and dev type by guessing
 - upgrade also handles alt hostname files

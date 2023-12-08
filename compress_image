@@ -138,7 +138,15 @@ clear_build_triggered_logfiles
 echo
 msg_2 "Wrting image file"
 msg_3 " $tarball"
-tar "$opts" "$tarball" .
+
+if [ -n "$cmd_pigz" ]; then
+    msg_3 "Using $cmd_pigz"
+    # time tar -cf - . | pigz -p 2 > foo.tgz
+    tar -cf - . | $cmd_pigz >"$tarball"
+else
+    msg_3 "No pigz"
+    tar "$opts" "$tarball" .
+fi
 ex_code="$?"
 
 #
@@ -146,9 +154,9 @@ ex_code="$?"
 #
 
 if this_is_ish && [ "$(find /iCloud/ -maxdepth 1 | wc -l)" -gt 1 ]; then
-    msg_2 "Creating additional copy: $icloud_archive_d/$tarball_fn"
-    mkdir -p "$icloud_archive_d"
-    cp "$tarball" "$icloud_archive_d"
+    msg_2 "Creating additional copy: $d_icloud_archive/$tarball_fn"
+    mkdir -p "$d_icloud_archive"
+    cp "$tarball" "$d_icloud_archive"
 fi
 
 msg_3 "Image is ready!"
