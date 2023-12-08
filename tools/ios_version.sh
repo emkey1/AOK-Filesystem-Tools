@@ -37,7 +37,7 @@ create_fake_dev_details() {
         _ios_version="16.0"
     fi
 
-    echo ">> updating [$f_UIDevice]"
+    echo "><> updating [$f_UIDevice]"
     echo "Model: $_dev_type" >"$f_UIDevice"
     echo "OS Version: $_ios_version" >>"$f_UIDevice"
 
@@ -204,6 +204,6 @@ if [ ! -f "$f_UIDevice" ]; then
     #
     #  Reglar iSH doesnt support this, so will have to guestemate
     #
-    f_UIDevice="$d_build_root"/etc/opt/fake_UIDevice
+    f_UIDevice="$d_build_root"/etc/opt/AOK/fake_UIDevice
     [ ! -f "$f_UIDevice" ] && create_fake_dev_details
 fi
