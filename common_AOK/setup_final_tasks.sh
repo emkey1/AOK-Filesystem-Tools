@@ -159,6 +159,36 @@ start_cron_if_active() {
     # msg_3 "start_cron_if_active() - done"
 }
 
+set_launch_cmd() {
+    msg_2 "Setting 'Launch cmd' to run /usr/local/sbin/dynamic_login"
+
+    launch_cmd_expected='[ "/usr/local/sbin/dynamic_login" ]'
+    f_launch_cmd="/proc/ish/defaults/launch_command"
+
+    this_is_ish || {
+        msg_3 "Can only set 'Launch cmd' on iSH nodes!"
+        return
+    }
+
+    msg_3 "Setting default user as root, and enabeling continous logins"
+    echo "root" >"$f_login_default_user"
+    touch "$f_logins_continous"
+
+    msg_3 "Setting the custom AOK-FS 'Launch cmd'"
+    echo "$launch_cmd_expected" >"$f_launch_cmd"
+    launch_cmd_current="$(tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/')"
+
+    if [ "$launch_cmd_current" != "$launch_cmd_expected" ]; then
+        msg_1 "Failed to set 'Launch cmd'!"
+        echo "Current 'Launch cmd': '$launch_cmd_current'"
+        echo
+        echo "To set the default, run this:"
+        echo
+        echo "sudo echo '$launch_cmd_expected' > $f_launch_cmd"
+        echo
+    fi
+}
+
 replace_home_dirs() {
     if [ -n "$HOME_DIR_USER" ]; then
         if [ -f "$HOME_DIR_USER" ]; then
@@ -218,7 +248,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 tsaft_start="$(date +%s)"
 
 . /opt/AOK/tools/utils.sh
-. /opt/AOK/tools/vers_checks.sh
+. /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
 #
@@ -261,23 +291,24 @@ hostname_fix
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-"$aok_content"/common_AOK/hostname_handling/set_aok_hostname.sh || {
+"$d_aok_base"/common_AOK/hostname_handling/set_aok_hostname.sh || {
     error_msg "set_aok_hostname.sh failed" no_exit
 }
 
-set_initial_login_mode
+# login feature didsabled tag
+# set_initial_login_mode
 
 if hostfs_is_alpine; then
-    next_etc_profile="$aok_content/Alpine/etc/profile"
+    next_etc_profile="$d_aok_base/Alpine/etc/profile"
     #
     #  Some versions of Alpine uptime doesnt work in ish, test and
     #  replace with softlink to busybox if that is the case
     #
     verify_alpine_uptime
 elif hostfs_is_debian; then
-    next_etc_profile="$aok_content/Debian/etc/profile"
+    next_etc_profile="$d_aok_base/Debian/etc/profile"
 elif hostfs_is_devuan; then
-    next_etc_profile="$aok_content/Devuan/etc/profile"
+    next_etc_profile="$d_aok_base/Devuan/etc/profile"
 else
     error_msg "Undefined Distro, cant set next_etc_profile"
 fi
@@ -287,10 +318,12 @@ set_new_etc_profile "$next_etc_profile"
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
 
+set_launch_cmd
+
 #
 #  Handling custom files
 #
-"$aok_content"/common_AOK/custom/custom_files.sh || {
+"$d_aok_base"/common_AOK/custom/custom_files.sh || {
     error_msg "ERROR: common_AOK/custom/custom_files.sh failed"
 }
 

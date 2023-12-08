@@ -17,7 +17,7 @@ intial_fs_prep_debian() {
     #  from the start in case this is not a pre-build
     #
     msg_3 "Installing fix_dev"
-    cp "${aok_content}"/common_AOK/usr_local_sbin/fix_dev "$d_build_root"/usr/local/sbin
+    cp "${d_aok_base}"/common_AOK/usr_local_sbin/fix_dev "$d_build_root"/usr/local/sbin
 
     #
     #  This modified inittab is needed on firstboot, in order to be
@@ -25,7 +25,7 @@ intial_fs_prep_debian() {
     #  going to runlevel S
     #
     msg_3 "Debian AOK inittab"
-    cp -a "$aok_content"/Debian/etc/inittab "$d_build_root"/etc
+    cp -a "$d_aok_base"/Debian/etc/inittab "$d_build_root"/etc
 
     # msg_3 "intial_fs_prep_debian() - done"
 }

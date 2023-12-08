@@ -24,7 +24,7 @@ prepare_env_etc() {
 
     msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
-    cp -a "$aok_content"/Debian/etc/update-motd.d/* /etc/update-motd.d
+    cp -a "$d_aok_base"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
     msg_3 "prepare_env_etc() done"
 }
@@ -34,7 +34,7 @@ setup_cron_env() {
 
     msg_3 "Adding root crontab running periodic content"
     mkdir -p /var/spool/cron/crontabs
-    cp -a "$aok_content"/common_AOK/cron/crontab-root /var/spool/cron/crontabs/root
+    cp -a "$d_aok_base"/common_AOK/cron/crontab-root /var/spool/cron/crontabs/root
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
@@ -140,9 +140,9 @@ if ! "$setup_common_aok"; then
 fi
 
 #  Ensure that Debian requires login
-cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
+cp -a "$d_aok_base"/Debian/etc/pam.d/common-auth /etc/pam.d
 
-setup_login
+# setup_login
 
 debian_services
 

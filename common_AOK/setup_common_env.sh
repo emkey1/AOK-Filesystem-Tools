@@ -39,17 +39,13 @@ setup_cron_env() {
     #  if USE_CRON_SERVICE="Y
     #
     msg_3 "Setting cron periodic files"
-    rsync_chown "$aok_content"/common_AOK/cron/periodic /etc
+    rsync_chown "$d_aok_base"/common_AOK/cron/periodic /etc
     #msg_3 "setup_cron_env() - done"
 }
 
 setup_environment() {
 
     copy_local_bins common_AOK
-
-    cp "$aok_content"/common_AOK/usr_local_lib/do_shutdown /usr/local/lib
-    #  this one should not be executable
-    chmod -x /usr/local/lib/do_shutdown
 
     msg_2 "Configure some /etc files"
 
@@ -59,11 +55,19 @@ setup_environment() {
     #  that root env is already setup before dest root runs anything
     #
 
+    msg_3 "Disabling login timeout"
+    _f="/etc/login.defs"
+    if [[ -f "$_f" ]]; then
+        echo "LOGIN_TIMEOUT 0" >"$_f"
+    else
+        error_msg "Config file not found: >$_f<"
+    fi
+
     msg_3 "Populate /etc/skel"
-    rsync_chown "$aok_content"/common_AOK/etc/skel /etc
+    rsync_chown "$d_aok_base"/common_AOK/etc/skel /etc
 
     msg_3 "Activating group sudo for no passwd sudo"
-    cp "$aok_content"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
+    cp "$d_aok_base"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
     chmod 440 /etc/sudoers.d/sudo_no_passwd
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
@@ -105,9 +109,20 @@ setup_environment() {
         ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
     fi
 
+    # #
+    # #  Too much of a hack, need ot preserve sshd and so on...
+    # #
+    # msg_1 "Moving all initial init.d scripts to a NOT subfolder"
+    # mkdir -p /etc/NOT &&
+    #     mv /etc/init.d/* /etc/NOT &&
+    #     mv /etc/NOT /etc/init.d &&
+    #     cd /etc/init.d &&
+    #     mv NOT/functions.sh . &&
+    #     mv NOT/sshd . || error_msg "init.d cleanup failed"
+
     if command -v openrc >/dev/null; then
         msg_2 "Adding runbg service"
-        cp -a "$aok_content"/common_AOK/etc/init.d/runbg /etc/init.d
+        cp -a "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d
         # openrc_might_trigger_errors
         rc-update add runbg default
     else
@@ -213,7 +228,7 @@ create_user() {
     copy_skel_files "$cu_home_dir"
 
     msg_3 "Adding documentation to userdir"
-    cp -a "$aok_content"/Docs "$cu_home_dir"
+    cp -a "$d_aok_base"/Docs "$cu_home_dir"
 
     # set ownership
     chown -R "$USER_NAME": "$cu_home_dir"

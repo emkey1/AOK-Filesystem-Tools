@@ -481,8 +481,8 @@ fi
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure build_env can be found
 #
-cd "$aok_content" || {
-    error_msg "Failed to cd into: $aok_content"
+cd "$d_aok_base" || {
+    error_msg "Failed to cd into: $d_aok_base"
 }
 
 while [ -n "$1" ]; do

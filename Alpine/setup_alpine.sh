@@ -53,10 +53,10 @@ prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
     msg_3 "AOK inittab"
-    cp "$aok_content"/Alpine/etc/inittab /etc
+    cp "$d_aok_base"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
-    cp "$aok_content"/Alpine/etc/interfaces /etc/network
+    cp "$d_aok_base"/Alpine/etc/interfaces /etc/network
 
     if [ -f /etc/init.d/devfs ]; then
         msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
@@ -71,7 +71,7 @@ prepare_env_etc() {
     testing_repo="https://dl-cdn.alpinelinux.org/alpine/edge/testing"
     if [ "$alpine_release" = "edge" ]; then
         msg_2 "Adding apk repository - testing"
-        #    cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
+        #    cp "$d_aok_base"/Alpine/etc/repositories-edge /etc/apk/repositories
         echo "$testing_repo" >>/etc/apk/repositories
     elif min_release 3.17; then
         #
@@ -93,7 +93,7 @@ setup_cron_env() {
 
     msg_3 "Adding root crontab running periodic content"
     mkdir -p /etc/crontabs
-    cp -a "$aok_content"/common_AOK/cron/crontab-root /etc/crontabs/root
+    cp -a "$d_aok_base"/common_AOK/cron/crontab-root /etc/crontabs/root
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
@@ -163,20 +163,17 @@ apk upgrade || {
 install_apks
 
 msg_2 "adding group sudo"
-# apk add shadow
 groupadd sudo
 
 if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
 
-setup_login
-
 msg_2 "Copy /etc/motd_template"
-cp -a "$aok_content"/Alpine/etc/motd_template /etc
+cp -a "$d_aok_base"/Alpine/etc/motd_template /etc
 
 msg_2 "Copy iSH compatible pam base-session"
-cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
+cp -a "$d_aok_base"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
@@ -204,7 +201,6 @@ fi
 installed_versions_if_prebuilt
 
 msg_1 "Setup complete!"
-
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"

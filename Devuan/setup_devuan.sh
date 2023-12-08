@@ -34,7 +34,7 @@ prepare_env_etc() {
     msg_2 "prepare_env_etc()"
 
     msg_3 "hosts file helping apt tools"
-    cp -a "${aok_content}/Devuan/etc/hosts" /etc
+    cp -a "${d_aok_base}/Devuan/etc/hosts" /etc
 
     #
     #  Most of the Debian services, mounting fs, setting up networking etc
@@ -47,7 +47,7 @@ prepare_env_etc() {
 
     msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
-    cp -a "${aok_content}/Devuan/etc/update-motd.d/*" /etc/update-motd.d
+    cp -a "${d_aok_base}/Devuan/etc/update-motd.d/*" /etc/update-motd.d
 
     msg_3 "prepare_env_etc() done"
 }
@@ -80,7 +80,7 @@ prepare_env_etc
 #  This must run before any task doing apt actions
 #
 msg_2 "Installing sources.list"
-cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
+cp "$d_aok_base"/Devuan/etc/apt_sources.list /etc/apt/sources.list
 
 msg_1 "apt update"
 apt update -y
@@ -126,7 +126,7 @@ if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
 
-setup_login
+# setup_login
 
 #
 #  Depending on if prebuilt or not, either setup final tasks to run

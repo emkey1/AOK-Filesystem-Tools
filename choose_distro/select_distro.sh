@@ -41,18 +41,18 @@ Select distro:
         echo "Alpine selected"
         echo
         msg_1 "running $setup_alpine_scr"
-        rm -f "$destfs_select_hint"
+        rm -f "$f_destfs_select_hint"
         "$setup_alpine_scr"
         ;;
 
     2)
         echo "Debian selected"
-        "$aok_content"/choose_distro/install_debian.sh
+        "$d_aok_base"/choose_distro/install_debian.sh
         ;;
 
     3)
         echo "Devuan selected"
-        "$aok_content"/choose_distro/install_devuan.sh
+        "$d_aok_base"/choose_distro/install_devuan.sh
         ;;
 
     *)
@@ -86,7 +86,7 @@ echo "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
 echo
 
-. /opt/AOK/tools/utils.sh
+. "$d_aok_base"/tools/utils.sh
 
 manual_runbg
 

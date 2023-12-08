@@ -7,7 +7,7 @@
 
 . /opt/AOK/tools/utils.sh
 
-. /opt/AOK/Debian/deb_utils.sh
+. "$d_aok_base"/Debian/deb_utils.sh
 
 tid_start="$(date +%s)"
 
@@ -57,7 +57,7 @@ msg_3 "maintaining /etc/opt"
 cp -a /etc/opt "$distro_tmp_dir"/etc
 
 msg_2 "Moving Debian /etc/profile into place"
-cp "$aok_content"/Debian/etc/profile "$distro_tmp_dir"/etc/profile
+cp "$d_aok_base"/Debian/etc/profile "$distro_tmp_dir"/etc/profile
 
 rm -rf "$debian_download_location"
 
@@ -124,11 +124,11 @@ msg_3 "Copying Alpine lib (musl) to /usr/lib"
 #  replace /lib with soft-link to /usr/lib
 # /busybox echo "> Replacing /lib with a soft-link to /usr/lib"
 msg_3 "Replacing /lib with a soft-link to /usr/lib"
-"$aok_content"/choose_distro/bin/lib_fix
+"$d_aok_base"/choose_distro/bin/lib_fix
 
 #  From now on Debian should be fully available
 
-rm -f "$destfs_select_hint"
+rm -f "$f_destfs_select_hint"
 
 if [ -n "$orig_log_file" ]; then
     LOG_FILE="$orig_log_file"
