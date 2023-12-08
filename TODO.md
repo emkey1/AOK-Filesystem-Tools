@@ -1,10 +1,12 @@
 # TODO
 
-## Investigate respawn issue
-
-it seems a respawn process only is run once
-
 ## breakout network check from dynamic_login to separate app
+
+## /etc/opt/AOK
+
+Investigate how it is created and make sure everything using it can handle
+its absence
+
 
 ## aok more options
 
@@ -14,27 +16,21 @@ it seems a respawn process only is run once
 - bat levels default / custom
 - bat lvl colors
 
+## Remove obsolete file
 
-## /usr/local/sbin/dynamic_login
-
-When used as a Launch cmd, and autologins to a zsh user
-the console session is logged out after a copple of minutes  - investigate
-
-- ensure NavKey.md has correct paths
-
-
-## update DEVUAN_SRC_IMAGE
-
-since it is about to become more usefull, i should update it to ensure it is in line with the debian image when it comes to what is installed out of the door
+Alpine/usr_local_bin/apk_find_pkg.sh it is now apk_find_pkg
 
 ## Start working on using a working /run
 
+Investigate if anything can be simplified / needs to be changed given
+that /run is now clean at boot time for iSH-AOK, and asuming
+dynamic_login is the Launch cmd, this is also the case for regular iSH
+hm perhaps this cleanup of /run should be the first inittab task instead?
 
 ## Seems to be issues with latest  mdcat on 3.18
 
 investigate and if confirmed, try to find latest version that can be used, and add it to set of custom apks
 in Alpine/setup_alpine.sh
-
 
 ## Using /dev/console within the iSH limitations
 
@@ -67,11 +63,9 @@ pts0::respawn:/sbin/agetty -a root pts/0 linux
 IMPORTANT UPDATE: Please be aware that in Alpine you cant use pts0 as an inittab identifier for whatever reason, despite it being no longer than 4 chars, in such cases labeling it as tty1 works and will give you a prompt.
 On Debian pts0 works, and makes more sense since it hints what device this is using
 
-## Remove obsolete file
-
-Alpine/usr_local_bin/apk_find_pkg.sh it is now apk_find_pkg
-
 ## Wait for bootup to complete
+
+runlevel default should, do, can something else be done if openrc is not used?
 
 This could be used from /etc/profile for bash/ash and from /etc/zprofile for zsh
 
@@ -93,8 +87,6 @@ rest of this code block
 done
 ```
 
-
-
 ##  Make it more clear how to refer to self during deploy
 
 
@@ -110,6 +102,30 @@ the hostfs. More clarity about how to refer to different roles needs to
 be found.
 
 
-## iSH Debian
 
-When prebuilding /etc/opt/AOK is created in the host FS prior to chroot
+
+
+
+
+
+
+
+## Investigate respawn issue
+
+it seems a respawn process only is run once
+
+## /usr/local/sbin/dynamic_login
+
+When used as a Launch cmd, and autologins to a zsh user
+the console session is logged out after a copple of minutes  - investigate
+
+- ensure NavKey.md has correct paths
+
+## update DEVUAN_SRC_IMAGE
+
+since it is about to become more usefull, i should update it to ensure it is in line with the debian image when it comes to what is installed out of the door
+
+
+====>>>>
+
+
