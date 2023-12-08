@@ -14,6 +14,9 @@
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+#  Only do the rest on fresh login, not for subshells
+[ -n "$SHLVL" ] && [ "$SHLVL" -gt 1 ] && return
+
 ID="$(id -u)"
 CHECK="$(/bin/rc-status 2>/dev/null | grep -c sshd)"
 VERBOSE=0
