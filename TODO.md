@@ -4,7 +4,16 @@
 
 it seems a respawn process only is run once
 
-## aok should have an option for logging console to pts/0
+## breakout network check from dynamic_login to separate app
+
+## aok more options
+
+- option for logging console to pts/0
+- option for lsunch cmd: default, aok default, custom
+- should bat lvl be displayed in colors yes/no
+- bat levels default / custom
+- bat lvl colors
+
 
 ## /usr/local/sbin/dynamic_login
 
