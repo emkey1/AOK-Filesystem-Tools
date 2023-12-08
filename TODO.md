@@ -1,7 +1,5 @@
 # TODO
 
-## breakout network check from dynamic_login to separate app
-
 ## /etc/opt/AOK
 
 Investigate how it is created and make sure everything using it can handle
@@ -127,5 +125,3 @@ since it is about to become more usefull, i should update it to ensure it is in 
 
 
 ====>>>>
-
-
