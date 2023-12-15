@@ -15,6 +15,31 @@
 #  This scriot will do instant shutdown.
 #
 
+error_msg() {
+    msg="$1"
+    [ -z "$msg" ] && error_msg "error_msg() called with no param"
+    echo "ERROR: $msg"
+    exit 1
+}
+
+this_is_ish() {
+    test -d /proc/ish
+}
+
+this_fs_is_chrooted() {
+    #  Check this _ACTUAL_ fs
+    [ -f /etc/opt/AOK/this_fs_is_chrooted ]
+}
+
+ensure_ish_or_chrooted() {
+    #
+    #  Simple test to make sure this is not run on a non iSH host
+    #
+    this_is_ish && return
+    this_fs_is_chrooted && return
+    error_msg "Can only run on iSH or when chrooted"
+}
+
 display_msg() {
     _msg="$1"
     echo "$_msg"
@@ -30,9 +55,11 @@ display_msg() {
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
 if [ "$uid" -ne 0 ]; then
-    echo "ERROR: shutdown requires root privileges!"
+    echo "ERROR: do_shutdown requires root privileges!"
     exit 1
 fi
+
+ensure_ish_or_chrooted
 
 echo
 echo "Commencing shutdown..."
@@ -49,10 +76,10 @@ fi
 
 key_process="$(ps ax | grep 'pts/0' | awk '!/grep/ { print $1 }' | head -n 1)"
 if [ -n "$key_process" ]; then
-    display_msg "Will kill the key_process [$key_process]"
+    display_msg "Will kill the key console process [$key_process]"
     kill -9 "$key_process"
 else
-    display_msg "*** failed to find key process!"
+    display_msg "*** failed to find key console process!"
 fi
 
 #
@@ -60,7 +87,7 @@ fi
 #  triggering an ish crash popup,
 #
 sleep 5
-display_msg "Controlleed kill failed, doing it brutually, might leave crash popup"
+display_msg "Controlled kill failed, doing it brutually, might leave crash popup"
 killall -9 login init
 
 #

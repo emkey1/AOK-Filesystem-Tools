@@ -244,7 +244,7 @@ cache_fs_image() {
         error_msg "Failed to cd to $d_src_img_cache"
     }
     if [ ! -f "$d_src_img_cache/$src_tarball" ]; then
-        cmd="wget $src_image"
+        cmd="wget --no-check-certificate $src_image"
         #  Ensure basename for tar ball is used
         case "$build_target" in
         "$distro_alpine" | "$destfs_select") cmd="$cmd -O $alpine_src_tb" ;;
@@ -488,6 +488,9 @@ aok_files="${d_build_root}${d_aok_base}"
 parse_arguments "$@"
 
 check_dependencies
+
+this_fs_is_chrooted && error_msg "You can't build an FS when already chrooted!"
+
 
 display_build_target
 

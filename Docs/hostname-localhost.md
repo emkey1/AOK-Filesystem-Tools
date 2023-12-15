@@ -27,7 +27,7 @@ Then make it runable like this:
 chmod 755 /path/to/alternate/hostname
 ```
 
-You can replace the regular /bin/hostname with this, the drawback is that
+You can softlink the regular /bin/hostname with this, the drawback is that
 next time /bin/hostname is upgraded, your alternate will be replaced.
 The advantage is that there is no risk any script not having /usr/local/bin
 in PATH will end up using "localhost" instead of the intended hostname.

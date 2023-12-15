@@ -31,10 +31,10 @@
 #
 #===============================================================
 
-hostname_alt=/usr/local/bin/hostname
+f_hostname_alt=/usr/local/bin/hostname
 
 #  Only continue if alt hostname is available
-[ ! -x "$hostname_alt" ] && exit 0
+[ ! -x "$f_hostname_alt" ] && exit 0
 
 # skip extra displayal of hostname, but dont filter out errors
-"$hostname_alt" --update >/dev/null
+"$f_hostname_alt" --update >/dev/null

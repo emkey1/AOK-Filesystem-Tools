@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.0.4"
+AOK_VERSION="0.11.0.4-e16"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -140,10 +140,11 @@ INITIAL_LOGIN_MODE="enable"
 #
 #  ALPINE_VERSION defines what Alpine release (minirootfs) will be used
 #
-# ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.7  # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
-ALPINE_VERSION=3.18.4 # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.15.11 # End of Alpine support 2023-11-01
+# ALPINE_VERSION=3.16.8  # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.6 # End of Alpine support 2024-11-22
+ALPINE_VERSION=3.18.5 # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.19.0 # End of Alpine support  2025-11-01
 #
 #  For edge releases - Current development tree
 #  Format is the isodate featured in the minirootfs filename

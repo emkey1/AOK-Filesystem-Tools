@@ -140,11 +140,11 @@ msg_2 "Wrting image file"
 msg_3 " $tarball"
 
 if [ -n "$cmd_pigz" ]; then
-    msg_3 "Using $cmd_pigz"
+    msg_4 "Using $cmd_pigz"
     # time tar -cf - . | pigz -p 2 > foo.tgz
     tar -cf - . | $cmd_pigz >"$tarball"
 else
-    msg_3 "No pigz"
+    msg_4 "No pigz"
     tar "$opts" "$tarball" .
 fi
 ex_code="$?"

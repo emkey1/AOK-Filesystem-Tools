@@ -61,13 +61,15 @@ tmux_esc_prefix() {
     echo "Escape prefixing will be mapped to: $sequence"
     {
         echo
-        echo "# For this to work, escape-time needs to be zero, or at least pretty low"
+        echo "#  For this to work, escape-time needs to be zero, or at least pretty low"
         echo "set -s escape-time 0"
         echo
-
-        echo "# Using Esc prefix for nav keys"
+	
+	echo "#"
+        echo "#  Using Esc prefix for nav keys"
+	echo "#"
         echo "set -s user-keys[200]  \"$sequence\"" # escPrefix
-        echo "bind -n User200 switch-client -T escPrefix"
+	echo "bind -N \"Switch to -T escPrefix\" -n User200 switch-client -T escPrefix"
         echo
         echo "bind -T escPrefix  Down     send PageDown"
         echo "bind -T escPrefix  Up       send PageUp"
@@ -207,13 +209,13 @@ Select modifier:
 #  If a nav-key is defined, this file will contain a tmux config snippet
 #  that the default .tmux.conf (/etc/skel/.tmux.conf) will source
 #
-f_tmux_nav_key_handling="/etc/opt/tmux_nav_key_handling"
+f_tmux_nav_key_handling="/etc/opt/AOK/tmux_nav_key_handling"
 #
 #  This is not used directly by AOK, it just indicates the current nav-key
 #  It can be used to inform remote nodes about iSH nav-key handling.
 #  For more details check Docs/NavKey.md
 #
-f_tmux_nav_key="/etc/opt/tmux_nav_key"
+f_tmux_nav_key="/etc/opt/AOK/tmux_nav_key"
 
 clear_nav_key_usage
 

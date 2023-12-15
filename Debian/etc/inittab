@@ -5,16 +5,16 @@
 # The default runlevel.
 id:2:initdefault:
 
+# Clear /run/ to an initial state with no services running
+fx1::sysinit:/usr/local/sbin/reset-run-dir.sh
+
 #
 #  hostname is not set automatically since iOS 17, assuming the
 #  neccesary shortcuts have been set up, an Automation event writes
 #  current hostname to a file that iSH can read
 #  Link to explaination about how to set this up is in the below script
 #
-fx1::sysinit:/usr/local/sbin/hostname_sync.sh
-
-# Clear /run/openrc to an initial state with no services running
-fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
+fx2::sysinit:/usr/local/sbin/hostname_sync.sh
 
 #
 #  Not system critical but we might as well do it here
@@ -29,7 +29,7 @@ hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
 # to transition over to the runlevel default.
 # This is solved by using boot as initial runlevel on iSH-AOK
 #
-si::sysinit:/sbin/openrc boot
+# si::sysinit:/sbin/openrc boot
 
 # What to do in single-user mode.
 ~~:S:wait:/sbin/sulogin --force
@@ -51,16 +51,3 @@ l5:5:wait:/etc/init.d/rc 5
 l6:6:wait:/etc/init.d/rc 6
 # Normally not reached, but fallthrough in case of emergency.
 z6:6:respawn:/sbin/sulogin --force
-
-#
-#  Before enabling either of the agetty's for pts/0 Launch cmd should be
-#  changed into this: /bin/sleep infinity
-#  If you want to use /dev/console for general output, also do
-#    rm -f /dev/console && mknod -m 222 /dev/console c 136 0
-#
-
-#  Using login prompt
-# pts0::respawn:/sbin/agetty pts/0 xterm-256color
-
-#  Autologin as selected user, be aware that logout will instantly log you in again...
-# pts0::respawn:/sbin/agetty -a root pts/0 xterm-256color

@@ -18,14 +18,10 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--c, --console   Console method [launch|inittab] Now: $(display_console_method)
-                How the console is initiated.
-                launch  - launched directly from iSH via 'Launch Cmd'
-                inittab - launched via getty in inittab
--l, --login     Decides login procedure [disable|enable|once] Now: $(display_login_method)
-                disable - session starts directly logged in as root
-                enable  - session starts wirh a login prompt
-                once    - one login session, then iSH terminates
+-a, --autologin Auto-login as user disable|username Now: $(display_autologin)
+                disable  - Will give login prompt
+                username - Will auto-login as username
+-c  --continous New login prompt after logout on|off Now: $(display_continous_sessions)
 -H, --hostname  Reads hostname from sync file [disable|enable] Now: $(display_hostname_method)
                 disable - Use the normal hostname program,
                           always displays localhost for iOS >= 17
@@ -35,10 +31,69 @@ Available options:
 "
     exit 0
 }
+# -c, --console   Console method [launch|inittab] Now: $(display_console_method)
+#                 if autologin is desired, give extra param user_name
+#                 launch  - launched directly from iSH via 'Launch Cmd'
+#                 inittab - launched via getty in inittab once bootup
+#                           has completed.
 
 #  shellcheck disable=SC2317
 destfs_is_alpine() {
     test -f /etc/alpine-release
+}
+
+#===============================================================
+#
+#
+#       Continous login sessions
+#
+#
+#===============================================================
+
+change_continous_sessions() {
+
+    error_msg "change_continous_sessions() - not implemented"
+}
+
+display_continous_sessions() {
+    if [ -f "$f_logins_continous" ]; then
+        echo "on"
+    else
+        echo "off"
+    fi
+}
+
+#===============================================================
+#
+#
+#       auto-login
+#
+#
+#===============================================================
+
+change_autologin() {
+    uname_autologin="$1"
+
+    if [ "$uname_autologin" = "disable" ]; then
+        echo "disabling auto-login"
+        rm -f "$f_login_default_user"
+    else
+        eval "_h=~$uname_autologin"
+        # shellcheck disable=SC2154
+        [ -d "$_h" ] || {
+            error_msg "$uname_autologin does not seem to be a valid user on this system"
+        }
+        echo "$uname_autologin" >"$f_login_default_user"
+        echo "Enabled auto-login for user: $uname_autologin"
+    fi
+}
+
+display_autologin() {
+    if [ -f "$f_login_default_user" ]; then
+        cat "$f_login_default_user"
+    else
+        echo "$autologin_disabled"
+    fi
 }
 
 #===============================================================
@@ -49,14 +104,207 @@ destfs_is_alpine() {
 #
 #===============================================================
 
-launch_cmd_get() {
+lc_get() {
     tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
 }
 
-launch_cmd_set() {
+lc_set() {
     new_cmd="$1"
-    [ -z "$new_cmd" ] && error_msg "launch_cmd_set() - no param"
-    echo "$1" >/proc/ish/defaults/launch_command
+    [ -z "$new_cmd" ] && error_msg "lc_set() - no param"
+    # printf '%s' $new_cmd >/proc/ish/defaults/launch_command
+    echo "$new_cmd" >/proc/ish/defaults/launch_command
+    _lc_current="$(lc_get)"
+    [ "$_lc_current" = "$new_cmd" ] || {
+        echo "intended: >$new_cmd<"
+        echo "current:  >$_lc_current<"
+        lc_error_abort "Failed to set a launch command"
+    }
+}
+
+lc_set_param_join() {
+    [ -z "$1" ] && error_msg "prepare_launch_cmd() - no params"
+    _cmd="["
+    _got_one=0
+    while [ -n "$1" ]; do
+        [ "$_got_one" != 0 ] && _cmd="$_cmd,"
+        _got_one=1
+        _cmd="$_cmd \"$1\""
+        shift
+    done
+    _cmd="$_cmd ]"
+    echo "><> will use: >$_cmd<"
+    lc_set "$_cmd"
+}
+
+lc_restore() {
+    # echo "lc_restore()"
+    #
+    #  In case something goes wrong use this to ensure it is restored
+    #
+    # echo "><> Restoring to default launch command"
+
+    #  Does not use lc_set in order to prevent risk for infinite loops
+    echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
+
+    # is safe to call even here in a "exception handler"
+    _lc_current="$(lc_get)"
+    if [ "$_lc_current" != "$launch_cmd_default" ]; then
+        echo
+        echo "ERROR: Failed to restore launch cmd!"
+        echo
+        echo "Current launch cmd: $_lc_current"
+        echo "Intended default:   $launch_cmd_default"
+        echo
+        echo "Make sure to set it manually, otherwise iSH will probably"
+        echo "fail to start!"
+        exit 1
+    fi
+}
+
+lc_error_abort() {
+    # echo "lc_error_abort()"
+    msg="${1:-console mode change error!}"
+    echo
+    echo "***  console change error!  ***"
+    echo "$msg"
+    lc_restore
+    echo "Launch command was reset to the default"
+    lc_get
+}
+
+gettys_disable() {
+    sed -i '/getty/d' /etc/inittab
+    grep -q "getty" /etc/inittab && {
+        lc_error_abort "Failed to clear getty lines"
+    }
+}
+
+gettys_enable() {
+    # some stuff i previously had in /etc/inittab
+    #
+    #  Before enabling either of the agetty's for pts/0 Launch cmd should be
+    #  changed into this: /bin/sleep infinity
+    #  If you want to use /dev/console for general output, also do
+    #    rm -f /dev/console && mknod -m 222 /dev/console c 136 0
+    #
+    #  Using login prompt
+    # tty1::respawn:/sbin/agetty pts/0 xterm-256color
+    #  Autologin as selected user, be aware that logout will instantly log you in again...
+    # tty1::respawn:/sbin/agetty -a root pts/0 xterm-256color
+    if [ -n "$uname_autologin" ]; then
+        echo "><> getty will autologin as $uname_autologin"
+        _direct_login="-a $uname_autologin"
+    else
+        echo "><> getty will give login prompt"
+        _direct_login=""
+    fi
+    if hostfs_is_alpine; then
+        # once instead of respawn for single run
+        # tty1::respawn:/sbin/agetty pts/0 xterm-256color
+
+        # works but just one session
+        getty_line="tty1::respawn:/sbin/agetty $_direct_login pts/0 xterm-256color"
+        # getty_line="tty1::respawn:/sbin/agetty -a root pts/0 xterm-256color"
+
+        #getty_line="tty1::respawn:/sbin/mingetty console"
+        # getty_line="tty1::respawn:/sbin/mingetty --noissue  --autologin root pts/0"
+        # getty_line="tty1::respawn:/sbin/getty 38400 pts/0"
+
+        # no login ?
+        # getty_line="tty1::respawn:/sbin/mingetty pts/0"
+        # getty_line="pts0::respawn:/sbin/agetty pts/0 linux"
+        # getty_line="pts0::respawn:/sbin/agetty -a root pts/0 linux"
+    elif host_fs_is_debian || host_fs_is_devuan; then
+        # getty_line="pts0::respawn:/sbin/agetty pts/0 xterm-256color"
+        #  Autologin as selected user, be aware that logout will instantly log you in again...
+        getty_line="pts0::respawn:/sbin/agetty $_direct_login pts/0 xterm-256color"
+    else
+        lc_error_abort "No getty known for this File System!"
+    fi
+    [ -z "$getty_line" ] && {
+        lc_error_abort "gettys_enable() - variable getty_line unset"
+    }
+    (
+        echo "# /usr/local/bin/aok disabled direct console, and instead activated this getty"
+        echo "$getty_line"
+    ) >>/etc/inittab
+    grep -q "^$getty_line" /etc/inittab || {
+        lc_error_abort "Failed to activate gettys"
+    }
+}
+
+update_inittab() {
+    it_mode="$1"
+
+    case "$it_mode" in
+
+    "enable")
+        rm -f /dev/console && mknod -m 222 /dev/console c 136 0
+        gettys_disable # First clear previous gettys
+        gettys_enable
+        ;;
+
+    "disable")
+        gettys_disable
+        lc_error_abort "update_inittab() disable - not implemented!"
+        ;;
+
+    "") lc_error_abort "update_inittab() - no param" ;;
+
+    *) lc_error_abort "update_inittab() - bad param: $it_mode" ;;
+
+    esac
+}
+
+change_console_method() {
+    cons_mode="$1"
+    uname_autologin="$2"
+
+    if [ -n "$uname_autologin" ]; then
+        eval "_h=~$uname_autologin"
+        [ -d "$_h" ] || {
+            error_msg "$uname_autologin does not seem to be a valid user on this system"
+        }
+    fi
+
+    case "$cons_mode" in
+
+    "launch")
+        error_msg "Currently disabled"
+        if [ -n "$uname_autologin" ]; then
+            lc_set_param_join "/bin/login" "-f" "$uname_autologin"
+            echo "At startup console will autologin as: $uname_autologin"
+        else
+            lc_set_param_join "/bin/login"
+            echo "At startup a login prompt will be presented"
+        fi
+        # echo '[ "/sbin/agetty", "pts/0", "xterm-256color" ]'
+        #rm -f /dev/console && mknod -m 222 /dev/console c 5 1
+        gettys_disable
+        ;;
+
+    "inittab")
+        error_msg "Currently disabled"
+        # rm -f /dev/console && mknod -m 222 /dev/console c 136 0
+        [ -f "$f_launch_cmd_inttab" ] || {
+            echo
+            echo "ERROR: cmd $f_launch_cmd_inttab is missing!"
+            lc_restore
+        }
+        update_inittab enable
+        lc_set "$launch_cmd_inttab"
+        echo "Console will launch via inittab"
+        ;;
+
+    "display")
+        lc_get
+        ;;
+
+    "") error_msg "Missing param indicating new login procedure" ;;
+
+    *) error_msg "Bad param to change login procedure: $1" ;;
+
+    esac
 }
 
 display_console_method() {
@@ -68,181 +316,24 @@ display_console_method() {
     # pts0::respawn:/sbin/agetty
     #
 
-    if [ "$(launch_cmd_get)" = '[ "/bin/sleep", "infinity" ]' ]; then
+    _lc_current="$(lc_get)"
+    if [ "$_lc_current" = "$launch_cmd_inttab" ]; then
         echo "inittab"
     else
         echo "launch"
     fi
 
     # # [ "/bin/login", "-f", "root"]%
-    # lc_current="$(launch_cmd_get)"
+    # lc_current="$(lc_get)"
     # echo "current launch cmd: $lc_current"
 
-    # launch_cmd_set '[ "/bin/sleep", "infinity" ]'
-    # lc_current="$(launch_cmd_get)"
+    # lc_set '[ "/bin/sleep", "infinity" ]'
+    # lc_current="$(lc_get)"
     # echo "current launch cmd: $lc_current"
 
-    # launch_cmd_set '[ "/bin/login", "-f", "root" ]'
-    # lc_current="$(launch_cmd_get)"
+    # lc_set '[ "/bin/login", "-f", "root" ]'
+    # lc_current="$(lc_get)"
     # echo "current launch cmd: $lc_current"
-}
-
-change_console_procedure() {
-    cons_mode="$1"
-
-    case "$cons_mode" in
-
-    "launch")
-        error_msg "method 'launch' not implemented"
-        ;;
-
-    "inittab")
-        error_msg "method 'inittab' not implemented"
-        ;;
-
-    "")
-        echo
-        echo "ERROR: Missing param indicating new login procedure"
-        exit 1
-        ;;
-
-    *)
-        echo
-        echo "ERROR: Bad param to change login procedure: $1"
-        exit 1
-        ;;
-
-    esac
-
-    error_msg "Not done: change_console_procedure()"
-}
-
-#===============================================================
-#
-#
-#       login method
-#
-#
-#===============================================================
-change_login_procedure() {
-    requested_method="$1"
-
-    if [ ! "$requested_method" = "disable" ] && [ "$(find /home -mindepth 1 -maxdepth 1 | wc -l)" -lt 1 ]; then
-        echo
-        echo "WARNING: an active login method was selected,"
-        echo "however no user accounts were found, thus switching to disable."
-        echo "Otherwise you would most likely get stuck on the login prompt next boot."
-        echo
-        requested_method="disable"
-    fi
-
-    case "$requested_method" in
-
-    "once")
-        echo "Enabling login prompt, but only for initial login."
-        echo "  This App will exit when you logout"
-        rm -f /bin/login
-        ln -sf /bin/login.once /bin/login
-        echo "once" >"$login_method_stored"
-        exit 0
-        ;;
-
-    "enable")
-        echo "Enabling login prompt."
-        echo "  You will be prompted for your login name and password"
-        echo "  if one has been set when launching this App"
-        rm -f /bin/login
-        ln -sf /bin/login.loop /bin/login
-        echo "enabled" >"$login_method_stored"
-        exit 0
-        ;;
-
-    "disable")
-        echo "Disabling login prompt on startup. You will start at root prompt"
-        echo "  when launching this App"
-        rm -f /bin/login
-
-        if [ -f "$login_original" ]; then
-            #
-            #  This will also be the case for Alpine when shadow-login
-            #  is installed
-            #
-            ln -sf "$login_original" /bin/login
-        elif destfs_is_alpine; then
-            ln -sf "/bin/busybox" /bin/login
-        else
-            echo "ERROR: not Alpine and no $login_original"
-            exit 1
-        fi
-
-        echo "disabled" >"$login_method_stored"
-        exit 0
-        ;;
-
-    "")
-        echo
-        echo "ERROR: Missing param indicating new login procedure"
-        exit 1
-        ;;
-
-    *)
-        echo
-        echo "ERROR: Bad param to change login procedure: $1"
-        exit 1
-        ;;
-
-    esac
-}
-
-check_login_method() {
-    if [ "$(readlink -f /bin/login)" = "/bin/login.loop" ]; then
-        echo "enabled"
-    elif [ "$(readlink -f /bin/login)" = "/bin/login.once" ]; then
-        echo "once"
-    else
-        echo "disabled"
-    fi
-}
-
-display_login_method() {
-    mthd_active="$(check_login_method)"
-    mthd_intended="$(cat "$login_method_stored" 2>/dev/null)"
-
-    if [ "$mthd_active" = "$mthd_intended" ]; then
-        echo "$mthd_active"
-        if [ ! -f /bin/login ]; then
-            if [ -f /bin/login.original ]; then
-                ln -sf /bin/login.original /bin/login
-            else
-                echo "ERROR: /bin/login missing"
-            fi
-        fi
-        exit 0
-    fi
-
-    echo "Inconsistency detected"
-    echo
-    echo "WARNING: active login method not the intended one"
-    echo "         attempting to fix"
-    echo
-    echo "current:   $mthd_active"
-    echo "intended: $mthd_intended"
-    echo
-
-    #
-    #  If stored setting not available repeat usage of active, in order
-    #  to set the selected to match
-    #
-    [ -z "$mthd_intended" ] && mthd_intended="$mthd_active"
-
-    case "$mthd_intended" in
-    "disabled") mthd="disable" ;;
-    "once") mthd="once" ;;
-    "enabled") mthd="enable" ;;
-    *) mthd="$mthd_active" ;; # not sure how this works, my attempt for a deault
-    esac
-
-    change_login_procedure "$mthd"
 }
 
 #===============================================================
@@ -252,20 +343,20 @@ display_login_method() {
 #
 #
 #===============================================================
-install_hostname_alt() {
-    echo "Enabling alternate hostname $hostname_alt"
-    cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$hostname_alt"
-    chmod 755 "$hostname_alt"
+install_f_hostname_alt() {
+    echo "Enabling alternate hostname $f_hostname_alt"
+    cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$f_hostname_alt"
+    chmod 755 "$f_hostname_alt"
 }
 
-remove_hostname_alt() {
-    rm -f "$hostname_alt"
+remove_f_hostname_alt() {
+    rm -f "$f_hostname_alt"
 }
 
 hostname_do_source() {
     f_src="$1"
     [ -z "$f_src" ] && error_msg "hostname_do_source() - called without parameter"
-    echo "Hostname set to: $("$hostname_alt" -S "$f_src")"
+    echo "Hostname set to: $("$f_hostname_alt" -S "$f_src")"
 }
 
 change_hostname_method() {
@@ -277,7 +368,7 @@ change_hostname_method() {
 
     "enable")
         if [ -z "$source_file" ]; then
-            f_current="$(cat "$hostname_source_fname" 2>/dev/null)"
+            f_current="$(cat "$f_hostname_source_fname" 2>/dev/null)"
             if [ "$f_current" = "$f_etc_hostname" ]; then
                 s_old_value="$(cat "$f_etc_hostname" 2>/dev/null)"
             else
@@ -295,10 +386,10 @@ change_hostname_method() {
             if [ -z "$s_new_value" ]; then
                 if [ -z "$s_old_value" ]; then
                     echo "ERROR: Nothing given and no old value was found"
-                    echo "       will not activate $hostname_alt"
+                    echo "       will not activate $f_hostname_alt"
                     echo "       this can be activated later by doing: aok -H enable"
                     echo
-                    remove_hostname_alt
+                    remove_f_hostname_alt
                     exit 1
                 fi
                 s_new_value="$s_old_value"
@@ -312,21 +403,21 @@ change_hostname_method() {
             #  Use it as a path
             #
             if [ -f "$s_new_value" ]; then
-                install_hostname_alt
+                install_f_hostname_alt
                 echo "hostname will be sourced from: $s_new_value"
                 hostname_do_source "$s_new_value"
             else
                 echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
                 echo "       this can be activated later by doing: aok -H enable"
                 echo
-                remove_hostname_alt
+                remove_f_hostname_alt
                 exit 1
             fi
         else
             #
             #  Use it as old style hostname
             #
-            install_hostname_alt
+            install_f_hostname_alt
             echo "$s_new_value" >"$f_etc_hostname"
             echo "/etc/hostname will be used, so no syncing will be done."
             hostname_do_source "$f_etc_hostname"
@@ -341,15 +432,13 @@ change_hostname_method() {
             echo "Your shell prompt might have cached the hostname when the session started."
             echo "It will then be updated next time you login."
         fi
-        exit 0
         ;;
 
     "disable")
-        if [ -f "$hostname_alt" ]; then
-            echo "Removing $hostname_alt"
-            remove_hostname_alt
+        if [ -f "$f_hostname_alt" ]; then
+            echo "Removing $f_hostname_alt"
+            remove_f_hostname_alt
         fi
-        exit 0
         ;;
 
     *)
@@ -364,7 +453,7 @@ change_hostname_method() {
 
 display_hostname_method() {
     # msg_2 "display_hostname_method()"
-    if [ -f "$hostname_alt" ]; then
+    if [ -f "$f_hostname_alt" ]; then
         echo "Enabled"
     else
         echo "Disabled"
@@ -381,26 +470,11 @@ display_hostname_method() {
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
+autologin_disabled="disabled"
+launch_cmd_default='[ "/bin/login", "-f", "root" ]'
+f_launch_cmd_inttab="/usr/local/sbin/console_via_inittab_notification"
+launch_cmd_inttab="[ \"$f_launch_cmd_inttab\" ]"
 f_etc_hostname=/etc/hostname
-
-#
-#  Store login method, so that if /bin/login was updated
-#  it can be restored to intended state.
-#
-login_method_stored="/etc/opt/AOK-login_method"
-
-login_original="/bin/login.original"
-
-if destfs_is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
-    #
-    #  If /bin/login has been updated, ie is a file, this would indicate
-    #  shadow-login or similar has been updated. Update $login_original
-    #
-    mv /bin/login "$login_original"
-
-    # will restore it to its previous state, if need be
-    display_login_method
-fi
 
 verbose=0
 prog_name=$(basename "$0")
@@ -421,34 +495,66 @@ while true; do
             echo
             echo "WARNING: Multiple verbose options are ignored"
         fi
+        exit 0
         ;;
 
-    "-c" | "--console")
-        hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
+        # "-c" | "--console")
+        #     hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
+        #     if [ -n "$2" ]; then
+        #         this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
+        #         change_console_method "$2" "$3"
+        #         shift # get rid of extra option
+        #     else
+        #         display_console_method
+        #     fi
+        #     exit 0
+        #     ;;
+
+    "-a" | "--autologin")
         if [ -n "$2" ]; then
-            this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
-            change_console_method "$2"
+            # this_fs_is_chrooted && error_msg "Can\t change autologin on chrooted system"
+            change_autologin "$2"
+            shift # get rid of extra option
         else
-            display_console_method
+            _s="$(display_autologin)"
+            if [ "$_s" = "$autologin_disabled" ]; then
+                echo "autologin disabled"
+            else
+                echo "autlogin as username: $_s"
+            fi
         fi
+        exit 0
         ;;
 
-    "-l" | "--login")
+    "-c" | "--continous")
         if [ -n "$2" ]; then
-            change_login_procedure "$2"
+            this_fs_is_chrooted && error_msg "Can\t change continous on chrooted system"
+            change_continous_sessions "$2"
+            shift # get rid of extra option
         else
-            printf "Current login method: "
-            display_login_method
+            _s="$(display_continous_sessions)"
+            if [ "$_s" = "off" ]; then
+                echo "New login prompt after logout on|off"
+            else
+                echo "autlogin as username: $_s"
+            fi
         fi
+        exit 0
         ;;
 
     "-H" | "--hostname")
         if [ -n "$2" ]; then
             change_hostname_method "$2" "$3"
+            #
+            #  Since we dont know if we got 2 or 3 options
+            #  It is not possible to tell if there are more, so exit now
+            #
+            exit 0
         else
             printf "Current login method: "
             display_hostname_method
         fi
+        exit 0
         ;;
 
     *)
@@ -459,6 +565,4 @@ while true; do
         ;;
 
     esac
-    shift
-    [ -z "$1" ] && break # no more options
 done

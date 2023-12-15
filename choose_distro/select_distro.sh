@@ -78,13 +78,14 @@ export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
 
 tcd_start="$(date +%s)"
 
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
+#  This is not used atm, seems devices disapearing is no longer an issue
+# #
+# #  Ensure important devices are present.
+# #  this is not yet in inittab, so run it from here on 1st boot
+# #
+# echo "-->  Running fix_dev  <--"
+# /opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
+# echo
 
 . "$d_aok_base"/tools/utils.sh
 

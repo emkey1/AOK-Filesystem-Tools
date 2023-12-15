@@ -2,9 +2,9 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
-#
 #  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  This is a dynamic login handler, can optionally
 #   - login as a pre-defined user
@@ -15,80 +15,166 @@
 #  but in my experimenting, I found that relaunch didnt trigger a new
 #  agetty process once the first had timed out.
 #
-#  So I instead use this, run by 'Launch cmd' it will call /bin/login
+#  So I instead use this, run by 'Launch cmd' it will call $f_login_prog
 #  directly to set up the user session
 #
 
-show_msg() {
+prepare_status_log() {
+    max_history=100
+    if [ "$(wc -l <"$f_status_log" | awk '{ print $1 }')" -gt "$max_history" ]; then
+        # Truncate the file
+        tail -n "$max_history" "$f_status_log" >"$f_status_log.tmp" && mv "$f_status_log.tmp" "$f_status_log"
+    fi
+    #
+    #  To give some separationa, and a hint when this bootup started...
+    #
+    (
+        echo
+        echo "$(date +"%Y-%m-%d %H:%M:%S") starting $0"
+    ) >>"$f_status_log"
+}
+
+print_log() {
+    #
+    #  In case of bootup issues, the tihis output is both displayed
+    #  and logged to a file, so that it can be reviewed
+    #  This is not used for all output, only "essentials" indicating
+    #  statuses during startup
+    #  For log only items, give noecho as 2nd param
+    #
     msg="$1"
 
-    echo "$msg"
-    echo "$msg" >>"$f_login_status"
+    [ "$2" != "noecho" ] && echo "$msg"
+    echo "$(date +"%Y-%m-%d %H:%M:%S") $msg" >>"$f_status_log"
 }
 
 do_shutdown() {
     echo
     # debug alternative
-    # show_msg "Will sleep forever"
+    # print_log "Will sleep forever"
     # /bin/sleep infinity
 
-    # show_msg "***  Will shutdown in 5s"
+    # print_log "***  Will shutdown in 5s"
     # sleep 5
 
     /usr/local/sbin/do_shutdown
-    show_msg "Returned from do_shutdown..."
+    print_log "Returned from do_shutdown..."
 }
 
-waiting_for_expected_runlevel() {
-    prefix_displayed=0
+deploy_aok() {
+    #
+    #  This is a new AOK-FS that has not yet completed its setup
+    #  continue the deploy
+    #
+    echo
+    echo "******************************************************"
+    echo "*                                                    *"
+    echo "*   AOK-FS deploy has not completed, continuing it   *"
+    echo "*                                                    *"
+    echo "******************************************************"
+    echo
+
+    /etc/profile
+
+    echo
+    echo "****************************"
+    echo "*                          *"
+    echo "*   Returned from deploy   *"
+    echo "*                          *"
+    echo "****************************"
+    echo
+}
+
+abort_runlevel_wait() {
+    echo
+    print_log "***  Ctrl-C captured - aborting wait for runlevel $expected_runlevel  ***"
+    echo
+    abort_runlevel_wait=1
+}
+
+runlevel_wait() {
+    print_log "iSH sometimes fails to reach runlevel $expected_runlevel, in that case restart this App, and hope for better luck next time"
+    echo
+    trap 'abort_runlevel_wait INT' INT
+    # sleep 3
     while true; do
         current_runlevel="$(rc-status -r)"
+        print_log "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
         if [ "$current_runlevel" = "$expected_runlevel" ]; then
             break
         fi
-        if [ "$prefix_displayed" = 0 ]; then
-            prefix_displayed=1
-            show_msg "If this wait continues more than arround 10 times, iSH probably failed to complete bootup, please restart the App!"
-        fi
-        show_msg "current runlevel is $current_runlevel - waiting for $expected_runlevel"
         sleep 2
+        [ "$abort_runlevel_wait" = "1" ] && break
     done
+    trap '' INT # abort capturing Ctrl-C
+    print_log "runlevel_wait completed, runlevel is now $(rc-status -r)" noecho
 }
 
 network_check() {
     echo
-    show_msg "Checking networking - takes <5 seconds"
+    print_log "Checking networking - takes <5 seconds"
     if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
         if ping -c 2 google.com >/dev/null 2>&1; then
-            echo "Connected to the Internet and DNS is resolving!"
+            print_log "Connected to the Internet and DNS is resolving!"
         else
-            show_msg "***  DNS does not seem to resolve!"
+            print_log "***  DNS does not seem to resolve!"
         fi
     else
-        show_msg "***  This node seems to be offline!"
+        print_log "***  Not able to access the Internet!"
     fi
     echo
+}
+
+handle_etc_issue() {
+    if [ -f "$f_issue_file" ]; then
+        echo
+        cat "$f_issue_file"
+    fi
 }
 
 login_with_param_check() {
     #
     #  Do this for each login, in case changes have been made
     #
-    if [ "$ignore_login_params" != "1" ] && [ -f "$f_default_user" ]; then
-        def_user="$(cat "$f_default_user")"
-        show_msg "autologin with default user: $def_user - can be changed by running: aok"
-        login_params="-f $def_user -d sdf -dsee"
-        /bin/login $login_params || {
+    if [ "$ignore_login_params" != "1" ] && [ -f "$f_login_default_user" ]; then
+        def_user="$(cat "$f_login_default_user")"
+        [ -n "$def_user" ] && {
+            cut -d: -f 1 /etc/passwd | grep -qw "$def_user" || {
+                echo
+                print_log "ERROR: default user for autologin: $def_user is not valid"
+                print_log "reverting to basic no params login"
+                echo
+                ignore_login_params=1
+                #  it should be safe to recuser once, sice param checks are disabled
+                login_with_param_check
+                return
+            }
+        }
+        print_log "autologin as: $def_user - can be changed by running: aok"
+        handle_etc_issue
+        login_params="-f $def_user"
+        print_log "Starting login with params: [$login_params]" noecho
+        # shellcheck disable=SC2086
+        "$f_login_prog" $login_params || {
+            _excode="$?"
             echo
-            show_msg "ERROR: /bin/login exited with: $?, trying to use params: $login_params"
-            show_msg "reverting to basic no params login"
+            print_log "ERROR: $f_login_prog exited with: $_excode, trying to use params: $login_params"
+            print_log "reverting to basic no params login"
+            echo
             ignore_login_params=1
+            #  it should be safe to recuser once, sice param checks are disabled
             login_with_param_check
+            return
         }
     else
-        /bin/login || {
+        # print_log "Using bare bones login with no parameters"
+        handle_etc_issue
+        print_log "Starting login with no params" noecho
+        "$f_login_prog" || {
+            _excode="$?"
             echo
-            show_msg "ERROR: login exited with: $?"
+            print_log "ERROR: login exited with: $_excode"
+            echo
         }
     fi
 }
@@ -100,40 +186,59 @@ login_with_param_check() {
 #===============================================================
 
 expected_runlevel="default"
-f_default_user="/etc/opt/AOK/default-login-username"
-f_continous_logins="/etc/opt/AOK/continous-logins"
-f_login_status="/var/log/dynamic_login.log"
+f_status_log="/var/log/dynamic_login.log"
+f_issue_file="/etc/issue"
+f_login_prog="/bin/login"
+f_login_default_user="/etc/opt/AOK/login-default-username"
+f_logins_continous="/etc/opt/AOK/login-continous"
 
 #
-#  If this is not set, and f_continous_logins is not present,
-#  once login timeouts, system will shut down
+#  Alpine    needs this set here, Debian etc picks this setting from
+#  /etc/login.defs
 #
-export LOGIN_TIMEOUT=0 # indicate that login will never timeout
+# export LOGIN_TIMEOUT=0
 
-show_msg ""
-show_msg "$(date)"
+#
+#  Regular iSH doesnt replace /run, since this when run is the first
+#  process, it is safe to clear it here. It will happen before /sbin/init
+#  is started.
+#
+grep -qi aok /proc/ish/version 2>/dev/null || {
+    rm /run/* -rf
+    print_log "===  Clearing /run for regular iSH  ==="
+}
 
-waiting_for_expected_runlevel
+prepare_status_log # make sure it doesnt get too large
+runlevel_wait
 network_check
 
+#  If deploy has not completed - handle it
+[ -f /etc/opt/AOK/deploy_state ] && deploy_aok
+
 while true; do
+    #
+    #  Ensure params are tried for each login attempt, in case they have
+    #  been changed during the current session, and continous logins is set
+    #
+    ignore_login_params=0
     login_with_param_check
     login_ex_code="$?"
     [ "$login_ex_code" != "0" ] && {
         echo
-        show_msg "ERROR: /bin/login exited with: $login_ex_code"
+        print_log "ERROR: $f_login_prog exited with: $login_ex_code"
     }
 
-    if [ -f "$f_continous_logins" ]; then
+    if [ ! -f "$f_logins_continous" ]; then
         echo
-        show_msg "=== /bin/login terminated, will restart after sleep 3"
+        print_log "===  $f_logins_continous not found, will shutdown"
+	if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+	    print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
+	    exit 0
+	fi
         sleep 3
-    else
-        echo
-        show_msg "===  $f_continous_logins not found, will shutdown"
         do_shutdown
     fi
 done
 
-show_msg "===  Fell out of infinite /usr/local/sbin/dyamic_login loop, will sleep forever"
+print_log "===  Fell out of infinite /usr/local/sbin/dyamic_login loop, will sleep forever"
 /bin/sleep infinity

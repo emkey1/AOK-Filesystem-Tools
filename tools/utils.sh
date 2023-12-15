@@ -108,30 +108,34 @@ debug_sleep() {
 #  The msg_ functions are ordered, lower number infers more important updates
 #  so they should stand out more
 #
-msg_1() {
-    [ -z "$1" ] && error_msg "msg_1() no param"
-    _msg="===  $1  ==="
-    echo
+do_msg() {
+    _msg="$1"
+    [ -z "$_msg" ] && error_msg "do_msg() no param"
     echo "$_msg"
-    echo
     [ -n "$LOG_FILE" ] && log_it "$_msg"
     unset _msg
+}
+
+msg_1() {
+    [ -z "$1" ] && error_msg "msg_1() no param"
+    echo
+    do_msg "===  $1  ==="
+    echo
 }
 
 msg_2() {
-    [ -z "$1" ] && error_msg "msg_2() no param"
-    _msg="---  $1"
-    echo "$_msg"
-    [ -n "$LOG_FILE" ] && log_it "$_msg"
-    unset _msg
+    [ -n "$1" ] || error_msg "msg_2() no param"
+    do_msg "---  $1"
 }
 
 msg_3() {
-    [ -z "$1" ] && error_msg "msg_3() no param"
-    _msg="  -  $1"
-    echo "$_msg"
-    [ -n "$LOG_FILE" ] && log_it "$_msg"
-    unset _msg
+    [ -n "$1" ] || error_msg "msg_3() no param"
+    do_msg " --  $1"
+}
+
+msg_4() {
+    [ -n "$1" ] || error_msg "msg_4() no param"
+    do_msg "  -  $1"
 }
 
 msg_script_title() {
@@ -208,13 +212,20 @@ create_fs() {
     fi
 
     t_img_extract_start="$(date +%s)"
-    tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
-        echo "ERROR: Failed to untar image"
-        echo
-        echo "Try to remove the cached file and run this again"
-        echo "$d_src_img_cache/$src_tarball"
-        exit 1
-    }
+    if [ -n "$cmd_pigz" ]; then
+        # pigz -dc your_archive.tgz | tar -xf -
+        msg_4 "Using $cmd_pigz"
+        $cmd_pigz -dc "$_cf_tarball" | tar -xf -
+    else
+        msg_4 "No pigz"
+        tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
+            echo "ERROR: Failed to untar image"
+            echo
+            echo "Try to remove the cached file and run this again"
+            echo "$d_src_img_cache/$src_tarball"
+            exit 1
+        }
+    fi
     t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
     display_time_elapsed "$t_img_extract_duration" "Extract image"
     unset t_img_extract_start
@@ -331,6 +342,7 @@ set_new_etc_profile() {
             echo "#  special case exit 123 exits the profile, useful for prebuild"
             echo "#  to exit out of the chroot"
             echo "#"
+            echo "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             echo "$sp_new_profile"
             echo 'ex_code="$?"'
             #  shellcheck disable=SC2016
@@ -353,7 +365,6 @@ set_new_etc_profile() {
             echo "#  cant be shared when exiting deploy and dropping into an"
             echo "#  interactive env, so here comes a generic path"
             echo "#"
-            echo "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
         ) >"$d_build_root"/etc/profile
     fi
 
@@ -484,6 +495,7 @@ ensure_ish_or_chrooted() {
     #
     this_is_ish && return
     this_fs_is_chrooted && return
+    error_msg "Can only run on iSH or when chrooted"
 }
 
 #---------------------------------------------------------------
@@ -704,10 +716,11 @@ deploy_starting() {
 #
 #===============================================================
 
-while [ -f "/tmp/fixdev.pid" ]; do
-    msg_3 "Waiting for fix_dev to complete"
-    sleep 1
-done
+#  This is not used atm, seems devices disapearing is no longer an issue
+# while [ -f "/tmp/fixdev.pid" ]; do
+#     msg_3 "Waiting for fix_dev to complete"
+#     sleep 1
+# done
 
 #
 #  Might be activated in AOK_VARS or .AOK_VARS
@@ -894,4 +907,13 @@ f_hostname_alt=/usr/local/bin/hostname
 #  the variable has been renamed to
 f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
 
-#hostname_sync_fname
+#
+#  For automated logins
+#
+f_login_default_user="/etc/opt/AOK/login-default-username"
+f_logins_continous="/etc/opt/AOK/login-continous"
+
+cmd_pigz="$(command -v pigz)"
+if [ -z "$cmd_pigz" ] && [ -x /home/linuxbrew/.linuxbrew/bin/pigz ]; then
+    cmd_pigz="/home/linuxbrew/.linuxbrew/bin/pigz"
+fi

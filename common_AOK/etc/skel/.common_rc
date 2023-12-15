@@ -30,6 +30,85 @@ prepend_path() {
     unset extra_p
 }
 
+set_current_shell_name() {
+    #
+    #  The SHELL variable only displays initial login shell
+    #  if you change shell, even using ` -l` to indicate
+    #  doing a login shell, it doesnt change.
+    #  Instead I add CURRENT_SHELL to indicate what this shell is
+    #
+    if [ -n "$FISH_VERSION" ]; then
+        #
+        #  fish doesnt support the below case cmd
+        #  so needs separate detection
+        #
+        CURRENT_SHELL="fish"
+    else
+        case "$(ps -p $$ -o comm=)" in
+        "ash" | "busybox") CURRENT_SHELL="ash" ;;
+        "bash") CURRENT_SHELL="bash" ;;
+        "zsh") CURRENT_SHELL="zsh" ;;
+        *) CURRENT_SHELL="" ;; #  unknown
+        esac
+    fi
+}
+
+#  Function to get battery info and status, if running on iSH-AOK
+get_battery_info() {
+    # Only supported on iSH-AOK
+    grep -qi aok /proc/ish/version 2>/dev/null || return
+
+    # If the shel used is given as a param, color for that shell will be used
+    _shell_name="$1"
+
+    #  shellcheck disable=SC2002
+    capacity="$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null | cut -d '.' -f 1)"
+    chrg_stat="$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)"
+
+    _f=/home/jaclu/.bat_lvls_tst.sh
+    if [ -f "$_f" ]; then
+        . "$_f"
+    else
+        if [ "$capacity" -le 10 ]; then # crit_low  - birgt red
+            _chrg_color=196
+        elif [ "$capacity" -le 20 ]; then # very low  - low intense red
+            _chrg_color=9
+        elif [ "$capacity" -le 30 ]; then # low       -  yellow
+            _chrg_color=191
+        elif [ "$capacity" -le 40 ]; then # lowish    - bright green
+            _chrg_color=82
+        elif [ "$capacity" -gt 89 ]; then # very_high - dark blue
+            _chrg_color=21
+        elif [ "$capacity" -gt 80 ]; then # highish   - dark green
+            _chrg_color=28
+        else # normal    - green
+            _chrg_color=2
+        fi
+    fi
+
+    case "$_shell_name" in
+    "bash" | "ash") _bat_color="\[\e[38;5;${_chrg_color}m\]" ;;
+    "zsh") _bat_color="%F{$_chrg_color}" ;;
+    *) _bat_color="" ;;
+    esac
+    unset _chrg_color
+    unset _shell_name
+
+    if [ -z "$capacity" ]; then
+        echo '$_prompt_bat_color Battery not found '
+    else
+        case $chrg_stat in
+        "Full") _bat_state="${capacity}F" ;;
+        "Charging") _bat_state="${capacity}+" ;;
+        "Unplugged") _bat_state="${capacity}-" ;;
+        *) _bat_state="${capacity}" ;;
+        esac
+        printf ' %s%s' "$_bat_color" "$_bat_state"
+        unset _bat_state
+        unset _bat_color
+    fi
+}
+
 basic_aliases() {
     #
     # enable color support of ls and also add handy aliases
@@ -58,6 +137,55 @@ basic_aliases() {
     alias ld='ls -d */'
 }
 
+prompt_colors() {
+    #
+    #  Here the colors are just defined in the xterm-256 color schema.
+    #  Depending on shells this might need to be translated to
+    #  the actual prompt code for this color.
+    #  zsh can handle this notation directly.
+    #
+
+    #
+    #  EUID / UID is not available in the ash shell, 'id -u' always works
+    #
+    if [ "$(id -u)" -eq 0 ]; then
+        PCOL_USERNAME=1
+    else
+        PCOL_USERNAME=34
+    fi
+    PCOL_CWD=12
+    PCOL_GREY=240 # For things that should be less intense
+
+    #
+    #  To make iSH nodes stand out if connected from the outside,
+    #  or if it is chrooted under another host.
+    #  It should also not be pointlessly in your face if you are using
+    #  the iSH console
+    #
+    if [ -n "$SSH_CLIENT" ] || [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+        PCOL_HOSTNAME=222
+    else
+        PCOL_HOSTNAME="$PCOL_USERNAME"
+    fi
+}
+
+bash_prompt() {
+    #
+    #  Since Ash also uses the Bash style prompt, it is defined here
+    #  so that Ash also can use it
+    #
+    prompt_colors
+
+    #  shell specific notation for prompt colors
+    PCOL_USERNAME="\[\e[38;5;${PCOL_USERNAME}m\]"
+    PCOL_HOSTNAME="\[\e[38;5;${PCOL_HOSTNAME}m\]"
+    PCOL_CWD="\[\e[38;5;${PCOL_CWD}m\]"
+    PCOL_GREY="\[\e[38;5;${PCOL_GREY}m\]"
+    PCOL_CLR="\e[0m"
+
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}$(get_battery_info $CURRENT_SHELL)${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
+}
+
 #===============================================================
 #
 #   Main
@@ -75,12 +203,15 @@ unset -f prepend_path
 basic_aliases
 unset -f basic_aliases
 
+set_current_shell_name
+
 #
 #  This is a helper for setting hostname in prompts, since the typical \h
 #  Doesnt work on iOS >= 17
+#  use ${_hn} in your prompt!
 #
 if test -x /usr/local/bin/hostname; then
     _hn="$(/usr/local/bin/hostname)"
 else
-    _hn="$(/bin/hostname -s)"
+    _hn="$_hc$(/bin/hostname -s)"
 fi

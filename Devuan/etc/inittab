@@ -5,7 +5,8 @@
 id:2:initdefault:
 
 # Ensure devs are ok
-fx1::sysinit:/usr/local/sbin/fix_dev
+#  This is not used atm, seems devices disapearing is no longer an issue
+# fx1::sysinit:/usr/local/sbin/fix_dev
 
 #
 #  Not system critical but we might as well do it here

@@ -47,7 +47,8 @@ if [ "$(whoami)" != "root" ]; then
         echo "Executing $app as root"
         echo
     fi
-    #  using $0 instead of full path makes location not hardcoded
+
+    #  Providing some env variables that are needed to be kept in the sudo
     sudo AOK_DIR="$AOK_DIR" TMPDIR="$TMPDIR" "$app" "$@"
     exit_code="$?"
 

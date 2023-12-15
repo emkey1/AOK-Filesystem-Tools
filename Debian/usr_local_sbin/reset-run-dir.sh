@@ -15,4 +15,4 @@
 # Debug log
 echo "[$(date)]  reset-run-dir.sh" >>/var/log/debug.log
 
-rm /run/openrc -rf
+rm /run/* -rf

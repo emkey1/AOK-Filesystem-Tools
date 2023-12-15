@@ -13,6 +13,13 @@ case $- in
 *) return ;; # If not running interactively, don't do anything
 esac
 
+#
+#  Common settings that can be used by most shells
+#
+if [ -f ~/.common_rc ]; then
+    . ~/.common_rc
+fi
+
 zsh_history_conf() {
     HISTSIZE=1000000
     # shellcheck disable=SC2034
@@ -51,20 +58,20 @@ zsh_history_conf() {
     setopt INC_APPEND_HISTORY_TIME
 }
 
+#===============================================================
 #
-#  Common settings that can be used by most shells
+#   Main
 #
-if [ -f ~/.common_rc ]; then
-    . ~/.common_rc
-fi
+#===============================================================
 
 zsh_history_conf
+
+prompt_colors
 
 #
 #  Folder and success of last cmd on left
 #  user@machine time on right
 #
-PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
+PROMPT="%(?..%F{red}?%?)%F{$PCOL_CWD}%~%f%b%# "
 
-#  Inside tmux user and time is displayed on status line
-[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@$_hn %F{240}%*%f"
+RPROMPT="%F{$PCOL_USERNAME}%n%F{$PCOL_GREY}@%F{$PCOL_HOSTNAME}$_hn$(get_battery_info zsh) %F{$PCOL_GREY}%*%f"

@@ -297,21 +297,29 @@ define_chroot_env() {
     [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
 }
 
-use_root_shell_as_default_cmd() {
-    #
-    #  Since no command was specified, try to extract the root
-    #  shell from within the env. This to ensue we dont try
-    #  to use a shell that is either not available, nor
-    #  not found in the expeted location
-    #
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "use_root_shell_as_default_cmd()"
 
-    f_etc_pwd="${CHROOT_TO}/etc/passwd"
-    [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
-    cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
-    unset f_etc_pwd
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "use_root_shell_as_default_cmd() - done"
+#use_root_shell_as_default_cmd
+find_default_cmd() {
+    #
+    #  Since no command was specified, first check if this
+    #  chroot has a defined default command in /.chroot_default_cmd
+    #  If this is not found, try to login as root with root's shell.
+    #  This to ensue we dont try to use a shell that is either not
+    #  available, or not found in the expeted location
+    #
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "find_default_cmd()"
+    _f="${CHROOT_TO}/.chroot_default_cmd"
+    if [ -f "$_f"  ]; then
+	cmd_w_params="$(cat "$_f")"
+	[ "$_fnc_calls" -gt 0 ] && msg_3 "Found a default cmd: $cmd_w_params"
+    else
+	[ "$_fnc_calls" -gt 0 ] && msg_2 "Trying to use root shell as default cmd"
+	_f="${CHROOT_TO}/etc/passwd"
+	[ ! -f "$_f" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
+	cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$_f")"
+	[ "$_fnc_calls" -gt 0 ] && msg_3 "use_root_shell_as_default_cmd() - done"
+    fi
+    [ "$_fnc_calls" = 2 ] && msg_3 "find_default_cmd()"
 }
 
 env_prepare() {
@@ -569,12 +577,13 @@ can_chroot_run_now
 trap 'cleanup INT' INT
 trap 'cleanup TERM' TERM
 
-env_prepare
-
 [ -z "$d_build_root" ] && error_msg "d_build_root empty!" 1
 
 if [ "$1" = "" ]; then
-    use_root_shell_as_default_cmd
+    find_default_cmd
+    if [ -z "$cmd_w_params" ]; then
+	error_msg "Could not find any default command, you must supply one"
+    fi
 else
     cmd_w_params="$*"
     _cmd="$1"
@@ -591,9 +600,10 @@ else
     fi
 fi
 
-msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
-
+env_prepare
 destfs_set_is_chrooted
+
+msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 
 #
 #  Here we must disable all env variables that should not be passed into

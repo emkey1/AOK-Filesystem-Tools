@@ -83,11 +83,11 @@ error_msg() {
 
 #read_source_file_name() {
 get_sync_file_fn() {
-    if [ -z "$hostname_source_fname" ] || [ ! -f "$hostname_source_fname" ]; then
+    if [ -z "$f_hostname_source_fname" ] || [ ! -f "$f_hostname_source_fname" ]; then
         # f_src_file=""
         echo ""
     else
-        cat "$hostname_source_fname"
+        cat "$f_hostname_source_fname"
     fi
 }
 
@@ -147,7 +147,7 @@ use_syncfile() {
 # shellcheck source=/opt/AOK/tools/utils.sh
 #. /opt/AOK/tools/utils.sh
 
-hostname_source_fname=/etc/opt/hostname_source_fname
+f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
 
 while [ -n "$1" ]; do
 
@@ -166,7 +166,7 @@ while [ -n "$1" ]; do
         elif [ ! -f "$sync_file" ]; then
             error_msg "-S / --sourcefile file not found: $sync_file"
         fi
-        echo "$sync_file" >"$hostname_source_fname"
+        echo "$sync_file" >"$f_hostname_source_fname"
         #  Read sync file and take action
         use_syncfile
         ;;
