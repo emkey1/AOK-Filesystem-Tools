@@ -14,7 +14,7 @@ its absence
 - bat levels default / custom
 - bat lvl colors
 
-## Remove obsolete file
+## Remove obsolete files
 
 Alpine/usr_local_bin/apk_find_pkg.sh it is now apk_find_pkg
 
