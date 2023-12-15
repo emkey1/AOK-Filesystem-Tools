@@ -88,7 +88,7 @@ if [ "$(uname)" = "Darwin" ]; then
     log_it "Don't run this on MacOS!!" 1
 fi
 
-if [ -e /etc/opt/this_fs_is_chrooted ]; then
+if [ -e /etc/opt/AOK/this_fs_is_chrooted ]; then
     log_it "WARNING: chrooted, Skipping fix_dev" 0
 fi
 
