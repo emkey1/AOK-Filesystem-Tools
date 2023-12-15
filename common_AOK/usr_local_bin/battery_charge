@@ -1,0 +1,6 @@
+#!/bin/sh
+
+. ~/.common_rc
+
+get_battery_info
+echo
