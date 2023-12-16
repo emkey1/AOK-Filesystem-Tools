@@ -1,15 +1,25 @@
 #!/bin/bash
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2021-2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Creates a DB on installed apts, and cathegorizes apts by sections
+#  I use this when creating a base image for AOK-Filesystems-Tools
+#  ensuring nothing un-needed is left in.
+#
 
+#
 #
 #  Sample usages
 #
-
 # sqlite3 /tmp/package_info.db 'select priority,section,name,is_leaf FROM packages ORDER By priority,section,is_leaf,name'
-
-# Create an SQLite database or connect to an existing one
 
 database="/tmp/package_info.db"
 
+#  Always build from scratch
 rm -f "$database"
 
 sqlite3 "$database" <<EOF
