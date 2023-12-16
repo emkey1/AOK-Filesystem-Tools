@@ -39,7 +39,23 @@ Available options:
 -C  --full_clear   Do a clear, and in addition clear the download cache
 -j  --bzip2        Use bzip2 compression for distribution
 -N  --no_compress  Terminates when FS is prepared, without generating
-                   a FS tarball."
+                   a FS tarball.
+
+A newly created FS is located at: $d_build_root
+
+If there are remining deploy steps, they will be auto-performed
+when you chroot or first boot into it using iSH.
+
+If you want to access the FS without risking to move the deploy
+forward, then you can do it like this: ./tools/do_chroot.sh /bin/bash
+
+For normal chroot, just do:  ./tools/do_chroot.sh
+
+After potential FS modifications, you can create a tarball from the FS
+by running:  ./compress_image
+
+Then just import this into iSH!
+"
     exit 0
 }
 
@@ -491,7 +507,6 @@ check_dependencies
 
 this_fs_is_chrooted && error_msg "You can't build an FS when already chrooted!"
 
-
 display_build_target
 
 msg_2 "Preparing build environment"
@@ -575,21 +590,6 @@ if [ "$build_env" != "$be_other" ]; then
     else
         shell_not_triggering_profile="/bin/sh"
     fi
-    msg_1 "How to access the just created FS from this env"
-    echo "The newly created FS is located at: $d_build_root"
-    echo
-    echo "If there are remining deploy steps, they will be auto-performed"
-    echo "when you chroot."
-    echo
-    echo "If you want to access the FS without risking to move the deploy"
-    echo "forward, then you can do it like this:"
-    echo
-    echo "  ./tools/do_chroot.sh $shell_not_triggering_profile"
-    echo
-    echo "For normal chroot, just do:  ./tools/do_chroot.sh"
-    echo
-    echo "After your modifications, you can create a tarball from the FS"
-    echo "by running:  ./compress_image"
     echo
     unset set_shell
 else
