@@ -21,6 +21,7 @@
 
 prepare_status_log() {
     max_history=100
+    touch "$f_status_log" #  to avoid first boot msg no such file
     if [ "$(wc -l <"$f_status_log" | awk '{ print $1 }')" -gt "$max_history" ]; then
         # Truncate the file
         tail -n "$max_history" "$f_status_log" >"$f_status_log.tmp" && mv "$f_status_log.tmp" "$f_status_log"
