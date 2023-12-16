@@ -760,17 +760,6 @@ unset conf_overrides
 TMPDIR="${TMPDIR:-/tmp}"
 
 #
-#  temp value until we know if this is dest FS, so that d_images can
-#  be selected
-#
-d_build_root=""
-#
-#  Locations build host for working on a client FS
-#
-d_images="$TMPDIR/aok_imgs"
-[ ! -d "$d_images" ] && mkdir -p "$d_images"
-
-#
 #  Used for keeping track of deploy / chroot status
 #
 d_aok_base_etc="/etc$d_aok_base"
@@ -788,6 +777,8 @@ f_host_deploy_state="${d_aok_base_etc}/deploy_state"
 
 if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
     d_build_root="$TMPDIR/aok_fs"
+else
+    d_build_root=""
 fi
 
 f_dest_fs_is_chrooted="${d_build_root}${f_host_fs_is_chrooted}"

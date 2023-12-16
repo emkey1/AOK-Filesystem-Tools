@@ -107,7 +107,7 @@ else
 fi
 
 # set location
-tarball="$d_images/$tarball_fn"
+tarball="$TMPDIR/aok_imgs/$tarball_fn"
 
 # echo "removing temp /dev items"
 # rm  -f "$d_build_root"/dev/*
