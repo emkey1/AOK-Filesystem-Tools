@@ -177,10 +177,10 @@ ALPINE_VERSION=3.18.5 # End of Alpine support 2025-05-09
 #
 pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep htop less \
-    git sqlite fzf py3-pip ncdu"
+    sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
-pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
+pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
@@ -239,8 +239,7 @@ DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/tlj1rqz2b4pxrkghiyt8b/Debian10-7-aok-1.tgz?rlkey=hculgm6kqqihfqwe1ey2anb8q"
-
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/puml28c5f64zbqlpkvfo6/Debian10-8-aok-2.tgz?rlkey=2mc67digm0hj39y0stlrxvdts"
 #
 #  Since the Debian src image comes pre installed as close as possibly
 #  matching the Alpine packages, here you can list packages that should

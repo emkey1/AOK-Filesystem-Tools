@@ -5,6 +5,10 @@
 Investigate how it is created and make sure everything using it can handle
 its absence
 
+## /etc/environment
+
+Set it with a reasonable PATH
+
 
 ## aok more options
 
