@@ -216,7 +216,7 @@ if [ ! -f /etc/opt/AOK/this_fs_is_chrooted ]; then
     network_check
 else
     echo
-    echo "This is chrooted, so runlevel_wait & network check is skipped"
+    echo "This is chrooted, so runlevel_wait & network check are skipped"
     echo
 fi
 
@@ -239,10 +239,10 @@ while true; do
     if [ ! -f "$f_logins_continous" ]; then
         echo
         print_log "===  $f_logins_continous not found, will shutdown"
-	if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
-	    print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
-	    exit 0
-	fi
+        if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+            print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
+            exit 0
+        fi
         sleep 3
         do_shutdown
     fi
