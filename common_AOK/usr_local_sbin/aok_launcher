@@ -30,11 +30,11 @@ prepare_status_log() {
         tail -n "$max_history" "$f_status_log" >"$f_status_log.tmp" && mv "$f_status_log.tmp" "$f_status_log"
     fi
     #
-    #  To give some separationa, and a hint when this bootup started...
+    #  To give some separation, and a hint when this bootup started...
     #
     (
         echo
-        echo "$(date +"%Y-%m-%d %H:%M:%S") starting $0"
+        echo "$(date +"%Y-%m-%d %H:%M:%S") Starting $0"
     ) >>"$f_status_log"
 }
 
@@ -114,6 +114,38 @@ abort_runlevel_wait() {
     abort_runlevel_wait=1
 }
 
+do_inittab_task() {
+    _f="$1"
+
+    [ -z "$_f" ] && {
+        print_log "do_inittab_task() - no param"
+        return
+    }
+    [ -f "$_f" ] || {
+        print_log "do_inittab_task() - file not found: $_f"
+        return
+    }
+    [ -x "$_f" ] || {
+        print_log "do_inittab_task() - file not executable: $_f"
+        return
+    }
+    $_f
+    print_log "---  completed: $_f"
+}
+
+consider_inittab_tasks() {
+    [ -f "$f_aok_does_init_tasks" ] || return
+
+    print_log "===  aok_launcher taking care of inittasks"
+    do_inittab_task "/usr/local/sbin/hostname_sync.sh"
+    do_inittab_task "/usr/local/sbin/ensure_hostname_in_host_file"
+    if test -f /etc/alpine-release; then
+        do_inittab_task "/usr/local/sbin/ensure_issue_exists.sh"
+        do_inittab_task "/usr/local/sbin/update_motd"
+    fi
+    print_log "===  inittasks completed!"
+}
+
 runlevel_wait() {
     print_log "iSH sometimes fails to reach runlevel $expected_runlevel"
     print_log "in that case restart this App, and hope for better luck next time"
@@ -173,7 +205,7 @@ login_with_param_check() {
                 return
             }
         }
-        print_log "autologin as: $def_user - can be changed by running: aok"
+        print_log "auto-login as: $def_user - can be changed by running: aok"
         handle_etc_issue
         login_params="-f $def_user"
         print_log "Starting login with params: [$login_params]" noecho
@@ -214,6 +246,9 @@ f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
 f_login_default_user="/etc/opt/AOK/login-default-username"
 f_logins_continous="/etc/opt/AOK/login-continous"
+f_aok_does_init_tasks="/etc/opt/AOK/aok_launcher-does-init_tasks"
+
+prepare_status_log # make sure it doesnt get too large
 
 #
 #  Alpine    needs this set here, Debian etc picks this setting from
@@ -222,16 +257,16 @@ f_logins_continous="/etc/opt/AOK/login-continous"
 # export LOGIN_TIMEOUT=0
 
 #
-#  Regular iSH doesnt replace /run, since this when run is the first
-#  process, it is safe to clear it here. It will happen before /sbin/init
-#  is started.
+#  Regular iSH doesnt replace /run, since this when run, it is one of
+#  the first processes, it is safe to clear it here.
+#  It will happen long before anything in /etc/inittab will need to checkit
 #
 grep -qi aok /proc/ish/version 2>/dev/null || {
-    rm /run/* -rf
+    rm /run/* -rf # do it before announcing it, to ensure it beats /etc/inittab
     print_log "===  Clearing /run for regular iSH  ==="
 }
 
-prepare_status_log # make sure it doesnt get too large
+consider_inittab_tasks
 
 if [ ! -f /etc/opt/AOK/this_fs_is_chrooted ]; then
     runlevel_wait
@@ -258,17 +293,25 @@ while true; do
         print_log "ERROR: $f_login_prog exited with: $login_ex_code"
     }
 
-    if [ ! -f "$f_logins_continous" ]; then
+    if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+        print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
+        exit 0
+    fi
+
+    if [ -f "$f_logins_continous" ]; then
         echo
-        print_log "===  $f_logins_continous not found, will shutdown"
-        if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
-            print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
-            exit 0
-        fi
+        echo "Will spawn a new login session. If this is not requested,"
+        echo "remove: $f_logins_continous, and iSH will shutown on logout"
+        echo
+        sleep 3
+    else
+        echo
+        print_log "===  aok_launcher: $f_logins_continous not found, will shutdown"
         sleep 3
         do_shutdown
     fi
 done
 
-print_log "===  Fell out of infinite /usr/local/sbin/dyamic_login loop, will sleep forever"
+print_log "===  Fell out of infinite aok_launcher loop - Should really not happen!"
+echo "will sleep forever, please shutdown iSH"
 /bin/sleep infinity
