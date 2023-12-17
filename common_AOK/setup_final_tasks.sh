@@ -73,8 +73,6 @@ hostname_fix() {
         return
     fi
 
-    msg_2 "><> Ensuring initial name is in hosts file"
-    /usr/local/sbin/ensure_hostname_in_host_file.sh
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
         error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
@@ -308,10 +306,6 @@ fi
 #
 "$d_aok_base"/common_AOK/custom/custom_files.sh || {
     error_msg "common_AOK/custom/custom_files.sh failed"
-}
-
-/usr/local/sbin/ensure_hostname_in_host_file.sh || {
-    error_msg "/usr/local/sbin/ensure_hostname_in_host_file.sh failed!"
 }
 
 replace_home_dirs
