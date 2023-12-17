@@ -569,7 +569,8 @@ set_launch_cmd() {
     unset _slc_current
 }
 
-launch_cmd_AOK='[ "/usr/local/sbin/dynamic_login" ]'
+# each param MUST be wrapped in ""...
+launch_cmd_AOK='[ "/usr/local/sbin/aok_launcher" ]'
 launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 
 #---------------------------------------------------------------
