@@ -7,6 +7,9 @@
 #  This is not used atm, seems devices disapearing is no longer an issue
 # ::sysinit:/usr/local/sbin/fix_dev
 
+# Indicate bootup in the syslog
+::sysinint: echo "[$(date)] System startup" >>/var/log/syslog
+
 #
 #  hostname is not set automatically since iOS 17, assuming the
 #  neccesary shortcuts have been set up, an Automation event writes
