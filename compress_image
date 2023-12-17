@@ -136,9 +136,8 @@ fi
 clear_build_triggered_logfiles
 
 echo
-msg_2 "Wrting image file"
+msg_2 "Writing image file"
 msg_3 " $tarball"
-echo
 if [ -n "$cmd_pigz" ]; then
     msg_4 "Using $cmd_pigz"
     # time tar -cf - . | pigz -p 2 > foo.tgz
@@ -159,6 +158,6 @@ if this_is_ish && [ "$(find /iCloud/ -maxdepth 1 | wc -l)" -gt 1 ]; then
     cp "$tarball" "$d_icloud_archive"
 fi
 
-msg_3 "Image is ready!"
+msg_3 "Image is ready: $tarball"
 
 exit "$ex_code" #  Propagate tar any tar error
