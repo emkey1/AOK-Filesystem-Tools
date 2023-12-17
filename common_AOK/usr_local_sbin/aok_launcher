@@ -78,16 +78,24 @@ deploy_aok() {
     echo "******************************************************"
     echo
 
-    /etc/profile
-
-    f_depl_state=/etc/opt/AOK/deploy_state
-    if [ -f "$f_depl_state" ]; then
+    if ! /etc/profile; then
+        f_depl_state=/etc/opt/AOK/deploy_state
+        if [ -f "$f_depl_state" ]; then
+            echo
+            echo "A new deploy state has been reached: $(cat "$f_depl_state")"
+            echo
+            echo "It is recomended to reboot at this point"
+            echo "this will continue in 60s if you did not reboot"
+            sleep 60
+        fi
+    else
         echo
-        echo "A new deploy state has been reached: $(cat "$f_depl_state")"
+        echo "ERROR returned from the deploy procedure!"
         echo
-        echo "It is recomended to reboot at this point"
-        echo "this will continue in 60s if you did not reboot"
-        sleep 60
+        echo "Since the File System probably is not fully deployed,"
+        echo "it is impposisble to say if it is meaningfull to continue"
+        echo "You have been warned..."
+        echo
     fi
 
     echo
