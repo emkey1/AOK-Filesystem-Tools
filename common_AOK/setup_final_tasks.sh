@@ -74,7 +74,9 @@ hostname_fix() {
     fi
 
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
-    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
+    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
+        error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
+    }
 }
 
 aok_kernel_consideration() {
@@ -267,7 +269,7 @@ hostname_fix
 hostfs_is_alpine && aok_kernel_consideration
 
 "$d_aok_base"/common_AOK/hostname_handling/set_aok_hostname.sh || {
-    error_msg "set_aok_hostname.sh failed" no_exit
+    error_msg "set_aok_hostname.sh failed"
 }
 
 # login feature didsabled tag
@@ -293,18 +295,20 @@ set_new_etc_profile "$next_etc_profile"
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
 
-msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
-set_launch_cmd "$launch_cmd_AOK"
+if ! this_fs_is_chrooted; then
+    msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
+    set_launch_cmd "$launch_cmd_AOK"
+fi
 
 #
 #  Handling custom files
 #
 "$d_aok_base"/common_AOK/custom/custom_files.sh || {
-    error_msg "ERROR: common_AOK/custom/custom_files.sh failed"
+    error_msg "common_AOK/custom/custom_files.sh failed"
 }
 
 /usr/local/sbin/ensure_hostname_in_host_file.sh || {
-    error_msg "ERROR: /usr/local/sbin/ensure_hostname_in_host_file.sh failed!"
+    error_msg "/usr/local/sbin/ensure_hostname_in_host_file.sh failed!"
 }
 
 replace_home_dirs
