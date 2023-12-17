@@ -107,7 +107,8 @@ abort_runlevel_wait() {
 }
 
 runlevel_wait() {
-    print_log "iSH sometimes fails to reach runlevel $expected_runlevel, in that case restart this App, and hope for better luck next time"
+    print_log "iSH sometimes fails to reach runlevel $expected_runlevel"
+    print_log "in that case restart this App, and hope for better luck next time"
     echo
     trap 'abort_runlevel_wait INT' INT
     # sleep 3
