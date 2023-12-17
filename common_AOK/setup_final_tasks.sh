@@ -74,7 +74,7 @@ hostname_fix() {
     fi
 
     msg_2 "><> Ensuring initial name is in hosts file"
-    /usr/local/sbin/ensure_hostname_in_host_file
+    /usr/local/sbin/ensure_hostname_in_host_file.sh
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
         error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
