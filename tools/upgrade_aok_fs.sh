@@ -204,7 +204,7 @@ elif hostfs_is_devuan; then
     msg_3 "/usr/local/sbin"
     rsync_chown "$d_aok_base"/Devuan/usr_local_sbin/ /usr/local/sbin
 else
-    error_msg "ERROR: Failed to recognize Distro, aborting."
+    error_msg "Failed to recognize Distro, aborting."
 fi
 
 update_etc_opt_references
