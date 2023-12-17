@@ -51,6 +51,17 @@ start() {
     #  Only continue if this is iSH-AOK
     grep -qi aok /proc/ish/version || return
 
+    #
+    #  Ensure name without suffix also is in /etc/hosts, otherwise
+    #  sudo during deploy will fail with the unhelpfull error:
+    #
+    #   sudo: unable to resolve host X: Name or service not known
+    #
+    #  After deploy has completed, you can remove the un-suffixed
+    #  version if you want to minimize /etc/hosts
+    #
+    /usr/local/sbin/ensure_hostname_in_host_file.sh
+
     echo "$hn_current-$hn_suffix" >/etc/hostname
 
     #
@@ -59,7 +70,10 @@ start() {
     #
     /bin/hostname -F /etc/hostname
 
-    #  Since hostname might have changed, ensure it is in /etc/hosts
+    #
+    #  Since hostname has changed, ensure it is in /etc/hosts
+    #  For the reason mentioned above
+    #
     /usr/local/sbin/ensure_hostname_in_host_file.sh
 
     /usr/local/bin/wall -n "hostname is now: $($hn_bin)"
