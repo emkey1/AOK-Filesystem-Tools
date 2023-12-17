@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-#  shellcheck disable=SC2154
+#  shellcheck disable=SC2034
+# SC 2154
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
@@ -43,8 +44,9 @@ if [ -e "$f_aok_fs_release" ]; then
     echo "[35mAOK-FS release:  $(cat "$f_aok_fs_release")[0m" >>"$f_motd"
 fi
 
-echo "[35mAlpine release:  $alp_rel[0m" >>"$f_motd"
-
-echo "[35miSH release:     $ish_rel[0m" >>"$f_motd"
+(
+    echo "[35mAlpine release:  $alp_rel[0m"
+    echo "[35miSH release:     $ish_rel[0m"
+) >>"$f_motd"
 
 cat "$f_motd_template" >>"$f_motd"

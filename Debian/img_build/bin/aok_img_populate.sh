@@ -53,7 +53,7 @@ elinks mosh"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses-bin whiptail tmux"
 pkgs_other="fortune-mod" # make sure /usr/games is in PATH
-x_pkgs_devel="build-essential cmake automake autoconf bison flex"
+# pkgs_devel="build-essential cmake automake autoconf bison flex"
 CORE_APTS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
     $pkgs_editing $pkgs_text_ui $pkgs_other"
 

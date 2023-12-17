@@ -67,6 +67,7 @@ get_battery_info() {
 
     _f=/home/jaclu/.bat_lvls_tst.sh
     if [ -f "$_f" ]; then
+        # shellcheck source=/dev/null
         . "$_f"
     else
         if [ "$capacity" -le 10 ]; then # crit_low  - birgt red
@@ -95,7 +96,7 @@ get_battery_info() {
     unset _shell_name
 
     if [ -z "$capacity" ]; then
-        echo '$_prompt_bat_color Battery not found '
+        echo "Battery not found" >/dev/stderr
     else
         case $chrg_stat in
         "Full") _bat_state="${capacity}F" ;;
@@ -183,7 +184,7 @@ bash_prompt() {
     PCOL_GREY="\[\e[38;5;${PCOL_GREY}m\]"
     PCOL_CLR="\e[0m"
 
-    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}$(get_battery_info $CURRENT_SHELL)${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}$(get_battery_info "$CURRENT_SHELL")${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
 }
 
 #===============================================================
@@ -213,5 +214,6 @@ set_current_shell_name
 if test -x /usr/local/bin/hostname; then
     _hn="$(/usr/local/bin/hostname)"
 else
+    #  shellcheck disable=SC2154
     _hn="$_hc$(/bin/hostname -s)"
 fi

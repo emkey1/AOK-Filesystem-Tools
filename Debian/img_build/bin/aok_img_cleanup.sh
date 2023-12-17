@@ -19,7 +19,10 @@ echo
 echo
 echo "=== Cleanout log files"
 echo
-cd /var/log
+cd /var/log || {
+    echo "ERROR: cd /var/log failed"
+    exit 1
+}
 
 rm -f alternatives.log
 rm -rf apt

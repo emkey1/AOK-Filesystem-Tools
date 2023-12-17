@@ -20,9 +20,9 @@ esac
 
 #  shellcheck source=/opt/AOK/common_AOK/etc/skel/.common_rc
 if [[ -f ~/.common_rc ]]; then
+    # shellcheck source=/dev/null
     . ~/.common_rc
 fi
-
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options

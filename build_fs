@@ -588,6 +588,7 @@ if [ "$build_env" != "$be_other" ]; then
     if [ "$build_target" = "$distro_alpine" ] || [ "$build_target" = "$distro_select" ]; then
         shell_not_triggering_profile="/bin/ash"
     else
+        #  shellcheck disable=SC2034
         shell_not_triggering_profile="/bin/sh"
     fi
     echo
