@@ -35,6 +35,8 @@ sudo rc-service "$srvc_name" start
 
 echo
 echo "Remember to set a password for the user [USERNAME] if you haven't already"
+echo "sshd does not allow logins to accounts without password, even when using"
+echo "pubkey."
 echo "Do this by typing 'passwd [USERNAME]' (if your root) or just 'passwd' (if you are the user)"
 echo " and follow the prompts"
 echo
