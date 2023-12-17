@@ -5,6 +5,35 @@
 Investigate how it is created and make sure everything using it can handle
 its absence
 
+## Hostname issue during deploy if AOK_HOSTNAME_SUFFIX is used
+
+Currently only the suffixed hostname is stored in the hosts file.
+During FIRST_BOOT_ADDITIONAL_TASKS if some script is run as a user, that
+needs to do a sudo, that sudo fails (current guestemate being due to the unsuffixed hostname not being in hosts)
+
+Next aproach, reconsider the order of related tasks
+
+- use ALT_HOSTNAME_SOURCE_FILE
+- if set to /etc/hoss
+  - Prompt requesting hostname
+- Set /etc/hostname
+
+Tasks that could be put into aok_launcher
+advantage: less dependence on opernrc, fairly simple code logic
+disadvantage: depends on aok_launcher in fact being the launch command
+
+- hostname_sync.sh
+- ensure_hostname_in_host_file.sh
+- ensure_issue_exists.sh
+- /usr/local/sbin/update_motd
+
+Unsorted other tasks
+
+- Install alternate hostname (not strictly needed on iSH-AOK)
+- Install hostname service
+- Install hostname_sync.sh
+- Install ensure_hostname_in_host_file.sh
+
 ## Launch Command
 
 
@@ -44,7 +73,7 @@ in Alpine/setup_alpine.sh
 
 ## Using /dev/console within the iSH limitations
 
-This actually works much better in Debian than in Alpine, since in Alpine as of now only autologin as root works. agetty fails to change ownership of /dev/pts/0 on Alpine
+This actually works much better in Debian than in Alpine, since in Alpine as of now only auto-login as root works. agetty fails to change ownership of /dev/pts/0 on Alpine
 
 
 1 Add this as Launch cmd to avoid harmless but annoying error msg everytime ish is started and offensive login BEFORE init is run, but still ensure /dev/pts/0 is bound

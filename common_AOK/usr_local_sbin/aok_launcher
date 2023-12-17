@@ -137,6 +137,7 @@ consider_inittab_tasks() {
     [ -f "$f_aok_does_init_tasks" ] || return
 
     print_log "===  aok_launcher taking care of inittasks"
+    # fix_dev currently not used, placeholder if it is re-introduced
     do_inittab_task "/usr/local/sbin/hostname_sync.sh"
     do_inittab_task "/usr/local/sbin/ensure_hostname_in_host_file"
     if test -f /etc/alpine-release; then
