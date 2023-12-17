@@ -24,6 +24,13 @@ hn_alt='/usr/local/bin/hostname'
 #  shellcheck disable=SC2154
 [ "$AOK_HOSTNAME_SUFFIX" != "Y" ] && exit 0
 
+#  Dont hardcode namechange if this is not aok kernel
+this_is_aok_kernel || {
+    error_msg "set_aok_hostname.sh should not be called if not AOK kernel"
+}
+
+[ -x "$hn_alt" ] || error_msg "set_aok_hostname.sh - $hn_alt not installed"
+
 msg_2 "Creating service to set hostname with -$hn_suffix suffix on iSH-AOK"
 
 hostname_service="/etc/init.d/hostname"
@@ -38,14 +45,20 @@ rc-update add hostname default
 # rc-service hostname start
 
 # If hostname -s allready ends with $hn_suffix, nothing needs to be done
-if "$hn_alt" | grep -q "\-$hn_suffix"; then
+if $hn_alt | grep -q "\-$hn_suffix"; then
     msg_2 "AOK suffix (-$hn_suffix) already set in hostname"
     exit 0
 fi
 
-#  Dont hardcode namechange if this is not aok kernel
-this_is_aok_kernel || exit 0
+msg_2 "Ensuring non suffixed name is in hosts file"
+hn_current="$($hn_alt)"
+fake_syslog "set_aok_hostname.sh" "Calling ensure_hostname_in_host_file for: $hn_current"
+/usr/local/sbin/ensure_hostname_in_host_file
 
 msg_2 "Manually setting -$hn_suffix suffix for hostname for rest of deploy"
-echo "$($hn_alt)-$hn_suffix" >/etc/hostname
+#  shellcheck disable=SC2154
+fake_syslog "set_aok_hostname.sh" "setting hostname to: $hn_new"
+echo "$$hn_new" >/etc/hostname
+# Dont use variable, check with alt_hostname to ensure it is set
 msg_3 "Hostname is now: $($hn_alt)"
+/usr/local/sbin/ensure_hostname_in_host_file

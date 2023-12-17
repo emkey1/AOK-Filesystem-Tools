@@ -269,8 +269,10 @@ hostname_fix
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-"$d_aok_base"/common_AOK/hostname_handling/set_aok_hostname.sh || {
-    error_msg "set_aok_hostname.sh failed"
+this_is_aok_kernel && {
+    "$d_aok_base"/common_AOK/hostname_handling/set_aok_hostname.sh || {
+        error_msg "set_aok_hostname.sh failed"
+    }
 }
 
 # login feature didsabled tag
