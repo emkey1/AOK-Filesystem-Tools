@@ -8,7 +8,10 @@
 # ::sysinit:/usr/local/sbin/fix_dev
 
 # Indicate bootup in the syslog
-::sysinint: echo "[$(date)] System startup" >>/var/log/syslog
+::sysinint:echo "$(date) inittab: System startup" >>/var/log/syslog
+
+# Clear /run/ to an initial state with no services running
+rrd::sysinit:/usr/local/sbin/reset-run-dir.sh
 
 #
 #  hostname is not set automatically since iOS 17, assuming the
@@ -51,6 +54,7 @@
 #
 # ::sysinit:/sbin/openrc sysinit
 # ::sysinit:/sbin/openrc boot
+::sysinint:echo "$(date) inittab: doing openrc default" >>/var/log/syslog
 ::wait:/sbin/openrc default
 
 #
