@@ -293,6 +293,7 @@ set_new_etc_profile "$next_etc_profile"
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
 
+msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
 set_launch_cmd "$launch_cmd_AOK"
 
 #
