@@ -73,6 +73,8 @@ hostname_fix() {
         return
     fi
 
+    msg_2 "><> Ensuring initial name is in hosts file"
+    /usr/local/sbin/ensure_hostname_in_host_file
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
         error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
@@ -197,6 +199,7 @@ run_additional_tasks_if_found() {
         /bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS" || {
             error_msg "FIRST_BOOT_ADDITIONAL_TASKS returned error"
         }
+        msg_1 "Returned from the additional setup tasks"
     fi
     # msg_3 "run_additional_tasks_if_found()  done"
 }

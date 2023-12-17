@@ -51,6 +51,9 @@ start() {
     #  Only continue if this is iSH-AOK
     grep -qi aok /proc/ish/version || return
 
+    echo "[$(date)] ><> hostname service ensuring initial name ($host_name) is in host file" >>/var/log/syslog
+    /usr/local/sbin/ensure_hostname_in_host_file.sh
+
     echo "$hn_current-$hn_suffix" >/etc/hostname
 
     #
