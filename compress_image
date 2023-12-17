@@ -138,7 +138,7 @@ clear_build_triggered_logfiles
 echo
 msg_2 "Wrting image file"
 msg_3 " $tarball"
-
+echo
 if [ -n "$cmd_pigz" ]; then
     msg_4 "Using $cmd_pigz"
     # time tar -cf - . | pigz -p 2 > foo.tgz

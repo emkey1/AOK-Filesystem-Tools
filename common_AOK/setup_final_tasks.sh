@@ -225,7 +225,7 @@ tsaft_start="$(date +%s)"
 #  If aok_launcher is used as Launch Cmd, it has already waited for
 #  system to be ready, so can be skipped here
 #
-if [ get_launch_cmd = "$launch_cmd_AOK" ]; then
+if [ get_launch_cmd != "$launch_cmd_AOK" ]; then
     if deploy_state_is_it "$deploy_state_pre_build" &&
         this_is_ish &&
         ! hostfs_is_devuan &&
@@ -237,6 +237,8 @@ if [ get_launch_cmd = "$launch_cmd_AOK" ]; then
             sleep 2
         done
     fi
+else
+    echo "><> Boot wait already handled by AOK Launch cmd"
 fi
 
 if [ -n "$LOG_FILE" ]; then
@@ -291,7 +293,7 @@ set_new_etc_profile "$next_etc_profile"
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
 
-set_launch_cmd "$launch_cmd_default"
+set_launch_cmd "$launch_cmd_AOK"
 
 #
 #  Handling custom files
