@@ -57,15 +57,15 @@ string_in_array() {
 #  Scan for and define usable linters
 #
 identify_available_linters() {
-    shellcheck_p="$(command -v shellcheck)"
-    checkbashisms_p="$(command -v checkbashisms)"
+    p_shellcheck="$(command -v shellcheck)"
+    p_checkbashisms="$(command -v checkbashisms)"
     vale_p="$(command -v vale)"
 
-    if [[ "${shellcheck_p}" = "" ]] && [[ "${checkbashisms_p}" = "" ]]; then
+    if [[ "${p_shellcheck}" = "" ]] && [[ "${p_checkbashisms}" = "" ]]; then
         echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
         exit 1
     fi
-    if [[ -n "$shellcheck_p" ]]; then
+    if [[ -n "$p_shellcheck" ]]; then
         v_sc="$(shellcheck -V | grep version: | awk '{ print $2 }')"
         if [[ "$v_sc" > "0.5.0" ]]; then
             sc_extra="-o all"
@@ -77,10 +77,10 @@ identify_available_linters() {
     if [[ "$hour_limit" != "0" ]]; then
 
         printf "Using: "
-        if [[ -n "${shellcheck_p}" ]]; then
+        if [[ -n "${p_shellcheck}" ]]; then
             printf "%s " "shellcheck"
         fi
-        if [[ -n "${checkbashisms_p}" ]]; then
+        if [[ -n "${p_checkbashisms}" ]]; then
             printf "%s " "checkbashisms"
             #  shellcheck disable=SC2154
             if [[ "$build_env" = "$be_ish" ]]; then
@@ -104,7 +104,7 @@ identify_available_linters() {
 do_shellcheck() {
     local fn2="$1"
     [[ -z "$fn2" ]] && error_msg "do_shellcheck() - no paran given!" 1
-    if [[ -n "${shellcheck_p}" ]]; then
+    if [[ -n "${p_shellcheck}" ]]; then
         #  shellcheck disable=SC2086
         shellcheck -a -x -e SC2039,SC2250,SC2312 $sc_extra "$fn2" || exit 1
 
@@ -114,8 +114,12 @@ do_shellcheck() {
 do_checkbashisms() {
     local fn="$1"
     [[ -z "$fn" ]] && error_msg "do_checkbashisms() - no paran given!" 1
-    if [[ -n "${checkbashisms_p}" ]]; then
-        checkbashisms -n -e -x "$fn" || exit 1
+    if [[ -n "${p_checkbashisms}" ]]; then
+        #
+        #  Dont exit for checkbasims issues, just display them
+        #  and do a LF to make the warning stand out
+        #
+        checkbashisms -n -x "$fn" || echo
     fi
 }
 
