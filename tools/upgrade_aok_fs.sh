@@ -150,7 +150,7 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
 ensure_ish_or_chrooted
 
-launch_cmd_expected='[ "/usr/local/sbin/dynamic_login" ]'
+launch_cmd_expected='[ "/usr/local/sbin/aok_launcher" ]'
 f_launch_cmd="/proc/ish/defaults/launch_command"
 d_new_etc_opt_prefix="/etc/opt/AOK"
 

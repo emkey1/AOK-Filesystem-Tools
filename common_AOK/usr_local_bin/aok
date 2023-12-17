@@ -104,62 +104,62 @@ display_autologin() {
 #
 #===============================================================
 
-lc_get() {
-    tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
-}
+# lc_get() {
+#     tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+# }
 
-lc_set() {
-    new_cmd="$1"
-    [ -z "$new_cmd" ] && error_msg "lc_set() - no param"
-    # printf '%s' $new_cmd >/proc/ish/defaults/launch_command
-    echo "$new_cmd" >/proc/ish/defaults/launch_command
-    _lc_current="$(lc_get)"
-    [ "$_lc_current" = "$new_cmd" ] || {
-        echo "intended: >$new_cmd<"
-        echo "current:  >$_lc_current<"
-        lc_error_abort "Failed to set a launch command"
-    }
-}
+# lc_set() {
+#     new_cmd="$1"
+#     [ -z "$new_cmd" ] && error_msg "lc_set() - no param"
+#     # printf '%s' $new_cmd >/proc/ish/defaults/launch_command
+#     echo "$new_cmd" >/proc/ish/defaults/launch_command
+#     _lc_current="$(lc_get)"
+#     [ "$_lc_current" = "$new_cmd" ] || {
+#         echo "intended: >$new_cmd<"
+#         echo "current:  >$_lc_current<"
+#         lc_error_abort "Failed to set a launch command"
+#     }
+# }
 
-lc_set_param_join() {
-    [ -z "$1" ] && error_msg "prepare_launch_cmd() - no params"
-    _cmd="["
-    _got_one=0
-    while [ -n "$1" ]; do
-        [ "$_got_one" != 0 ] && _cmd="$_cmd,"
-        _got_one=1
-        _cmd="$_cmd \"$1\""
-        shift
-    done
-    _cmd="$_cmd ]"
-    echo "><> will use: >$_cmd<"
-    lc_set "$_cmd"
-}
+# lc_set_param_join() {
+#     [ -z "$1" ] && error_msg "prepare_launch_cmd() - no params"
+#     _cmd="["
+#     _got_one=0
+#     while [ -n "$1" ]; do
+#         [ "$_got_one" != 0 ] && _cmd="$_cmd,"
+#         _got_one=1
+#         _cmd="$_cmd \"$1\""
+#         shift
+#     done
+#     _cmd="$_cmd ]"
+#     echo "><> will use: >$_cmd<"
+#     lc_set "$_cmd"
+# }
 
-lc_restore() {
-    # echo "lc_restore()"
-    #
-    #  In case something goes wrong use this to ensure it is restored
-    #
-    # echo "><> Restoring to default launch command"
+# lc_restore() {
+#     # echo "lc_restore()"
+#     #
+#     #  In case something goes wrong use this to ensure it is restored
+#     #
+#     # echo "><> Restoring to default launch command"
 
-    #  Does not use lc_set in order to prevent risk for infinite loops
-    echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
+#     #  Does not use lc_set in order to prevent risk for infinite loops
+#     echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
 
-    # is safe to call even here in a "exception handler"
-    _lc_current="$(lc_get)"
-    if [ "$_lc_current" != "$launch_cmd_default" ]; then
-        echo
-        echo "ERROR: Failed to restore launch cmd!"
-        echo
-        echo "Current launch cmd: $_lc_current"
-        echo "Intended default:   $launch_cmd_default"
-        echo
-        echo "Make sure to set it manually, otherwise iSH will probably"
-        echo "fail to start!"
-        exit 1
-    fi
-}
+#     # is safe to call even here in a "exception handler"
+#     _lc_current="$(lc_get)"
+#     if [ "$_lc_current" != "$launch_cmd_default" ]; then
+#         echo
+#         echo "ERROR: Failed to restore launch cmd!"
+#         echo
+#         echo "Current launch cmd: $_lc_current"
+#         echo "Intended default:   $launch_cmd_default"
+#         echo
+#         echo "Make sure to set it manually, otherwise iSH will probably"
+#         echo "fail to start!"
+#         exit 1
+#     fi
+# }
 
 lc_error_abort() {
     # echo "lc_error_abort()"
@@ -271,29 +271,10 @@ change_console_method() {
 
     "launch")
         error_msg "Currently disabled"
-        if [ -n "$uname_autologin" ]; then
-            lc_set_param_join "/bin/login" "-f" "$uname_autologin"
-            echo "At startup console will autologin as: $uname_autologin"
-        else
-            lc_set_param_join "/bin/login"
-            echo "At startup a login prompt will be presented"
-        fi
-        # echo '[ "/sbin/agetty", "pts/0", "xterm-256color" ]'
-        #rm -f /dev/console && mknod -m 222 /dev/console c 5 1
-        gettys_disable
         ;;
 
     "inittab")
         error_msg "Currently disabled"
-        # rm -f /dev/console && mknod -m 222 /dev/console c 136 0
-        [ -f "$f_launch_cmd_inttab" ] || {
-            echo
-            echo "ERROR: cmd $f_launch_cmd_inttab is missing!"
-            lc_restore
-        }
-        update_inittab enable
-        lc_set "$launch_cmd_inttab"
-        echo "Console will launch via inittab"
         ;;
 
     "display")
@@ -471,7 +452,6 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
 autologin_disabled="disabled"
-launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 f_launch_cmd_inttab="/usr/local/sbin/console_via_inittab_notification"
 launch_cmd_inttab="[ \"$f_launch_cmd_inttab\" ]"
 f_etc_hostname=/etc/hostname

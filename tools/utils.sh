@@ -514,6 +514,66 @@ this_is_aok_kernel() {
 
 #---------------------------------------------------------------
 #
+#   Launch Command
+#
+#---------------------------------------------------------------
+
+restore_launch_cmd() {
+    #
+    #  In case something goes wrong use this to (hopefully) ensure
+    #  it's restored
+    #
+
+    #  Does not use set_launch_cmd in order to prevent risk for infinite loops
+    echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
+
+    # is safe to call even here in a "exception handler"
+    _slc_current="$(get_launch_cmd)"
+    if [ "$_slc_current" != "$launch_cmd_default" ]; then
+        echo
+        echo "ERROR: Failed to restore launch cmd!"
+        echo
+        echo "Current launch cmd: $_slc_current"
+        echo "Intended default:   $launch_cmd_default"
+        echo
+        echo "Make sure to set it manually, otherwise iSH will probably"
+        echo "fail to start!"
+        exit 1
+    fi
+    unset _slc_current
+}
+
+get_launch_cmd() {
+    #
+    #  It is reported as a multiline, here it is wrapped into a one-line
+    #  notation, to make it easier to compare vs the launch_md_XXX
+    #  templates
+    #
+    tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+}
+
+set_launch_cmd() {
+    _slc_cmd="$1"
+    [ -z "$_slc_cmd" ] && error_msg "set_launch_cmd() - no param"
+    # printf '%s' $_slc_cmd >/proc/ish/defaults/launch_command
+    echo "$_slc_cmd" >/proc/ish/defaults/launch_command
+    _slc_current="$(get_launch_cmd)"
+    [ "$_slc_current" = "$_slc_cmd" ] || {
+        echo
+        echo "ERROR: Failed to set Launch cmd"
+        echo "intended: >$_slc_cmd<"
+        echo "current:  >$_slc_current<"
+        restore_launch_cmd "Failed to set a launch command"
+    }
+    unset _slc_cmd
+    unset _slc_current
+}
+
+launch_cmd_AOK='[ "/usr/local/sbin/dynamic_login" ]'
+launch_cmd_default='[ "/bin/login", "-f", "root" ]'
+
+#---------------------------------------------------------------
+#
 #   chroot handling
 #
 #---------------------------------------------------------------

@@ -6,9 +6,12 @@
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
-#  This is a dynamic login handler, can optionally
-#   - login as a pre-defined user
-#   - do continous logins, ie after session is ended a login prompt is presented
+#  Using this as Launch cmd, adds several features:
+#   - It waits for openrc to reach runlevel default
+#   - It displays network connection status
+#   - Can login as a pre-defined user
+#   - Optionally it will do continous logins, ie after session is ended
+#     a new one is started
 #
 #  I first tried using a relaunch cmd triggering agetty in /etc/inittab
 #    /sbin/agetty -a root pts/0 xterm-256color
@@ -77,12 +80,22 @@ deploy_aok() {
 
     /etc/profile
 
+    f_depl_state=/etc/opt/AOK/deploy_state
+    if [ -f "$f_depl_state" ]; then
+        echo
+        echo "A new deploy state has been reached: $(cat "$f_depl_state")"
+        echo
+        echo "It is recomended to reboot at this point"
+        echo "this will continue in 60s if you did not reboot"
+        sleep 60
+    fi
+
     echo
-    echo "****************************"
-    echo "*                          *"
-    echo "*   Returned from deploy   *"
-    echo "*                          *"
-    echo "****************************"
+    echo "******************************************************"
+    echo "*                                                    *"
+    echo "*   Returned from deploy, resuming this Launch cmd   *"
+    echo "*                                                    *"
+    echo "******************************************************"
     echo
 }
 
@@ -187,7 +200,7 @@ login_with_param_check() {
 #===============================================================
 
 expected_runlevel="default"
-f_status_log="/var/log/dynamic_login.log"
+f_status_log="/var/log/aok_launcher.log"
 f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
 f_login_default_user="/etc/opt/AOK/login-default-username"

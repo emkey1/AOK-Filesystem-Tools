@@ -5,6 +5,14 @@
 Investigate how it is created and make sure everything using it can handle
 its absence
 
+## Launch Command
+
+
+make get/set _launch_command to as far as poosible use the same codes
+make templates for expecte defaults avilable to tools needing them
+
+aok_launcher
+
 ## /etc/environment
 
 Set it with a reasonable PATH

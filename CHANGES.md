@@ -3,7 +3,7 @@
 I will try to keep track of changes between releases here
 
 ## next release
-
+- dynamic_login renamed to aok_launcher, added supporing stuff in tools/utils.sh
 - New tool in /usr/local/bin/network_check.sh - repors if world and DNS responds
 - Added support for pigz (if installed) when packing and unpacking File images
 - gave more aparantly used files obs- prefix, and I don't see any errors. Will delete them eventually

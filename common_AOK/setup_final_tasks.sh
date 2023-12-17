@@ -159,36 +159,6 @@ start_cron_if_active() {
     # msg_3 "start_cron_if_active() - done"
 }
 
-set_launch_cmd() {
-    msg_2 "Setting 'Launch cmd' to run /usr/local/sbin/dynamic_login"
-
-    launch_cmd_expected='[ "/usr/local/sbin/dynamic_login" ]'
-    f_launch_cmd="/proc/ish/defaults/launch_command"
-
-    this_is_ish || {
-        msg_3 "Can only set 'Launch cmd' on iSH nodes!"
-        return
-    }
-
-    msg_3 "Setting default user as root, and enabeling continous logins"
-    echo "root" >"$f_login_default_user"
-    touch "$f_logins_continous"
-
-    msg_3 "Setting the custom AOK-FS 'Launch cmd'"
-    echo "$launch_cmd_expected" >"$f_launch_cmd"
-    launch_cmd_current="$(tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/')"
-
-    if [ "$launch_cmd_current" != "$launch_cmd_expected" ]; then
-        msg_1 "Failed to set 'Launch cmd'!"
-        echo "Current 'Launch cmd': '$launch_cmd_current'"
-        echo
-        echo "To set the default, run this:"
-        echo
-        echo "sudo echo '$launch_cmd_expected' > $f_launch_cmd"
-        echo
-    fi
-}
-
 replace_home_dirs() {
     if [ -n "$HOME_DIR_USER" ]; then
         if [ -f "$HOME_DIR_USER" ]; then
@@ -252,18 +222,21 @@ tsaft_start="$(date +%s)"
 . /opt/AOK/tools/user_interactions.sh
 
 #
-#  Wait for bootup to complete if prebuild and not chrooted on iSH
+#  If aok_launcher is used as Launch Cmd, it has already waited for
+#  system to be ready, so can be skipped here
 #
-if deploy_state_is_it "$deploy_state_pre_build" &&
-    this_is_ish &&
-    ! hostfs_is_devuan &&
-    ! this_fs_is_chrooted; then
-    msg_2 "Waiting for runlevel default to be ready, normally < 10s"
-    msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
-    while ! rc-status -r | grep -q default; do
-        msg_3 "not ready"
-        sleep 2
-    done
+if [ get_launch_cmd = "$launch_cmd_AOK" ]; then
+    if deploy_state_is_it "$deploy_state_pre_build" &&
+        this_is_ish &&
+        ! hostfs_is_devuan &&
+        ! this_fs_is_chrooted; then
+        msg_2 "Waiting for runlevel default to be ready, normally < 10s"
+        msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
+        while ! rc-status -r | grep -q default; do
+            msg_3 "not ready"
+            sleep 2
+        done
+    fi
 fi
 
 if [ -n "$LOG_FILE" ]; then
@@ -318,7 +291,7 @@ set_new_etc_profile "$next_etc_profile"
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
 
-set_launch_cmd
+set_launch_cmd "$launch_cmd_default"
 
 #
 #  Handling custom files
