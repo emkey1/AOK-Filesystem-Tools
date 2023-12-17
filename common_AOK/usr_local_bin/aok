@@ -189,10 +189,10 @@ gettys_enable() {
     #
     #  Using login prompt
     # tty1::respawn:/sbin/agetty pts/0 xterm-256color
-    #  Autologin as selected user, be aware that logout will instantly log you in again...
+    #  auto-login as selected user, be aware that logout will instantly log you in again...
     # tty1::respawn:/sbin/agetty -a root pts/0 xterm-256color
     if [ -n "$uname_autologin" ]; then
-        echo "><> getty will autologin as $uname_autologin"
+        echo "><> getty will auto-login as $uname_autologin"
         _direct_login="-a $uname_autologin"
     else
         echo "><> getty will give login prompt"
@@ -216,7 +216,7 @@ gettys_enable() {
         # getty_line="pts0::respawn:/sbin/agetty -a root pts/0 linux"
     elif host_fs_is_debian || host_fs_is_devuan; then
         # getty_line="pts0::respawn:/sbin/agetty pts/0 xterm-256color"
-        #  Autologin as selected user, be aware that logout will instantly log you in again...
+        #  Auto-login as selected user, be aware that logout will instantly log you in again...
         getty_line="pts0::respawn:/sbin/agetty $_direct_login pts/0 xterm-256color"
     else
         lc_error_abort "No getty known for this File System!"
