@@ -28,7 +28,7 @@
 #  Not system critical but we might as well do it here
 #  instead of creating a full service for the task
 #
-::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
+::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
 
 #
 #  Update motd (in case iSH has been updated)

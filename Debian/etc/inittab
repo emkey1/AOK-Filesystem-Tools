@@ -20,7 +20,7 @@ fx2::sysinit:/usr/local/sbin/hostname_sync.sh
 #  Not system critical but we might as well do it here
 #  instead of creating a full service for the task
 #
-hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
+hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
 
 #
 # Initialization command

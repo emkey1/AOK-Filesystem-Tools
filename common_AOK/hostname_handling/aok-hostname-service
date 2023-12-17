@@ -45,15 +45,11 @@ start() {
     #
     hn_suffix="aok"
 
-    echo "$(date) aok-hostname service: initial hostname [$hn_current]" >>/var/log/syslog
-
     #  If hostname -s allready ends with $hn_suffix, nothing needs to be done
     echo "$hn_current" | grep -q "\-$hn_suffix" && return
 
     #  Only continue if this is iSH-AOK
     grep -qi aok /proc/ish/version || return
-
-    /usr/local/sbin/ensure_hostname_in_host_file.sh
 
     echo "$hn_current-$hn_suffix" >/etc/hostname
 
@@ -64,7 +60,7 @@ start() {
     /bin/hostname -F /etc/hostname
 
     #  Since hostname has changed, ensure it is in /etc/hosts
-    /usr/local/sbin/ensure_hostname_in_host_file.sh
+    /usr/local/sbin/ensure_hostname_in_host_file
 
     /usr/local/bin/wall -n "hostname is now: $($hn_bin)"
 
