@@ -18,16 +18,20 @@ Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--a, --autologin Auto-login as user disable|username Now: $(display_autologin)
+-a, --autologin Auto-login as user disable|username
                 disable  - Will give login prompt
                 username - Will auto-login as username
--c  --continous New login prompt after logout on|off Now: $(display_continous_sessions)
--H, --hostname  Reads hostname from sync file [disable|enable] Now: $(display_hostname_method)
-                disable - Use the normal hostname program,
-                          always displays localhost for iOS >= 17
-                enable  - Use alternate hostname program, this can either
-                          use /etc/hostname for a static name, or via a
-                          Shortcut read the iOS device name as iSH starts
+-c  --continous New login prompt after logout on|off
+-H, --sync      Reads hostname from sync file [disable|enable]
+                disable - Use /etc/hostname for a static name
+                enable  - Give a file to read hostname.
+                          Assumed to be updated with the iOS device name
+                          at startup by a Shortcut.
+
+Current settings:
+autologin:  $(display_autologin)
+continnous: $(display_continous_sessions)
+hostname:   $(display_hostname_method)
 "
     exit 0
 }
@@ -149,12 +153,10 @@ display_autologin() {
 #     # is safe to call even here in a "exception handler"
 #     _lc_current="$(lc_get)"
 #     if [ "$_lc_current" != "$launch_cmd_default" ]; then
-#         msg_2
+#         echo
 #         msg_2 "ERROR: Failed to restore launch cmd!"
-#         msg_2
 #         msg_2 "Current launch cmd: $_lc_current"
 #         msg_2 "Intended default:   $launch_cmd_default"
-#         msg_2
 #         msg_2 "Make sure to set it manually, otherwise iSH will probably"
 #         msg_2 "fail to start!"
 #         exit 1
@@ -323,27 +325,17 @@ display_console_method() {
 #
 #
 #===============================================================
-install_f_hostname_alt() {
-    msg_2 "Enabling alternate hostname $f_hostname_alt"
-    cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$f_hostname_alt"
-    chmod 755 "$f_hostname_alt"
-}
-
-remove_f_hostname_alt() {
-    rm -f "$f_hostname_alt"
-}
 
 hostname_do_source() {
-    msg_2 "change_hostname_method()"
+    # msg_2 "change_hostname_method()"
     f_src="$1"
     [ -z "$f_src" ] && error_msg "hostname_do_source() - called without parameter"
-    msg_3 "><> about to do: $f_hostname_alt -S $f_src"
-    msg_2 "Hostname set to: $("$f_hostname_alt" -S "$f_src")"
-    msg_3 "change_hostname_method() - done"
+    msg_2 "Hostname set to: $(/usr/local/bin/hostname -S "$f_src")"
+    # msg_3 "change_hostname_method() - done"
 }
 
 change_hostname_method() {
-    msg_2 "change_hostname_method()"
+    # msg_2 "change_hostname_method()"
     requested_method="$1"
     source_file="$2"
 
@@ -368,12 +360,7 @@ change_hostname_method() {
 
             if [ -z "$s_new_value" ]; then
                 if [ -z "$s_old_value" ]; then
-                    msg_2 "ERROR: Nothing given and no old value was found"
-                    msg_2 "       will not activate $f_hostname_alt"
-                    msg_2 "       this can be activated later by doing: aok -H enable"
-                    msg_2
-                    remove_f_hostname_alt
-                    exit 1
+                    error_msg "ERROR: Nothing given and no old value was found"
                 fi
                 s_new_value="$s_old_value"
             fi
@@ -386,22 +373,18 @@ change_hostname_method() {
             #  Use it as a path
             #
             if [ -f "$s_new_value" ]; then
-                install_f_hostname_alt
                 msg_2 "hostname will be sourced from: $s_new_value"
                 hostname_do_source "$s_new_value"
-                msg_3 "><> hostname_do_source done"
+                # msg_3 "><> hostname_do_source done"
             else
                 msg_2 "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
                 msg_2 "       this can be activated later by doing: aok -H enable"
-                msg_2
-                remove_f_hostname_alt
                 exit 1
             fi
         else
             #
             #  Use it as old style hostname
             #
-            install_f_hostname_alt
             echo "$s_new_value" >"$f_etc_hostname"
             msg_2 "/etc/hostname will be used, so no syncing will be done."
             hostname_do_source "$f_etc_hostname"
@@ -412,33 +395,29 @@ change_hostname_method() {
             #  source_file would typically only be set during initial deploy
             #  and in that case this disclaimer wont be needed
             #
-            msg_2
             msg_2 "Your shell prompt might have cached the hostname when the session started."
             msg_2 "It will then be updated next time you login."
         fi
         ;;
 
-    "disable")
-        if [ -f "$f_hostname_alt" ]; then
-            msg_2 "Removing $f_hostname_alt"
-            remove_f_hostname_alt
-        fi
-        ;;
+    "disable") hostname_do_source "$f_etc_hostname" ;;
 
     *)
-        msg_2
         msg_2 "ERROR: Bad param to change_hostname_method: $1"
         exit 1
         ;;
 
     esac
-    msg_3 "change_hostname_method() - done"
+    # msg_3 "change_hostname_method() - done"
 }
 
 display_hostname_method() {
     # msg_2 "display_hostname_method()"
-    if [ -f "$f_hostname_alt" ]; then
-        echo "Enabled"
+    read -r source_fname 2>/dev/null <"$f_hostname_source_fname"
+    if [ -n "$source_fname" ] &&
+        [ -f "$source_fname" ] &&
+        [ "$source_fname" != "$f_etc_hostname" ]; then
+        echo "Enabled - $source_fname"
     else
         echo "Disabled"
     fi
@@ -456,6 +435,7 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
 autologin_disabled="disabled"
 f_launch_cmd_inttab="/usr/local/sbin/console_via_inittab_notification"
+# /etc/opt/AOK/hostname-aok-suffix
 launch_cmd_inttab="[ \"$f_launch_cmd_inttab\" ]"
 f_etc_hostname=/etc/hostname
 
@@ -540,9 +520,7 @@ while true; do
         ;;
 
     *)
-        msg_2
         msg_2 "ERROR: Bad option: $1"
-        msg_2
         show_help
         ;;
 
