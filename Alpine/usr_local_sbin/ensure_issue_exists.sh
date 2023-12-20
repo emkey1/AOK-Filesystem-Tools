@@ -9,6 +9,8 @@
 #  Login crashes if /etc/issue is not pressent.
 #  This ensures at least an empty file is there
 #
-if [ ! -e /etc/issue ]; then
-    /bin/touch /etc/issue
+_f="/etc/issue"
+if [ ! -e "$_f" ]; then
+    /usr/local/bin/fake_syslog ensure_issue_exists touching "$_f"
+    /bin/touch "$_f"
 fi

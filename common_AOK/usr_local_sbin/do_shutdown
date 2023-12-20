@@ -43,7 +43,8 @@ ensure_ish_or_chrooted() {
 display_msg() {
     _msg="$1"
     echo "$_msg"
-    echo "$_msg" >>/var/log/shutdown.log
+
+    /usr/local/bin/fake_syslog do_shutdown "$_msg"
     unset _msg
 }
 

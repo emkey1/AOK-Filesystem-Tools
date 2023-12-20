@@ -22,20 +22,30 @@
 #  directly to set up the user session
 #
 
-prepare_status_log() {
-    max_history=100
-    touch "$f_status_log" #  to avoid first boot msg no such file
-    if [ "$(wc -l <"$f_status_log" | awk '{ print $1 }')" -gt "$max_history" ]; then
-        # Truncate the file
-        tail -n "$max_history" "$f_status_log" >"$f_status_log.tmp" && mv "$f_status_log.tmp" "$f_status_log"
+# prepare_status_log() {
+#     max_history=100
+#     touch "$f_status_log" #  to avoid first boot msg no such file
+#     if [ "$(wc -l <"$f_status_log" | awk '{ print $1 }')" -gt "$max_history" ]; then
+#         # Truncate the file
+#         tail -n "$max_history" "$f_status_log" >"$f_status_log.tmp" && mv "$f_status_log.tmp" "$f_status_log"
+#     fi
+#     #
+#     #  To give some separation, and a hint when this bootup started...
+#     #
+#     (
+#         echo
+#         echo "$(date) Starting $0"
+#     ) >>"$f_status_log"
+# }
+
+log_it() {
+    # if no supported loggers are found, fall back to a non-dependency solution
+    f_fake_syslog=/usr/local/bin/fake_syslog
+    if [ -x "$f_fake_syslog" ]; then
+        "$f_fake_syslog" "$prog_name" "$*"
+    else
+        echo "$(date +"%Y-%m-%d %H:%M:%S") ${prog_name}: $*" >>/var/log/messages
     fi
-    #
-    #  To give some separation, and a hint when this bootup started...
-    #
-    (
-        echo
-        echo "$(date +"%Y-%m-%d %H:%M:%S") Starting $0"
-    ) >>"$f_status_log"
 }
 
 print_log() {
@@ -49,7 +59,11 @@ print_log() {
     msg="$1"
 
     [ "$2" != "noecho" ] && echo "$msg"
-    echo "$(date +"%Y-%m-%d %H:%M:%S") $msg" >>"$f_status_log"
+    #
+    #  Since other tools launched by this might have changed it, set it
+    #  here for now, later check if it is needed
+    #
+    log_it "$msg"
 }
 
 do_shutdown() {
@@ -65,7 +79,21 @@ do_shutdown() {
     print_log "Returned from do_shutdown..."
 }
 
+set_deploy_aok_abort() {
+    trap '' INT # abort capturing Ctrl-C
+
+    echo
+    print_log "***  Ctrl-C captured - aborting deploy ***"
+    echo
+    /bin/bash
+}
+
 deploy_aok() {
+    #
+    #  During deploy triggered by aok, you can hit Ctrl-C to get a shell
+    #  if you need to inspect something
+    #
+    trap 'set_deploy_aok_abort INT' INT
     #
     #  This is a new AOK-FS that has not yet completed its setup
     #  continue the deploy
@@ -77,17 +105,11 @@ deploy_aok() {
     echo "*                                                    *"
     echo "******************************************************"
     echo
-
-    if ! /etc/profile; then
-        f_depl_state=/etc/opt/AOK/deploy_state
-        if [ -f "$f_depl_state" ]; then
-            echo
-            echo "A new deploy state has been reached: $(cat "$f_depl_state")"
-            echo
-            echo "It is recomended to reboot at this point"
-            echo "this will continue in 60s if you did not reboot"
-            sleep 60
-        fi
+    da_depl_step="$(cat "$f_deploy_state")"
+    /usr/local/bin/fake_syslog aok_launcher Triggering deploy step: "$da_depl_step"
+    #  AOK-FS uses /etc/profile as placeholder for deploy steps
+    if /etc/profile; then
+        /usr/local/bin/fake_syslog aok_launcher Deploy completed - "$da_depl_step"
     else
         echo
         echo "ERROR returned from the deploy procedure!"
@@ -96,6 +118,19 @@ deploy_aok() {
         echo "it is impposisble to say if it is meaningfull to continue"
         echo "You have been warned..."
         echo
+        sleep 3
+        set_deploy_aok_abort
+    fi
+    trap '' INT # abort capturing Ctrl-C
+
+    if [ -f "$f_deploy_state" ]; then
+        echo
+        echo "A new deploy state has been reached: $(cat "$f_deploy_state")"
+        echo
+        echo "It is recomended to reboot at this point"
+        echo "to let the next step be processed."
+        echo "this will continue in 120s if you did not reboot"
+        sleep 120
     fi
 
     echo
@@ -105,9 +140,10 @@ deploy_aok() {
     echo "*                                                    *"
     echo "******************************************************"
     echo
+    sleep 3
 }
 
-abort_runlevel_wait() {
+set_abort_runlevel_wait() {
     echo
     print_log "***  Ctrl-C captured - aborting wait for runlevel $expected_runlevel  ***"
     echo
@@ -148,14 +184,20 @@ consider_inittab_tasks() {
 }
 
 runlevel_wait() {
-    print_log "iSH sometimes fails to reach runlevel $expected_runlevel"
-    print_log "in that case restart this App, and hope for better luck next time"
+    echo "iSH sometimes fails to reach runlevel $expected_runlevel"
+    echo "in that case restart this App, and hope for better luck next time"
     echo
-    trap 'abort_runlevel_wait INT' INT
-    # sleep 3
+    trap 'set_abort_runlevel_wait INT' INT
+
+    #
+    #  Ensure /run has been cleared (if needed such as on regular iSH)
+    #  before first calling rc-status, since it will use /run
+    #
+    sleep 3
+
     while true; do
         current_runlevel="$(rc-status -r)"
-        print_log "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
+        echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
         if [ "$current_runlevel" = "$expected_runlevel" ]; then
             break
         fi
@@ -168,7 +210,7 @@ runlevel_wait() {
 
 network_check() {
     echo
-    print_log "Checking networking - takes <5 seconds"
+    echo "Checking networking - takes <5 seconds"
     if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
         if ping -c 2 google.com >/dev/null 2>&1; then
             print_log "Connected to the Internet and DNS is resolving!"
@@ -241,33 +283,26 @@ login_with_param_check() {
 #
 #===============================================================
 
+prog_name=$(basename "$0")
 expected_runlevel="default"
-f_status_log="/var/log/aok_launcher.log"
+# f_status_log="/var/log/aok_launcher.log"
 f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
+f_deploy_state=/etc/opt/AOK/deploy_state
+f_deploy_state="/etc/opt/AOK/deploy_state"
 f_login_default_user="/etc/opt/AOK/login-default-username"
 f_logins_continous="/etc/opt/AOK/login-continous"
 f_aok_does_init_tasks="/etc/opt/AOK/aok_launcher-does-init_tasks"
 
-prepare_status_log # make sure it doesnt get too large
+# prepare_status_log # make sure it doesnt get too large
 
-#
-#  Alpine    needs this set here, Debian etc picks this setting from
-#  /etc/login.defs
-#
-# export LOGIN_TIMEOUT=0
+#  If deploy has not completed - handle it
+if [ -f "$f_deploy_state" ]; then
+    deploy_aok
+fi
 
-#
-#  Regular iSH doesnt replace /run, since this when run, it is one of
-#  the first processes, it is safe to clear it here.
-#  It will happen long before anything in /etc/inittab will need to checkit
-#
-grep -qi aok /proc/ish/version 2>/dev/null || {
-    rm /run/* -rf # do it before announcing it, to ensure it beats /etc/inittab
-    print_log "===  Clearing /run for regular iSH  ==="
-}
-
-consider_inittab_tasks
+#  Not used atm
+# consider_inittab_tasks
 
 if [ ! -f /etc/opt/AOK/this_fs_is_chrooted ]; then
     runlevel_wait
@@ -277,9 +312,6 @@ else
     echo "This is chrooted, so runlevel_wait & network check are skipped"
     echo
 fi
-
-#  If deploy has not completed - handle it
-[ -f /etc/opt/AOK/deploy_state ] && deploy_aok
 
 while true; do
     #

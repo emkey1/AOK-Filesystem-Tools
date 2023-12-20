@@ -5,10 +5,10 @@
 # The default runlevel.
 id:2:initdefault:
 
-ssl::sysinint:echo "$(date) inittab: System startup" >>/var/log/syslog
+fx1::sysinit:/usr/local/bin/fake_syslog inittab System startup
 
 # Clear /run/ to an initial state with no services running
-rrd::sysinit:/usr/local/sbin/reset-run-dir.sh
+fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
 
 #
 #  hostname is not set automatically since iOS 17, assuming the
@@ -16,13 +16,13 @@ rrd::sysinit:/usr/local/sbin/reset-run-dir.sh
 #  current hostname to a file that iSH can read
 #  Link to explaination about how to set this up is in the below script
 #
-hns::sysinit:/usr/local/sbin/hostname_sync.sh
+fx3::sysinit:/usr/local/sbin/hostname_sync.sh
 
 #
 #  Not system critical but we might as well do it here
 #  instead of creating a full service for the task
 #
-hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
+fx4::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
 
 #
 # Initialization command

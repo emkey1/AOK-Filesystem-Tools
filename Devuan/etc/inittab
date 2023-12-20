@@ -4,7 +4,7 @@
 # The default runlevel.
 id:2:initdefault:
 
-ssl::sysinint:echo "$(date) inittab: System startup" >>/var/log/syslog
+ssl::sysinint:/usr/local/bin/fake_syslog inittab System startup
 
 # Clear /run/ to an initial state with no services running
 rrd::sysinit:/usr/local/sbin/reset-run-dir.sh

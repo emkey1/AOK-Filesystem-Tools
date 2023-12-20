@@ -40,6 +40,9 @@ f_obsolete="/etc/aok-release"
 
 rm -f "$f_motd"
 
+#  create initial LF
+echo >>"$f_motd"
+
 if [ -e "$f_aok_fs_release" ]; then
     echo "[35mAOK-FS release:  $(cat "$f_aok_fs_release")[0m" >>"$f_motd"
 fi
@@ -50,3 +53,5 @@ fi
 ) >>"$f_motd"
 
 cat "$f_motd_template" >>"$f_motd"
+
+/usr/local/bin/fake_syslog update_motd updated /etc/motd

@@ -31,6 +31,16 @@ pidfile="/run/runbg.pid"
 #  And displays warning if other processes are detected
 #  after stoping.
 #
+log_file=/var/log/services.log
+log_it() {
+    # if no supported loggers are found, fall back to a non-dependency solution
+    f_fake_syslog=/usr/local/bin/fake_syslog
+    if [ -x "$f_fake_syslog" ]; then
+        FAKE_SYSLOG_FILE="$log_file" "$f_fake_syslog" "$RC_SVCNAME" "$*"
+    else
+        echo "$(date +"%Y-%m-%d %H:%M:%S") ${RC_SVCNAME}: $*" >>/var/log/messages
+    fi
+}
 
 check_for_other_polling() {
     other_pids="$(ps ax | grep /dev/location | grep -v grep |
@@ -40,19 +50,22 @@ check_for_other_polling() {
 start_pre() {
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
-        eerror "ERROR: Other processes polling GPS [ $other_pids]"
+        msg="ERROR: Other processes polling GPS [ $other_pids]"
+        log_it "$msg"
+        eerror "$msg"
     fi
 }
 
 start_post() {
-    printf "[%s] %s started\n" "$(date)" "$RC_SVCNAME" >> /var/log/services.log
+    log_it started
 }
 
-
 stop_post() {
-    printf "[%s] %s stopped\n" "$(date)" "$RC_SVCNAME" >> /var/log/services.log
+    log_it stopped
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
-        ewarn "WARNING: Other processes polling GPS [ $other_pids]"
+        msg="WARNING: Other processes polling GPS [ $other_pids]"
+        log_it "$msg"
+        eerror "$msg"
     fi
 }

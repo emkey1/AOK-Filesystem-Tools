@@ -75,7 +75,7 @@ change_autologin() {
     uname_autologin="$1"
 
     if [ "$uname_autologin" = "disable" ]; then
-        echo "disabling auto-login"
+        msg_2 "disabling auto-login"
         rm -f "$f_login_default_user"
     else
         eval "_h=~$uname_autologin"
@@ -84,7 +84,7 @@ change_autologin() {
             error_msg "$uname_autologin does not seem to be a valid user on this system"
         }
         echo "$uname_autologin" >"$f_login_default_user"
-        echo "Enabled auto-login for user: $uname_autologin"
+        msg_2 "Enabled auto-login for user: $uname_autologin"
     fi
 }
 
@@ -92,7 +92,7 @@ display_autologin() {
     if [ -f "$f_login_default_user" ]; then
         cat "$f_login_default_user"
     else
-        echo "$autologin_disabled"
+        msg_2 "$autologin_disabled"
     fi
 }
 
@@ -112,11 +112,11 @@ display_autologin() {
 #     new_cmd="$1"
 #     [ -z "$new_cmd" ] && error_msg "lc_set() - no param"
 #     # printf '%s' $new_cmd >/proc/ish/defaults/launch_command
-#     echo "$new_cmd" >/proc/ish/defaults/launch_command
+#     msg_2 "$new_cmd" >/proc/ish/defaults/launch_command
 #     _lc_current="$(lc_get)"
 #     [ "$_lc_current" = "$new_cmd" ] || {
-#         echo "intended: >$new_cmd<"
-#         echo "current:  >$_lc_current<"
+#         msg_2 "intended: >$new_cmd<"
+#         msg_2 "current:  >$_lc_current<"
 #         lc_error_abort "Failed to set a launch command"
 #     }
 # }
@@ -132,16 +132,16 @@ display_autologin() {
 #         shift
 #     done
 #     _cmd="$_cmd ]"
-#     echo "><> will use: >$_cmd<"
+#     msg_2 "><> will use: >$_cmd<"
 #     lc_set "$_cmd"
 # }
 
 # lc_restore() {
-#     # echo "lc_restore()"
+#     # msg_2 "lc_restore()"
 #     #
 #     #  In case something goes wrong use this to ensure it is restored
 #     #
-#     # echo "><> Restoring to default launch command"
+#     # msg_2 "><> Restoring to default launch command"
 
 #     #  Does not use lc_set in order to prevent risk for infinite loops
 #     echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
@@ -149,26 +149,25 @@ display_autologin() {
 #     # is safe to call even here in a "exception handler"
 #     _lc_current="$(lc_get)"
 #     if [ "$_lc_current" != "$launch_cmd_default" ]; then
-#         echo
-#         echo "ERROR: Failed to restore launch cmd!"
-#         echo
-#         echo "Current launch cmd: $_lc_current"
-#         echo "Intended default:   $launch_cmd_default"
-#         echo
-#         echo "Make sure to set it manually, otherwise iSH will probably"
-#         echo "fail to start!"
+#         msg_2
+#         msg_2 "ERROR: Failed to restore launch cmd!"
+#         msg_2
+#         msg_2 "Current launch cmd: $_lc_current"
+#         msg_2 "Intended default:   $launch_cmd_default"
+#         msg_2
+#         msg_2 "Make sure to set it manually, otherwise iSH will probably"
+#         msg_2 "fail to start!"
 #         exit 1
 #     fi
 # }
 
 lc_error_abort() {
-    # echo "lc_error_abort()"
+    # msg_2 "lc_error_abort()"
     msg="${1:-console mode change error!}"
-    echo
-    echo "***  console change error!  ***"
-    echo "$msg"
+    msg_1 "console change error!"
+    msg_2 "$msg"
     lc_restore
-    echo "Launch command was reset to the default"
+    msg_2 "Launch command was reset to the default"
     lc_get
 }
 
@@ -192,10 +191,10 @@ gettys_enable() {
     #  auto-login as selected user, be aware that logout will instantly log you in again...
     # tty1::respawn:/sbin/agetty -a root pts/0 xterm-256color
     if [ -n "$uname_autologin" ]; then
-        echo "><> getty will auto-login as $uname_autologin"
+        msg_2 "><> getty will auto-login as $uname_autologin"
         _direct_login="-a $uname_autologin"
     else
-        echo "><> getty will give login prompt"
+        msg_2 "><> getty will give login prompt"
         _direct_login=""
     fi
     if hostfs_is_alpine; then
@@ -225,8 +224,8 @@ gettys_enable() {
         lc_error_abort "gettys_enable() - variable getty_line unset"
     }
     (
-        echo "# /usr/local/bin/aok disabled direct console, and instead activated this getty"
-        echo "$getty_line"
+        msg_2 "# /usr/local/bin/aok disabled direct console, and instead activated this getty"
+        msg_2 "$getty_line"
     ) >>/etc/inittab
     grep -q "^$getty_line" /etc/inittab || {
         lc_error_abort "Failed to activate gettys"
@@ -299,22 +298,22 @@ display_console_method() {
 
     _lc_current="$(lc_get)"
     if [ "$_lc_current" = "$launch_cmd_inttab" ]; then
-        echo "inittab"
+        msg_2 "inittab"
     else
-        echo "launch"
+        msg_2 "launch"
     fi
 
     # # [ "/bin/login", "-f", "root"]%
     # lc_current="$(lc_get)"
-    # echo "current launch cmd: $lc_current"
+    # msg_2 "current launch cmd: $lc_current"
 
     # lc_set '[ "/bin/sleep", "infinity" ]'
     # lc_current="$(lc_get)"
-    # echo "current launch cmd: $lc_current"
+    # msg_2 "current launch cmd: $lc_current"
 
     # lc_set '[ "/bin/login", "-f", "root" ]'
     # lc_current="$(lc_get)"
-    # echo "current launch cmd: $lc_current"
+    # msg_2 "current launch cmd: $lc_current"
 }
 
 #===============================================================
@@ -325,7 +324,7 @@ display_console_method() {
 #
 #===============================================================
 install_f_hostname_alt() {
-    echo "Enabling alternate hostname $f_hostname_alt"
+    msg_2 "Enabling alternate hostname $f_hostname_alt"
     cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$f_hostname_alt"
     chmod 755 "$f_hostname_alt"
 }
@@ -335,13 +334,16 @@ remove_f_hostname_alt() {
 }
 
 hostname_do_source() {
+    msg_2 "change_hostname_method()"
     f_src="$1"
     [ -z "$f_src" ] && error_msg "hostname_do_source() - called without parameter"
-    echo "Hostname set to: $("$f_hostname_alt" -S "$f_src")"
+    msg_3 "><> about to do: $f_hostname_alt -S $f_src"
+    msg_2 "Hostname set to: $("$f_hostname_alt" -S "$f_src")"
+    msg_3 "change_hostname_method() - done"
 }
 
 change_hostname_method() {
-    # msg_2 "change_hostname_method()"
+    msg_2 "change_hostname_method()"
     requested_method="$1"
     source_file="$2"
 
@@ -355,10 +357,10 @@ change_hostname_method() {
             else
                 s_old_value="$f_current"
             fi
-            echo "For detailed instructions about creating an iOS hostname Shortcut"
-            echo "see /opt/APK/Docs/hostname-shortcut.md"
-            echo "Enter a static hostname, or if Shortcut sourcefile should be used"
-            echo "start with / and give full path, hit enter to keep the previous setting"
+            msg_2 "For detailed instructions about creating an iOS hostname Shortcut"
+            msg_2 "see /opt/APK/Docs/hostname-shortcut.md"
+            msg_2 "Enter a static hostname, or if Shortcut sourcefile should be used"
+            msg_2 "start with / and give full path, hit enter to keep the previous setting"
 
             [ -n "$s_old_value" ] && echo "  $s_old_value"
             read -r s_new_value
@@ -366,10 +368,10 @@ change_hostname_method() {
 
             if [ -z "$s_new_value" ]; then
                 if [ -z "$s_old_value" ]; then
-                    echo "ERROR: Nothing given and no old value was found"
-                    echo "       will not activate $f_hostname_alt"
-                    echo "       this can be activated later by doing: aok -H enable"
-                    echo
+                    msg_2 "ERROR: Nothing given and no old value was found"
+                    msg_2 "       will not activate $f_hostname_alt"
+                    msg_2 "       this can be activated later by doing: aok -H enable"
+                    msg_2
                     remove_f_hostname_alt
                     exit 1
                 fi
@@ -385,12 +387,13 @@ change_hostname_method() {
             #
             if [ -f "$s_new_value" ]; then
                 install_f_hostname_alt
-                echo "hostname will be sourced from: $s_new_value"
+                msg_2 "hostname will be sourced from: $s_new_value"
                 hostname_do_source "$s_new_value"
+                msg_3 "><> hostname_do_source done"
             else
-                echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
-                echo "       this can be activated later by doing: aok -H enable"
-                echo
+                msg_2 "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
+                msg_2 "       this can be activated later by doing: aok -H enable"
+                msg_2
                 remove_f_hostname_alt
                 exit 1
             fi
@@ -400,7 +403,7 @@ change_hostname_method() {
             #
             install_f_hostname_alt
             echo "$s_new_value" >"$f_etc_hostname"
-            echo "/etc/hostname will be used, so no syncing will be done."
+            msg_2 "/etc/hostname will be used, so no syncing will be done."
             hostname_do_source "$f_etc_hostname"
         fi
 
@@ -409,27 +412,27 @@ change_hostname_method() {
             #  source_file would typically only be set during initial deploy
             #  and in that case this disclaimer wont be needed
             #
-            echo
-            echo "Your shell prompt might have cached the hostname when the session started."
-            echo "It will then be updated next time you login."
+            msg_2
+            msg_2 "Your shell prompt might have cached the hostname when the session started."
+            msg_2 "It will then be updated next time you login."
         fi
         ;;
 
     "disable")
         if [ -f "$f_hostname_alt" ]; then
-            echo "Removing $f_hostname_alt"
+            msg_2 "Removing $f_hostname_alt"
             remove_f_hostname_alt
         fi
         ;;
 
     *)
-        echo
-        echo "ERROR: Bad param to change_hostname_method: $1"
+        msg_2
+        msg_2 "ERROR: Bad param to change_hostname_method: $1"
         exit 1
         ;;
 
     esac
-    # msg_3 "change_hostname_method() - done"
+    msg_3 "change_hostname_method() - done"
 }
 
 display_hostname_method() {
@@ -468,12 +471,11 @@ while true; do
 
     "-v" | "--verbose")
         if [ "$verbose" -eq 0 ]; then
-            echo "===  Enabeling verbose mode  ==="
+            nsg_1 "Enabeling verbose mode"
             verbose=1
             set -x
         else
-            echo
-            echo "WARNING: Multiple verbose options are ignored"
+            msg_1 "WARNING: Multiple verbose options are ignored"
         fi
         exit 0
         ;;
@@ -514,9 +516,9 @@ while true; do
         else
             _s="$(display_continous_sessions)"
             if [ "$_s" = "off" ]; then
-                echo "New login prompt after logout on|off"
+                msg_2 "New login prompt after logout on|off"
             else
-                echo "autlogin as username: $_s"
+                msg_2 "autlogin as username: $_s"
             fi
         fi
         exit 0
@@ -538,9 +540,9 @@ while true; do
         ;;
 
     *)
-        echo
-        echo "ERROR: Bad option: $1"
-        echo
+        msg_2
+        msg_2 "ERROR: Bad option: $1"
+        msg_2
         show_help
         ;;
 

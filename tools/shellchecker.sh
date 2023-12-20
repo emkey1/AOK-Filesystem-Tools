@@ -414,6 +414,7 @@ cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for t
 #  Specifix excludes
 #
 excludes=(
+    ./common_AOK/obs-sbin/fix_dev
 )
 
 #

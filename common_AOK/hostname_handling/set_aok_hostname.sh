@@ -52,12 +52,12 @@ fi
 
 msg_2 "Ensuring non suffixed name is in hosts file"
 hn_current="$($hn_alt)"
-fake_syslog "set_aok_hostname.sh" "Calling ensure_hostname_in_host_file for: $hn_current"
+/usr/local/bin/fake_syslog "set_aok_hostname.sh" "Calling ensure_hostname_in_host_file for: $hn_current"
 /usr/local/sbin/ensure_hostname_in_host_file
 
 msg_2 "Manually setting -$hn_suffix suffix for hostname for rest of deploy"
 #  shellcheck disable=SC2154
-fake_syslog "set_aok_hostname.sh" "setting hostname to: $hn_new"
+/usr/local/bin/fake_syslog "set_aok_hostname.sh" "setting hostname to: $hn_new"
 echo "$$hn_new" >/etc/hostname
 # Dont use variable, check with alt_hostname to ensure it is set
 msg_3 "Hostname is now: $($hn_alt)"

@@ -172,13 +172,6 @@ display_time_elapsed() {
     unset _dte_seconds
 }
 
-fake_syslog() {
-    [ -z "$1" ] && error_msg "fake_syslog() no param"
-    [ -z "$2" ] && error_msg "fake_syslog() no message"
-
-    echo "$(date) $1: $2" >>/var/log/syslog
-}
-
 create_fs() {
     #
     #  Extract a $1 tarball at $2 location - verbose flag $3

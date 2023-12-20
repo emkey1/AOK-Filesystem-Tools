@@ -3,6 +3,8 @@
 I will try to keep track of changes between releases here
 
 ## next release
+
+- Debian: halt and shutdown now works
 - initial init handling by aok_launcher
 - dynamic_login renamed to aok_launcher, added supporing stuff in tools/utils.sh
 - New tool in /usr/local/bin/network_check.sh - repors if world and DNS responds
@@ -57,16 +59,9 @@ Now has two modes:
 - ash & bash different prompts - helps you see what the current shell is
 - setup_final_tasks.sh now defines a full PATH including /usr/local/bin
 - Alpine/etc/profile - added the sbins to common PATH, which makes sense since in most cases, this is run by root
-
-## next release
-
 - added common display_instlled_versions function
 
-### 0.11.0.1
-
-- Display FS vers $AOK_VERSION at end of deploy
-
-## release 0.11.0
+## release 0.11.0 - details
 
 - alternate hostname handling for iOS >= 17 rewritten. Will be automatically enabled during deployment if iOS >= 17, can be manually enabled/disabled by running `/usr/local/bin/aok -H`
 Now has two modes:

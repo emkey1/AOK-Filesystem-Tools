@@ -74,9 +74,11 @@ hostname_fix() {
     fi
 
     # if defined use setting from AOK_VARS, otherwise a prompt will be given
+    msg_3 "><> setup_final_tasks.sh:hostname_fix will run aok"
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
         error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
     }
+    msg_3 "><> setup_final_tasks.sh:hostname_fix returned from aok"
 }
 
 aok_kernel_consideration() {
@@ -261,6 +263,7 @@ user_interactions
 
 ensure_path_items_are_available
 
+msg_3 "><> setup_final_tasks.sh: will run hostname_fix"
 hostname_fix
 
 #

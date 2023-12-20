@@ -36,7 +36,10 @@ restore_to_aok_state() {
     rsync_chown "$src" "$dst" || error_msg "restore_to_aok_state() - Failed to copy $src -> $dst"
 }
 
-do_forced_restore() {
+do_restore_configs() {
+    #
+    #  This covers config style files, that might overwrite user configs
+    #
     echo "===  Force upgrade is requested, will update /etc/inittab and similar configs"
     restore_to_aok_state "$(distro_prefix)"/etc/inittab /etc/inittab
     restore_to_aok_state "$(distro_prefix)"/etc/profile /etc/profile
@@ -46,12 +49,62 @@ do_forced_restore() {
     if hostfs_is_alpine; then
         restore_to_aok_state "$(distro_prefix)"/etc/motd_template /etc/motd_template
     elif hostfs_is_debian; then
-        restore_to_aok_state "$(distro_prefix)"/etc/pam.d /etc/pam.d
-        restore_to_aok_state "$(distro_prefix)"/etc/update-motd.d /etc/update-motd.d
-    elif hostfs_is_debian; then
-        restore_to_aok_state "$(distro_prefix)"/etc/pam.d /etc/pam.d
-        restore_to_aok_state "$(distro_prefix)"/etc/update-motd.d /etc/update-motd.d
+        restore_to_aok_state "$(distro_prefix)"/etc/pam.d /etc
+        restore_to_aok_state "$(distro_prefix)"/etc/update-motd.d /etc
+    elif hostfs_is_devuan; then
+        restore_to_aok_state "$(distro_prefix)"/etc/pam.d /etc
+        restore_to_aok_state "$(distro_prefix)"/etc/update-motd.d /etc
     fi
+    echo
+}
+
+general_upgrade() {
+
+    msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
+
+    #
+    #  Always copy common stuff
+    #
+    msg_2 "Common stuff"
+    msg_3 "/usr/local/bin"
+    rsync_chown "$d_aok_base"/common_AOK/usr_local_bin/ /usr/local/bin
+    msg_3 "/usr/local/sbin"
+    rsync_chown "$d_aok_base"/common_AOK/usr_local_sbin/ /usr/local/sbin
+    echo
+    msg_3 "alternate hostname related"
+    [ -f /etc/init.d/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/aok-hostname-service /etc/init.d/hostname
+    [ -f /usr/local/bin/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/hostname_alt /usr/local/bin/hostname
+    # [ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/hostname_sync.sh /usr/local/sbin
+    echo
+
+    msg_3 "runbg"
+    rsync_chown "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d
+    #
+    #  Copy distro specific stuff
+    #
+    if hostfs_is_alpine; then
+        msg_2 "Alpine specifics"
+        msg_3 "/usr/local/bin"
+        rsync_chown "$d_aok_base"/Alpine/usr_local_bin/ /usr/local/bin
+        msg_3 "/usr/local/sbin"
+        rsync_chown "$d_aok_base"/Alpine/usr_local_sbin/ /usr/local/sbin
+    elif hostfs_is_debian; then
+        msg_2 "Debian specifics"
+        msg_3 "/usr/local/bin"
+        rsync_chown "$d_aok_base"/Debian/usr_local_bin/ /usr/local/bin
+        msg_3 "/usr/local/sbin"
+        rsync_chown "$d_aok_base"/Debian/usr_local_sbin/ /usr/local/sbin
+        rsync_chown "$d_aok_base"/Debian/etc/init.d/rc /etc/init.d
+    elif hostfs_is_devuan; then
+        msg_2 "Devuan specifics"
+        msg_3 "/usr/local/bin"
+        rsync_chown "$d_aok_base"/Devuan/usr_local_bin/ /usr/local/bin
+        msg_3 "/usr/local/sbin"
+        rsync_chown "$d_aok_base"/Devuan/usr_local_sbin/ /usr/local/sbin
+    else
+        error_msg "Failed to recognize Distro, aborting."
+    fi
+    echo
 }
 
 launch_cmd_get() {
@@ -78,6 +131,7 @@ move_file_to_right_location() {
     else
         error_msg "Failed to move: $f_old -> $f_new"
     fi
+    echo
 }
 
 is_obsolete_file_present() {
@@ -121,6 +175,44 @@ obsolete_files() {
 
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/opt/hostname_cached
+    is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
+    is_obsolete_file_present /usr/local/sbin/hostname_sync.sh
+    is_obsolete_file_present /etc/init.d/bat_charge_log
+    is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
+}
+
+update_aok_release() {
+    f_aok_release=/etc/aok-fs-release
+    msg_2 "Updating $f_aok_release to current release"
+    read -r old_release <"$f_aok_release"
+    if [ -z "$old_release" ]; then
+        error_msg "Failed to read old release, leaving it as is" noexit
+    fi
+
+    splitter="-JL-"
+
+    # Use awk to split the string based on '-JL-'
+    #aok_release=$(echo "$old_release" | awk -v splitter="$splitter" -F "$splitter" '{print $1}')
+    sub_release=$(echo "$old_release" | awk -v splitter="$splitter" -F "$splitter" '{print $2}')
+    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/"//g')"
+    #
+    #  If there is no sub release, set it to an empty string, otherwise
+    #  re-add splitter
+    #
+    [ -z "$sub_release" ] && sub_release='' || sub_release="$splitter$sub_release"
+
+    if true; then
+        new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/\"//g')$sub_release"
+    fi
+
+    #  Update the release file
+    cp "$f_aok_release" "$f_aok_release".old
+    echo "$new_rel" >"$f_aok_release"
+    msg_1 "Updated $f_aok_release to: $new_rel"
+
+    if hostfs_is_alpine; then
+        /usr/local/sbin/update_motd
+    fi
 }
 
 verify_launch_cmd() {
@@ -157,56 +249,11 @@ d_new_etc_opt_prefix="/etc/opt/AOK"
 this_is_ish || error_msg "This should only be run on an iSH platform!"
 
 if [ "$1" = "force" ]; then
-    do_forced_restore
-else
-    echo "Not requested: force"
+    do_restore_configs
 fi
 
-msg_1 "Updating /etc/skel files"
-rsync_chown "$d_aok_base"/common_AOK/etc/skel/ /etc/skel
-
-msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
-
-#
-#  Always copy common stuff
-#
-msg_2 "Common stuff"
-msg_3 "/usr/local/bin"
-rsync_chown "$d_aok_base"/common_AOK/usr_local_bin/ /usr/local/bin
-msg_3 "/usr/local/sbin"
-rsync_chown "$d_aok_base"/common_AOK/usr_local_sbin/ /usr/local/sbin
-echo
-msg_3 "alternate hostname related"
-[ -f /etc/init.d/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/aok-hostname-service /etc/init.d/hostname
-[ -f /usr/local/bin/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/hostname_alt /usr/local/bin/hostname
-[ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/hostname_sync.sh /usr/local/sbin
-echo
-
-#
-#  Copy distro specific stuff
-#
-if hostfs_is_alpine; then
-    msg_2 "Alpine specifics"
-    msg_3 "/usr/local/bin"
-    rsync_chown "$d_aok_base"/Alpine/usr_local_bin/ /usr/local/bin
-    msg_3 "/usr/local/sbin"
-    rsync_chown "$d_aok_base"/Alpine/usr_local_sbin/ /usr/local/sbin
-elif hostfs_is_debian; then
-    msg_2 "Debian specifics"
-    msg_3 "/usr/local/bin"
-    rsync_chown "$d_aok_base"/Debian/usr_local_bin/ /usr/local/bin
-    msg_3 "/usr/local/sbin"
-    rsync_chown "$d_aok_base"/Debian/usr_local_sbin/ /usr/local/sbin
-elif hostfs_is_devuan; then
-    msg_2 "Devuan specifics"
-    msg_3 "/usr/local/bin"
-    rsync_chown "$d_aok_base"/Devuan/usr_local_bin/ /usr/local/bin
-    msg_3 "/usr/local/sbin"
-    rsync_chown "$d_aok_base"/Devuan/usr_local_sbin/ /usr/local/sbin
-else
-    error_msg "Failed to recognize Distro, aborting."
-fi
-
+general_upgrade
 update_etc_opt_references
 obsolete_files
+update_aok_release
 verify_launch_cmd

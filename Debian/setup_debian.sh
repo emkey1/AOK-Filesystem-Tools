@@ -133,6 +133,11 @@ fi
 echo
 
 #
+#  Our
+#
+cp -a "$d_aok_base"/Debian/etc/init.d/rc /etc/init.d
+
+#
 #  Common deploy, used both for Alpine & Debian
 #
 if ! "$setup_common_aok"; then

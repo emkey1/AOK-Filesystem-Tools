@@ -23,6 +23,17 @@ hn_source_fname="/etc/opt/hn_source_fname"
 
 description="Ensures hostname has -aok suffix for iSH-AOK kernels."
 
+log_file=/var/log/services.log
+log_it() {
+    # if no supported loggers are found, fall back to a non-dependency solution
+    f_fake_syslog=/usr/local/bin/fake_syslog
+    if [ -x "$f_fake_syslog" ]; then
+        FAKE_SYSLOG_FILE="$log_file" "$f_fake_syslog" "$RC_SVCNAME" "$*"
+    else
+        echo "$(date +"%Y-%m-%d %H:%M:%S") ${RC_SVCNAME}: $*" >>/var/log/messages
+    fi
+}
+
 depend() {
     if [ -f /etc/init.d/runbg ]; then
         after runbg
@@ -30,11 +41,11 @@ depend() {
 }
 
 start_post() {
-    echo "[$(date)] $RC_SVCNAME started" >>/var/log/services.log
+    log_it started
 }
 
 stop_post() {
-    echo "[$(date)] $RC_SVCNAME stopped" >>/var/log/services.log
+    log_it stopped
 }
 
 start() {
@@ -59,8 +70,8 @@ start() {
     #
     /bin/hostname -F /etc/hostname
 
-    #  Since hostname has changed, ensure it is in /etc/hosts
-    /usr/local/sbin/ensure_hostname_in_host_file
+    #  Since hostname might have changed, ensure it is in /etc/hosts
+    /usr/local/sbin/ensure_hostname_in_host_file.sh
 
     /usr/local/bin/wall -n "hostname is now: $($hn_bin)"
 
