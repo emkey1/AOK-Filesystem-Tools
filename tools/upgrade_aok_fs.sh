@@ -131,7 +131,7 @@ mv_no_over_write() {
     [ -z "$_f_src" ] && error_msg "mv_no_over_write() - no first param"
     [ -f "$_f_src" ] || error_msg "mv_no_over_write() - no source file: $_f_src"
     [ -z "$_f_dst" ] && error_msg "mv_no_over_write() - no destination"
-    [ -f "$_f_dst" ] && error_msg "mv_no_over_write() - destination occupied: $_f_src"
+    [ -f "$_f_dst" ] && error_msg "can't move $_f_src to $_f_dst - destination occupied: $_f_dst"
 
     if mv "$_f_src" "$_f_dst"; then
         msg_3 "Moved $_f_src -> $_f_dst"
