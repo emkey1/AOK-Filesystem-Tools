@@ -177,7 +177,6 @@ consider_inittab_tasks() {
     do_inittab_task "/usr/local/sbin/hostname_sync.sh"
     do_inittab_task "/usr/local/sbin/ensure_hostname_in_host_file"
     if test -f /etc/alpine-release; then
-        do_inittab_task "/usr/local/sbin/ensure_issue_exists.sh"
         do_inittab_task "/usr/local/sbin/update_motd"
     fi
     print_log "===  inittasks completed!"
@@ -296,11 +295,6 @@ f_aok_does_init_tasks="/etc/opt/AOK/aok_launcher-does-init_tasks"
 
 # prepare_status_log # make sure it doesnt get too large
 
-#  If deploy has not completed - handle it
-if [ -f "$f_deploy_state" ]; then
-    deploy_aok
-fi
-
 #  Not used atm
 # consider_inittab_tasks
 
@@ -311,6 +305,11 @@ else
     echo
     echo "This is chrooted, so runlevel_wait & network check are skipped"
     echo
+fi
+
+#  If deploy has not completed - handle it
+if [ -f "$f_deploy_state" ]; then
+    deploy_aok
 fi
 
 while true; do
