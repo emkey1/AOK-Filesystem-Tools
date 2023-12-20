@@ -73,6 +73,9 @@ general_upgrade() {
 
     msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
 
+    # this name was used up to arround 11.0
+    mv_no_over_write /etc/aok-release /etc/aof-fs-release
+
     #
     #  Always copy common stuff
     #
@@ -122,6 +125,21 @@ launch_cmd_get() {
     tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/'
 }
 
+mv_no_over_write() {
+    _f_src="$1"
+    _f_dst="$2"
+    [ -z "$_f_src" ] && error_msg "mv_no_over_write() - no first param"
+    [ -f "$_f_src" ] || error_msg "mv_no_over_write() - no source file: $_f_src"
+    [ -z "$_f_dst" ] && error_msg "mv_no_over_write() - no destination"
+    [ -f "$_f_dst" ] && error_msg "mv_no_over_write() - destination occupied: $_f_src"
+
+    if mv "$_f_src" "$_f_dst"; then
+        msg_3 "Moved $_f_src -> $_f_dst"
+    else
+        error_msg "Failed to move: $_f_src -> $_f_dst"
+    fi
+}
+
 move_file_to_right_location() {
     f_old="$1"
     f_new="$2"
@@ -136,12 +154,7 @@ move_file_to_right_location() {
     [ "${f_new%"$d_new_etc_opt_prefix/"*}" != "$f_new" ] || {
         error_msg "destination incorrect: $f_new - should start with $d_new_etc_opt_prefix"
     }
-
-    if mv "$f_old" "$f_new"; then
-        msg_3 "Moved $f_old -> $f_new"
-    else
-        error_msg "Failed to move: $f_old -> $f_new"
-    fi
+    mv_no_over_write "$f_old" "$f_new"
     echo
 }
 
@@ -173,6 +186,7 @@ update_etc_opt_references() {
 obsolete_files() {
     msg_2 "Ensuring no obsolete files are present"
 
+    is_obsolete_file_present /etc/aok-release
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /etc/opt/hostname_cached
