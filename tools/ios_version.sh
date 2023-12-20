@@ -24,6 +24,7 @@
 
 create_fake_dev_details() {
     #  shellcheck disable=SC2154
+    msg_2 "Creating fake /proc/ish/UIDevice"
     d_base="$d_build_root"/proc/ish/.defaults
     if [ -f "$d_base/CarCapabilities" ]; then
         _dev_type="iPhone"
@@ -37,7 +38,7 @@ create_fake_dev_details() {
         _ios_version="16.0"
     fi
 
-    echo "><> updating [$f_UIDevice]"
+    msg_3 "updating [$f_UIDevice]"
     echo "Model: $_dev_type" >"$f_UIDevice"
     echo "OS Version: $_ios_version" >>"$f_UIDevice"
 
