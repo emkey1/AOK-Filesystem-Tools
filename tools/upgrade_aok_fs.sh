@@ -58,6 +58,17 @@ do_restore_configs() {
     echo
 }
 
+is_obsolete_file_present() {
+    f_name="$1"
+    [ -z "$f_name" ] && error_msg "is_obsolete_file_present() - no first param"
+
+    if [ -f "$f_name" ]; then
+        msg_1 "Obsolete file found: $f_name"
+    elif [ -e "$f_name" ]; then
+        msg_1 "Obsolete filename found, but was not file: $f_name"
+    fi
+}
+
 general_upgrade() {
 
     msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
@@ -134,17 +145,6 @@ move_file_to_right_location() {
     echo
 }
 
-is_obsolete_file_present() {
-    f_name="$1"
-    [ -z "$f_name" ] && error_msg "is_obsolete_file_present() - no first param"
-
-    if [ -f "$f_name" ]; then
-        msg_1 "Obsolete file found: $f_name"
-    elif [ -e "$f_name" ]; then
-        msg_1 "Obsolete filename found, but was not file: $f_name"
-    fi
-}
-
 update_etc_opt_references() {
     #
     #  Correct old filenames  - last updated 23-12-03
@@ -174,11 +174,12 @@ obsolete_files() {
     msg_2 "Ensuring no obsolete files are present"
 
     is_obsolete_file_present /etc/opt/AOK-login_method
+    is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /etc/opt/hostname_cached
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
     is_obsolete_file_present /usr/local/sbin/hostname_sync.sh
-    is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
+    is_obsolete_file_present /usr/local/sbin/bat_monitord
 }
 
 update_aok_release() {
