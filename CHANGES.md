@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- new service bat-monitord
 - Debian: halt and shutdown now works
 - initial init handling by aok_launcher
 - dynamic_login renamed to aok_launcher, added supporing stuff in tools/utils.sh

@@ -1,0 +1,29 @@
+#!/sbin/openrc-run
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Logs Battery charge, each time it changes
+#
+
+description="Logs Battery charge, each time it changes"
+
+command="/usr/local/sbin/bat-monitord"
+command_args="> /dev/null"
+command_background="YES"
+
+pidfile="/run/bat-monitord.pid"
+
+log_file=/var/log/services.log
+
+
+start_post() {
+    FAKE_SYSLOG_FILE="$log_file" /usr/local/bin/fake_syslog "$RC_SVCNAME" started
+}
+
+stop_post() {
+    FAKE_SYSLOG_FILE="$log_file" /usr/local/bin/fake_syslog "$RC_SVCNAME" stopped
+}
