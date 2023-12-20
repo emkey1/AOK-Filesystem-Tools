@@ -73,12 +73,15 @@ hostname_fix() {
         return
     fi
 
-    # if defined use setting from AOK_VARS, otherwise a prompt will be given
-    msg_3 "><> setup_final_tasks.sh:hostname_fix will run aok"
+    msg_3 "Linking /usr/local/bin to /bin/hostname"
+    rm /bin/hostname
+    ln -f /usr/local/bin/hostname /bin/hostname
+
+    # msg_3 "><> setup_final_tasks.sh:hostname_fix will run aok"
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
         error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
     }
-    msg_3 "><> setup_final_tasks.sh:hostname_fix returned from aok"
+    # msg_3 "><> setup_final_tasks.sh:hostname_fix returned from aok"
 }
 
 aok_kernel_consideration() {
@@ -188,6 +191,26 @@ replace_home_dirs() {
     fi
 }
 
+deploy_bat_monitord() {
+    s_name="bat-monitord"
+
+    msg_2 "Battery monitor service $s_name"
+
+    this_is_aok_kernel || {
+        msg_3 "$s_name is only meaningfull on iSH-AOK, skipping"
+        return
+    }
+
+    msg_3 "Adding $s_name service"
+    cp -a "$d_aok_base"/common_AOK/etc/init.d/bat-monitord /etc/init.d
+    rc-update add "$s_name" default
+    msg_3 "Restarting service, in case config changed"
+    rc-service "$s_name" restart
+
+    msg_2 "service $s_name installed and enabled"
+    echo
+}
+
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
@@ -230,7 +253,7 @@ tsaft_start="$(date +%s)"
 #  If aok_launcher is used as Launch Cmd, it has already waited for
 #  system to be ready, so can be skipped here
 #
-if [ get_launch_cmd != "$launch_cmd_AOK" ]; then
+if [ "$(get_launch_cmd)" != "$launch_cmd_AOK" ]; then
     if deploy_state_is_it "$deploy_state_pre_build" &&
         this_is_ish &&
         ! hostfs_is_devuan &&
@@ -243,7 +266,7 @@ if [ get_launch_cmd != "$launch_cmd_AOK" ]; then
         done
     fi
 else
-    echo "><> Boot wait already handled by AOK Launch cmd"
+    msg_2 "Boot wait already handled by AOK Launch cmd"
 fi
 
 if [ -n "$LOG_FILE" ]; then
@@ -263,7 +286,7 @@ user_interactions
 
 ensure_path_items_are_available
 
-msg_3 "><> setup_final_tasks.sh: will run hostname_fix"
+# msg_3 "><> setup_final_tasks.sh: will run hostname_fix"
 hostname_fix
 
 #
@@ -272,11 +295,10 @@ hostname_fix
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-this_is_aok_kernel && {
-    "$d_aok_base"/common_AOK/hostname_handling/set_aok_hostname.sh || {
-        error_msg "set_aok_hostname.sh failed"
-    }
-}
+deploy_bat_monitord
+
+#  Ensure hostname has been picked up, iSH-AOK also updates /bin/hostname
+hostname -U >/dev/null
 
 # login feature didsabled tag
 # set_initial_login_mode

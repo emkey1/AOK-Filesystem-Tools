@@ -262,25 +262,6 @@ create_user() {
     # msg_3 "create_user() - done"
 }
 
-deploy_bat_monitord() {
-    s_name="bat-monitord"
-
-    msg_2 "Deploying battery monitor service $s_name"
-
-    this_is_aok_kernel || {
-        msg_3 "$s_name is only meaningfull on iSH-AOK, skipping"
-        return
-    }
-
-    msg_3 "Adding $s_name service"
-    rc-update add "$s_name" default
-    msg_3 "Restarting service, in case config changed"
-    rc-service "$s_name" restart
-
-    msg_2 "service $s_name installed and enabled"
-    echo
-}
-
 #===============================================================
 #
 #   Main
@@ -323,7 +304,6 @@ else
 fi
 
 setup_environment
-deploy_bat_monitord
 setup_root_env
 create_user
 
