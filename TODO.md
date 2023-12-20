@@ -34,7 +34,6 @@ disadvantage: depends on aok_launcher in fact being the launch command
 
 - hostname_sync.sh
 - ensure_hostname_in_host_file
-- ensure_issue_exists.sh
 - /usr/local/sbin/update_motd
 
 Unsorted other tasks
