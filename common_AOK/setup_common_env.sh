@@ -63,6 +63,31 @@ setup_environment() {
         error_msg "Config file not found: >$_f<"
     fi
 
+    #
+    #  openrc is extreamly forgiving when it comes to dependencies, any
+    #  dependency that is not pressent is simply ignored.
+    #
+    #  When doing start/stop no more weird openrc warnings from kernel
+    #  related services that will always fail on iSH
+    #
+    #  Bootup time is vastly reduced, since openrc doesn't have to plow
+    #  through essentially every init script due to complex and in our
+    #  case pointless dependencies
+    #
+    msg_3 "Moving all unused services to /etc/init.d/NOT"
+    mv /etc/init.d /etc/NOT
+    mkdir /etc/init.d
+    mv /etc/NOT /etc/init.d
+    #  Keep the files we actually need
+    if destfs_is_alpine; then
+        cp -a /etc/init.d/NOT/sshd /etc/init.d
+    else
+        cp -a /etc/init.d/NOT/ssh /etc/init.d
+        msg_4 "Preserving /etc/init.d/rc"
+        cp -a /etc/init.d/NOT/rc /etc/init.d
+    fi
+    msg_4 "Unused files cleared from init.d"
+
     msg_3 "Populate /etc/skel"
     rsync_chown "$d_aok_base"/common_AOK/etc/skel /etc
 
@@ -237,6 +262,25 @@ create_user() {
     # msg_3 "create_user() - done"
 }
 
+deploy_bat_monitord() {
+    s_name="bat-monitord"
+
+    msg_2 "Deploying battery monitor service $s_name"
+
+    this_is_aok_kernel || {
+        msg_3 "$s_name is only meaningfull on iSH-AOK, skipping"
+        return
+    }
+
+    msg_3 "Adding $s_name service"
+    rc-update add "$s_name" default
+    msg_3 "Restarting service, in case config changed"
+    rc-service "$s_name" restart
+
+    msg_2 "service $s_name installed and enabled"
+    echo
+}
+
 #===============================================================
 #
 #   Main
@@ -279,6 +323,7 @@ else
 fi
 
 setup_environment
+deploy_bat_monitord
 setup_root_env
 create_user
 
