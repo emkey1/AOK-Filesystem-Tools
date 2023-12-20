@@ -74,7 +74,7 @@ general_upgrade() {
     msg_1 "Upgrading /usr/local/bin & /usr/local/sbin"
 
     # this name was used up to arround 11.0
-    mv_no_over_write /etc/aok-release /etc/aof-fs-release
+    mv_no_over_write /etc/aok-release /etc/aok-fs-release
 
     #
     #  Always copy common stuff
