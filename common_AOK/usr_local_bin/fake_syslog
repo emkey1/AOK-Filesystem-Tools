@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Simple minimalistic syslog implementation.
+#  For custom log_file set FAKE_SYSLOG_FILE
+#
+#  This is a posix script, and not suitable for performance
+#
+f_def_log=/var/log/syslog
+f_issues=/var/log/fake_syslog-issues
+
+item="${1:-unnamed}"
+shift
+msg="$*"
+msg="${msg:-no message}"
+
+if [ -n "$FAKE_SYSLOG_FILE" ]; then
+    if [ ! -f "$FAKE_SYSLOG_FILE" ]; then
+        # try creating it
+        touch "$FAKE_SYSLOG_FILE"
+        if [ ! -f "$FAKE_SYSLOG_FILE" ]; then
+            _f="$FAKE_SYSLOG_FILE"
+            #
+            #  in case caller used an env variable this clears it,
+            #  if it was fed directly like below, nothing can help the caller
+            #
+            unset FAKE_SYSLOG_FILE
+
+            FAKE_SYSLOG_FILE="$f_issues" /usr/local/bin/fake_syslog \
+                fake_syslog "$item" "Failed to create: $_f"
+            exit 0
+        fi
+    fi
+fi
+log_file="${FAKE_SYSLOG_FILE:-$f_def_log}"
+
+#  Sample to log oddities in a separate log-file using itself
+# if [ "$item" = "runbg" ]; then
+#     FAKE_SYSLOG_FILE="$f_issues" /usr/local/bin/fake_syslog \
+#         fake_syslog "=== aok_launcher uses log_file=$log_file"
+# fi
+
+#
+#  Handles cases where PPID env variable is not set
+#
+ppid="${PPID:-$(ps -o ppid= -p $$)}"
+
+echo "$(date +"%Y-%m-%d %H:%M:%S") ${item}[$ppid]: $msg" >>"$log_file"
