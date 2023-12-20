@@ -19,8 +19,16 @@ fi
 
 if [ -f /etc/alpine-release ]; then
     srvc_name="sshd"
+    if [ ! -f /usr/sbin/sshd ]; then
+        echo "=== Installing openssh-server"
+        sudo apk add openssh-server
+    fi
 elif [ -f /etc/debian_version ]; then
     srvc_name="ssh"
+    if [ ! -f /usr/sbin/sshd ]; then
+        echo "=== Installing openssh-server"
+        sudo apt install openssh-server
+    fi
 else
     echo "Unknown distro, aborting"
     exit 1
