@@ -47,11 +47,9 @@ f_hostname_alt=/usr/local/bin/hostname
 if [ -x "$f_hostname_alt" ]; then
     #  skip extra displayal of hostname, but dont filter out errors
     "$f_hostname_alt" --update >/dev/null
-elif grep -qi aok /proc/ish/version 2>/dev/null ; then
+elif grep -qi aok /proc/ish/version 2>/dev/null; then
     #  this can only be dont on AOK kernels
     log_it "$f_hostname_alt - not found, cant sync hostname," \
         "just setting the current /etc/hostname"
     /bin/hostname -F /etc/hostname
 fi
-
- && exit 0
