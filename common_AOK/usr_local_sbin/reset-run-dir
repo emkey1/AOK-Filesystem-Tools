@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Since iSH does not mount /run as a tmpfs it is not cleared when booting up.
+#
+#  This is assumed to be run via inittab, as one of the first tasks,
+#  before requesing openrc to do anything.
+#
+#  iSH-AOK already implements /run as a tmpfs of sorts, by erasing it
+#  before starting the Linux env, so in that case this is not needed,
+#  though it wouldn't do any damage.
+#
+#  Amonst other things, not clearing /run connfuses openrc into beliving
+#  that things might aleady be in a started state.
+#
+
+#
+#  Skip this on iSH-AOK
+#
+grep -qi aok /proc/ish/version 2>/dev/null || {
+    rm /run/* -rf
+    /usr/local/bin/fake_syslog reset-run-dir cleared /run
+}
