@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- updated inittabs
 - moving all unused services to /etc/init.d/NOT
 - new service bat-monitord
 - Debian: halt and shutdown now works

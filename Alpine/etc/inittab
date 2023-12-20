@@ -18,24 +18,14 @@
 ::sysinit:/usr/local/sbin/reset-run-dir
 
 #
-#  hostname is not set automatically since iOS 17, assuming the
-#  neccesary shortcuts have been set up, an Automation event writes
-#  current hostname to a file that iSH can read
-#  Link to explaination about how to set this up is in the below script
+# If you've configured your hostname to be updated through an iOS Shortcut,
+# this ensures that the hostname reflects what the Shortcut provides.
+# If you maintain a static hostname in /etc/hosts, this may not be necessary,
+# but keeping it enables quick updates in case you decide to switch to
+# a hostname fed by the Shortcut in the future.
+# For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
 #
-::sysinit:/usr/local/sbin/hostname_sync.sh
-
-#
-#  Login crashes if /etc/issue is not pressent.
-#  This ensures at least an empty file is there
-#
-# ::sysinit:/usr/local/sbin/ensure_issue_exists.sh
-
-#
-#  Not system critical but we might as well do it here
-#  instead of creating a full service for the task
-#
-::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
+::sysinit:/usr/local/bin/hostname -U
 
 #
 #  Update motd (in case iSH has been updated)
@@ -69,5 +59,3 @@
 
 # Stuff to do before rebooting
 # ::shutdown:/sbin/openrc shutdown
-
-::respawn:/usr/local/sbin/dummy.sh

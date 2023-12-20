@@ -5,24 +5,20 @@
 # The default runlevel.
 id:2:initdefault:
 
-fx1::sysinit:/usr/local/bin/fake_syslog inittab System startup
+fx1::sysinit:/usr/local/bin/fake_syslog inittab "===  System startup  ==="
 
-# Clear /run/ to an initial state with no services running
+# Clear /run/ since iSH doesnt mount it as tempfs
 fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
 
 #
-#  hostname is not set automatically since iOS 17, assuming the
-#  neccesary shortcuts have been set up, an Automation event writes
-#  current hostname to a file that iSH can read
-#  Link to explaination about how to set this up is in the below script
+# If you've configured your hostname to be updated through an iOS Shortcut,
+# this ensures that the hostname reflects what the Shortcut provides.
+# If you maintain a static hostname in /etc/hosts, this may not be necessary,
+# but keeping it enables quick updates in case you decide to switch to
+# a hostname fed by the Shortcut in the future.
+# For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
 #
-fx3::sysinit:/usr/local/sbin/hostname_sync.sh
-
-#
-#  Not system critical but we might as well do it here
-#  instead of creating a full service for the task
-#
-fx4::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
+fx3::sysinit:/usr/local/bin/hostname -U
 
 #
 # Initialization command
@@ -32,7 +28,6 @@ fx4::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
 # This is solved by using boot as initial runlevel on iSH-AOK
 #
 # si::sysinit:/sbin/openrc boot
-
 # What to do in single-user mode.
 ~~:S:wait:/sbin/sulogin --force
 
