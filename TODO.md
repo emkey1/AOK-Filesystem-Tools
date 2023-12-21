@@ -4,6 +4,12 @@
 
 get rid of doing this as a service, do it once at bootup
 
+
+## Alpine app versions
+
+htop from A 3.14
+apk add lua5.3
+
 ## init.d
 
 must be kept
