@@ -16,7 +16,7 @@
 
 # For battery status (and uptime) data
 log_it() {
-    echo "$(date) $1" | tee -a  "$log_file"
+    echo "$(date) $1" | tee -a "$log_file"
 }
 
 syslog_it() {
@@ -32,12 +32,12 @@ error_msg() {
 gather_hostname() {
     hname="$(hostname)"
     if [ "$hname" = " localhost" ]; then
-        read -r hname < /etc/hostname
-	if [ "$hname" = " localhost" ]; then
-	    error_msg "ERROR: hostname still localhost, after reading /etc/hostname, aborting!"
-	fi
+        read -r hname </etc/hostname
+        if [ "$hname" = " localhost" ]; then
+            error_msg "ERROR: hostname still localhost, after reading /etc/hostname, aborting!"
+        fi
     fi
-    
+
     if [ "$hname" = "" ]; then
         error_msg "ERROR: hostname is empty, after reading /etc/hostname, aborting!"
     fi
@@ -53,16 +53,16 @@ uptime_trigger=20
 sleep_time=30
 this_is="$(basename "$0")"
 
-gather_hostname
-log_file="/iCloud/temp/bat_stat-${hname}.log"
-
+# gather_hostname
+# log_file="/iCloud/temp/bat_stat-${hname}.log"
+log_file="/var/log/battery_state.log"
 
 #
 #  Try to grab last logged charge level, to prevent repeating the same
 #  status if this is restarted
 #
 if [ -f "$log_file" ]; then
-   charge_now="$(tail -n -1 "$log_file" | awk '{ print " "$10 }')"
+    charge_now="$(tail -n -1 "$log_file" | awk '{ print " "$10 }')"
 fi
 
 echo "Will log battery charge changes and if uptime 1 is above $uptime_trigger"
