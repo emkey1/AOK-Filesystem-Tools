@@ -204,8 +204,8 @@ deploy_bat_monitord() {
     msg_3 "Adding $s_name service"
     cp -a "$d_aok_base"/common_AOK/etc/init.d/bat-monitord /etc/init.d
     rc-update add "$s_name" default
-    msg_3 "Restarting service, in case config changed"
-    rc-service "$s_name" restart
+    msg_3 "Not starting it during deploy, it will start on next boot"
+    #rc-service "$s_name" restart
 
     msg_2 "service $s_name installed and enabled"
     echo
