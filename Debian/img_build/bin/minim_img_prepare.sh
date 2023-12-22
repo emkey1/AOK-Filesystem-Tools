@@ -19,6 +19,7 @@ apt update
 echo
 echo "=== Removing stuff that should not be here"
 echo
+rm -f /etc/aok_release
 apt purge -y man-db groff-base
 
 echo
@@ -26,8 +27,8 @@ echo "=== Do upgrade and apt maintenance"
 echo
 /root/img_build/bin/Mapt
 
-echo
-echo "=== Create db over installed packages grouped by sections"
-echo "this last step can be aborted with Ctrl-C"
-echo
-/root/img_build/bin/package_info_to_db.sh
+# echo
+# echo "=== Create db over installed packages grouped by sections"
+# echo "this last step can be aborted with Ctrl-C"
+# echo
+# /root/img_build/bin/package_info_to_db.sh
