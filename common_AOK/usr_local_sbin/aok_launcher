@@ -337,10 +337,15 @@ while true; do
         echo
         sleep 3
     else
-        echo
-        print_log "===  aok_launcher: $f_logins_continous not found, will shutdown"
-        sleep 3
-        do_shutdown
+	if pgrep aok_launcher | wc -l < 2 ; then
+            echo
+            print_log "===  aok_launcher: $f_logins_continous not found, will shutdown"
+            sleep 3
+	    do_shutdown
+	else
+	    # multiple consoles, so just exit this one
+	    exit 0
+	fi
     fi
 done
 

@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- if multiple vterms are open, just close the one exiting, otherwise shutdown
 - added battery monitor service
 - updated inittabs
 - moving all unused services to /etc/init.d/NOT
