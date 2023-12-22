@@ -337,7 +337,9 @@ while true; do
         echo
         sleep 3
     else
-	if pgrep aok_launcher | wc -l < 2 ; then
+	# pgrep fails when running Debian on iSH-AOK, so usnig grep for now...
+	# shellcheck disable=SC2009,SC2126
+	if [ "$(ps ax | grep -v grep | grep aok_launcher | wc -l)" -lt 2 ]; then
             echo
             print_log "===  aok_launcher: $f_logins_continous not found, will shutdown"
             sleep 3

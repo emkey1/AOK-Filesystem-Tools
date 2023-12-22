@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- pgrep fails on iSH-AOK Debian, so reverted to grep fo now
 - if multiple vterms are open, just close the one exiting, otherwise shutdown
 - added battery monitor service
 - updated inittabs

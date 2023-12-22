@@ -7,7 +7,9 @@
 #  Shutting down vnc-server if running
 #
 
-if [ -n "$(pgrep Xorg)" ]; then
+# pgrep fails when running Debian on iSH-AOK, so usnig grep for now...
+# shellcheck disable=SC2009
+if ps ax | grep -v grep | grep -q Xorg ; then
     killall Xorg
 
     sleep 2

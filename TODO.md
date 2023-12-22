@@ -21,6 +21,10 @@ rc
 Investigate how it is created and make sure everything using it can handle
 its absence
 
+## vnc_start / stop
+
+Verify the new grep check works as intended
+
 ## Hostname issue during deploy if AOK_HOSTNAME_SUFFIX is used
 
 Currently only the suffixed hostname is stored in the hosts file.

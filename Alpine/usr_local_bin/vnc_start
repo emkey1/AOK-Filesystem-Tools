@@ -9,8 +9,6 @@
 
 TMPDIR="${TMPDIR:-/tmp}"
 
-CHECK="$(pgrep startx)"
-
 # Do minimal sanity check to see if vnc/X11 are installed
 if [ ! -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
     echo "You must run 'enable_vnc' first"
@@ -18,7 +16,9 @@ if [ ! -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
 fi
 
 # Only run once.  The grep causes CHECK to equal 1
-if [ -z "$CHECK" ]; then # Nothing running, clear stale locks
+# pgrep fails when running Debian on iSH-AOK, so usnig grep for now...
+# shellcheck disable=SC2009
+if ! ps ax | grep -v grep | grep -q startx; then # Nothing running, clear stale locks
     rm -rf "$TMPDIR/.X*"
 else
     echo "startx is already running.  We're done here."
