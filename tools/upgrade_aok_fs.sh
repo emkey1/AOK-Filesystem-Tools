@@ -19,8 +19,8 @@ restore_to_aok_state() {
     dst="$2"
     [ -z "$src" ] && error_msg "restore_to_aok_state() - no 1st param"
     [ -z "$dst" ] && error_msg "restore_to_aok_state() - no 2nd param"
-    [ -e "$src" ] || error_msg "restore_to_aok_state() - not found $src"
-    [ -e "$dst" ] || error_msg "restore_to_aok_state() - not found $dst"
+    [ -e "$src" ] || error_msg "restore_to_aok_state() - src not found $src"
+    [ -e "$dst" ] || error_msg "restore_to_aok_state() - dst not found $dst"
 
     msg_2 "Will restore $src -> $dst"
     rsync_chown "$src" "$dst" || error_msg "restore_to_aok_state() - Failed to copy $src -> $dst"
@@ -31,13 +31,12 @@ do_restore_configs() {
     #  This covers config style files, that might overwrite user configs
     #
     echo "===  Force upgrade is requested, will update /etc/inittab and similar configs"
-    restore_to_aok_state common_AOK/etc/login.defs /etc/login.defs
+    restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc/login.defs
     restore_to_aok_state /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d/runbg
     restore_to_aok_state "$distro_prefix"/etc/inittab /etc/inittab
     restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
     restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
     restore_to_aok_state /opt/AOK/common_AOK/etc/skel /etc
-    restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc
     if hostfs_is_alpine; then
         restore_to_aok_state "$distro_prefix"/etc/motd_template /etc/motd_template
     elif hostfs_is_debian; then
@@ -257,9 +256,6 @@ elif hostfs_is_debian; then
 else
     error_msg "cron service not available for this FS"
 fi
-
-
-
 
 launch_cmd_expected='[ "/usr/local/sbin/aok_launcher" ]'
 f_launch_cmd="/proc/ish/defaults/launch_command"
