@@ -337,17 +337,13 @@ while true; do
         echo
         sleep 3
     else
-	# pgrep fails when running Debian on iSH-AOK, so usnig grep for now...
-	# shellcheck disable=SC2009,SC2126
-	if [ "$(ps ax | grep -v grep | grep aok_launcher | wc -l)" -lt 2 ]; then
-            echo
-            print_log "===  aok_launcher: $f_logins_continous not found, will shutdown"
-            sleep 3
-	    do_shutdown
-	else
-	    # multiple consoles, so just exit this one
-	    exit 0
-	fi
+        #_cnt="$(ps ax | grep -v grep | grep $0 | wc -l)"
+        #echo "><> vterm count: $_cnt"
+        #if [ "$_cnt" < "2" ]; then
+        echo
+        print_log "===  aok_launcher: $f_logins_continous not found, will exit"
+        sleep 120
+        exit 0
     fi
 done
 
