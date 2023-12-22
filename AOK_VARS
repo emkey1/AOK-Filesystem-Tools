@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.1.2"
+AOK_VERSION="0.11.1.3"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -239,8 +239,7 @@ DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-#DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/1oot65j88b12erq8qedp8/Debian10-8-aok-3.tgz?rlkey=tm1ile7yebz7sufhh7p32hdl8"
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/vn8gbfx0ddyzrur6b1vjf/Debian10-9-aok-1.tgz?rlkey=c4c74elnnz9224btla1wd5d1l"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/1oot65j88b12erq8qedp8/Debian10-8-aok-3.tgz?rlkey=tm1ile7yebz7sufhh7p32hdl8"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly
