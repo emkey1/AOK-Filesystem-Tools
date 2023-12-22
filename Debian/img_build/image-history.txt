@@ -25,6 +25,6 @@ apt upgrade
   libgnutls30 libk5crypto3 libkrb5support0 libncurses6 libncursesw6
   libnghttp2-14 libtinfo6 ncurses-base ncurses-bin ncurses-term
 
---- Debian10-minim-9  2023-12-22
+# pending
 Added elogind updated /etc/pam.d /etc/environment /etc/aok-fs-release
 reverted /etc/login.defs to minim-7 version
