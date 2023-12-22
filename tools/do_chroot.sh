@@ -297,7 +297,6 @@ define_chroot_env() {
     [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
 }
 
-
 #use_root_shell_as_default_cmd
 find_default_cmd() {
     #
@@ -309,15 +308,15 @@ find_default_cmd() {
     #
     [ "$_fnc_calls" -gt 0 ] && msg_2 "find_default_cmd()"
     _f="${CHROOT_TO}/.chroot_default_cmd"
-    if [ -f "$_f"  ]; then
-	cmd_w_params="$(cat "$_f")"
-	[ "$_fnc_calls" -gt 0 ] && msg_3 "Found a default cmd: $cmd_w_params"
+    if [ -f "$_f" ]; then
+        cmd_w_params="$(cat "$_f")"
+        [ "$_fnc_calls" -gt 0 ] && msg_3 "Found a default cmd: $cmd_w_params"
     else
-	[ "$_fnc_calls" -gt 0 ] && msg_2 "Trying to use root shell as default cmd"
-	_f="${CHROOT_TO}/etc/passwd"
-	[ ! -f "$_f" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
-	cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$_f")"
-	[ "$_fnc_calls" -gt 0 ] && msg_3 "use_root_shell_as_default_cmd() - done"
+        [ "$_fnc_calls" -gt 0 ] && msg_2 "Trying to use root shell as default cmd"
+        _f="${CHROOT_TO}/etc/passwd"
+        [ ! -f "$_f" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
+        cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$_f")"
+        [ "$_fnc_calls" -gt 0 ] && msg_3 "use_root_shell_as_default_cmd() - done"
     fi
     [ "$_fnc_calls" = 2 ] && msg_3 "find_default_cmd()"
 }
@@ -582,7 +581,7 @@ trap 'cleanup TERM' TERM
 if [ "$1" = "" ]; then
     find_default_cmd
     if [ -z "$cmd_w_params" ]; then
-	error_msg "Could not find any default command, you must supply one"
+        error_msg "Could not find any default command, you must supply one"
     fi
 else
     cmd_w_params="$*"
@@ -601,7 +600,15 @@ else
 fi
 
 env_prepare
-destfs_set_is_chrooted
+
+if [ "$CHROOT_TO" = "$d_build_root" ]; then
+    destfs_set_is_chrooted
+else
+    f_alt_is_chrooted="$CHROOT_TO/$f_host_fs_is_chrooted"
+    msg_2 "><> setting alt chroot flag: [$f_alt_is_chrooted]"
+    mkdir -p "$(dirname "$f_alt_is_chrooted")"
+    touch "$f_alt_is_chrooted"
+fi
 
 msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 
@@ -616,8 +623,14 @@ msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 TMPDIR="" SHELL="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
 chroot_exit_code="$?"
 
+if [ -z "$f_alt_is_chrooted" ]; then
+    destfs_clear_chrooted
+else
+    msg_2 "><> clearing alt chroot flag: [$f_alt_is_chrooted]"
+    rm "$f_alt_is_chrooted"
+fi
+
 env_restore
-destfs_clear_chrooted
 
 # If there was an error in the chroot process, propagate it
 exit "$chroot_exit_code"
