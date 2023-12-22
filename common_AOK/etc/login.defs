@@ -1,3 +1,2 @@
-LOGIN_TIMEOUT   0
 MOTD_FILE       /etc/motd
 USERGROUPS_ENAB yes
