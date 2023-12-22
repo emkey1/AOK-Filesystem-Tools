@@ -30,4 +30,4 @@ echo
 echo "=== Create db over installed packages grouped by sections"
 echo "this last step can be aborted with Ctrl-C"
 echo
-/root/img_build/bin/package_info_to_sqlite.sh
+/root/img_build/bin/package_info_to_db.sh
