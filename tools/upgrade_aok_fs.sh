@@ -14,16 +14,6 @@
 #  when possible. Warnings will be printed if obsolete files are found.
 #
 
-distro_prefix() {
-    if hostfs_is_alpine; then
-        echo "/opt/AOK/Alpine"
-    elif hostfs_is_debian; then
-        echo "/opt/AOK/Debian"
-    else
-        error_msg "cron service not available for this FS"
-    fi
-}
-
 restore_to_aok_state() {
     src="$1"
     dst="$2"
@@ -41,19 +31,21 @@ do_restore_configs() {
     #  This covers config style files, that might overwrite user configs
     #
     echo "===  Force upgrade is requested, will update /etc/inittab and similar configs"
-    restore_to_aok_state "$(distro_prefix)"/etc/inittab /etc/inittab
-    restore_to_aok_state "$(distro_prefix)"/etc/profile /etc/profile
+    restore_to_aok_state common_AOK/etc/login.defs /etc/login.defs
     restore_to_aok_state /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d/runbg
+    restore_to_aok_state "$distro_prefix"/etc/inittab /etc/inittab
+    restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
+    restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
     restore_to_aok_state /opt/AOK/common_AOK/etc/skel /etc
     restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc
     if hostfs_is_alpine; then
-        restore_to_aok_state "$(distro_prefix)"/etc/motd_template /etc/motd_template
+        restore_to_aok_state "$distro_prefix"/etc/motd_template /etc/motd_template
     elif hostfs_is_debian; then
-        restore_to_aok_state "$(distro_prefix)"/etc/pam.d /etc
-        restore_to_aok_state "$(distro_prefix)"/etc/update-motd.d /etc
+        restore_to_aok_state "$distro_prefix"/etc/pam.d /etc
+        restore_to_aok_state "$distro_prefix"/etc/update-motd.d /etc
     elif hostfs_is_devuan; then
-        restore_to_aok_state "$(distro_prefix)"/etc/pam.d /etc
-        restore_to_aok_state "$(distro_prefix)"/etc/update-motd.d /etc
+        restore_to_aok_state "$distro_prefix"/etc/pam.d /etc
+        restore_to_aok_state "$distro_prefix"/etc/update-motd.d /etc
     fi
     echo
 }
@@ -257,6 +249,17 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
 ensure_ish_or_chrooted
+
+if hostfs_is_alpine; then
+    distro_prefix="/opt/AOK/Alpine"
+elif hostfs_is_debian; then
+    distro_prefix="/opt/AOK/Debian"
+else
+    error_msg "cron service not available for this FS"
+fi
+
+
+
 
 launch_cmd_expected='[ "/usr/local/sbin/aok_launcher" ]'
 f_launch_cmd="/proc/ish/defaults/launch_command"
