@@ -31,6 +31,28 @@ rm -f dmesg*
 rm -f lastlog
 rm -f oddlog
 
+#
+#  Update aok-fs-release
+#
+f_aok_fs_release=/etc/aok-fs-release
+# aok_fs_release="$(cat "$f_aok_fs_release")"
+#
+#  TODO: add logic to extract minim_rel both from a minim
+#        and a Debian10-X-aok-Y
+#
+minim_rel="$(cut -d- -f3 "$f_aok_fs_release")"
+
+while [ -z "$rel_vers" ]; do
+    echo
+    echo "Enter $f_aok_fs_release vers, what follows Debian10-${minim_rel}-aok-"
+    read -r rel_vers
+done
+
+aok_release="Debian10-${minim_rel}-aok-$rel_vers"
+echo "$aok_release" >"$f_aok_fs_release"
+echo
+echo "$f_aok_fs_release - Set to: $(cat "$f_aok_fs_release")"
+
 echo "After you exit the chroot"
 echo "1. Clear out tmp using something like:"
 echo "   rm -rf [mountpoint]/tmp/*"

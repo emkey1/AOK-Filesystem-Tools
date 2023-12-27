@@ -44,7 +44,7 @@ echo
 #
 pkgs_tools="psmisc
 coreutils procps util-linux sudo tzdata findutils sed tar
-file gawk grep htop less  sqlite fzf python3-pip ncdu"
+file gawk grep htop less sqlite fzf python3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc cron"
 # pkgs_net_tools - openssl?

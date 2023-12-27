@@ -330,6 +330,7 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
+    . "$d_aok_base"/Debian/deb_utils.sh
     intial_fs_prep_debian
 
     # buildtype_set "$distro_debian"
@@ -471,8 +472,7 @@ display_build_time() {
 #===============================================================
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-. /opt/AOK/tools/utils.sh
-. "$d_aok_base"/Debian/deb_utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 t_start="$(date +%s)"
 

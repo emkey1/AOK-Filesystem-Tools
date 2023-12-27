@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
@@ -12,9 +12,9 @@
 
 copy_skel_files() {
     csf_dest="$1"
-    if [[ -z "$csf_dest" ]]; then
+    if [ -z "$csf_dest" ]; then
         error_msg "copy_skel_files() needs a destination param"
-    elif [[ ! -d "$csf_dest" ]]; then
+    elif [ ! -d "$csf_dest" ]; then
         error_msg "copy_skel_files($csf_dest) - not indicating a directory"
     fi
 
@@ -57,7 +57,7 @@ setup_environment() {
 
     msg_3 "Disabling login timeout"
     _f="/etc/login.defs"
-    if [[ -f "$_f" ]]; then
+    if [ -f "$_f" ]; then
         echo "LOGIN_TIMEOUT 0" >"$_f"
     else
         error_msg "Config file not found: >$_f<"
@@ -97,7 +97,7 @@ setup_environment() {
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
-    if [[ -n "$USER_NAME" ]]; then
+    if [ -n "$USER_NAME" ]; then
         echo "Default user is: $USER_NAME" >>/etc/issue
     fi
     echo >>/etc/issue
@@ -111,7 +111,7 @@ setup_environment() {
     #  ensure /etc/profile will be launched and deployt can complete
     #
 
-    if [[ "$USER_SHELL" = "/bin/ash" ]] || [[ "$USER_SHELL" = "/bin/bash" ]]; then
+    if [ "$USER_SHELL" = "/bin/ash" ] || [ "$USER_SHELL" = "/bin/bash" ]; then
         msg_3 "Setting root shell into USER_SHELL: $USER_SHELL"
         awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
             /etc/passwd >/tmp/passwd &&
@@ -123,7 +123,7 @@ setup_environment() {
     #  needed for it are in. If it is not set, there will be a dialog
     #  at the end of the deploy where TZ can be selected
     #
-    if [[ -n "$AOK_TIMEZONE" ]]; then
+    if [ -n "$AOK_TIMEZONE" ]; then
         #
         #  Need full path to handle that this path is not correctly cached at
         #  this point if Debian is being installed, probably due to switching
@@ -158,7 +158,7 @@ setup_environment() {
     #  Removing default hostname service
     #
     hostn_service=/etc/init.d/hostname
-    if [[ -f "$hostn_service" ]]; then
+    if [ -f "$hostn_service" ]; then
         msg_2 "Disabling hostname service not working on iSH"
         mv -f "$hostn_service" /etc/init.d/NOT-hostname
     fi
@@ -170,7 +170,7 @@ setup_environment() {
         rm -f /etc/systemd/system/hostname.service
     fi
 
-    if [[ -f /etc/ssh/sshd_config ]]; then
+    if [ -f /etc/ssh/sshd_config ]; then
         # Move sshd to port 1022 to avoid issues
         sshd_port=1022
         msg_2 "sshd will use port: $sshd_port"
@@ -202,8 +202,8 @@ setup_root_env() {
     #  Extra sanity check, if this is undefined, the rest of this would
     #  ruin the build host root env...
     #
-    [[ ! -f "$f_host_deploy_state" ]] && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
-    [[ -z "$d_build_root" ]]
+    [ ! -f "$f_host_deploy_state" ] && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
+    [ -z "$d_build_root" ]
 
     #
     #  root user env
@@ -219,7 +219,7 @@ setup_root_env() {
 
 create_user() {
     msg_2 "Creating default user and group: $USER_NAME"
-    if [[ -z "$USER_NAME" ]]; then
+    if [ -z "$USER_NAME" ]; then
         msg_3 "No user requested"
         return
     fi
@@ -230,8 +230,8 @@ create_user() {
     #
     #  Determine what shell to use for custom user
     #
-    if [[ -n "$USER_SHELL" ]]; then
-        if [[ ! -x "${d_build_root}$USER_SHELL" ]]; then
+    if [ -n "$USER_SHELL" ]; then
+        if [ ! -x "${d_build_root}$USER_SHELL" ]; then
             error_msg "User shell not found: ${d_build_root} $USER_SHELL"
         fi
         use_shell="$USER_SHELL"
@@ -269,7 +269,7 @@ create_user() {
 #===============================================================
 
 # shellcheck source=/dev/null
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
@@ -288,12 +288,12 @@ if ! command -v bash >/dev/null; then
     error_msg "bash not installed, common_AOK/setup_environment() can not complete"
 fi
 
-if [[ -n "$USER_SHELL" ]]; then
-    if ! destfs_is_alpine && [[ "$USER_SHELL" = "/bin/ash" ]]; then
+if [ -n "$USER_SHELL" ]; then
+    if ! destfs_is_alpine && [ "$USER_SHELL" = "/bin/ash" ]; then
         msg_1 "Only Alpine has /bin/ash - USER_SHELL set to /bin/bash"
         USER_SHELL="/bin/bash"
     fi
-    [[ ! -x "$USER_SHELL" ]] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
+    [ ! -x "$USER_SHELL" ] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
 else
     if destfs_is_alpine; then
         USER_SHELL="/bin/ash"
@@ -307,6 +307,6 @@ setup_environment
 setup_root_env
 create_user
 
-msg_1 "^^^  setup_common_env.sh done  ^^^"
+msg_1 "setup_common_env.sh done"
 
 exit 0 # indicate no error

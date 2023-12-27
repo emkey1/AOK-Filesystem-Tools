@@ -30,7 +30,7 @@
 #  Debug help, set to 1 to display entry  of functions
 #  set to 2 to also display exits
 #
-_fnc_calls=0
+_fnc_calls=1
 
 can_chroot_run_now() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "can_chroot_run_now()"
@@ -80,6 +80,78 @@ can_chroot_run_now() {
     [ "$_fnc_calls" = 2 ] && msg_3 "can_chroot_run_now() - done"
 }
 
+ensure_dev_paths_are_defined() {
+    #
+    #  This ensures that all the system path variables have been defined,
+    #  to minimize risk of having to abort half way through a procedure
+    #
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "ensure_dev_paths_are_defined($1)"
+
+    defined_and_existing "$CHROOT_TO"
+    defined_and_existing "$d_proc"
+    defined_and_existing "$d_dev"
+    if [ "$build_env" = "$be_linux" ]; then
+        defined_and_existing "$d_sys"
+        if [ "$1" = "skip_pts" ]; then
+            #
+            #  Before mounting the resources dev/pts will not exist, so
+            #  preparational checks will need to handle /dev/pts as a special case.
+            #  At that point all that can be done is to verify that it has been set
+            #
+            [ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
+        else
+            defined_and_existing "$d_dev_pts"
+        fi
+    fi
+
+    [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined($1) - done"
+}
+
+#  shellcheck disable=SC2120
+env_restore() {
+    #
+    #  This would normally be called as a mount session is terminating
+    #  so therefore the pidfile_do_chroot should not be checked.
+    #  Assume that if we get here we can do the cleanup.
+    #
+    if [ "$_fnc_calls" -gt 0 ]; then
+        if [ -n "$env_restore_started" ]; then
+            msg_1 "env_restore() has already been called, skipping"
+            return
+        fi
+        msg_2 "env_restore()"
+    else
+        [ -n "$env_restore_started" ] && return
+    fi
+    env_restore_started=1
+    ensure_dev_paths_are_defined skip_pts
+
+    msg_2 "Releasing system resources"
+    kill_remaining_procs
+    umount_mounted "$d_proc"
+    if [ "$build_env" = "$be_ish" ]; then
+        rm -rf "${d_dev:?}"/*
+        #  ensure it is empty
+        cleanout_dir "$d_dev"
+    elif [ "$build_env" = "$be_linux" ]; then
+        umount_mounted "$d_sys"
+        umount_mounted "$d_dev_pts"
+        umount_mounted "$d_dev"
+    fi
+
+    #
+    #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
+    #
+    if [ -n "$pidfile_do_chroot" ]; then
+        [ "$_fnc_calls" -gt 0 ] && msg_3 "removing pidfile_do_chroot: $pidfile_do_chroot"
+        rm -f "$pidfile_do_chroot"
+    else
+        error_msg "pidfile_do_chroot is undefined!"
+    fi
+
+    [ "$_fnc_calls" = 2 ] && msg_3 "env_restore() - done"
+}
+
 #
 #  Since this is called via a parameterized trap, shellcheck doesnt
 #  recognize this code is in use..
@@ -123,33 +195,6 @@ defined_and_existing() {
     unset _dae
 
     [ "$_fnc_calls" = 2 ] && msg_3 "defined_and_existing($1) - done"
-}
-
-ensure_dev_paths_are_defined() {
-    #
-    #  This ensures that all the system path variables have been defined,
-    #  to minimize risk of having to abort half way through a procedure
-    #
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "ensure_dev_paths_are_defined($1)"
-
-    defined_and_existing "$CHROOT_TO"
-    defined_and_existing "$d_proc"
-    defined_and_existing "$d_dev"
-    if [ "$build_env" = "$be_linux" ]; then
-        defined_and_existing "$d_sys"
-        if [ "$1" = "skip_pts" ]; then
-            #
-            #  Before mounting the resources dev/pts will not exist, so
-            #  preparational checks will need to handle /dev/pts as a special case.
-            #  At that point all that can be done is to verify that it has been set
-            #
-            [ -z "$d_dev_pts" ] && error_msg "ensure_dev_paths_are_defined() - d_dev_pts undefined"
-        else
-            defined_and_existing "$d_dev_pts"
-        fi
-    fi
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined($1) - done"
 }
 
 exists_and_empty() {
@@ -362,51 +407,6 @@ env_prepare() {
     [ "$_fnc_calls" = 2 ] && msg_3 "env_prepare() - done"
 }
 
-#  shellcheck disable=SC2120
-env_restore() {
-    #
-    #  This would normally be called as a mount session is terminating
-    #  so therefore the pidfile_do_chroot should not be checked.
-    #  Assume that if we get here we can do the cleanup.
-    #
-    if [ "$_fnc_calls" -gt 0 ]; then
-        if [ -n "$env_restore_started" ]; then
-            msg_1 "env_restore() has already been called, skipping"
-            return
-        fi
-        msg_2 "env_restore()"
-    else
-        [ -n "$env_restore_started" ] && return
-    fi
-    env_restore_started=1
-    ensure_dev_paths_are_defined skip_pts
-
-    msg_2 "Releasing system resources"
-    kill_remaining_procs
-    umount_mounted "$d_proc"
-    if [ "$build_env" = "$be_ish" ]; then
-        rm -rf "${d_dev:?}"/*
-        #  ensure it is empty
-        cleanout_dir "$d_dev"
-    elif [ "$build_env" = "$be_linux" ]; then
-        umount_mounted "$d_sys"
-        umount_mounted "$d_dev_pts"
-        umount_mounted "$d_dev"
-    fi
-
-    #
-    #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
-    #
-    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
-
-    [ -n "$pidfile_do_chroot" ] && {
-        # msg_3 "removing pidfile_do_chroot: $pidfile_do_chroot"
-        rm -f "$pidfile_do_chroot"
-    }
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "env_restore() - done"
-}
-
 show_help() {
     # msg_2 "show_help()"
 
@@ -473,7 +473,7 @@ cmd_line="$0"
 prog_name="$(basename "$cmd_line")"
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 CHROOT_TO="$d_build_root"
 
@@ -528,7 +528,7 @@ while [ -n "$1" ]; do
 
     "-c" | "--cleanup")
         cleanup_sleep=2
-        can_chroot_run_now
+        # can_chroot_run_now
         echo
         echo "Will cleanup the mount point: $CHROOT_TO"
         echo
@@ -604,8 +604,7 @@ env_prepare
 if [ "$CHROOT_TO" = "$d_build_root" ]; then
     destfs_set_is_chrooted
 else
-    f_alt_is_chrooted="$CHROOT_TO/$f_host_fs_is_chrooted"
-    msg_2 "><> setting alt chroot flag: [$f_alt_is_chrooted]"
+    f_alt_is_chrooted="${CHROOT_TO}$f_host_fs_is_chrooted"
     mkdir -p "$(dirname "$f_alt_is_chrooted")"
     touch "$f_alt_is_chrooted"
 fi
@@ -626,7 +625,7 @@ chroot_exit_code="$?"
 if [ -z "$f_alt_is_chrooted" ]; then
     destfs_clear_chrooted
 else
-    msg_2 "><> clearing alt chroot flag: [$f_alt_is_chrooted]"
+    msg_2 "Clearing alt chroot flag: [$f_alt_is_chrooted]"
     rm "$f_alt_is_chrooted"
 fi
 

@@ -17,6 +17,9 @@
 #
 ::sysinit:/usr/local/sbin/reset-run-dir
 
+#  rotates logfiles > 10k
+::sysinit:/usr/local/sbin/logrotate-wrapper.sh
+
 #
 # If you've configured your hostname to be updated through an iOS Shortcut,
 # this ensures that the hostname reflects what the Shortcut provides.

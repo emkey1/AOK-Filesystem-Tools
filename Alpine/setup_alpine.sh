@@ -125,7 +125,7 @@ tsa_start="$(date +%s)"
 # /opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
 # echo
 
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2

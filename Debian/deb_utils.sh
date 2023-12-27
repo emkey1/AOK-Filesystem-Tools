@@ -31,4 +31,10 @@ intial_fs_prep_debian() {
     # msg_3 "intial_fs_prep_debian() - done"
 }
 
-. /opt/AOK/tools/utils.sh
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh

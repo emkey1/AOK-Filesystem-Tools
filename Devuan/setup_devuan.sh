@@ -60,7 +60,7 @@ prepare_env_etc() {
 
 tsdev_start="$(date +%s)"
 
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 deploy_starting
 

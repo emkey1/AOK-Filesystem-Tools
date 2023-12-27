@@ -20,7 +20,7 @@ restore_to_aok_state() {
     [ -z "$src" ] && error_msg "restore_to_aok_state() - no 1st param"
     [ -z "$dst" ] && error_msg "restore_to_aok_state() - no 2nd param"
     [ -e "$src" ] || error_msg "restore_to_aok_state() - src not found $src"
-    [ -e "$dst" ] || error_msg "restore_to_aok_state() - dst not found $dst"
+    #[ -e "$dst" ] || error_msg "restore_to_aok_state() - dst not found $dst"
 
     msg_2 "Will restore $src -> $dst"
     rsync_chown "$src" "$dst" || error_msg "restore_to_aok_state() - Failed to copy $src -> $dst"

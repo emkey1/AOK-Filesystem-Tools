@@ -10,9 +10,10 @@
 #  Creates a workspace for a minim image, used to prepare the base image
 #  later used to create an DEBIAN_SRC_IMAGE
 #
-
+# _td="$AOK_TMPDIR"
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
+# export AOK_TMPDIR="$_td"
 
 d_unpack="$1" # /opt/minim8
 tar_file="$2" # /home/jaclu/cloud/Dropbox/aok_images/Debian10-minim-8.tgz
@@ -27,11 +28,11 @@ app_name="$(basename "$0")"
 #
 case "$d_unpack" in
 
-"$TMPDIR"/aok_*)
-    error_msg "$app_name param 1 cant start with $TMPDIR/aok_ - was: $d_unpack"
+"$AOK_TMPDIR"/aok_*)
+    error_msg "$app_name param 1 cant start with $AOK_TMPDIR/aok_ - was: $d_unpack"
     ;;
-"$TMPDIR"/*) ;;
-*) error_msg "$app_name param 1 must start with $TMPDIR/ - was: $d_unpack" ;;
+"$AOK_TMPDIR"/*) ;;
+*) error_msg "$app_name param 1 must start with $AOK_TMPDIR/ - was: $d_unpack" ;;
 esac
 
 [ -f "$tar_file" ] || error_msg "$app_name - tar file not found: $tar_file"
@@ -48,9 +49,10 @@ msg_2 "Creating folder $d_unpack"
 mkdir "$d_unpack"
 
 msg_2 "Unpacking $tar_file"
-cd "$d_unpack"
+cd "$d_unpack" || error_msg "cd failed - $d_unpack"
 tar xfz "$tar_file"
 
+msg_2 "Update img_build"
 rsync -ahP --delete /opt/AOK/Debian/img_build "$d_unpack"/root
 
 /opt/AOK/tools/do_chroot.sh -p "$d_unpack" /root/img_build/bin/build_env.sh

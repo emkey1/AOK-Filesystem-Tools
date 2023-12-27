@@ -39,9 +39,11 @@ app="$0"
     echo "ERROR: No param zero indicating what to run!"
     exit 1
 }
+
+# shellcheck source=/dev/null
+. "$AOK_DIR/tools/preserve_env.sh"
+
 if [ "$(whoami)" != "root" ]; then
-    # shellcheck source=/dev/null
-    . "$AOK_DIR/tools/preserve_env.sh"
     #  shellcheck disable=SC2154
     if [ -z "$hide_run_as_root" ]; then
         echo "Executing $app as root"

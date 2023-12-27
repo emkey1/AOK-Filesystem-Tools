@@ -12,7 +12,6 @@
 #
 
 d_here="$(dirname "$0")"
-f_aok_fs_release=/etc/aok-fs-release
 
 echo
 echo "=== Ensure apt is in good health"
@@ -42,13 +41,17 @@ rm -rf /var/cache/apt/*
 rm -rf /var/cache/debconf/*
 rm -rf /var/cache/man/*
 
+#
+#  Update aok-fs-release
+#
+f_aok_fs_release=/etc/aok-fs-release
 while [ -z "$rel_vers" ]; do
     echo
     echo "Enter $f_aok_fs_release vers, what follows Debian-mini-"
     read -r rel_vers
 done
 
-aok_release="Debian-mini-$rel_vers"
+aok_release="Debian-minim-$rel_vers"
 echo "$aok_release" >/"$f_aok_fs_release"
 echo
 echo "$f_aok_fs_release - Set to: $aok_release"

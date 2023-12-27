@@ -107,7 +107,6 @@ NOT_handle_aok_suffix() {
         return
     }
 
-    echo "><> handle_aok_suffix() - adding suffix"
     echo "${hn_current}${hn_suffix}" | sudo tee /etc/hostname >/dev/null
 }
 
@@ -134,7 +133,6 @@ read_syncfile() {
     #
 
     # /usr/local/sbin/ensure_hostname_in_host_file
-    # echo "><> line 143 returned from ensure_hostname_in_host_file"
 
     #
     #  Use last line of sync file as hostname
@@ -168,13 +166,11 @@ read_syncfile() {
     #
 
     sudo /usr/local/sbin/ensure_hostname_in_host_file
-    # echo "><> line 197 returned from ensure_hostname_in_host_file"
 
     grep -qi aok /proc/ish/version 2>/dev/null || return
     sudo /bin/hostname -F /etc/hostname
 
     # sudo /usr/local/sbin/ensure_hostname_in_host_file
-    # echo "><> line 202 returned from ensure_hostname_in_host_file"
 }
 
 sudo_check() {

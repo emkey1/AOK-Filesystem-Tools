@@ -226,6 +226,7 @@ create_fs() {
             exit 1
         }
     fi
+
     t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
     display_time_elapsed "$t_img_extract_duration" "Extract image"
     unset t_img_extract_start

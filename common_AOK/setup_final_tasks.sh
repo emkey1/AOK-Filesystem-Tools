@@ -15,6 +15,29 @@
 #  so it can be assumed this is running on deploy destination
 #
 
+#
+#  If aok_launcher is used as Launch Cmd, it has already waited for
+#  system to be ready, so can be skipped here
+#
+wait_for_bootup() {
+    # msg_2 "wait_for_bootup()"
+    if [ "$(get_launch_cmd)" != "$launch_cmd_AOK" ]; then
+        if deploy_state_is_it "$deploy_state_pre_build" &&
+            ! hostfs_is_devuan &&
+            ! this_fs_is_chrooted; then
+            msg_2 "Waiting for runlevel default to be ready, normally < 10s"
+            msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
+            while ! rc-status -r | grep -q default; do
+                msg_3 "not ready"
+                sleep 2
+            done
+        fi
+    else
+        msg_2 "Boot wait already handled by AOK Launch cmd"
+    fi
+    # msg_3 "wait_for_bootup() - done"
+}
+
 ensure_path_items_are_available() {
     #
     #  If this is run on an iOS device with limited storage, config
@@ -77,11 +100,9 @@ hostname_fix() {
     rm /bin/hostname
     ln -f /usr/local/bin/hostname /bin/hostname
 
-    # msg_3 "><> setup_final_tasks.sh:hostname_fix will run aok"
     /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
         error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
     }
-    # msg_3 "><> setup_final_tasks.sh:hostname_fix returned from aok"
 }
 
 aok_kernel_consideration() {
@@ -245,29 +266,11 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 tsaft_start="$(date +%s)"
 
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
-#
-#  If aok_launcher is used as Launch Cmd, it has already waited for
-#  system to be ready, so can be skipped here
-#
-if [ "$(get_launch_cmd)" != "$launch_cmd_AOK" ]; then
-    if deploy_state_is_it "$deploy_state_pre_build" &&
-        this_is_ish &&
-        ! hostfs_is_devuan &&
-        ! this_fs_is_chrooted; then
-        msg_2 "Waiting for runlevel default to be ready, normally < 10s"
-        msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
-        while ! rc-status -r | grep -q default; do
-            msg_3 "not ready"
-            sleep 2
-        done
-    fi
-else
-    msg_2 "Boot wait already handled by AOK Launch cmd"
-fi
+this_is_ish && wait_for_bootup
 
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
@@ -286,7 +289,6 @@ user_interactions
 
 ensure_path_items_are_available
 
-# msg_3 "><> setup_final_tasks.sh: will run hostname_fix"
 hostname_fix
 
 #

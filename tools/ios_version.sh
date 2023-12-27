@@ -23,8 +23,9 @@
 #---------------------------------------------------------------
 
 create_fake_dev_details() {
-    #  shellcheck disable=SC2154
     msg_2 "Creating fake /proc/ish/UIDevice"
+
+    #  shellcheck disable=SC2154
     d_base="$d_build_root"/proc/ish/.defaults
     if [ -f "$d_base/CarCapabilities" ]; then
         _dev_type="iPhone"

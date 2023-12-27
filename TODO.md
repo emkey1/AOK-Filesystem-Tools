@@ -1,8 +1,15 @@
 # TODO
 
+## Alpine man
+
+update DOCS_APKS to include main man program
+
 ## hostname
 
-get rid of doing this as a service, do it once at bootup
+just as I got it working I notice that recent TestFlight iSH versions
+seem to get hostname from the App and can do hostname -F /etc/hostname
+Argh, need to figure out how to handle that
+
 
 
 ## Alpine app versions

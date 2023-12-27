@@ -28,3 +28,6 @@ apt upgrade
 # pending
 Added elogind updated /etc/pam.d /etc/environment /etc/aok-fs-release
 reverted /etc/login.defs to minim-7 version
+
+--- Debian10-minim-9 & Debian10-9-aok-1 2023-12-26
+added initial /etc/aok-fs-release

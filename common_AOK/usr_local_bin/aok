@@ -136,7 +136,6 @@ display_autologin() {
 #         shift
 #     done
 #     _cmd="$_cmd ]"
-#     msg_2 "><> will use: >$_cmd<"
 #     lc_set "$_cmd"
 # }
 
@@ -145,8 +144,6 @@ display_autologin() {
 #     #
 #     #  In case something goes wrong use this to ensure it is restored
 #     #
-#     # msg_2 "><> Restoring to default launch command"
-
 #     #  Does not use lc_set in order to prevent risk for infinite loops
 #     echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
 
@@ -375,7 +372,6 @@ change_hostname_method() {
             if [ -f "$s_new_value" ]; then
                 msg_2 "hostname will be sourced from: $s_new_value"
                 hostname_do_source "$s_new_value"
-                # msg_3 "><> hostname_do_source done"
             else
                 msg_2 "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
                 msg_2 "       this can be activated later by doing: aok -H enable"
