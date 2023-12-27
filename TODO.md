@@ -1,5 +1,39 @@
 # TODO
 
+## disable services if designated key is pressed at boot time
+
+here is a GPT generic script that should be usable as an entry point
+
+
+```shell
+#!/bin/sh
+
+# Set the timeout value in seconds
+timeout=5
+
+# Disable terminal line buffering and enable read without Enter
+stty -icanon min 0 time 0
+
+# Read a single character with a timeout
+keypress=$(dd bs=1 count=1 2>/dev/null)
+
+# Revert terminal settings
+stty icanon
+
+# Check if a key was pressed
+if [ -n "$keypress" ]; then
+    # If a key is pressed, handle it here
+    echo "You pressed: $keypress"
+else
+    # If no key is pressed within the timeout, continue with other tasks
+    echo "No key pressed within the timeout."
+fi
+
+# Continue with the rest of your script
+echo "Script continues..."
+
+```
+
 ## Alpine man
 
 update DOCS_APKS to include main man program
