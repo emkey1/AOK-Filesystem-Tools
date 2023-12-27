@@ -1,5 +1,11 @@
 # TODO
 
+## make tools/shellchecker.sh a standalone tool
+
+an improvement would be to make it a generic tool, then just keep
+something like .shellchecker in the top dir of a project, defining
+exclusions
+
 ## disable services if designated key is pressed at boot time
 
 I have noticed that iSH-AOK sometimes insta-crashes just as my prompt
