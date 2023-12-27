@@ -2,10 +2,19 @@
 
 ## disable services if designated key is pressed at boot time
 
-here is a GPT generic script that should be usable as an entry point
+I have noticed that iSH-AOK sometimes insta-crashes just as my prompt
+is about to be displayed. It could be related to my prompt being live,
+polling sysload and battery charge.
+Another guess is that openrc failed to setup default runlvl.
+It would make sense to have aok_launcher detect if something like
+S has been pressed (single user mode, despite it not being an ideal name
+in this case), and if that is the case, at least skip openrc,
+potentially skipping all tasks listed in /etc/inittab as a debug option
+This would come in handy also in other situations when some start up
+action is causing insta-crashes.
 
 
-```shell
+``` shell
 #!/bin/sh
 
 # Set the timeout value in seconds
