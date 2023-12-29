@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.1.4"
+AOK_VERSION="0.11.1.5"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -177,7 +177,7 @@ ALPINE_VERSION=3.18.5 # End of Alpine support 2025-05-09
 #
 pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep htop less \
-    sqlite fzf py3-pip ncdu"
+    man-db sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
@@ -218,7 +218,7 @@ NODEJS_APKS='nodejs nodejs-dev'
 #  not development related man pages, those doing development are
 #  assumed to know what man pages they might need :)
 #
-DOCS_APKS="man-db busybox-doc coreutils-doc procps-ng-doc sudo-doc \
+DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
     shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
     tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
     sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
