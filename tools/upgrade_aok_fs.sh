@@ -112,10 +112,6 @@ general_upgrade() {
     echo
 }
 
-launch_cmd_get() {
-    tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/'
-}
-
 mv_no_over_write() {
     _f_src="$1"
     _f_dst="$2"
@@ -222,22 +218,6 @@ update_aok_release() {
     fi
 }
 
-verify_launch_cmd() {
-    msg_2 "Verifying expected 'Launch cmd'"
-
-    launch_cmd_current="$(launch_cmd_get)"
-    if [ "$launch_cmd_current" != "$launch_cmd_expected" ]; then
-        msg_1 "'Launch cmd' is not the default for AOK"
-        echo "Current 'Launch cmd': '$launch_cmd_current'"
-        echo
-        echo "To set the default, run this, it will display the updated content:"
-        echo
-        echo "echo '$launch_cmd_expected' | sudo tee $f_launch_cmd > /dev/null && cat $f_launch_cmd"
-        # echo "sudo echo '$launch_cmd_expected' > $f_launch_cmd"
-        echo
-    fi
-}
-
 #===============================================================
 #
 #   Main
@@ -257,8 +237,6 @@ else
     error_msg "cron service not available for this FS"
 fi
 
-launch_cmd_expected='[ "/usr/local/sbin/aok_launcher" ]'
-f_launch_cmd="/proc/ish/defaults/launch_command"
 d_new_etc_opt_prefix="/etc/opt/AOK"
 
 this_is_ish || error_msg "This should only be run on an iSH platform!"

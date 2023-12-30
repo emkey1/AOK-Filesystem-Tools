@@ -519,6 +519,24 @@ this_is_aok_kernel() {
 #
 #---------------------------------------------------------------
 
+verify_launch_cmd() {
+    this_is_ish || return
+
+    msg_2 "Verifying expected 'Launch cmd'"
+
+    launch_cmd_current="$(get_launch_cmd)"
+    if [ "$launch_cmd_current" != "$launch_cmd_AOK" ]; then
+        msg_1 "'Launch cmd' is not the default for AOK"
+        echo "Current 'Launch cmd': '$launch_cmd_current'"
+        echo
+        echo "To set the default, run this, it will display the updated content:"
+        echo
+        echo "echo '$launch_cmd_AOK' | sudo tee $f_launch_cmd > /dev/null && cat $f_launch_cmd"
+        # echo "sudo echo '$launch_cmd_AOK' > $f_launch_cmd"
+        echo
+    fi
+}
+
 restore_launch_cmd() {
     #
     #  In case something goes wrong use this to (hopefully) ensure
@@ -526,7 +544,7 @@ restore_launch_cmd() {
     #
 
     #  Does not use set_launch_cmd in order to prevent risk for infinite loops
-    echo "$launch_cmd_default" >/proc/ish/defaults/launch_command
+    echo "$launch_cmd_default" >"$f_launch_cmd"
 
     # is safe to call even here in a "exception handler"
     _slc_current="$(get_launch_cmd)"
@@ -550,14 +568,14 @@ get_launch_cmd() {
     #  notation, to make it easier to compare vs the launch_md_XXX
     #  templates
     #
-    tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+    tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/'
 }
 
 set_launch_cmd() {
     _slc_cmd="$1"
     [ -z "$_slc_cmd" ] && error_msg "set_launch_cmd() - no param"
-    # printf '%s' $_slc_cmd >/proc/ish/defaults/launch_command
-    echo "$_slc_cmd" >/proc/ish/defaults/launch_command
+    # printf '%s' $_slc_cmd >"$f_launch_cmd"
+    echo "$_slc_cmd" >"$f_launch_cmd"
     _slc_current="$(get_launch_cmd)"
     [ "$_slc_current" = "$_slc_cmd" ] || {
         echo
@@ -571,6 +589,8 @@ set_launch_cmd() {
 }
 
 # each param MUST be wrapped in ""...
+
+f_launch_cmd="/proc/ish/defaults/launch_command"
 launch_cmd_AOK='[ "/usr/local/sbin/aok_launcher" ]'
 launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 
