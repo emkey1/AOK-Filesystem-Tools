@@ -346,6 +346,8 @@ display_time_elapsed "$duration" "Setup Final tasks"
 
 deploy_state_clear
 
+verify_launch_cmd
+
 msg_1 "File system deploy completed"
 
 display_installed_versions
