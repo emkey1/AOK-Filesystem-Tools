@@ -5,14 +5,13 @@
 # The default runlevel.
 id:2:initdefault:
 
-fx1::sysinit:/usr/local/bin/fake_syslog inittab "===  System startup  ==="
+fx1::sysinit:/usr/local/sbin/S-check.sh /usr/local/bin/fake_syslog inittab "===  System startup  ==="
 
 # Clear /run/ since iSH doesnt mount it as tempfs
-fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
+fx2::sysinit:/usr/local/sbin/S-check.sh /usr/local/sbin/reset-run-dir.sh
 
 #  rotates logfiles > 10k
-::sysinit:/usr/local/sbin/logrotate-wrapper.sh
-
+::sysinit:/usr/local/sbin/S-check.sh /usr/local/sbin/logrotate-wrapper.sh
 
 #
 # If you've configured your hostname to be updated through an iOS Shortcut,
@@ -22,7 +21,7 @@ fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
 # a hostname fed by the Shortcut in the future.
 # For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
 #
-fx3::sysinit:/usr/local/bin/hostname -U
+fx3::sysinit:/usr/local/sbin/S-check.sh /usr/local/bin/hostname -U
 
 #
 # Initialization command

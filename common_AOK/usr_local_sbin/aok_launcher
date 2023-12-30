@@ -150,6 +150,44 @@ set_abort_runlevel_wait() {
     abort_runlevel_wait=1
 }
 
+check_for_single_user_mode() {
+    if [ -f "$f_is_chrooted" ]; then
+        # On iSH boot there is time to press s during boot wait
+        sleep 0.5
+    fi
+
+    # Disable terminal line buffering and enable read without Enter
+    stty -icanon min 0 time 0
+
+    # Read a single character with a timeout
+    keypress=$(dd bs=1 count=1 2>/dev/null)
+
+    # Revert terminal settings
+    stty icanon
+
+    # Check if a key was pressed
+    case "$keypress" in
+    "s" | "S")
+        echo
+        print_log "===  Single user node selected  ==="
+        touch "$f_single_user_mode"
+        if [ -x /bin/ash ]; then
+            cmd="/bin/ash"
+        else
+            cmd="/bin/bash"
+        fi
+        print_log "--- Starting $cmd, on exit App will terminate"
+        $cmd
+        print_log "Clearing single user mode"
+        rm -f "$f_single_user_mode"
+        sync
+        sleep 1
+        exit 1
+        ;;
+    *) ;;
+    esac
+}
+
 do_inittab_task() {
     _f="$1"
 
@@ -183,9 +221,15 @@ consider_inittab_tasks() {
 }
 
 runlevel_wait() {
-    echo "iSH sometimes fails to reach runlevel $expected_runlevel"
-    echo "in that case restart this App, and hope for better luck next time"
+    #
+    #  This will be done several times, in order to notify inittab tasks
+    #  as early as possible
+    #
+    check_for_single_user_mode
+
+    echo "Press s for single user mode"
     echo
+    check_for_single_user_mode
     trap 'set_abort_runlevel_wait INT' INT
 
     #
@@ -194,6 +238,7 @@ runlevel_wait() {
     #
     sleep 3
 
+    check_for_single_user_mode
     while true; do
         current_runlevel="$(rc-status -r)"
         echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
@@ -201,6 +246,7 @@ runlevel_wait() {
             break
         fi
         sleep 2
+        [ -f "$f_single_user_mode" ] && return
         [ "$abort_runlevel_wait" = "1" ] && break
     done
     trap '' INT # abort capturing Ctrl-C
@@ -289,19 +335,26 @@ f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
 f_deploy_state=/etc/opt/AOK/deploy_state
 f_deploy_state="/etc/opt/AOK/deploy_state"
+f_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
+f_single_user_mode="/etc/opt/AOK/single-user-mode"
 f_login_default_user="/etc/opt/AOK/login-default-username"
 f_logins_continous="/etc/opt/AOK/login-continous"
 f_aok_does_init_tasks="/etc/opt/AOK/aok_launcher-does-init_tasks"
+
+#  Ensure this isn't left from a previous boot
+rm -f "$f_single_user_mode"
 
 # prepare_status_log # make sure it doesnt get too large
 
 #  Not used atm
 # consider_inittab_tasks
 
-if [ ! -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+if [ ! -f "$f_is_chrooted" ]; then
     runlevel_wait
+    check_for_single_user_mode
     network_check
 else
+    check_for_single_user_mode
     echo
     echo "This is chrooted, so runlevel_wait & network check are skipped"
     echo
@@ -325,7 +378,7 @@ while true; do
         print_log "ERROR: $f_login_prog exited with: $login_ex_code"
     }
 
-    if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+    if [ -f "$f_is_chrooted" ]; then
         print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
         exit 0
     fi
