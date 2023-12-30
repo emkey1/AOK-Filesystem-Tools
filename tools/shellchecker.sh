@@ -77,7 +77,7 @@ get_config() {
     )
 
     _f=.shellchecker
-    if [ -f "$_f" ]; then
+    if [[ -f "$_f" ]]; then
         # shellcheck source=/dev/null
         source "$_f" || error_msg "Failed to source exclusions: $_f"
         echo "===  Using: $_f  ==="
@@ -116,7 +116,6 @@ recent_enough() {
     fi
     # display_file_age "$fname"
     if [[ "$(get_mtime "$fname")" -lt "$cutoff_time" ]]; then
-        files_aged_out_for_linting=1
         return 1
     fi
     return 0
