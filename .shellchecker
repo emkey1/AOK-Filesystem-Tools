@@ -2,3 +2,12 @@
 excludes+=(
     ./.AOK_VARS
 )
+
+prefixes+=(
+    ./Alpine/obs-bin
+    ./Alpine/etc/obs-
+    ./cmmon_AOK/obs-bin/
+    ./common_AOK/obs_bin/
+    ./common_AOK/obs-sbin/
+    ./Debian/obs-bin/
+)
