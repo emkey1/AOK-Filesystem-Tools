@@ -96,6 +96,7 @@ hostname_fix() {
         return
     fi
 
+    # shellcheck disable=SC2154
     if this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ]; then
         msg_3 "Using -aok suffix"
         touch "$f_hostname_aok_suffix"
