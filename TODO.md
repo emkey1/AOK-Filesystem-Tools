@@ -2,9 +2,7 @@
 
 ## hostname
 
-just as I got it working I notice that recent TestFlight iSH versions
-seem to get hostname from the App and can do hostname -F /etc/hostname
-Argh, need to figure out how to handle that
+AOK_HOSTNAME_SUFFIX="Y" seems to now work as intended
 
 ## Alpine app versions
 
@@ -89,49 +87,6 @@ hm perhaps this cleanup of /run should be the first inittab task instead?
 an improvement would be to make it a generic tool, then just keep
 something like .shellchecker in the top dir of a project, defining
 exclusions
-
-## disable services if designated key is pressed at boot time
-
-I have noticed that iSH-AOK sometimes insta-crashes just as my prompt
-is about to be displayed. It could be related to my prompt being live,
-polling sysload and battery charge.
-Another guess is that openrc failed to setup default runlvl.
-It would make sense to have aok_launcher detect if something like
-S has been pressed (single user mode, despite it not being an ideal name
-in this case), and if that is the case, at least skip openrc,
-potentially skipping all tasks listed in /etc/inittab as a debug option
-This would come in handy also in other situations when some start up
-action is causing insta-crashes.
-
-
-``` shell
-#!/bin/sh
-
-# Set the timeout value in seconds
-timeout=5
-
-# Disable terminal line buffering and enable read without Enter
-stty -icanon min 0 time 0
-
-# Read a single character with a timeout
-keypress=$(dd bs=1 count=1 2>/dev/null)
-
-# Revert terminal settings
-stty icanon
-
-# Check if a key was pressed
-if [ -n "$keypress" ]; then
-    # If a key is pressed, handle it here
-    echo "You pressed: $keypress"
-else
-    # If no key is pressed within the timeout, continue with other tasks
-    echo "No key pressed within the timeout."
-fi
-
-# Continue with the rest of your script
-echo "Script continues..."
-
-```
 
 ## Seems to be issues with latest  mdcat on 3.18
 
