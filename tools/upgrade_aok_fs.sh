@@ -30,7 +30,7 @@ do_restore_configs() {
     #
     #  This covers config style files, that might overwrite user configs
     #
-    echo "===  Force upgrade is requested, will update /etc/inittab and similar configs"
+    echo "===  Upgrade of configs is requested, will update /etc/inittab and similar configs"
     restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc/login.defs
     restore_to_aok_state /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d/runbg
     restore_to_aok_state "$distro_prefix"/etc/inittab /etc/inittab
@@ -243,7 +243,7 @@ d_new_etc_opt_prefix="/etc/opt/AOK"
 
 this_is_ish || error_msg "This should only be run on an iSH platform!"
 
-if [ "$1" = "force" ]; then
+if [ "$1" = "configs" ]; then
     do_restore_configs
 fi
 
