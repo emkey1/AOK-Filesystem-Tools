@@ -1,9 +1,5 @@
 # TODO
 
-## hostname
-
-AOK_HOSTNAME_SUFFIX="Y" seems to now work as intended
-
 ## Alpine app versions
 
 htop from A 3.14

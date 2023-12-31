@@ -91,7 +91,7 @@ get_sync_file_fn() {
     fi
 }
 
-NOT_handle_aok_suffix() {
+handle_aok_suffix() {
     #
     #  Not used ATM
     #
@@ -100,14 +100,15 @@ NOT_handle_aok_suffix() {
     echo "><> handle_aok_suffix() - [$hn_current]"
 
     #  Only do this if this hint file exists
-    [ -f /etc/opt/AOK/hostname-aok-suffix ] || return
-
+    [ -f "$f_hostname_aok_suffix" ] || return
+    echo "><> sti"
     #  If hostname -s allready ends with $hn_suffix, nothing needs to be done
     echo "$hn_current" | grep -q '\-aok' && {
         return
     }
 
     echo "${hn_current}${hn_suffix}" | sudo tee /etc/hostname >/dev/null
+    echo "><> hostname updated: $(cat /etc/hostname)"
 }
 
 read_syncfile() {
@@ -156,7 +157,7 @@ read_syncfile() {
         mv /tmp/sync_file "$fn_sync_file" 2>/dev/null
     fi
 
-    # handle_aok_suffix
+    handle_aok_suffix
 
     #
     #  to avoid error msgs like
@@ -190,6 +191,7 @@ sudo_check() {
 #. /opt/AOK/tools/utils.sh
 
 f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
+f_hostname_aok_suffix=/etc/opt/AOK/hostname-aok-suffix
 
 while [ -n "$1" ]; do
 

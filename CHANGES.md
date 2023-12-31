@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- reintroduced -aok suffix
 - single user mode if s/S is pressed during startup
 - pgrep fails on iSH-AOK Debian, so reverted to grep fo now
 - if multiple vterms are open, just close the one exiting, otherwise shutdown

@@ -986,6 +986,8 @@ f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
 f_login_default_user="/etc/opt/AOK/login-default-username"
 f_logins_continous="/etc/opt/AOK/login-continous"
 
+f_hostname_aok_suffix=/etc/opt/AOK/hostname-aok-suffix
+
 cmd_pigz="$(command -v pigz)"
 if [ -z "$cmd_pigz" ] && [ -x /home/linuxbrew/.linuxbrew/bin/pigz ]; then
     cmd_pigz="/home/linuxbrew/.linuxbrew/bin/pigz"

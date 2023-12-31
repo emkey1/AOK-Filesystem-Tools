@@ -96,6 +96,11 @@ hostname_fix() {
         return
     fi
 
+    if this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ]; then
+        msg_3 "Using -aok suffix"
+        touch "$f_hostname_aok_suffix"
+    fi
+
     msg_3 "Linking /usr/local/bin to /bin/hostname"
     rm /bin/hostname
     ln -f /usr/local/bin/hostname /bin/hostname
