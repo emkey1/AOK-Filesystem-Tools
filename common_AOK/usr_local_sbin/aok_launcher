@@ -24,7 +24,7 @@
 
 check_for_revovery_mode() {
     if [ -f "$f_is_chrooted" ]; then
-        # On iSH boot there is time to press s during boot wait
+        # On iSH boot there is time to press r during boot wait
         sleep 0.5
     fi
 
@@ -41,6 +41,7 @@ check_for_revovery_mode() {
     case "$keypress" in
     "r" | "R")
         touch "$f_recovery_mode"
+	trap '' INT # abort capturing Ctrl-C
         echo
         echo "===  recovery node selected  ==="
         if [ -x /bin/ash ]; then
@@ -187,7 +188,7 @@ runlevel_wait() {
     #
     check_for_revovery_mode
 
-    echo "AOK_launcher - Press r for recovery mode"
+    echo "AOK_launcher - Press 'r' during bootup for recovery mode"
     echo
     check_for_revovery_mode
     trap 'set_abort_runlevel_wait INT' INT
