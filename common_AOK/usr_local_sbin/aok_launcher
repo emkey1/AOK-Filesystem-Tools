@@ -255,7 +255,7 @@ runlevel_wait() {
 
 network_check() {
     echo
-    echo "Checking networking - takes <5 seconds"
+    #echo "Checking networking - takes <5 seconds"
     if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
         if ping -c 2 google.com >/dev/null 2>&1; then
             print_log "Connected to the Internet and DNS is resolving!"
