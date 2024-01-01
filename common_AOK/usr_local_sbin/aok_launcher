@@ -353,8 +353,8 @@ while true; do
         #echo "><> vterm count: $_cnt"
         #if [ "$_cnt" < "2" ]; then
         echo
-        print_log "===  aok_launcher: $f_logins_continous not found, will exit"
-        sleep 120
+        print_log "===  aok_launcher: $f_logins_continous not found, will terminate App"
+        sleep 2
         exit 0
     fi
 done
