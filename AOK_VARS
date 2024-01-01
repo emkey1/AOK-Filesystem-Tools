@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.2.5"
+AOK_VERSION="0.11.2.6"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -116,9 +116,10 @@ LOG_FILE=/var/log/aokfs-build.log
 #  Any other path would be asumed to be a sync file, written to by an iOS
 #  shortcut providing current hostname. The last line of this file will
 #  be copied to /etc/hostname when /usr/local/bin/hostname is run with -U
-#  If this is not defined alternate hostname will not be installed during
-#  deploy unless iOS >= 17.
-#  It can be installed later by running: aok -H enable
+#  If this is not defined, no hostname syncing will happen, and
+#  /etc/hostname will be used as a static hostname.
+#  During the final deploy step a hostname will be requested.
+#  It can be changed later by running: aok -H enable
 #
 # ALT_HOSTNAME_SOURCE_FILE="/iCloud/temp/hostname_by_shortcut.txt"
 
