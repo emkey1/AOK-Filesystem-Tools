@@ -8,17 +8,17 @@
 # ::sysinit:/usr/local/sbin/fix_dev
 
 # Indicate bootup in the syslog
-::sysinit:/usr/local/sbin/S-check.sh /usr/local/bin/fake_syslog inittab "===  System startup  ==="
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/fake_syslog inittab "===  System startup  ==="
 
 #
 #  Regular iSH doesn't clear /run at startup, so it needs to
 #  Clear /run/ to an initial state with no services running
 #  This is not needed on iSH-AOK, and for such can be commented out
 #
-::sysinit:/usr/local/sbin/S-check.sh /usr/local/sbin/reset-run-dir
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir
 
 #  rotates logfiles > 10k
-::sysinit:/usr/local/sbin/S-check.sh /usr/local/sbin/logrotate-wrapper.sh
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/logrotate-wrapper.sh
 
 #
 # If you've configured your hostname to be updated through an iOS Shortcut,
@@ -28,7 +28,7 @@
 # a hostname fed by the Shortcut in the future.
 # For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
 #
-::sysinit:/usr/local/sbin/S-check.sh /usr/local/bin/hostname -U
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/hostname -U
 
 #
 #  Update motd (in case iSH has been updated)
@@ -37,7 +37,7 @@
 #  This means first boot after new iSH will show outdated version
 #  on bootup
 #
-::sysinit:/usr/local/sbin/S-check.sh /usr/local/sbin/update_motd
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/update_motd
 
 #
 #  iSH typically does no cleanup at shutdown, it just suddenly terminates.
@@ -51,8 +51,8 @@
 #
 # ::sysinit:/sbin/openrc sysinit
 # ::sysinit:/sbin/openrc boot
-::sysinit:/usr/local/sbin/S-check.sh /usr/local/bin/fake_syslog inittab doing openrc default
-::wait:/usr/local/sbin/S-check.sh /sbin/openrc default
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/fake_syslog inittab doing openrc default
+::wait:/usr/local/sbin/R-check /sbin/openrc default
 
 #
 #  I highly doubt these states can be triggered in iSH

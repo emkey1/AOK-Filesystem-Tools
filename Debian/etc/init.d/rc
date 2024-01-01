@@ -6,8 +6,8 @@
 #
 set -e
 
-[ -f "/etc/opt/AOK/single-user-mode" ] && {
-	echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped /etc/init.d/rc $1" >>/var/log/single-user-mode.log
+[ -f "/etc/opt/AOK/recovery-mode" ] && {
+	echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped /etc/init.d/rc $1" >>/var/log/recovery-mode.log
 	exit 0
 }
 

@@ -22,23 +22,53 @@
 #  directly to set up the user session
 #
 
-# prepare_status_log() {
-#     max_history=100
-#     touch "$f_status_log" #  to avoid first boot msg no such file
-#     if [ "$(wc -l <"$f_status_log" | awk '{ print $1 }')" -gt "$max_history" ]; then
-#         # Truncate the file
-#         tail -n "$max_history" "$f_status_log" >"$f_status_log.tmp" && mv "$f_status_log.tmp" "$f_status_log"
-#     fi
-#     #
-#     #  To give some separation, and a hint when this bootup started...
-#     #
-#     (
-#         echo
-#         echo "$(date) Starting $0"
-#     ) >>"$f_status_log"
-# }
+check_for_revovery_mode() {
+    if [ -f "$f_is_chrooted" ]; then
+        # On iSH boot there is time to press s during boot wait
+        sleep 0.5
+    fi
+
+    # Disable terminal line buffering and enable read without Enter
+    stty -icanon min 0 time 0
+
+    # Read a single character with a timeout
+    keypress=$(dd bs=1 count=1 2>/dev/null)
+
+    # Revert terminal settings
+    stty icanon
+
+    # Check if a key was pressed
+    case "$keypress" in
+    "r" | "R")
+        touch "$f_recovery_mode"
+        echo
+        echo "===  recovery node selected  ==="
+        if [ -x /bin/ash ]; then
+            cmd="/bin/ash"
+        else
+            cmd="/bin/bash"
+        fi
+        echo "---  Starting $cmd, on exit App will terminate"
+        echo "---  /etc/inittab processing was canceled"
+        echo "---  Be aware, this is a bare shell!"
+        echo "In order to maximize chances of recovery, in case shell init-scripts are faulty,"
+        echo "shell is not a login session. Most likely PATH is minimal!"
+        echo
+        $cmd
+        echo "Clearing recovery mode"
+        rm -f "$f_recovery_mode"
+        sync
+        sleep 1
+        exit 1
+        ;;
+    *) ;;
+    esac
+}
 
 log_it() {
+    # In recovery mode, skipl logging
+    [ -f "$f_recovery_mode" ] && return
+
     # if no supported loggers are found, fall back to a non-dependency solution
     f_fake_syslog=/usr/local/bin/fake_syslog
     if [ -x "$f_fake_syslog" ]; then
@@ -150,86 +180,16 @@ set_abort_runlevel_wait() {
     abort_runlevel_wait=1
 }
 
-check_for_single_user_mode() {
-    if [ -f "$f_is_chrooted" ]; then
-        # On iSH boot there is time to press s during boot wait
-        sleep 0.5
-    fi
-
-    # Disable terminal line buffering and enable read without Enter
-    stty -icanon min 0 time 0
-
-    # Read a single character with a timeout
-    keypress=$(dd bs=1 count=1 2>/dev/null)
-
-    # Revert terminal settings
-    stty icanon
-
-    # Check if a key was pressed
-    case "$keypress" in
-    "s" | "S")
-        echo
-        print_log "===  Single user node selected  ==="
-        touch "$f_single_user_mode"
-        if [ -x /bin/ash ]; then
-            cmd="/bin/ash"
-        else
-            cmd="/bin/bash"
-        fi
-        print_log "--- Starting $cmd, on exit App will terminate"
-        $cmd
-        print_log "Clearing single user mode"
-        rm -f "$f_single_user_mode"
-        sync
-        sleep 1
-        exit 1
-        ;;
-    *) ;;
-    esac
-}
-
-do_inittab_task() {
-    _f="$1"
-
-    [ -z "$_f" ] && {
-        print_log "do_inittab_task() - no param"
-        return
-    }
-    [ -f "$_f" ] || {
-        print_log "do_inittab_task() - file not found: $_f"
-        return
-    }
-    [ -x "$_f" ] || {
-        print_log "do_inittab_task() - file not executable: $_f"
-        return
-    }
-    $_f
-    print_log "---  completed: $_f"
-}
-
-consider_inittab_tasks() {
-    [ -f "$f_aok_does_init_tasks" ] || return
-
-    print_log "===  aok_launcher taking care of inittasks"
-    # fix_dev currently not used, placeholder if it is re-introduced
-    do_inittab_task "/usr/local/sbin/hostname_sync.sh"
-    do_inittab_task "/usr/local/sbin/ensure_hostname_in_host_file"
-    if test -f /etc/alpine-release; then
-        do_inittab_task "/usr/local/sbin/update_motd"
-    fi
-    print_log "===  inittasks completed!"
-}
-
 runlevel_wait() {
     #
     #  This will be done several times, in order to notify inittab tasks
     #  as early as possible
     #
-    check_for_single_user_mode
+    check_for_revovery_mode
 
-    echo "Press s for single user mode"
+    echo "AOK_launcher - Press r for recovery mode"
     echo
-    check_for_single_user_mode
+    check_for_revovery_mode
     trap 'set_abort_runlevel_wait INT' INT
 
     #
@@ -238,7 +198,7 @@ runlevel_wait() {
     #
     sleep 3
 
-    check_for_single_user_mode
+    check_for_revovery_mode
     while true; do
         current_runlevel="$(rc-status -r)"
         echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
@@ -246,7 +206,7 @@ runlevel_wait() {
             break
         fi
         sleep 2
-        [ -f "$f_single_user_mode" ] && return
+        [ -f "$f_recovery_mode" ] && return
         [ "$abort_runlevel_wait" = "1" ] && break
     done
     trap '' INT # abort capturing Ctrl-C
@@ -269,6 +229,10 @@ network_check() {
 }
 
 handle_etc_issue() {
+    #
+    #  I havent managed to get /etc/issue to display on console sessions.
+    #  so manual handling
+    #
     if [ -f "$f_issue_file" ]; then
         echo
         cat "$f_issue_file"
@@ -333,28 +297,23 @@ expected_runlevel="default"
 # f_status_log="/var/log/aok_launcher.log"
 f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
+
 f_deploy_state=/etc/opt/AOK/deploy_state
 f_deploy_state="/etc/opt/AOK/deploy_state"
-f_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
-f_single_user_mode="/etc/opt/AOK/single-user-mode"
-f_login_default_user="/etc/opt/AOK/login-default-username"
 f_logins_continous="/etc/opt/AOK/login-continous"
-f_aok_does_init_tasks="/etc/opt/AOK/aok_launcher-does-init_tasks"
+f_login_default_user="/etc/opt/AOK/login-default-username"
+f_recovery_mode="/etc/opt/AOK/recovery-mode"
+f_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
 
-#  Ensure this isn't left from a previous boot
-rm -f "$f_single_user_mode"
-
-# prepare_status_log # make sure it doesnt get too large
-
-#  Not used atm
-# consider_inittab_tasks
+rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
+check_for_revovery_mode
 
 if [ ! -f "$f_is_chrooted" ]; then
     runlevel_wait
-    check_for_single_user_mode
+    check_for_revovery_mode
     network_check
 else
-    check_for_single_user_mode
+    check_for_revovery_mode
     echo
     echo "This is chrooted, so runlevel_wait & network check are skipped"
     echo

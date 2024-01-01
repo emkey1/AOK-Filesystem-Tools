@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Intended to be used for inittab tasks, in order to skip tasks if
+#  recovery mode is selected
+#
+
+f_recovery_mode="/etc/opt/AOK/recovery-mode"
+
+[ -f "$f_recovery_mode" ] && {
+    echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped ${*}" >>/var/log/recovery-mode.log
+    exit 0
+}
+
+"${@}"
