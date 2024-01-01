@@ -190,7 +190,6 @@ runlevel_wait() {
 
     echo "AOK_launcher - Press 'r' during bootup for recovery mode"
     echo
-    check_for_revovery_mode
     trap 'set_abort_runlevel_wait INT' INT
 
     #
@@ -199,9 +198,9 @@ runlevel_wait() {
     #
     sleep 3
 
-    check_for_revovery_mode
     while true; do
-        current_runlevel="$(rc-status -r)"
+	check_for_revovery_mode
+	current_runlevel="$(rc-status -r)"
         echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
         if [ "$current_runlevel" = "$expected_runlevel" ]; then
             break
@@ -311,14 +310,14 @@ check_for_revovery_mode
 
 if [ ! -f "$f_is_chrooted" ]; then
     runlevel_wait
-    check_for_revovery_mode
     network_check
 else
-    check_for_revovery_mode
     echo
     echo "This is chrooted, so runlevel_wait & network check are skipped"
     echo
 fi
+
+check_for_revovery_mode
 
 #  If deploy has not completed - handle it
 if [ -f "$f_deploy_state" ]; then
