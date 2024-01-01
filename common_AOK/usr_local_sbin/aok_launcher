@@ -354,7 +354,7 @@ while true; do
         #if [ "$_cnt" < "2" ]; then
         echo
         print_log "===  aok_launcher: $f_logins_continous not found, will terminate App"
-        sleep 2
+        sleep 3
         exit 0
     fi
 done
