@@ -4,7 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  Using this as Launch cmd, adds several features:
 #   - It waits for openrc to reach runlevel default
@@ -24,14 +24,18 @@
 
 check_for_revovery_mode() {
     if [ -f "$f_is_chrooted" ]; then
-        # On iSH boot there is time to press r during boot wait
+        #
+        #  On iSH boot there is time to press r during boot wait
+        #  when chrooted there is no boot wait, so we make a short wait
+        #  to make recovery available instead
+        #
         sleep 0.5
     fi
 
     # Disable terminal line buffering and enable read without Enter
     stty -icanon min 0 time 0
 
-    # Read a single character with a timeout
+    # Read a single character
     keypress=$(dd bs=1 count=1 2>/dev/null)
 
     # Revert terminal settings
@@ -41,7 +45,7 @@ check_for_revovery_mode() {
     case "$keypress" in
     "r" | "R")
         touch "$f_recovery_mode"
-	trap '' INT # abort capturing Ctrl-C
+    	trap '' INT # abort capturing Ctrl-C
         echo
         echo "===  recovery node selected  ==="
         if [ -x /bin/ash ]; then
@@ -58,7 +62,6 @@ check_for_revovery_mode() {
         $cmd
         echo "Clearing recovery mode"
         rm -f "$f_recovery_mode"
-        sync
         sleep 1
         exit 1
         ;;
@@ -67,7 +70,7 @@ check_for_revovery_mode() {
 }
 
 log_it() {
-    # In recovery mode, skipl logging
+    # In recovery mode, skip logging to minimize risk of issues
     [ -f "$f_recovery_mode" ] && return
 
     # if no supported loggers are found, fall back to a non-dependency solution
@@ -81,7 +84,7 @@ log_it() {
 
 print_log() {
     #
-    #  In case of bootup issues, the tihis output is both displayed
+    #  In case of bootup issues, this output is both displayed
     #  and logged to a file, so that it can be reviewed
     #  This is not used for all output, only "essentials" indicating
     #  statuses during startup
@@ -99,22 +102,14 @@ print_log() {
 
 do_shutdown() {
     echo
-    # debug alternative
-    # print_log "Will sleep forever"
-    # /bin/sleep infinity
-
-    # print_log "***  Will shutdown in 5s"
-    # sleep 5
-
     /usr/local/sbin/do_shutdown
     print_log "Returned from do_shutdown..."
 }
 
 set_deploy_aok_abort() {
     trap '' INT # abort capturing Ctrl-C
-
     echo
-    print_log "***  Ctrl-C captured - aborting deploy ***"
+    print_log "***  Ctrl-C captured - aborting deploy, dropping to shell ***"
     echo
     /bin/bash
 }
@@ -188,8 +183,6 @@ runlevel_wait() {
     #
     check_for_revovery_mode
 
-    echo "AOK_launcher - Press 'r' during bootup for recovery mode"
-    echo
     trap 'set_abort_runlevel_wait INT' INT
 
     #
@@ -307,6 +300,10 @@ f_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
 
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
+
+echo "AOK_launcher - Press 'r' during bootup for recovery mode"
+echo
+
 
 if [ ! -f "$f_is_chrooted" ]; then
     runlevel_wait
