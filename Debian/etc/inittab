@@ -6,11 +6,12 @@
 id:2:initdefault:
 
 #
-#  These two items should be the very first sysinit entries
-#  to ensure iSH is in a usable state for openrc!
+#  hostname is not set automatically since iOS 17, assuming the
+#  neccesary shortcuts have been set up, an Automation event writes
+#  current hostname to a file that iSH can read
+#  Link to explaination about how to set this up is in the below script
 #
-# Ensure devs are ok
-fx1::sysinit:/usr/local/sbin/fix_dev
+fx1::sysinit:/usr/local/sbin/hostname_sync.sh
 
 # Clear /run/openrc to an initial state with no services running
 fx2::sysinit:/usr/local/sbin/reset-run-dir.sh
@@ -52,7 +53,14 @@ l6:6:wait:/etc/init.d/rc 6
 z6:6:respawn:/sbin/sulogin --force
 
 #
-#  Ctrl-Alt-Del, powerfails, additional consoles and serial ports
-#  are skipped in this inittab, since none of it is supported
-#  in iSH as of yet
+#  Before enabling either of the agetty's for pts/0 Launch cmd should be
+#  changed into this: /bin/sleep infinity
+#  If you want to use /dev/console for general output, also do
+#    rm -f /dev/console && mknod -m 222 /dev/console c 136 0
 #
+
+#  Using login prompt
+# pts0::respawn:/sbin/agetty pts/0 xterm-256color
+
+#  Autologin as selected user, be aware that logout will instantly log you in again...
+# pts0::respawn:/sbin/agetty -a root pts/0 xterm-256color

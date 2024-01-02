@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Displays AOK release info
+#
+
+deb_version="/etc/debian_version"
+
+if [ -e "$deb_version" ]; then
+    echo "[35mDebian release:  $(cat "$deb_version")[0m"
+fi

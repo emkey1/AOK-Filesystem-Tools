@@ -14,20 +14,116 @@ show_help() {
 
 An AOK-only script that manages iSH/AOK specific things.
 
-Currently only login procedure can be altered.
-
 Available options:
 
 -h, --help      Print this help and exit
 -v, --verbose   Be verbose
--l, --login     Decides login procedure [once|disable|enable] Now: $(display_login_method)"
+-c, --console   Console method [launch|inittab] Now: $(display_console_method)
+                How the console is initiated.
+                launch  - launched directly from iSH via 'Launch Cmd'
+                inittab - launched via getty in inittab
+-l, --login     Decides login procedure [disable|enable|once] Now: $(display_login_method)
+                disable - session starts directly logged in as root
+                enable  - session starts wirh a login prompt
+                once    - one login session, then iSH terminates
+-H, --hostname  Reads hostname from sync file [disable|enable] Now: $(display_hostname_method)
+                disable - Use the normal hostname program,
+                          always displays localhost for iOS >= 17
+                enable  - Use alternate hostname program, this can either
+                          use /etc/hostname for a static name, or via a
+                          Shortcut read the iOS device name as iSH starts
+"
     exit 0
 }
 
+#  shellcheck disable=SC2317
 destfs_is_alpine() {
     test -f /etc/alpine-release
 }
 
+#===============================================================
+#
+#
+#       Handling console origin
+#
+#
+#===============================================================
+
+launch_cmd_get() {
+    tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+}
+
+launch_cmd_set() {
+    new_cmd="$1"
+    [ -z "$new_cmd" ] && error_msg "launch_cmd_set() - no param"
+    echo "$1" >/proc/ish/defaults/launch_command
+}
+
+display_console_method() {
+    #
+    # Alpine
+    # tty1::respawn:/sbin/agetty
+    #
+    # Debian
+    # pts0::respawn:/sbin/agetty
+    #
+
+    if [ "$(launch_cmd_get)" = '[ "/bin/sleep", "infinity" ]' ]; then
+        echo "inittab"
+    else
+        echo "launch"
+    fi
+
+    # # [ "/bin/login", "-f", "root"]%
+    # lc_current="$(launch_cmd_get)"
+    # echo "current launch cmd: $lc_current"
+
+    # launch_cmd_set '[ "/bin/sleep", "infinity" ]'
+    # lc_current="$(launch_cmd_get)"
+    # echo "current launch cmd: $lc_current"
+
+    # launch_cmd_set '[ "/bin/login", "-f", "root" ]'
+    # lc_current="$(launch_cmd_get)"
+    # echo "current launch cmd: $lc_current"
+}
+
+change_console_procedure() {
+    cons_mode="$1"
+
+    case "$cons_mode" in
+
+    "launch")
+        error_msg "method 'launch' not implemented"
+        ;;
+
+    "inittab")
+        error_msg "method 'inittab' not implemented"
+        ;;
+
+    "")
+        echo
+        echo "ERROR: Missing param indicating new login procedure"
+        exit 1
+        ;;
+
+    *)
+        echo
+        echo "ERROR: Bad param to change login procedure: $1"
+        exit 1
+        ;;
+
+    esac
+
+    error_msg "Not done: change_console_procedure()"
+}
+
+#===============================================================
+#
+#
+#       login method
+#
+#
+#===============================================================
 change_login_procedure() {
     requested_method="$1"
 
@@ -151,9 +247,141 @@ display_login_method() {
 
 #===============================================================
 #
+#
+#       hostname method
+#
+#
+#===============================================================
+install_hostname_alt() {
+    echo "Enabling alternate hostname $hostname_alt"
+    cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$hostname_alt"
+    chmod 755 "$hostname_alt"
+}
+
+remove_hostname_alt() {
+    rm -f "$hostname_alt"
+}
+
+hostname_do_source() {
+    f_src="$1"
+    [ -z "$f_src" ] && error_msg "hostname_do_source() - called without parameter"
+    echo "Hostname set to: $("$hostname_alt" -S "$f_src")"
+}
+
+change_hostname_method() {
+    # msg_2 "change_hostname_method()"
+    requested_method="$1"
+    source_file="$2"
+
+    case "$requested_method" in
+
+    "enable")
+        if [ -z "$source_file" ]; then
+            f_current="$(cat "$hostname_source_fname" 2>/dev/null)"
+            if [ "$f_current" = "$f_etc_hostname" ]; then
+                s_old_value="$(cat "$f_etc_hostname" 2>/dev/null)"
+            else
+                s_old_value="$f_current"
+            fi
+            echo "For detailed instructions about creating an iOS hostname Shortcut"
+            echo "see /opt/APK/Docs/hostname-shortcut.md"
+            echo "Enter a static hostname, or if Shortcut sourcefile should be used"
+            echo "start with / and give full path, hit enter to keep the previous setting"
+
+            [ -n "$s_old_value" ] && echo "  $s_old_value"
+            read -r s_new_value
+            [ -z "$s_old_value" ] && echo
+
+            if [ -z "$s_new_value" ]; then
+                if [ -z "$s_old_value" ]; then
+                    echo "ERROR: Nothing given and no old value was found"
+                    echo "       will not activate $hostname_alt"
+                    echo "       this can be activated later by doing: aok -H enable"
+                    echo
+                    remove_hostname_alt
+                    exit 1
+                fi
+                s_new_value="$s_old_value"
+            fi
+        else
+            s_new_value="$source_file"
+        fi
+
+        if [ "${s_new_value%"${s_new_value#?}"}" = "/" ]; then
+            #
+            #  Use it as a path
+            #
+            if [ -f "$s_new_value" ]; then
+                install_hostname_alt
+                echo "hostname will be sourced from: $s_new_value"
+                hostname_do_source "$s_new_value"
+            else
+                echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
+                echo "       this can be activated later by doing: aok -H enable"
+                echo
+                remove_hostname_alt
+                exit 1
+            fi
+        else
+            #
+            #  Use it as old style hostname
+            #
+            install_hostname_alt
+            echo "$s_new_value" >"$f_etc_hostname"
+            echo "/etc/hostname will be used, so no syncing will be done."
+            hostname_do_source "$f_etc_hostname"
+        fi
+
+        if [ -z "$source_file" ]; then
+            #
+            #  source_file would typically only be set during initial deploy
+            #  and in that case this disclaimer wont be needed
+            #
+            echo
+            echo "Your shell prompt might have cached the hostname when the session started."
+            echo "It will then be updated next time you login."
+        fi
+        exit 0
+        ;;
+
+    "disable")
+        if [ -f "$hostname_alt" ]; then
+            echo "Removing $hostname_alt"
+            remove_hostname_alt
+        fi
+        exit 0
+        ;;
+
+    *)
+        echo
+        echo "ERROR: Bad param to change_hostname_method: $1"
+        exit 1
+        ;;
+
+    esac
+    # msg_3 "change_hostname_method() - done"
+}
+
+display_hostname_method() {
+    # msg_2 "display_hostname_method()"
+    if [ -f "$hostname_alt" ]; then
+        echo "Enabled"
+    else
+        echo "Disabled"
+    fi
+    # msg_3 "display_hostname_method() - done"
+}
+
+#===============================================================
+#
 #   Main
 #
 #===============================================================
+
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
+
+f_etc_hostname=/etc/hostname
 
 #
 #  Store login method, so that if /bin/login was updated
@@ -162,18 +390,6 @@ display_login_method() {
 login_method_stored="/etc/opt/AOK-login_method"
 
 login_original="/bin/login.original"
-
-# execute again as root
-if [ "$(whoami)" != "root" ]; then
-    echo "Executing as root"
-    # using $0 instead of full path makes location not hardcoded
-    if ! sudo "$0" "$@"; then
-        echo
-        echo "ERROR: Failed to sudo $0"
-        echo
-    fi
-    exit 0
-fi
 
 if destfs_is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
     #
@@ -198,12 +414,22 @@ while true; do
 
     "-v" | "--verbose")
         if [ "$verbose" -eq 0 ]; then
-            echo "===  Enabling verbose mode  ==="
+            echo "===  Enabeling verbose mode  ==="
             verbose=1
             set -x
         else
             echo
             echo "WARNING: Multiple verbose options are ignored"
+        fi
+        ;;
+
+    "-c" | "--console")
+        hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
+        if [ -n "$2" ]; then
+            this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
+            change_console_method "$2"
+        else
+            display_console_method
         fi
         ;;
 
@@ -213,6 +439,15 @@ while true; do
         else
             printf "Current login method: "
             display_login_method
+        fi
+        ;;
+
+    "-H" | "--hostname")
+        if [ -n "$2" ]; then
+            change_hostname_method "$2" "$3"
+        else
+            printf "Current login method: "
+            display_hostname_method
         fi
         ;;
 

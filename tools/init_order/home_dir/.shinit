@@ -1,0 +1,11 @@
+#!/bin/sh
+
+#
+#  Triggered indirectly via ~/.profile
+#  pointing SHINIT to this script
+#
+echo "--- ~/.shinit [$$] [$0] [$1]"
+
+if [ -n "$SHINIT" ]; then
+    echo "  probably trigered due to SHINIT [$SHINIT]"
+fi

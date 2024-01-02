@@ -10,7 +10,7 @@
 #  This process has no noticeable impact on battery life.
 #
 
-description="Reads GPS to ensure iSH continues to run when in background"
+description="Reads GPS to ensure iSH continues to run when in the background"
 
 command="/bin/cat"
 command_args="/dev/location > /dev/null"
@@ -45,12 +45,12 @@ start_pre() {
 }
 
 start_post() {
-    echo "[$(date)] $RC_SVCNAME started" >>/var/log/services.log
+    printf "[%s] %s started\n" "$(date)" "$RC_SVCNAME" >> /var/log/services.log
 }
 
 
 stop_post() {
-    echo "[$(date)] $RC_SVCNAME stopped" >>/var/log/services.log
+    printf "[%s] %s stopped\n" "$(date)" "$RC_SVCNAME" >> /var/log/services.log
     check_for_other_polling
     if [ "$other_pids" != "" ]; then
         ewarn "WARNING: Other processes polling GPS [ $other_pids]"

@@ -1,6 +1,9 @@
 #!/bin/sh
+#  shellcheck disable=SC2154
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -11,32 +14,38 @@
 
 find_fastest_mirror() {
     msg_1 "Find fastest mirror"
-    apk add alpine-conf
+    apk add alpine-conf || {
+        error_msg "apk add alpine-conf failed"
+    }
     setup-apkrepos -f
 }
 
 install_apks() {
-    if [ -n "$CORE_APKS" ] && [ "$QUICK_DEPLOY" -ne 1 ]; then
+    if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
-
-        if [ "$QUICK_DEPLOY" -eq 1 ]; then
-            #
-            #  If you want to override CORE_APKS in a quick deploy
-            #  set it to a value higher than 1
-            #
-            msg_3 "QUICK_DEPLOY=1 - doing minimal package install"
-            #  probably absolute minimal without build errors
-            # CORE_APKS="openssh bash openrc sudo dcron dcron-openrc"
-            CORE_APKS="bash openrc"
-        fi
 
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
-        apk add $CORE_APKS
-    elif [ "$QUICK_DEPLOY" -eq 1 ]; then
-        msg_1 "QUICK_DEPLOY - skipping CORE_APKS"
+        apk add $CORE_APKS || {
+            error_msg "apk add CORE_APKS failed"
+        }
     else
         msg_1 "No CORE_APKS defined"
+    fi
+
+    #
+    #  Install some custom apks, where the current repo version cant
+    #  be used, so we use the last known to work on Debian version
+    #  Since they are installed as a file, they are pinned, and wont
+    #  be replaced by an apk upgrade
+    #
+    msg_2 "Custom apks"
+    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1; then
+        msg_3 "mtr - a full screen traceroute"
+        #  shellcheck disable=SC2015
+        apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk || {
+            error_msg "apk add mtr failed"
+        }
     fi
 }
 
@@ -44,65 +53,59 @@ prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
     msg_3 "AOK inittab"
-    cp "$aok_content"/Alpine/etc/inittab /etc
+    cp "$d_aok_base"/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
-    cp "$aok_content"/Alpine/etc/interfaces /etc/network
+    cp "$d_aok_base"/Alpine/etc/interfaces /etc/network
 
     if [ -f /etc/init.d/devfs ]; then
         msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
         ln /etc/init.d/devfs /etc/init.d/dev
     fi
 
-    if [ "$QUICK_DEPLOY" -eq 0 ]; then
-        msg_3 "Adding apk repository - testing"
-        if [ "$ALPINE_VERSION" = "edge" ]; then
-            cp "$aok_content"/Alpine/etc/repositories-edge /etc/apk/repositories
-        elif min_release 3.18; then
-            #
-            #  Only works for fairly recent releases, otherwise dependencies won't
-            #  work.
-            #
-            msg_3 "  edge/testing is setup as a restricted repo, in order"
-            msg_3 "  to install testing apks do apk add foo@testing"
-            msg_3 "  In case of incompatible dependencies an error will"
-            msg_3 "  be displayed, and nothing bad will happen."
-            echo "@testing https://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
-        fi
-    else
-        msg_2 "QUICK_DEPLOY - not adding testing repository"
+    #
+    #  If edge/testing isnt added to the repositoris, testing apks can
+    #  still be installed. Using mdcat as an example:
+    #  apk add mdcat --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    #
+    testing_repo="https://dl-cdn.alpinelinux.org/alpine/edge/testing"
+    if [ "$alpine_release" = "edge" ]; then
+        msg_2 "Adding apk repository - testing"
+        #    cp "$d_aok_base"/Alpine/etc/repositories-edge /etc/apk/repositories
+        echo "$testing_repo" >>/etc/apk/repositories
+    elif min_release 3.17; then
+        #
+        #  Only works for fairly recent releases, otherwise dependencies won't
+        #  work.
+        #
+        msg_2 "Adding apk repository - @testing"
+        msg_3 "  edge/testing is setup as a restricted repo, in order"
+        msg_3 "  to install testing apks do apk add foo@testing"
+        msg_3 "  In case of incompatible dependencies an error will"
+        msg_3 "  be displayed, and nothing bad will happen."
+        echo "@testing $testing_repo" >>/etc/apk/repositories
     fi
     # msg_3 "replace_key_etc_files() done"
 }
 
-setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default login that should work on all platforms.
-    #
-    msg_2 "Install Alpine login methods"
-    cp "$aok_content"/Alpine/bin/login.loop /bin
-    chmod +x /bin/login.loop
-    cp "$aok_content"/Alpine/bin/login.once /bin
-    chmod +x /bin/login.once
+setup_cron_env() {
+    msg_2 "Setup Alpine dcron"
 
-    mv /bin/login /bin/login.original
-    ln -sf /bin/login.original /bin/login
+    msg_3 "Adding root crontab running periodic content"
+    mkdir -p /etc/crontabs
+    cp -a "$d_aok_base"/common_AOK/cron/crontab-root /etc/crontabs/root
 
-    #
-    #  In order to ensure 1st boot will be able to run, for now
-    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
-    #  method will be activated at the end of the setup
-    #
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
+    #  shellcheck disable=SC2154
+    if [ "$USE_CRON_SERVICE" = "Y" ]; then
+        msg_3 "Activating dcron service, but not starting it now"
+        [ "$(command -v crond)" != /usr/sbin/crond ] && error_msg "cron service requested, dcron does not seem to be installed"
+        rc-update add dcron default
+    else
+        msg_3 "Inactivating cron service"
+        #  Action only needs to be taken if it was active
+        find /etc/runlevels/ | grep -q dcron && rc-update del dcron default
     fi
+    # msg_3 "setup_cron_env() - done"
 }
 
 #===============================================================
@@ -123,21 +126,6 @@ echo
 
 . /opt/AOK/tools/utils.sh
 
-if [ -n "$DEBUG_BUILD" ]; then
-    msg_2 ">>> some debug statuses"
-    msg_3 "Deploy state: $(deploy_state_get)"
-    if this_fs_is_chrooted; then
-        msg_3 "This is chrooted"
-    else
-        msg_3 "NOT chrooted!"
-    fi
-    msg_3 "build_root_d [$build_root_d]"
-    msg_3 "Detected: [$(destfs_detect)]"
-    msg_2 ">>>  Debug, dropping into ash"
-    /bin/ash
-    error_msg "aborting buil after ash" 1
-fi
-
 if [ -n "$LOG_FILE" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
 fi
@@ -153,8 +141,8 @@ msg_script_title "setup_alpine.sh - Setup Alpine"
 
 initiate_deploy Alpine "$ALPINE_VERSION"
 
-if [ -z "$alpine_release" ]; then
-    error_msg "alpine_release param not supplied"
+if [ -z "$ALPINE_VERSION" ]; then
+    error_msg "ALPINE_VERSION param not supplied"
 fi
 
 if ! min_release "3.16"; then
@@ -167,33 +155,25 @@ fi
 
 prepare_env_etc
 
-msg_1 "apk update"
-apk update
-
 msg_1 "apk upgrade"
-apk upgrade
+apk upgrade || {
+    error_msg "apk upgrade failed"
+}
 
 install_apks
 
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_2 "adding group sudo"
-    # apk add shadow
-    groupadd sudo
-else
-    msg_3 "QUICK_DEPLOY - skipping group sudo"
-fi
+msg_2 "adding group sudo"
+groupadd sudo
 
 if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
 
-setup_login
-
 msg_2 "Copy /etc/motd_template"
-cp -a "$aok_content"/Alpine/etc/motd_template /etc
+cp -a "$d_aok_base"/Alpine/etc/motd_template /etc
 
 msg_2 "Copy iSH compatible pam base-session"
-cp -a "$aok_content"/Alpine/etc/pam.d/base-session /etc/pam.d
+cp -a "$d_aok_base"/Alpine/etc/pam.d/base-session /etc/pam.d
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
@@ -202,51 +182,33 @@ if [ ! -x "$(readlink -f /bin/login)" ]; then
     error_msg "CRITICAL!! no run-able /bin/login present!"
 fi
 
-#
-#  Setup dcron if it was included in CORE_APKS
-#
-if apk info -e dcron >/dev/null; then
-    msg_2 "Detected dcron, adding service"
-    openrc_might_trigger_errors
-    rc-update add dcron default
-    rc-service dcron start
-    msg_3 "Setting dcron for checking every 15 mins"
-    cp "$aok_content"/Alpine/cron/15min/* /etc/periodic/15min
-fi
-
-if [ "$QUICK_DEPLOY" -ne 0 ]; then
-    msg_2 "QUICK_DEPLOY - disabling custom login"
-    # shellcheck disable=SC2034
-    INITIAL_LOGIN_MODE="disable"
-fi
-
-# msg_2 "Installing dependencies for common setup"
-# apk add sudo openrc bash openssh-server
-
-# if ! "$setup_common_aok"; then
-#     error_msg "$setup_common_aok reported error"
-# fi
-#
-#  Setup Initial login mode will be done by setup_alpine_final_tasks.sh
-#  If we do it now, final_tasks might not run as root
-#
-
 msg_2 "Preparing initial motd"
 /usr/local/sbin/update_motd
 
+setup_cron_env
+
+#
+#  Depending on if prebuilt or not, either setup final tasks to run
+#  on first boot or now.
+#
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
+    is_prebuilt=1 # shorthand to avoid doing the above check again
 else
     "$setup_final"
-    not_prebuilt=1
 fi
+
+installed_versions_if_prebuilt
 
 msg_1 "Setup complete!"
 
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
 
-if [ "$not_prebuilt" = 1 ]; then
+if [ -n "$is_prebuilt" ]; then
+    msg_1 "Prebuild completed, exiting"
+    exit 123
+else
     msg_1 "Please reboot/restart this app now!"
     echo "/etc/inittab was changed during the install."
     echo "In order for this new version to be used, a restart is needed."

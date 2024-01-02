@@ -1,0 +1,86 @@
+#!/bin/sh
+#   Fake bangpath to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Common settings that can be used by most shells
+#
+
+prepend_path() {
+    extra_p="$1"
+
+    #  shellcheck disable=SC2292 #  Used by Bash and other shells
+    if [ -z "$extra_p" ]; then
+        echo
+        echo "ERROR: ~/.common_rc prepend_path called with no param"
+        echo
+        exit
+    fi
+
+    #  shellcheck disable=SC2292 #  Used by Bash and other shells
+    if [ -d "$extra_p" ] && ! echo "$PATH" | grep -q "$extra_p"; then
+        #  Only prepend if path exists and is not already in PATH
+        export PATH="$extra_p:$PATH"
+    fi
+
+    unset extra_p
+}
+
+basic_aliases() {
+    #
+    # enable color support of ls and also add handy aliases
+    #
+    if test -x /usr/bin/dircolors; then
+        if test -r ~/.dircolors; then
+            eval "$(dircolors -b ~/.dircolors)"
+        else
+            eval "$(dircolors -b)"
+        fi
+        alias ls='ls --color=auto'
+        #alias dir='dir --color=auto'
+        #alias vdir='vdir --color=auto'
+
+        alias grep='grep --color=auto'
+        alias fgrep='fgrep --color=auto'
+        alias egrep='egrep --color=auto'
+    fi
+
+    #
+    #  Some more ls aliases
+    #
+    alias ll='ls -alFh'
+    alias la='ls -A'
+    alias lt='ls -lt'
+    alias ld='ls -d */'
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+#
+#  Some common bin locations in home dir,
+#  add in reverse order, last will be first in PATH
+#
+prepend_path "$HOME"/bin
+prepend_path "$HOME"/.local/bin
+unset -f prepend_path
+
+basic_aliases
+unset -f basic_aliases
+
+#
+#  This is a helper for setting hostname in prompts, since the typical \h
+#  Doesnt work on iOS >= 17
+#
+if test -x /usr/local/bin/hostname; then
+    _hn="$(/usr/local/bin/hostname)"
+else
+    _hn="$(/bin/hostname -s)"
+fi

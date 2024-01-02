@@ -1,203 +1,127 @@
 # AOK-Filesystems-Tools
 
-This creates a consistent iSH environment aimed at giving a mostly normal Linux experience, minus the obvious lack of a GUI.
+The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI. Initially focused on the iSH-AOK fork, but this also works fine on the mainline iSH, with the exception that Debian/Devuan can't be used.
 
-It can be based on several distros, primarily Alpine & Debian, and should give a very similar user experience on either.
-Alpine uses fewer resources, so things will be a bit "faster", but in the iSH universe faster is a very relative concept.
+You can choose between the distributions Alpine or Debian. For shells it comes with a basic setup for Bash, Zsh and Ash, using a common init file shared between the different shells, for settings not bound to a specific shell, such as PATH aliases and so on.
+
+Both Alpine and Debian offer a fairly similar user experience. More or less the same apps are installed, and they offer the same custom tools. Alpine uses fewer resources, so things will be a bit "faster," but in the iSH universe, speed is a relative concept.
+
+## Disclaimer
+
+I typically work on this on a workstation and test it on multiple devices to ensure it functions as intended in various scenarios. I don't use branches extensively to isolate experimental changes. If you want to try it out, I recommend starting with the latest release. These releases are thoroughly tested and should always be stable. While the main branch usually works fine, there are no guarantees.
 
 ## Installation
 
-### Get the repo
+### Getting the Repository
 
-```bash
-git clone https://github.com/jaclu/AOK-Filesystem-Tools.git 
-sudo rm -rf /opt/AOK  # remove the previous instance if present
+For general usage, it is recommended to use the latest release, as mentioned in the Disclaimer. Once you have downloaded it, follow these steps (please note that release numbers change over time):
+
+```sh
+unzip AOK-Filesystem-Tools-0.9.2.zip
+sudo rm -rf /opt/AOK  # Remove the previous instance if present
+sudo mv AOK-Filesystem-Tools-0.9.2 /opt/AOK
+```
+
+To try out the latest changes:
+
+```sh
+git clone https://github.com/jaclu/AOK-Filesystem-Tools.git
+sudo rm -rf /opt/AOK  # Remove the previous instance if present
 sudo mv AOK-Filesystem-Tools /opt/AOK
 ```
 
-It is assumed this is located at /opt/AOK
-
-Since various parts of this are both used in the initial build process on the host platform, 
-and also for finalizing the setup on the destination platform. 
-It must be located in a known location for it to be found.
-
-### To prebuild your FS or not
-
-The reason you might want to prebuild your FS is that the processing speed in the iSH family of apps is ridiculously slow,
-even a low-end Linux node would prepare the FS perhaps 100 times faster than a modern iPad.
-By prebuilding, almost everything needed to set up the environment is done in advance. And only the final steps that must be done on the destination device have to be performed during 1st boot. Things like selecting a timezone, deciding if /iCloud should be mounted, and detecting if this is iSH-AOK or iSH. In the case of iSH, all packets only supported by iSH-AOK are removed.
-
-One potential drawback is that a prebuilt FS will be much larger, but you would not save any download time, since by doing the full deployment on the iOS device, it would have to download the same content anyhow.
-
-The end result is the same regardless if you prebuild or not. 
-However, the deployment of a prebuilt FS is significantly faster. 
-If your build env can't do it, this is not the end of things. 
-
-### Test to see if your env can do pre-build
-
-This just tries to prepare an Alpine FS without compressing it, if you get no error msg your system supports pre build
-
-```bash
-/opt/AOK/build_fs -N -p
-```
-
-If you see a build happening, your environment is able to prebuild file systems. 
-Add -p to build_fs whenever you want to use prebuilding.
-
-If you see this, then prebuilding is not an option in this system
-
-```bash
-Unfortunately, you can not chroot into the image on this device
-This is only supported on iSH and Linux(x86)
-Use another build option (try -h for help)
-
-ERROR: Failed to sudo run: /opt/AOK/build_fs
-```
-
-## Experimenting with generating your own FS
-
-First, create your local config file, this will not collide with the git repo, and if you update it will not be touched
-
-```bash
-cp /opt/AOK/AOK_VARS /opt/AOK/.AOK_VARS
-```
-
-Next Edit /opt/AOK/.AOK_VARS to your liking,  like selecting what Alpine release should be installed, etc. 
-Everything should hopefully be explained, if anything is unclear file an issue.
-
-### Building Alpine
-
-```bash
-/opt/AOK/build_fs -p
-```
-
-### Building Debian
-
-```bash
-/opt/AOK/build_fs -p -d
-```
-
-### Choose distro
-
-Convenient in the sense that this delays Distro selection, however, install times will be significantly longer for Debian
-```bash
-/opt/AOK/build_fs -s
-```
-
-## Recent changes
-
-- logins supported by all three distros
-- USER_SHELL allows setting the shell for the sample user
+Please ensure that this is located in /opt/AOK, as various parts of the tool rely on its known location.
 
 ## Compatability
 
-You can build the FS on any platform, but for chrooting (Prebuilding FS,
-or testing) you need to use iSH or Linux(x86).
+You can build the file system on any platform, but for chrooting, so that you can pre-build, and/or run the dest env on the build platform, you need to build on iSH or Linux (x86).
 
-## Distros available
+## Available Distros
 
-### Alpine FS
+### Alpine File System
 
-Fully usable
+Fully usable. The release can be selected in AOK_VARS
 
-### Debian FS
+### Debian File System
 
-Fully usable
+Fully usable. Be aware that this is Debian 10, since that was the last version of Debian for 32-bit environs. Deb 10 has been end of lifed, so will no longer receive updates, but you are unlikely to run any public services on iSH, so for experimenting with a local Debian, it should be fine.
 
-#### Known Debian FS issues
+#### Performance issues running Debian
 
-##### Using Blink
+Any time you add/delete a package containing man pages it will cause a man-db trigger to reindex all man pages. On a normal system, this is so close to instantaneous that it is a non-issue. However, when running Debian on iSH-AOK this reindexing takes a long time...
 
-When disconnecting from an iSH-AOK Debian FS session, it is left hanging.
-You need to hit Enter to get back to the Blink prompt.
+By default, the iSH-AOK Debian base images include the man tools, since it is normally expected to be present on a Debian. If you can live without them, getting rid of them will vastly improve responsiveness when adding/removing packages.
 
-##### Building it
+You can achieve this by adding the following to your config
 
-For now the two recomended and working build methods are:
+```sh
+DEB_PKGS_SKIP="man-db"
+```
 
-- Build the FS on your iOS device, then mount the resulting FS image as a new FS & reboot into it
-- Build the FS on a Linux (x86) node, then mount the resulting FS image as a new FS & reboot into it
+This will disable the man system in the new File Systems you create.
 
-These two methods have been tested and work both with and without the prebuilt option.
+If you can use prebuild when you generate your FS, DEB_PKGS_SKIP will be processed on the build host, completing the task in seconds, instead of minutes on the destination platform.
 
-##### Specific iSH-AOK services
+In an already deployed Debian 10, instead do:
 
-- runbg
+```sh
+apt remove man-db
+```
 
-I have tried to convert runbg to be a posix script
-as is normally the case in Debian when using openrc
-using the `#!/bin/sh` shebang, but so far no success.
+You can always reactivate man pages by installing it again
 
-So as of now I use the same here as for Alpine,
-using a `#!/sbin/openrc-run` style script.
-It seems to work fine, so there is that.
+```sh
+apt install man-db
+```
 
-### Devuan
+### Devuan File System
 
-DNS resolving doesn't work, so whilst you can use Devuan,
-without DNS it is not that usefull beyond testing ATM.
-`/etc/hosts` can be used, and the hostnames needed for apt handling are
-included, but this obviously is a rather limited solution to the DNS
-issue, just a stopgap.
+DNS resolving doesn't work, so while you can use Devuan, it's not very useful beyond testing at the moment. You can use `/etc/hosts`, to add hosts, and the hostnames needed for apt handling are included, but this is a limited solution to the DNS issue.
 
-## Build process
+## Build Process
 
-Instructions on how to build an iSH family File system: `./build_fs -h`
+For instructions on how to build an AOK File System, run:
 
-## Multi distro
+```sh
+./build_fs -h
+```
 
-run `build_fs -s` to create a Distro asking if you want to use Alpine,
-Debian or Devuan.
+### Choosing Distro When You First Boot the File System
 
-This is the recomended build method if you don't need to prebuild.
-Initial tarball will be arround 8MB. Asuming the target device is
-resonably modern, the deploy should not take too long.
+To create a File system allowing you to choose between Alpine, Debian, or Devuan when iSH first boots it up use:
 
-## Prebuilt FS
+```sh
+build_fs -s
+```
 
-Especially for slower devices this can be a huge time saver, if you build
-the FS on a Linux (x86) with -p for prebuild, it takes only seconds, on a
-iPad 5th Alpine takes 6-7 mins, Debian and Devuan takes a lot longer.
-
-All provided distros can be prebuilt. Advantage is that FS is ready
-to be used right away, drawback is that in most cases the FS tarball
- will be larger.
-
-In the case of Alpine, the FS Installing on first boot is only
-arround 6MB, a pre-built AOK Alpine FS is something like 50MB.
-
-With Debian the difference in size goes from 125MB to 175MB
-
-With Devuan the image is arround 85MB in both cases
+This is the recommended build method if you don't need to pre-build. The initial tarball will be around 8MB, and assuming the target device is reasonably modern, the setup should not take too long.
 
 ## Configuration
 
-Settings are in AOK_VARS
+Settings are in `AOK_VARS`. You can override these with local settings in `.AOK_VARS`, which will be ignored by Git.
 
-You can override this with local settings in .AOK_VARS, it will be
-ignored by git. Please note that if this file is found,
-it's content will be appended to the destination AOK_VARS & tools/utils.sh,
-so motly for devel/debug. For production style deploys, it is recomended
-to update AOK_VARS and not have a .AOK_VARS present.
+The simplest way to start using this override file is to copy `AOK_VARS` into `.AOK_VARS` and then edit `.AOK_VARS` to match your needs.
 
-Simplest way to start using this overide file is to just copy AOK_VARS
-into .AOK_VARS and then edit .AOK_VARS to match your needs.
+## Running Chrooted
 
-### Running chrooted
+The default command when running `do_chroot.sh` is to examine /etc/password on the dest_fs and select the shell used by root.
 
-When testing setups in a chroot env, some extra steps are needed,
-since in chroot /etc/profile might not run, depending on shell use.
+When testing setups in a chroot environment, some extra steps might be needed to complete the deployment. Any remaining deploy steps are copied to /etc/profile, since in virtually all cases, it is run during startup.
 
-`sudo ./tools/do_chroot.sh /etc/profile`  Runs profile, ie next step of
-deploy directly, if any steps remain.
+If you start with a shell not running /etc/profile, the deployment will not progress. If that happens, it is not much of an issue.
 
-`sudo ./tools/do_chroot.sh /bin/ash`  There might not be a bash available
-at this point, on Alpine /bin/ash is always present, for Debian /bin/sh
-has to be used. This also avoids unintentionally running /etc/profile,
-if that is not desired.
+Either run it manually inside the chrooted env:
 
-After Alpine / Debian setup is completed, bash can be used
-`sudo ./tools/do_chroot.sh` defaults to use bash if no command is specified.
+```bash
+/etc/profile
+```
+
+Or exit the chroot and run
+
+
+```bash
+./tools/do_chroot.sh /etc/profile
+```
 
 #### License
 

@@ -1,0 +1,53 @@
+#!/bin/sh
+#  Fake bangpath to help editors and linters
+#
+#   Sets up ash to be somewhat similar to bash
+#
+
+#
+#  In the ash case,  Non-interactive shells will read this, as long as
+#  ENV points to this file, so this is an essential component!
+#  Only do things needed for non-interactive script before this point.
+#
+case $- in
+*i*) ;;
+*) return ;; # If not running interactively, exit now!
+esac
+
+#
+#  Common settings that can be used by most shells, should be done early
+#  So shell specific init can override anything in there
+#
+#  shellcheck source=/opt/AOK/common_AOK/etc/skel/.common_rc
+if [ -f ~/.common_rc ]; then
+    . ~/.common_rc
+fi
+
+#
+#   Indicate root/user in prompt
+#
+if [ "$(id -u)" -eq 0 ]; then
+    _user_mark="#"
+else
+    _user_mark="$"
+fi
+
+#
+#   Sets up prompt for ash in a similar manner to bash
+#
+if [ -x /usr/bin/tput ] && tput setaf 1 >/dev/null 2>&1; then
+    #
+    #  We have color support; assume it's compliant with Ecma-48
+    #  (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+    #  a case would tend to support setf rather than setaf.)
+    #
+    #  If you want to more easily tell the difference between bash and ash
+    #  shells, one option is to change the hostname path separator to
+    #  something different than what bash is using (:), I tend to use:  |
+    #                                           --v
+    PS1="\[\033[01;32m\]\u@${_hn}\[\033[00m\]|\[\033[01;34m\]\w\[\033[00m\]$_user_mark "
+else
+    #  no color support
+    #                --v
+    PS1="\u@$_hn|\w$_user_mark "
+fi

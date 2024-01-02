@@ -10,6 +10,7 @@
 
 # editor tmp files
 *~
+.*#
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
@@ -27,3 +28,5 @@ Alpine/src/login_loop
 Alpine/src/login_once
 Debian/src/login_loop
 Debian/src/login_once
+
+_dev_send_changed_to_ish

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -33,11 +33,8 @@ install_sshd() {
 prepare_env_etc() {
     msg_2 "prepare_env_etc()"
 
-    msg_3 "Devuan AOK inittab"
-    cp -a "${aok_content}/Devuan/etc/inittab" /etc
-
     msg_3 "hosts file helping apt tools"
-    cp -a "${aok_content}/Devuan/etc/hosts" /etc
+    cp -a "${d_aok_base}/Devuan/etc/hosts" /etc
 
     #
     #  Most of the Debian services, mounting fs, setting up networking etc
@@ -50,38 +47,9 @@ prepare_env_etc() {
 
     msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
-    cp -a "${aok_content}/Devuan/etc/update-motd.d/*" /etc/update-motd.d
+    cp -a "${d_aok_base}/Devuan/etc/update-motd.d/*" /etc/update-motd.d
 
     msg_3 "prepare_env_etc() done"
-}
-
-setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    # SKIP_LOGIN
-    msg_2 "Install Debian AOK login methods"
-    cp "${aok_content}/Debian/bin/login.loop" /bin
-    chmod +x /bin/login.loop
-    cp "${aok_content}/Debian/bin/login.once" /bin
-    chmod +x /bin/login.once
-
-    # TODO: enabled in Debian, verify it can be ignored here
-    # cp -a "$aok_content"/Debian/etc/pam.d/common-auth /etc/pam.d
-
-    mv /bin/login /bin/login.original
-    # ln -sf /bin/login.original /bin/login
-
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
 }
 
 #===============================================================
@@ -90,21 +58,13 @@ setup_login() {
 #
 #===============================================================
 
-tsd_start="$(date +%s)"
-
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
+tsdev_start="$(date +%s)"
 
 . /opt/AOK/tools/utils.sh
 
 deploy_starting
 
-if [ "$build_env" -eq 0 ]; then
+if [ "$build_env" = "$be_other" ]; then
     echo
     echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
     echo "##           You have been warned"
@@ -120,47 +80,44 @@ prepare_env_etc
 #  This must run before any task doing apt actions
 #
 msg_2 "Installing sources.list"
-cp "$aok_content"/Devuan/etc/apt_sources.list /etc/apt/sources.list
+cp "$d_aok_base"/Devuan/etc/apt_sources.list /etc/apt/sources.list
 
 msg_1 "apt update"
 apt update -y
 
-if [ "$QUICK_DEPLOY" -eq 0 ]; then
-    msg_1 "apt upgrade"
-    apt upgrade -y
+msg_1 "apt upgrade"
+apt upgrade -y
 
-    if [ -n "$DEB_PKGS" ]; then
-        msg_1 "Add co43 Devuan packages"
-        echo "$DEB_PKGS"
-        bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
-    fi
-    #
-    # install_sshd
+#
+#  To ensure that
+#  a) Deleting stuff, doesnt unintentionally delete what was supposed to
+#     be added in DEPB_PKGS
+#  b) If this is not prebuilt, and man-db is removed, saves the delay
+#     if DEB_PKGS adds something with a man page, just to then delete
+#     the man DB
+#
+#  It makes sense do first delete, then add
+#
+if [ -n "$DEB_PKGS_SKIP" ]; then
+    msg_1 "Removing Devuan packages"
+    echo "$DEB_PKGS_SKIP"
     echo
-else
-    msg_1 "QUICK_DEPLOY - skipping apt upgrade and DEB_PKGS"
+    #
+    #  To prevent leftovers having to potentially be purged later
+    #  we do purge instead of remove, purge implies a remove
+    #
+    #  shellcheck disable=SC2086
+    apt purge -y $DEB_PKGS_SKIP || {
+        error_msg "apt remove failed"
+    }
+
 fi
 
-# msg_2 "Add boot init.d items suitable for iSH"
-# rc-update add urandom boot
-
-# msg_2 "Add shutdown init.d items suitable for iSH"
-# rc-update add sendsigs off
-# rc-update add umountroot off
-# rc-update add urandom off
-
-# # skipping openrc
-# if [ "$QUICK_DEPLOY" -eq 0 ]; then
-#     msg_2 "Disable some auto-enabled services that wont make sense in iSH"
-#     openrc_might_trigger_errors
-
-#     rc-update del dbus default
-#     rc-update del elogind default
-#     rc-update del rsync default
-#     rc-update del sudo default
-# else
-#     msg_2 "QUICK_DEPLOY - did not remove default services"
-# fi
+if [ -n "$DEB_PKGS" ]; then
+    msg_1 "Add Devuan packages"
+    echo "$DEB_PKGS"
+    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
+fi
 
 #
 #  Common deploy, used both for Alpine & Debian
@@ -169,21 +126,28 @@ if ! "$setup_common_aok"; then
     error_msg "$setup_common_aok reported error"
 fi
 
-setup_login
+# setup_login
 
+#
+#  Depending on if prebuilt or not, either setup final tasks to run
+#  on first boot or now.
+#
 if deploy_state_is_it "$deploy_state_pre_build"; then
     set_new_etc_profile "$setup_final"
+    is_prebuilt=1 # shorthand to avoid doing the above check again
 else
     "$setup_final"
-    not_prebuilt=1
 fi
 
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - tsd_start))"
+duration="$(($(date +%s) - tsdev_start))"
 display_time_elapsed "$duration" "Setup Devuan"
 
-if [ "$not_prebuilt" = 1 ]; then
+if [ -n "$is_prebuilt" ]; then
+    msg_1 "Prebuild completed, exiting"
+    exit 123
+else
     msg_1 "Please reboot/restart this app now!"
     echo "/etc/inittab was changed during the install."
     echo "In order for this new version to be used, a restart is needed."

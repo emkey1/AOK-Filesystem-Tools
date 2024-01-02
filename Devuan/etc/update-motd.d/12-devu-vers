@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  Displays AOK release info
+#
+
+devu_version="/etc/devuan_version"
+
+if [ -e "$devu_version" ]; then
+    echo "[36mDevuan release:  $(cat "$devu_version")[0m"
+fi

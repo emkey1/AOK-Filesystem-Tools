@@ -21,11 +21,18 @@
 #  the right/expected path
 #
 #   # auto sudo this script if run by user
-#   . tools/run_as_root.sh
+#   . /opt/AOK/tools/run_as_root.sh
 #
 #  If you do not want to get the: Executing $app as root
 #  printout preceede your commant or the sourcing with: hide_run_as_root=1
 #
+
+AOK_DIR="${AOK_DIR:-/opt/AOK}"
+
+[ -z "$AOK_DIR" ] && {
+    echo "ERROR: tools/run_as_root.sh needs AOK_DIR set to base dir of repo"
+    exit 1
+}
 
 app="$0"
 [ -z "$app" ] && {
@@ -33,13 +40,15 @@ app="$0"
     exit 1
 }
 if [ "$(whoami)" != "root" ]; then
-#  shellcheck disable=SC2154
+    # shellcheck source=/dev/null
+    . "$AOK_DIR/tools/preserve_env.sh"
+    #  shellcheck disable=SC2154
     if [ -z "$hide_run_as_root" ]; then
         echo "Executing $app as root"
         echo
     fi
     #  using $0 instead of full path makes location not hardcoded
-    sudo TMPDIR="$TMPDIR" "$app" "$@"
+    sudo AOK_DIR="$AOK_DIR" TMPDIR="$TMPDIR" "$app" "$@"
     exit_code="$?"
 
     #  terminate the user initiated instance of the script

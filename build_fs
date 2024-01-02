@@ -1,8 +1,9 @@
 #!/bin/sh
-#
 #  shellcheck disable=SC2154
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2021-2023: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -32,6 +33,10 @@ Available options:
                    for quicker imports on target device, but up to 10
                    times larger image file.
                    This can only be done on iSH or Linux (x86)!
+-f  --force        Force do_chroot.sh to run, despite any warnings
+                   it displays.
+-c  --clear        Empty the build env ($d_build_root)
+-C  --full_clear   Do a clear, and in addition clear the download cache
 -j  --bzip2        Use bzip2 compression for distribution
 -N  --no_compress  Terminates when FS is prepared, without generating
                    a FS tarball."
@@ -39,42 +44,36 @@ Available options:
 }
 
 check_dependencies() {
-
     _deps=""
     [ -z "$(command -v rsync)" ] && _deps="$_deps rsync"
     _wget_cmd="$(command -v wget)"
-    if [ -n "$_wget_cmd" ] && readlink "$_wget_cmd" | grep -q busybox; then
+    if [ -z "$_wget_cmd" ]; then
         _deps="$_deps wget"
-        _additional_msg="You need to install a real wget, the busybox one does not handle redirects"
+    elif [ -n "$_wget_cmd" ] && readlink "$_wget_cmd" | grep -q busybox; then
+        _deps="$_deps wget"
+        msg_3 "You need to install a real wget, the busybox one does not handle redirects"
     fi
-    [ -z "$_wget_cmd" ] && _deps="$_deps wget"
     [ -z "$_deps" ] && return
 
-    msg_1 "In order for this to work you need to install some dependencies"
-
-    if [ -n "$_additional_msg" ]; then
-        echo "$_additional_msg"
-        echo
-    fi
-
-    echo "Here are instructions how to install this on your platform:"
-    echo
+    msg_1 "In order for this to work some dependencies will be installed"
 
     case "$(hostfs_detect)" in
 
     "$distro_alpine")
-        echo "apk add $_deps"
+        #  shellcheck disable=SC2086 # in this case it should expand
+        apk add $_deps
         ;;
-    "$distro_debian" | "$distro_devuan")
-        echo "apt install $_deps"
+    "$d/istro_debian" | "$distro_devuan")
+        #  shellcheck disable=SC2086 # in this case it should expand
+        apt install $_deps
         ;;
     *)
         echo "Platform not recognized, can not suggest how to install"
-        echo "You need the following items: $_deps"
+        error_msg "You need the following packages: $_deps"
         ;;
     esac
 
-    error_msg "This needs to be resolved"
+    msg_3 "Dependencies resolved"
 }
 
 parse_arguments() { # Multi OK 1
@@ -123,6 +122,20 @@ parse_arguments() { # Multi OK 1
             pre_build_FS=true
             ;;
 
+        "-f" | "--force")
+            force_chroot="-f"
+            ;;
+
+        "-c" | "--clear")
+            do_clear
+            exit 0
+            ;;
+
+        "-C" | "--full_clear")
+            do_full_clear
+            exit 0
+            ;;
+
         "-j" | "--bzip2")
             if ! $aok_FS_do_compress; then
                 echo "-j and -N can not be combined!"
@@ -149,16 +162,37 @@ parse_arguments() { # Multi OK 1
     done
 }
 
+do_clear() {
+
+    # msg_2 "do_clear()"
+
+    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
+    [ -f "$pidfile_do_chroot" ] && error_msg "do_chroot.sh seems to be running!"
+
+    [ ! -e "$d_build_root" ] && error_msg "Buildenv not pressent: $d_build_root"
+    rm -rf "$d_build_root"
+    [ -e "$d_build_root" ] && error_msg "Failed to clear: $d_build_root"
+    # msg_3 "do_clear() - done"
+}
+
+do_full_clear() {
+    # msg_2 "do_full_clear()"
+    do_clear
+    [ -e "$d_src_img_cache" ] && rm -rf "$d_src_img_cache"
+    [ -e "$d_src_img_cache" ] && error_msg "Failed to clear: $d_src_img_cache"
+    # msg_3 "do_full_clear() - done"
+}
+
 display_build_target() { # Multi OK 1
     #
     #  Displaying build environment
     #
-    [ "$build_env" -eq 1 ] && dbt_run_mode="Building on iSH"
-    [ "$build_env" -eq 2 ] && dbt_run_mode="Building on x86 Linux"
+    [ "$build_env" = "$be_ish" ] && dbt_run_mode="Building on iSH"
+    [ "$build_env" = "$be_linux" ] && dbt_run_mode="Building on x86 Linux"
 
     if ! $pre_build_FS; then
         dbt_run_mode="Will not chroot"
-    elif [ "$build_env" -eq 0 ]; then
+    elif [ "$build_env" = "$be_other" ]; then
         echo "Unfortunately, you can not chroot into the image on this device"
         echo "This is only supported on iSH and Linux(x86)"
         echo "Use another build option (try -h for help)"
@@ -167,19 +201,14 @@ display_build_target() { # Multi OK 1
     msg_1 "Run mode: $dbt_run_mode"
     unset dbt_run_mode
 
-    if [ "$QUICK_DEPLOY" -ne 0 ]; then
-        echo
-        echo "**  Using QUICK_DEPLOY=$QUICK_DEPLOY  **"
-    fi
-
     if [ "$(whoami)" != "root" ]; then
         # Must come after help display, to avoid infinite loop
         "$0" -h
         error_msg "This must be run as root or using sudo!"
     fi
 
-    if [ "$(find "$build_root_d"/dev 2>/dev/null | wc -l)" -gt 2 ]; then
-        echo "ERROR: Active chroot session detected!"
+    if [ -d "$d_build_root" ] && [ -f "$pidfile_do_chroot" ]; then
+        echo "ERROR: Active chroot session detected at $d_build_root!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         tools/do_chroot.sh -c"
         echo
@@ -191,6 +220,7 @@ display_build_target() { # Multi OK 1
     elif [ "$build_target" = "$distro_devuan" ]; then
         release_msg="Devuan"
     else
+        [ -z "$ALPINE_VERSION" ] && error_msg "ALPINE_VERSION is undefined"
         release_msg="Alpine: $ALPINE_VERSION"
     fi
     msg_1 "Building iSH-AOK $release_msg filesystem - $AOK_VERSION"
@@ -207,13 +237,13 @@ cache_fs_image() {
     [ -z "$src_image" ] && error_msg "cache_fs_image() no src_image supplied"
     [ -z "$src_tarball" ] && error_msg "cache_fs_image() no src_taball supplied"
 
-    if [ ! -d "$src_img_cache_d" ]; then
-        mkdir -p "$src_img_cache_d"
+    if [ ! -d "$d_src_img_cache" ]; then
+        mkdir -p "$d_src_img_cache"
     fi
-    cd "$src_img_cache_d" || {
-        error_msg "Failed to cd to $src_img_cache_d"
+    cd "$d_src_img_cache" || {
+        error_msg "Failed to cd to $d_src_img_cache"
     }
-    if [ ! -f "$src_img_cache_d/$src_tarball" ]; then
+    if [ ! -f "$d_src_img_cache/$src_tarball" ]; then
         cmd="wget $src_image"
         #  Ensure basename for tar ball is used
         case "$build_target" in
@@ -239,18 +269,18 @@ copy_AOK_to_dest() {
     msg_2 "copy_AOK_to_dest()"
 
     mkdir -p "$aok_files"
-    mkdir -p "$build_root_d"/etc/opt
+    mkdir -p "$d_build_root"/etc/opt # is this the right place?
 
+    # --exclude=.git/ \
+    # --exclude=.gitignore \
+    # --exclude=.gitmodules \
     rsync -ah \
-        --exclude=.git/ \
-        --exclude=.gitignore \
-        --exclude=.gitmodules \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        "$aok_content" "$build_root_d"/opt
+        "$d_aok_base" "$d_build_root"/opt
 
     io_dst_conf="$aok_files"/AOK_VARS
-    io_conf_overrides="$aok_content"/.AOK_VARS
+    io_conf_overrides="$d_aok_base"/.AOK_VARS
     if [ -f "$io_conf_overrides" ]; then
         msg_3 "Appending .AOK_CONF on dest FS"
         (
@@ -270,25 +300,7 @@ copy_AOK_to_dest() {
 
     chown -R root: "$aok_files"
 
-    msg_3 "copy_AOK_to_dest() done"
-}
-
-add_additional_tasks_if_defined() {
-    #
-    #  If defined, append additional tasks
-    #
-    msg_2 "add_additional_tasks_if_defined($FIRST_BOOT_ADDITIONAL_TASKS)"
-    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
-        msg_3 "Creating additional tasks script"
-        mkdir -p "$build_root_d"/opt
-        {
-            echo "#!/bin/sh"
-            echo "$FIRST_BOOT_ADDITIONAL_TASKS"
-        } >"$additional_tasks_script"
-        chmod 755 "$additional_tasks_script"
-        msg_3 "setup FIRST_BOOT_ADDITIONAL_TASKS to be run in $additional_tasks_script"
-    fi
-    # msg_3 "add_additional_tasks_if_defined() done"
+    # msg_3 "copy_AOK_to_dest() done"
 }
 
 setup_Alpine_on_1st_boot() {
@@ -302,8 +314,11 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
+    intial_fs_prep_debian
+
     # buildtype_set "$distro_debian"
     set_new_etc_profile "$setup_debian_scr"
+
     # msg_3 "setup_Debian_on_1st_boot() done"
 }
 
@@ -312,6 +327,7 @@ setup_Devuan_on_1st_boot() {
 
     # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"
+
     # msg_3 "setup_Devuan_on_1st_boot() done"
 }
 
@@ -319,8 +335,7 @@ select_distro_on_1st_boot() {
     msg_2 "select_distro_on_1st_boot()"
 
     # buildtype_set "$destfs_select"
-
-    touch "$destfs_select_hint"
+    touch "$f_destfs_select_hint"
 
     set_new_etc_profile "$setup_select_distro_prepare"
 
@@ -329,8 +344,9 @@ select_distro_on_1st_boot() {
     #  will be run on 1st boot, a slight delay, but end result is
     #  the same.
     #
-    if [ "$build_env" -gt 0 ]; then
-        if ! "$aok_content"/tools/do_chroot.sh /etc/profile; then
+    if [ "$build_env" != "$be_other" ]; then
+        [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
+        if ! "$d_aok_base"/tools/do_chroot.sh "$force_chroot" /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
     else
@@ -346,24 +362,37 @@ select_distro_on_1st_boot() {
 prebuild_fs() {
     msg_1 "prebuild_fs()"
 
-    if [ "$build_env" -eq 0 ]; then
+    if [ "$build_env" = "$be_other" ]; then
         error_msg "Not possible to pre-build on this environment!"
     fi
-
     #
     # chrooting and doing setup
     #
-    cd "$aok_content" || {
-        error_msg "Failed to cd into: $aok_content"
+    cd "$d_aok_base" || {
+        error_msg "Failed to cd into: $d_aok_base"
     }
 
     deploy_state_set "$deploy_state_pre_build"
 
-    "$aok_content"/tools/do_chroot.sh /etc/profile || {
+    [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
+
+    "$d_aok_base"/tools/do_chroot.sh "$force_chroot" /etc/profile || {
         error_msg "There was an error during prebuild"
     }
+
     msg_1 "Returned from prebuild chroot"
 
+    #
+    #  This ensures openrc doesnt detect previous runstates during
+    #  1st boot and thus triggering some errors during boot & sysinit
+    #
+    msg_2 "Clearing run states after pre-build"
+    rm "$d_build_root"/run/openrc -rf
+
+    #  Make sure no leftover fixdev pid file remains
+    rm "$d_build_root"/tmp/fixdev.pid -f
+
+    echo
     # msg_3 "prebuild_fs() done"
 }
 
@@ -381,60 +410,27 @@ consider_generating_tarball() {
             cgt_extra_params="$cgt_extra_params -j"
         fi
 
-        # #
-        # #  Set name for tarball
-        # #
-        # if [ "$build_target" = "$distro_debian" ]; then
-        #     cgt_label="$debian_tb"
-        # elif [ "$build_target" = "$distro_devuan" ]; then
-        #     cgt_label="$devuan_tb"
-        # elif [ "$build_target" = "$destfs_select" ]; then
-        #     cgt_label="$select_distro_tb"
-        # else
-        #     cgt_label="$alpine_tb"
-        # fi
-
-        # if $pre_build_FS; then
-        #     #  give a hint this was pre-built
-        #     cgt_label="${cgt_label}-pb"
-        # fi
-
-        if [ -n "$build_root_d" ] && ls -A "$build_root_d"/iCloud/* >/dev/null 2>&1; then
-            msg_2 "Clearing /iCloud before generating image"
-            rm "$build_root_d"/iCloud/* -rf
+        if [ -n "$d_build_root" ] && ls -A "$d_build_root"/iCloud/* >/dev/null 2>&1; then
+            #
+            #  iCloud might have been used whilst chrooted, this ensures
+            #  that it is empty when FS is compressed
+            #
+            msg_3 "Clearing /iCloud before generating image"
+            rm "$d_build_root"/iCloud/* -rf
         fi
+
+        #
+        #  Here the tarball is generated
+        #
         #  shellcheck disable=SC2086,SC2248
-        if ! "$aok_content"/compress_image $cgt_extra_params; then
+        if ! "$d_aok_base"/compress_image $cgt_extra_params; then
             error_msg "detected in compress_image"
         fi
+
         unset cgt_extra_params
         unset cgt_label
     fi
 
-    if [ "$build_env" -gt 0 ]; then
-        if [ "$build_target" = "$distro_debian" ]; then
-            set_shell="/bin/sh"
-        else
-            set_shell="/bin/ash"
-        fi
-        msg_1 "How to access the just created FS from this env"
-        if $pre_build_FS; then
-            echo "   chrooting into the FS:"
-            echo "     sudo ./tools/do_chroot.sh"
-        else
-            echo "   You can work on the filesystem without triggering deploy by running:"
-            echo "     sudo ./tools/do_chroot.sh $set_shell"
-            echo
-            echo "   To trigger a first boot deploy, run:"
-            echo "     sudo ./tools/do_chroot.sh /etc/profile"
-        fi
-        echo
-
-        unset set_shell
-    else
-        echo
-        echo "This platform can not chroot into the FS"
-    fi
     # msg_3 "consider_generating_tarball() done"
 }
 
@@ -458,19 +454,9 @@ display_build_time() {
 #
 #===============================================================
 
-#  Allowing this to be run from anywhere using path
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-
-#
-#  Automatic sudo if run by a user account, do this before
-#  sourcing tools/utils.sh !!
-#  hide_run_as_root=1  prevents this from showing: Executing $app as root
-#
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
-. "$current_dir"/tools/run_as_root.sh
-
-# shellcheck source=/opt/AOK/tools/utils.sh
-. "$current_dir"/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
+. "$d_aok_base"/Debian/deb_utils.sh
 
 t_start="$(date +%s)"
 
@@ -484,8 +470,8 @@ deploy_state_set "$deploy_state_na" # Dest FS not yet created
 #  to keep things relative and simple
 #
 #  shellcheck disable=SC1007
-cd "$aok_content" || {
-    error_msg "Failed to cd into: $aok_content"
+cd "$d_aok_base" || {
+    error_msg "Failed to cd into: $d_aok_base"
 }
 
 #
@@ -494,10 +480,10 @@ cd "$aok_content" || {
 build_target="$distro_alpine" # default target
 verbose=false                 # true displays tar/untar progress
 use_bzip2=false               # Use tgz when compressing image
-pre_build_FS=false            # true meand generat4 pre-built FS
+pre_build_FS=false            # true means generate pre-built FS
 aok_FS_do_compress=true       # compress FS at end of build_fs
 
-aok_files="${build_root_d}${aok_content}"
+aok_files="${d_build_root}${d_aok_base}"
 
 parse_arguments "$@"
 
@@ -505,12 +491,13 @@ check_dependencies
 
 display_build_target
 
-test -f "$additional_tasks_script" && notification_additional_tasks
-
 msg_2 "Preparing build environment"
 
-msg_3 "Clearing build root $build_root_d"
-rm -rf "$build_root_d"
+[ -z "$d_build_root" ] && error_msg "build_root not assigned"
+[ -d "$d_build_root" ] || error_msg "build_root not a folder [$build_root]"
+
+msg_3 "Clearing build root $d_build_root"
+rm -rf "$d_build_root"
 
 if [ "$build_target" = "$distro_debian" ]; then
     src_image="$DEBIAN_SRC_IMAGE"
@@ -524,10 +511,18 @@ else
 fi
 
 cache_fs_image
-create_fs "${src_img_cache_d}/$src_tarball" "$build_root_d" "$verbose"
+create_fs "${d_src_img_cache}/$src_tarball" "$d_build_root" "$verbose"
 
 copy_AOK_to_dest
-msg_3 "Deployed $aok_content on new filesystem"
+msg_3 "Deployed $d_aok_base on new filesystem"
+
+#  Announce what AOK release this is
+msg_2 "Set $(echo "$f_aok_fs_release" | sed "s|$d_build_root||") to $AOK_VERSION"
+
+# /mnt/HC_Volume_36916115/aok_tmp/aok_fs/etc/aok-release
+# etc/aok-release
+
+echo "$AOK_VERSION" >"$f_aok_fs_release"
 
 #
 #  Alpine initial motd suggests running setup-alpine. Not available on iSH
@@ -535,15 +530,24 @@ msg_3 "Deployed $aok_content on new filesystem"
 #  deleting the default one both on Alpine & Debian makes sence.
 #
 msg_2 "Remove initial /etc/motd from new filesystem"
-rm "$build_root_d"/etc/motd
+rm "$d_build_root"/etc/motd
 
 # Should always happen
 msg_2 "Create directory /iCloud inside new filesystem"
-mkdir "$build_root_d"/iCloud
+mkdir -p "$d_build_root"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
-    msg_1 "POPULATE_FS cmd: $POPULATE_FS"
-    $POPULATE_FS
+    #
+    #  So far unofficial hack, if you put D_BUILD_ROOT in POPULATE_FS
+    #  it will be replaced with actual build_root during creation of
+    #  FS, most likely will never be used by anyone but me during chroot
+    #  test deploys
+    #
+    pop_fs="$(echo "$POPULATE_FS" | sed "s#D_BUILD_ROOT#$d_build_root#g")"
+    msg_1 "POPULATE_FS: $pop_fs"
+    /bin/sh -c "$pop_fs" || {
+        error_msg "POPULATE_FS [$pop_fs] returned error"
+    }
 fi
 
 if [ "$build_target" = "$distro_debian" ]; then
@@ -556,13 +560,39 @@ else
     setup_Alpine_on_1st_boot
 fi
 
-add_additional_tasks_if_defined
-
 if $pre_build_FS; then
     prebuild_fs
 fi
 
-msg_1 "The filesystem is ready!"
+msg_2 "The filesystem is ready!"
+
+if [ "$build_env" != "$be_other" ]; then
+    if [ "$build_target" = "$distro_alpine" ] || [ "$build_target" = "$distro_select" ]; then
+        shell_not_triggering_profile="/bin/ash"
+    else
+        shell_not_triggering_profile="/bin/sh"
+    fi
+    msg_1 "How to access the just created FS from this env"
+    echo "The newly created FS is located at: $d_build_root"
+    echo
+    echo "If there are remining deploy steps, they will be auto-performed"
+    echo "when you chroot."
+    echo
+    echo "If you want to access the FS without risking to move the deploy"
+    echo "forward, then you can do it like this:"
+    echo
+    echo "  ./tools/do_chroot.sh $shell_not_triggering_profile"
+    echo
+    echo "For normal chroot, just do:  ./tools/do_chroot.sh"
+    echo
+    echo "After your modifications, you can create a tarball from the FS"
+    echo "by running:  ./compress_image"
+    echo
+    unset set_shell
+else
+    echo
+    echo "This platform can not chroot into the FS"
+fi
 
 consider_generating_tarball
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -24,24 +24,26 @@ Available options:
     exit 0
 }
 
+clear_build_triggered_logfiles() {
+    f_fd_log="/var/log/fix_dev.log"
+    f_sys_log="/var/log/syslog"
+    br_fd_log="${d_build_root}$f_fd_log"
+    br_sys_log="${d_build_root}$f_sys_log"
+    if [ -f "$br_fd_log" ] || [ -f "br_sys_log" ]; then
+        msg_2 "Removing log files generated during preparations on client FS"
+        [ -f "$br_fd_log" ] && msg_3 "$f_fd_log" && rm -f "$br_fd_log"
+        [ -f "$br_sys_log" ] && msg_3 "$f_sys_log" && rm -f "$br_sys_log"
+    fi
+}
+
 #===============================================================
 #
 #   Main
 #
 #===============================================================
 
-#  Allowing this to be run from anywhere using path
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-
-#
-#  Automatic sudo if run by a user account, do this before
-#  sourcing tools/utils.sh !!
-#
-# shellcheck source=/opt/AOK/tools/run_as_root.sh
-. "$current_dir"/tools/run_as_root.sh
-
-# shellcheck source=/opt/AOK/tools/utils.sh
-. "$current_dir"/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+. /opt/AOK/tools/utils.sh
 
 prog_name=$(basename "$0")
 use_bzip2=false
@@ -73,11 +75,11 @@ while [ -n "$1" ]; do
     shift
 done
 
-if [ ! -d "$build_root_d" ]; then
-    error_msg "No image built yet, [$build_root_d]!"
+if [ ! -d "$d_build_root" ]; then
+    error_msg "No image built empty dir: [$d_build_root]!"
 fi
 
-if [ "$(find "$build_root_d"/dev | wc -l)" -gt 1 ]; then
+if [ "$(find "$d_build_root"/dev | wc -l)" -gt 1 ]; then
     error_msg "Active chroot session detected!"
 fi
 
@@ -88,13 +90,13 @@ else
     #  If no tarball name was given, try to identify what is prepared
     #  and give it a name  based on this with versions added.
     case "$(destfs_detect)" in
-    "$distro_alpine") tarball_fn="AOK-${AOK_VERSION}-Alpine-${ALPINE_VERSION}" ;;
+    "$distro_alpine") tarball_fn="Alpine-${ALPINE_VERSION}-AOK-${AOK_VERSION}" ;;
 
-    "$distro_debian") tarball_fn="AOK-${AOK_VERSION}-Debian10" ;;
+    "$distro_debian") tarball_fn="Debian10-AOK-${AOK_VERSION}" ;;
 
-    "$distro_devuan") tarball_fn="AOK-${AOK_VERSION}-Devuan4" ;;
+    "$distro_devuan") tarball_fn="Devuan4-AOK-${AOK_VERSION}" ;;
 
-    "$destfs_select") tarball_fn="AOK-${AOK_VERSION}-SelectDistro" ;;
+    "$destfs_select") tarball_fn="SelectDistro-AOK-${AOK_VERSION}" ;;
 
     *)
         error_msg "Failed to identify prepared distro"
@@ -104,19 +106,17 @@ else
     deploy_state_is_it "$deploy_state_pre_build" && tarball_fn="$tarball_fn-pb"
 fi
 
-#  Clear logged build-states etc, no longer needed
-
 # set location
-tarball="$build_base_d/$tarball_fn"
+tarball="$d_images/$tarball_fn"
 
 # echo "removing temp /dev items"
-# rm  -f "$build_root_d"/dev/*
+# rm  -f "$d_build_root"/dev/*
 
 #
 # Tar up and zip the result
 #
-cd "$build_root_d" || {
-    error_msg "Failed to cd into: $build_root_d"
+cd "$d_build_root" || {
+    error_msg "Failed to cd into: $d_build_root"
 }
 
 if $use_bzip2; then
@@ -133,30 +133,32 @@ if $verbose; then
     opts="v$opts"
 fi
 
-msg_3 "Clearing some log files on client FS"
-rm -f "${build_root_d}/var/log/fix_dev.log"
-if [ -n "$LOG_FILE" ]; then
-    msg_3 "Found a LOG_FILE, renamed to .old to give dest-system a fresh start"
-    [ -f "${build_root_d}$LOG_FILE" ] && mv "${build_root_d}$LOG_FILE" \
-        "${build_root_d}${LOG_FILE}.old"
-fi
+clear_build_triggered_logfiles
 
-msg_1 "Creating image $tarball"
-tar "$opts" "$tarball" .
+echo
+msg_2 "Wrting image file"
+msg_3 " $tarball"
+
+if [ -n "$cmd_pigz" ]; then
+    msg_3 "Using $cmd_pigz"
+    # time tar -cf - . | pigz -p 2 > foo.tgz
+    tar -cf - . | $cmd_pigz >"$tarball"
+else
+    msg_3 "No pigz"
+    tar "$opts" "$tarball" .
+fi
+ex_code="$?"
 
 #
 # copy it to /iCloud if this runs on iSH
 #
 
 if this_is_ish && [ "$(find /iCloud/ -maxdepth 1 | wc -l)" -gt 1 ]; then
-    msg_2 "Creating additional copy: $icloud_archive_d/$tarball_fn"
-    mkdir -p "$icloud_archive_d"
-    cp "$tarball" "$icloud_archive_d"
+    msg_2 "Creating additional copy: $d_icloud_archive/$tarball_fn"
+    mkdir -p "$d_icloud_archive"
+    cp "$tarball" "$d_icloud_archive"
 fi
 
-if $verbose; then
-    msg_1 "Image is ready - $tarball"
-else
-    msg_1 "Image is ready!"
-fi
-exit 0 #  Avoid exiting with error if above file did not exist
+msg_3 "Image is ready!"
+
+exit "$ex_code" #  Propagate tar any tar error

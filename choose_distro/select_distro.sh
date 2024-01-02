@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -13,6 +13,8 @@
 
 select_distro() {
     text="
+This is AOK-Filesystem-Tools version: $AOK_VERSION
+
 Alpine is the regular AOK FS, fully stable.
 
 Debian is version 10 (Buster). It was end of lifed 2022-07-18 and is
@@ -30,7 +32,6 @@ Select distro:
  2 - Debian 10
  3 - Devuan 4
 "
-    echo
     echo "$text"
     read -r selection
     echo
@@ -40,20 +41,18 @@ Select distro:
         echo "Alpine selected"
         echo
         msg_1 "running $setup_alpine_scr"
-        rm -f "$destfs_select_hint"
+        rm -f "$f_destfs_select_hint"
         "$setup_alpine_scr"
         ;;
 
     2)
         echo "Debian selected"
-        test -f "$additional_tasks_script" && notification_additional_tasks
-        "$aok_content"/choose_distro/install_debian.sh
+        "$d_aok_base"/choose_distro/install_debian.sh
         ;;
 
     3)
         echo "Devuan selected"
-        test -f "$additional_tasks_script" && notification_additional_tasks
-        "$aok_content"/choose_distro/install_devuan.sh
+        "$d_aok_base"/choose_distro/install_devuan.sh
         ;;
 
     *)
@@ -71,6 +70,12 @@ Select distro:
 #
 #===============================================================
 
+#
+#  Mostly needed in case nav_keys.sh or some other config task
+#  would be run before the first re-boot
+#
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
+
 tcd_start="$(date +%s)"
 
 #
@@ -81,7 +86,7 @@ echo "-->  Running fix_dev  <--"
 /opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
 echo
 
-. /opt/AOK/tools/utils.sh
+. "$d_aok_base"/tools/utils.sh
 
 manual_runbg
 
@@ -95,9 +100,3 @@ select_distro
 
 duration="$(($(date +%s) - tcd_start))"
 display_time_elapsed "$duration" "Choose Distro"
-
-#
-#  Mostly needed in case nav_keys.sh or some other config task
-#  would be run before the first re-boot
-#
-export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin

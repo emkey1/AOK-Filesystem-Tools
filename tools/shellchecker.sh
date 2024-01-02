@@ -23,7 +23,7 @@
 #
 error_msg() {
     local em_msg="$1"
-    local em_exit_code="${2:-1}"
+    local em_exit_code="${2:-"-1"}"
     if [[ -z "$em_msg" ]]; then
         echo
         echo "error_msg() no param"
@@ -34,25 +34,6 @@ error_msg() {
     echo "ERROR: $em_msg"
     echo
     [[ "$em_exit_code" -gt -1 ]] && exit "$em_exit_code"
-}
-
-#
-#  Function to sort an array in ascending order
-#
-sort_array() {
-    local input_array=("$@") # Convert arguments into an array
-    local sorted_array=()
-
-    # Use a loop to add each eOBlement to the sorted array
-    for item in "${input_array[@]}"; do
-        sorted_array+=("$item")
-    done
-
-    # Use the POSIX sort utility to sort the array in place
-    # IFS=$'\n' sorted_array=($(printf "%s\n" "${sorted_array[@]}" | sort))
-    mapfile -t sorted_array < <(printf '%s\n' "${sorted_array[@]}" | sort -f)
-
-    echo "${sorted_array[@]}"
 }
 
 #
@@ -78,6 +59,7 @@ string_in_array() {
 identify_available_linters() {
     shellcheck_p="$(command -v shellcheck)"
     checkbashisms_p="$(command -v checkbashisms)"
+    vale_p="$(command -v vale)"
 
     if [[ "${shellcheck_p}" = "" ]] && [[ "${checkbashisms_p}" = "" ]]; then
         echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
@@ -101,7 +83,7 @@ identify_available_linters() {
         if [[ -n "${checkbashisms_p}" ]]; then
             printf "%s " "checkbashisms"
             #  shellcheck disable=SC2154
-            if [[ "$build_env" -eq 1 ]]; then
+            if [[ "$build_env" = "$be_ish" ]]; then
                 if checkbashisms --version | grep -q 2.21; then
                     echo
                     echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
@@ -137,6 +119,19 @@ do_checkbashisms() {
     fi
 }
 
+do_vale() {
+    local fn1="$1"
+    local vale_tmp="/tmp/shlchk-vale"
+    [[ -z "$fn1" ]] && error_msg "do_vale() - no paran given!" 1
+    if [[ -n "${vale_p}" ]]; then
+        echo "checking text: $fn1"
+        if ! "$vale_p" "$fn1" >"$vale_tmp"; then
+            cat "$vale_tmp"
+            exit 0
+        fi
+    fi
+}
+
 lint_posix() {
     local fn="$1"
     [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
@@ -152,7 +147,7 @@ lint_bash() {
     do_shellcheck "$fn"
 }
 
-get_file_age() {
+get_mtime() {
     local fname="$1"
     if [[ $(uname) == "Darwin" ]]; then
         # macOS version
@@ -163,9 +158,49 @@ get_file_age() {
     fi
 }
 
+display_file_age() {
+    local file_path="$1" # Replace with the path to your file
+    local current_time
+    local time_difference
+    local days
+    local hours
+    local minutes
+    local seconds
+    local age
+
+    if [[ -e "$file_path" ]]; then
+        current_time=$(date +%s) # Get current time in seconds since epoch
+        time_difference=$((current_time - $(get_mtime "$file_path")))
+
+        # Calculate days, hours, minutes, and seconds
+        days=$((time_difference / 86400))
+        time_difference=$((time_difference % 86400))
+        hours=$((time_difference / 3600))
+        time_difference=$((time_difference % 3600))
+        minutes=$((time_difference / 60))
+        seconds=$((time_difference % 60))
+
+        [[ "$hours" -lt 10 ]] && hours="0${hours}"
+        [[ "$minutes" -lt 10 ]] && minutes="0${minutes}"
+        [[ "$seconds" -lt 10 ]] && seconds="0${seconds}"
+
+        if [[ "$days" -gt 0 ]]; then
+            age="$days $age"
+        else
+            age="  "
+        fi
+        age+="${hours}:${minutes}:${seconds} $file_path"
+        echo "$age"
+    else
+        error_msg "File not found: $file_path"
+    fi
+    return 0
+}
+
 should_it_be_linted() {
     local current_time
     local span_in_seconds
+    local cutoff_time
 
     [[ -z "$hour_limit" ]] && return 0
     if [[ -z "$cutoff_time" ]]; then
@@ -173,7 +208,13 @@ should_it_be_linted() {
         span_in_seconds="$((3600 * hour_limit))"
         cutoff_time="$((current_time - span_in_seconds))"
     fi
-    [[ $(get_file_age "$fname") -ge $cutoff_time ]]
+    # display_file_age "$fname"
+    if [[ "$(get_mtime "$fname")" -lt "$cutoff_time" ]]; then
+        # echo ">>> Cut of time reached limit: $hour_limit"
+        files_aged_out_for_linting=1
+        return 1
+    fi
+    return 0
 }
 
 #===============================================================
@@ -186,43 +227,29 @@ process_file_tree() {
     local all_files
     local fname
     #
-    #  Loop over al files, first doing exludes
+    #  Loop over al files, sorted by file age, newest firtst.
     #  Then identifying filetype using: file -b
     #  grouping by type, and linting files suitable for such
     #  as they come up. Thereby minimizing pointless wait time, since
     #  the file tree is globally sorted by age
     #
-
-    #
-    #  Reads in all files, globally reverse sorted by file age
-    #
-    #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-
-    #
-    #  But of course find in MacOS does not behave like the rest of them..
-    #
-    #  MacOS  all 27s
-    #  hetz1 linux mode 19s
-    #        mac mode
-    #
     if [[ $(uname) == "Darwin" ]]; then
         # macOS version
-        mapfile -t all_files < <(find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-)
-        # find . -type f -exec stat -f "%m %N" {} + | sort -nr -k1,1 | cut -d' ' -f2-
+        # all_files=($(find . -type f -exec stat -f '%m %N' {} \; | sort -n -r -k1,1 | cut -d' ' -f2-))
+        mapfile -t all_files < <(find . -type f -exec stat -f '%m %N' {} \; | sort -n -r -k1,1 | cut -d' ' -f2-)
+
     else
-        # Linux version
-        #mapfile -t all_files < <(find . -type f -printf "%T@ %p\n" | sort -n -r -k1,1 | cut -d' ' -f2)
-        #
-        #  Works on older versions
-        #
         # shellcheck disable=SC2207
         all_files=($(find . -type f -printf '%T@ %p\n' | sort -n -r -k1,1 | cut -d' ' -f2))
-
     fi
 
     for fname in "${all_files[@]}"; do
-        #[[ "$fname" =
         [[ -d "$fname" ]] && continue
+
+        if [[ "$hour_limit" != "0" ]] && [[ "$files_aged_out_for_linting" = "1" ]]; then
+            # echo ">>> Files aged out!"
+            break
+        fi
 
         for exclude in "${excludes[@]}"; do
             [[ "$fname" == "$exclude" ]] && continue 2
@@ -236,6 +263,10 @@ process_file_tree() {
             [[ "$fname" == *"$suffix" ]] && continue 2
         done
 
+        # # display_file_age "$fname"
+        # should_it_be_linted
+        # continue
+
         f_type="$(file -b "$fname")"
 
         #
@@ -247,69 +278,74 @@ process_file_tree() {
         #
         if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-            should_it_be_linted && lint_posix "$fname"
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_posix "$fname"
             continue
         elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-            should_it_be_linted && lint_bash "$fname"
-            continue
-        elif [[ "$f_type" == *"C source"* ]]; then
-            items_c+=("$fname")
-            continue
-        elif [[ "$f_type" == *"openrc-run"* ]]; then
-            items_openrc+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Perl script"* ]]; then
-            items_perl+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
-            [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
-            #  Who might have guessed on MacOS file -b output looks different...
-            items_ucode_esc+=("$fname")
-            continue
-        elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
-            [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_ucode+=("$fname")
-            continue
-        elif [[ "$f_type" == *"makefile script"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_makefile+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_bin64+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_bin32_linux_so+=("$fname")
-            continue
-        elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
-            #  This must come after items_ucode_esc, otherwise that would eat this
-            items_bin32_musl+=("$fname")
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
             continue
         elif [[ "$f_type" == *"ASCII text"* ]]; then
             #  This must come after items_ucode_esc, otherwise this
             #  very generic string would match most files
+            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && do_vale "$fname"
             items_ascii+=("$fname")
             continue
-        elif ! string_in_array "$f_type" "${file_types[@]}"; then
-            #
-            #  For unhandled file types, ignore the file, just store the new file type
-            #  to a list.
-            #
-            echo ">>> Unhandled file: $fname" # - $f_type"
-            echo ">>> Unhandled type: $f_type"
-            file_types+=("$f_type")
+        fi
+        #
+        #  Only gather data about other file types, if they will be displayed in the end
+        #  in order to make this process quicker on the rather sloowish iSH systems
+        #
+        if [[ "$hour_limit" = "0" ]]; then
+
+            if [[ "$f_type" == *"C source"* ]]; then
+                items_c+=("$fname")
+                continue
+            elif [[ "$f_type" == *"openrc-run"* ]]; then
+                items_openrc+=("$fname")
+                continue
+            elif [[ "$f_type" == *"Perl script"* ]]; then
+                items_perl+=("$fname")
+                continue
+            elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
+                [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
+                #  Who might have guessed on MacOS file -b output looks different...
+                items_ucode_esc+=("$fname")
+                continue
+            elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
+                [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_ucode+=("$fname")
+                continue
+            elif [[ "$f_type" == *"makefile script"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_makefile+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ELF 64-bit LSB"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_bin64+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped"* ]]; then
+                items_bin32_other+=("$fname")
+            elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_bin32_linux_so+=("$fname")
+                continue
+            elif [[ "$f_type" == *"ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386"* ]]; then
+                #  This must come after items_ucode_esc, otherwise that would eat this
+                items_bin32_musl+=("$fname")
+                continue
+            elif ! string_in_array "$f_type" "${file_types[@]}"; then
+                #
+                #  For unhandled file types, ignore the file, just store the new file type
+                #  to a list.
+                #
+                echo ">>> Unhandled file: $fname" # - $f_type"
+                echo ">>> Unhandled type: $f_type"
+                file_types+=("$f_type")
+            fi
         fi
     done
 }
-
-#===============================================================
-#
-#   Display a given type in sorted order
-#
-#===============================================================
 
 list_item_group() {
     local lbl="$1"
@@ -318,7 +354,8 @@ list_item_group() {
     [[ ${#items[@]} -eq 0 ]] && return
     echo
     echo "---  $lbl  ---"
-    for item in $(sort_array "${items[@]}"); do
+    #  Entirely skip sorting for now
+    for item in "${items[@]}"; do
         echo "$item"
     done
 }
@@ -336,23 +373,32 @@ echo
 
 # Only lint files changed last 24h
 
-if [[ "$1" = "-f" ]]; then
+case "$1" in
+
+"") ;; #  no param
+
+"-f")
     echo "Will only check files changed in the last 24h"
     echo
     hour_limit=24
-fi
+    ;;
 
-if [[ "$1" = "-F" ]]; then
+"-F")
     echo "Will only check files changed in the last hour"
     echo
     hour_limit=1
-fi
+    ;;
 
-if [[ "$1" = "-q" ]]; then
+"-q")
     echo "Will skip any linting, only list files by type"
     echo
     hour_limit=0
-fi
+    ;;
+
+*)
+    error_msg "Unrecognized option: $1"
+    ;;
+esac
 
 #
 #  Ensure this is run in the intended location in case this was launched from
@@ -364,8 +410,6 @@ cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for t
 #  Specifix excludes
 #
 excludes=(
-    ./Alpine/cron/15min/dmesg_save
-    ./tools/not_used.sh
 )
 
 #
@@ -377,28 +421,43 @@ prefixes=(
 )
 suffixes=(
     \~
+    \#
 )
 
 identify_available_linters
 process_file_tree
 
+if [[ "$hour_limit" = "0" ]]; then
+    #
+    #  Display selected file types
+    #
+
+    list_item_group posix "${items_posix[@]}"
+    list_item_group bash "${items_bash[@]}"
+
+    list_item_group "ASCII text" "${items_ascii[@]}"
+    list_item_group perl "${items_perl[@]}"
+    list_item_group C "${items_c[@]}"
+    list_item_group makefile "${items_makefile[@]}"
+    list_item_group openrc "${items_openrc[@]}"
+    list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
+    list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
+
+    list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
+    list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
+    list_item_group "ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386.so.1, with debug_info, not stripped" "${items_bin32_other[@]}"
+
+    #
+    #  Unrecognized file types
+    #
+    if [[ ${#file_types[@]} -gt 0 ]]; then
+        list_item_group "Unclassified file types" "${file_types[@]}"
+    fi
+fi
+
 #
-#  Display selected file types
+#  Some special cases, that will always be displayed if any such item was found
 #
-
-# list_item_group posix "${items_posix[@]}"
-# list_item_group bash "${items_bash[@]}"
-
-# list_item_group "ASCII text" "${items_ascii[@]}"
-# list_item_group perl "${items_perl[@]}"
-# list_item_group C "${items_c[@]}"
-# list_item_group makefile "${items_makefile[@]}"
-# list_item_group openrc "${items_openrc[@]}"
-# list_item_group "Unicode text, UTF-8 text" "${items_ucode[@]}"
-# list_item_group "Unicode text, UTF-8 text, with escape" "${items_ucode_esc[@]}"
-
-# list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2" "${items_bin32_linux_so[@]}"
-# list_item_group "ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-i386" "${items_bin32_musl[@]}"
 
 #
 #  Make sure no bin64 items are pressent!
@@ -407,8 +466,4 @@ if [[ ${#items_bin64[@]} -gt 0 ]]; then
     echo
     echo "***  iSH can not run 64-bit bins, this is a problem!  ***"
     list_item_group "ELF 64-bit LSB executable" "${items_bin64[@]}"
-fi
-
-if [[ ${#file_types[@]} -gt 0 ]]; then
-    list_item_group "Unclassified file types" "${file_types[@]}"
 fi

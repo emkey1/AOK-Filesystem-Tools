@@ -1,0 +1,139 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  This is a dynamic login handler, can optionally
+#   - login as a pre-defined user
+#   - do continous logins, ie after session is ended a login prompt is presented
+#
+#  I first tried using a relaunch cmd triggering agetty in /etc/inittab
+#    /sbin/agetty -a root pts/0 xterm-256color
+#  but in my experimenting, I found that relaunch didnt trigger a new
+#  agetty process once the first had timed out.
+#
+#  So I instead use this, run by 'Launch cmd' it will call /bin/login
+#  directly to set up the user session
+#
+
+show_msg() {
+    msg="$1"
+
+    echo "$msg"
+    echo "$msg" >>"$f_login_status"
+}
+
+do_shutdown() {
+    echo
+    # debug alternative
+    # show_msg "Will sleep forever"
+    # /bin/sleep infinity
+
+    # show_msg "***  Will shutdown in 5s"
+    # sleep 5
+
+    /usr/local/sbin/do_shutdown
+    show_msg "Returned from do_shutdown..."
+}
+
+waiting_for_expected_runlevel() {
+    prefix_displayed=0
+    while true; do
+        current_runlevel="$(rc-status -r)"
+        if [ "$current_runlevel" = "$expected_runlevel" ]; then
+            break
+        fi
+        if [ "$prefix_displayed" = 0 ]; then
+            prefix_displayed=1
+            show_msg "If this wait continues more than arround 10 times, iSH probably failed to complete bootup, please restart the App!"
+        fi
+        show_msg "current runlevel is $current_runlevel - waiting for $expected_runlevel"
+        sleep 2
+    done
+}
+
+network_check() {
+    echo
+    show_msg "Checking networking - takes <5 seconds"
+    if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
+        if ping -c 2 google.com >/dev/null 2>&1; then
+            echo "Connected to the Internet and DNS is resolving!"
+        else
+            show_msg "***  DNS does not seem to resolve!"
+        fi
+    else
+        show_msg "***  This node seems to be offline!"
+    fi
+    echo
+}
+
+login_with_param_check() {
+    #
+    #  Do this for each login, in case changes have been made
+    #
+    if [ "$ignore_login_params" != "1" ] && [ -f "$f_default_user" ]; then
+        def_user="$(cat "$f_default_user")"
+        show_msg "autologin with default user: $def_user - can be changed by running: aok"
+        login_params="-f $def_user -d sdf -dsee"
+        /bin/login $login_params || {
+            echo
+            show_msg "ERROR: /bin/login exited with: $?, trying to use params: $login_params"
+            show_msg "reverting to basic no params login"
+            ignore_login_params=1
+            login_with_param_check
+        }
+    else
+        /bin/login || {
+            echo
+            show_msg "ERROR: login exited with: $?"
+        }
+    fi
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+expected_runlevel="default"
+f_default_user="/etc/opt/AOK/default-login-username"
+f_continous_logins="/etc/opt/AOK/continous-logins"
+f_login_status="/var/log/dynamic_login.log"
+
+#
+#  If this is not set, and f_continous_logins is not present,
+#  once login timeouts, system will shut down
+#
+export LOGIN_TIMEOUT=0 # indicate that login will never timeout
+
+show_msg ""
+show_msg "$(date)"
+
+waiting_for_expected_runlevel
+network_check
+
+while true; do
+    login_with_param_check
+    login_ex_code="$?"
+    [ "$login_ex_code" != "0" ] && {
+        echo
+        show_msg "ERROR: /bin/login exited with: $login_ex_code"
+    }
+
+    if [ -f "$f_continous_logins" ]; then
+        echo
+        show_msg "=== /bin/login terminated, will restart after sleep 3"
+        sleep 3
+    else
+        echo
+        show_msg "===  $f_continous_logins not found, will shutdown"
+        do_shutdown
+    fi
+done
+
+show_msg "===  Fell out of infinite /usr/local/sbin/dyamic_login loop, will sleep forever"
+/bin/sleep infinity

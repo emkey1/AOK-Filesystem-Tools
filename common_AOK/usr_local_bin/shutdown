@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -13,7 +13,9 @@
 #  Just doing start is not 100% to take effect
 #  depending on service states
 #
-#  Optional param 1 is appended to the system shutdown notice
+#  if first parameter is now, this will happen without delay
+#  if there is an additional parameter, it will be used
+#  in the system shutdown notice
 #
 
 # Define a function to handle Ctrl+C
@@ -24,23 +26,14 @@ interrupt_handler() {
     exit 1
 }
 
-notification=$(
-    cat <<'EOF'
-
-    *** SYSTEM SHUTDOWN NOTICE ***
-
-This machine will be shutdown in 10 seconds!!
-EOF
-)
-
 #
-#  Append param 1 if pressent on new line
+#  Set the interrupt_handler function to be called when Ctrl+C is pressed
+#  Since this will wall announcing shutdown is cancelled, it is better
+#  to activate after the initial wall is made
 #
-[ -n "$1" ] && notification="${notification}
-$1"
+trap interrupt_handler INT
 
 uid="$(id | awk -F'[(=]' '{print $2}')"
-
 if [ "$uid" -ne 0 ]; then
     echo "ERROR: shutdown requires root privileges!"
     exit 1
@@ -51,31 +44,52 @@ if ! mount | grep -qw "/"; then
     exit 2
 fi
 
+if [ "$1" = "now" ]; then
+    shift # if there is also a shutdown notice...
+    hold_time=0
+else
+    hold_time=10
+fi
+
+notification="
+
+    *** SYSTEM SHUTDOWN NOTICE ***
+
+$(hostname) will be shutdown in $hold_time seconds!!
+"
+#
+#  Append param 1 if pressent on new line
+#
+[ -n "$1" ] && notification="${notification}
+$*"
+
 /usr/local/bin/wall "$notification"
 
-#
-#  Set the interrupt_handler function to be called when Ctrl+C is pressed
-#  Since this will wall announcing shutdown is cancelled, it is better
-#  to activate after the initial wall is made
-#
-trap interrupt_handler INT
+if [ "$hold_time" != "0" ]; then
+    echo
+    echo "Abort shut down by hitting Ctrl-C within $hold_time secoonds"
+    echo
 
-echo
-echo "Abort shut down by hitting Ctrl-C within 10 secoonds"
-echo
-
-echo
-sleep 10
-
-echo "Commencing shutdown..."
-
-if test -f /etc/alpine-release; then
-    /etc/init.d/killprocs restart 2>/dev/null
-else
-    #
-    #  Debian / Deuvan does not support restart
-    #  so a stop start sequence must be done
-    #
-    /etc/init.d/killprocs stop
-    /etc/init.d/killprocs start
+    echo
+    sleep "$hold_time"
 fi
+
+#
+#  If this is done via remote connection, the openrc shutdown
+#  step would most likely terminate the session, thereby pottentially
+#  aborting the shutdown script before it completes.
+#  Thus the actual shutdown is run in a separate backgrounded script
+#  that will ignore if the triggering session disapears
+#  Since do_shutdown will shut the system down without any warning,
+#  it has no shebang, so intended shell must be mentioned by the caller.
+#
+(
+    echo
+    date
+) >>/var/log/shutdown.log
+
+#
+#  Since do_shutdown does an instant shutdown, place it in /usr/local/lib
+#  and dont give it a shebang. To minimize risk of unintentional triggering
+#
+/usr/local/sbin/do_shutdown nice &

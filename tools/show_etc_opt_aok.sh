@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
-current_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=/dev/null
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
-#  shellcheck source=/dev/null
-. "$current_dir"/run_as_root.sh
-#  shellcheck source=/dev/null
-. "$current_dir"/utils.sh # >/dev/null
+# shellcheck source=/dev/null
+. /opt/AOK/tools/utils.sh
 
 # destfs_is_alpine && echo "is alpine" || echo "NOT alpine"
 # destfs_is_select && echo "is select" || echo "NOT select"
@@ -22,13 +21,13 @@ if [[ -n "$destfs" ]]; then
 fi
 
 # shellcheck disable=SC2154
-if [[ -d "$build_root_d/etc/opt/AOK" ]]; then
+if [[ -d "$d_build_root/etc/opt/AOK" ]]; then
     echo "----"
     inspect_files=(
         "deploy_state"
     )
     for rel_fname in "${inspect_files[@]}"; do
-        fname="$build_root_d/etc/opt/AOK/$rel_fname"
+        fname="$d_build_root/etc/opt/AOK/$rel_fname"
         if [[ -f "$fname" ]]; then
             echo "$fname  - $(cat "$fname")"
         else
@@ -39,9 +38,9 @@ if [[ -d "$build_root_d/etc/opt/AOK" ]]; then
     echo
 fi
 
-if [[ -n "$build_root_d" ]] && [[ -d "$build_root_d/etc/opt" ]]; then
+if [[ -n "$d_build_root" ]] && [[ -d "$d_build_root/etc/opt" ]]; then
     echo "=====   Dest FS"
-    find "$build_root_d"/etc/opt | tail -n +2
+    find "$d_build_root"/etc/opt | tail -n +2
     echo
 fi
 

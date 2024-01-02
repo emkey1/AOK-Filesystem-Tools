@@ -34,13 +34,9 @@ msg_2 "Downloading $src_image"
 #  Ensure basename for tar ball is used
 wget "$src_image" -O "$devuan_src_tb"
 
-t_extract="$(date +%s)"
 msg_1 "Extracting Devuan (will show unpack time)"
 distro_tmp_dir="/Devuan"
 create_fs "$src_tarball" "$distro_tmp_dir"
-duration="$(($(date +%s) - t_extract))"
-display_time_elapsed "$duration" "Unpacking Devuan"
-unset duration
 
 msg_3 "Extracted Devuan tarball"
 
@@ -53,7 +49,7 @@ msg_3 "maintaining /etc/opt"
 cp -a /etc/opt "$distro_tmp_dir"/etc
 
 msg_2 "Moving Devuan /etc/profile into place"
-cp "$aok_content"/Devuan/etc/profile "$distro_tmp_dir"/etc/profile
+cp "$d_aok_base"/Devuan/etc/profile "$distro_tmp_dir"/etc/profile
 
 rm -rf "$devuan_download_location"
 
@@ -115,7 +111,7 @@ msg_3 "Putting Devuan stuff into place"
 
 #  From now on Devuan should be fully available
 
-rm -f "$destfs_select_hint"
+rm -f "$f_destfs_select_hint"
 
 if [ -n "$orig_log_file" ]; then
     LOG_FILE="$orig_log_file"

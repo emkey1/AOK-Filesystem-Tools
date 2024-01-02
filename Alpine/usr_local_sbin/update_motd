@@ -1,12 +1,19 @@
 #!/bin/sh
-
 #
-#  This is run during boot-up, and the intended usage case is if you want to
-#  update /etc/motd every time this boots. For instance if it should indicate
-#  the current iSH release, if you are using TestFlight, this might be updated
-#  between runs without human intervention. It could happen also with AppStore
-#  but not on a near daily basis.
-#  hostname might also change between boot-ups.
+#  shellcheck disable=SC2154
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Unfortunately the console session starts before the boot process has
+#  completed. This means that the console will see the "old" version of
+#  /etc/motd, might be mildly confusing if you have just upgraded to a
+#  new Alpine release. Something like 1-2 seconds after this is displayed
+#  on the console, the file is updated, so for ssh sessions, they will
+#  always see the current content. If you are curious you can alwats do
+#  a: cat /etc/motd
+#  Otherwise just boot again, then it should have catched up.
 #
 
 #
@@ -16,20 +23,19 @@
 motd_file="/etc/motd"
 motd_template="/etc/motd_template"
 aok_release="/etc/aok-release"
-
-echo "[35m===>  Welcome to: $(hostname)  <===" >"$motd_file"
-echo "Alpine release: $(cat /etc/alpine-release)" >>"$motd_file"
+alp_rel="$(grep VERSION_ID /etc/os-release | cut -d'=' -f2)"
 
 if [ -e "$aok_release" ]; then
-    echo "AOK release:    $(cat "$aok_release")" >>"$motd_file"
+    echo "[35mAOK-FS release:  $(cat "$aok_release")[0m" >"$motd_file"
 fi
+
+echo "[35mAlpine release:  $alp_rel[0m" >>"$motd_file"
 
 if [ -d /proc/ish ]; then
-    # Dont do this whilst chrooted in linux etc
-    echo "iSH release:    $(cat /proc/ish/version)" >>"$motd_file"
+    ish_rel="$(cat /proc/ish/version)"
 else
-    echo "iSH release:    Can't be detected whilst chrooted" >>"$motd_file"
+    ish_rel="Can't be detected whilst chrooted"
 fi
+echo "[35miSH release:     $ish_rel[0m" >>"$motd_file"
 
-echo "[0m" >>"$motd_file"
 cat "$motd_template" >>"$motd_file"

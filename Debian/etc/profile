@@ -2,7 +2,7 @@
 # Fake bangpath to trick linters and editors
 #  shellcheck disable=SC2292
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #

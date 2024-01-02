@@ -4,7 +4,7 @@
 # ShellCheck conditions at the top of the file are globals
 # shellcheck disable=SC2034
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -23,7 +23,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.9.1b"
+AOK_VERSION="0.11.0.4"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -31,95 +31,105 @@ AOK_VERSION="0.9.1b"
 USER_NAME="ish"
 
 #
-# Shell for user USER_NAME (if defined)
+# Shell for account USER_NAME (if defined) if  USER_NAME is defined
+# root will also use this shell by default, to make switching used simpler
 #
 USER_SHELL="/bin/bash"
 
 #
-#  Replaces /root and user home dir with pre-defined content, if defined
+#  Alternatives are: enable disable once
+#  If USER_NAME is not set INITIAL_LOGIN_MODE will be forced to disable
+#
+INITIAL_LOGIN_MODE="enable"
+
+#
+#  If you want to hard-code timezone, the FS will be setup without
+#  giving the option to select time-zone.
+#  During testing its a convenient thing to set, not having to select
+#  a TZ for every install.
+#
+# AOK_TIMEZONE="Europe/Berlin"
+
+#
+#  cron (dcron for Alpine), will allaways be installed
+#  /etc/periodic placeholders will be created and a root crontab
+#  running the periodics will be put in place.
+#  The service will only be enabled if USE_CRON_SERVICE is set to "Y"
+#  Otherwise theese settings have no impact on performance.
+#  You can always decide later to activate the service.
+#
+# USE_CRON_SERVICE="Y"
+
+#
+#  Replaces /root and USER_NAME home dirs with pre-defined content
+#  If USER_NAME is not set HOME_DIR_USER will be ignored.
 #
 # HOME_DIR_USER="/iCloud/ish_config/home_user.tgz"
 # HOME_DIR_ROOT="/iCloud/ish_config/home_root.tgz"
 
 #
-#  Alternatives are: enable disable once
-#
-INITIAL_LOGIN_MODE="enable"
-
-#
-#  Should normally not be set! If you want to hard-code timezone,
-#  The FS will be setup without giving the option to select time-zone.
-#  During testing its a convenient thing to set, not having to select a TZ
-#  for every install.
-#
-# AOK_TIMEZONE="Europe/Berlin"
-
-#
-#  If you run both iSH-AOK and regular iSH on the same device
-#  this setting modifies the hostname for aok kernels to have -aok suffix
-#  So my iPad JacPad would be calling itself JacPad-aok if you check
-#  `hostname` on iSH-AOK and JacPad if you check on regular iSH
-#
-# AOK_HOSTNAME_SUFFIX="Y"
-
-#
-#  If you manually want to add something to the new FS, before deploy
+#  If you want to manually add something to the new FS, before deploy
 #  begins. Remember that from the outside, the new FS is located at
-#  $TMPDIR/AOK/FS
+#  $TMPDIR/aok_fs, if TMPDIR is undefined it defaults to /tmp
 #  I use this when I want to simulate a mounted /iCloud env like what I
-#  would have on my iPad, whilst testing the FS on a linux host chrooted
+#  would have on my iPad, whilst testing the FS on a Linux build host
 #  If the FS is being compressed its /iCloud is first cleared, so
 #  anything you put in /iCloud will only be available for chrooted
 #  sessions on the build host.
+#  If you put stuff in locations other than /iCloud it will be
+#  kept in the compressed FS
 #
-# POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/AOK/FS"
-
+# POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/aok_fs"
 #
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time
 #  when it should be running inside a full AOK FS
 #  If this is a script, it must be available with this PATH on the new
 #  FS, that means it most likely needs to be in the iCloud mount.
-#  This one it is better to define in .AOK_VARS
+#  Unless you have used POPULATE_FS to insert it into the regular FS
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
-
-#
-#  Should normally not be changed! Enabling his will create a limited env
-#  missing features and functionality!
-#
-#  Purpose is to speed up the deploy cycle when testing and improving
-#  the build processess on slow devices, by cutting down on deploy heavy
-#  usability features.
-#
-#  Valid settings
-#  --------------
-#  0 - Disabled, full deploy will happen
-#  1 - all quick deploy options are active, CORE_APKS will not be installed
-#  2 - CORE_APKS will be installed, all other QUICK_DEPLOY conditions will
-#      be followed. Handle this in your .AOK_VARS something like this:
-#
-#      if [ "$QUICK_DEPLOY" -gt 1 ]; then
-#          #
-#          #  Minimal list that will generate a usable system depends
-#          #  on how you use it
-#          #
-#          CORE_APKS="openrc openssh-client bash"
-#      else
-#          #  Normal build - Skipping fortune, some like it I don't :)
-#          CORE_APKS="$(echo "$CORE_APKS" | sed 's/fortune//')"
-#      fi
-#
-QUICK_DEPLOY=0
 
 #
 #  If LOG_FILE is defined build progress printed is also logged to this
 #  file. This is mostly useful as a debugging tool, if during the deploy
 #  something goes wrong and iSH crashes. This way you can at least get
 #  an idea of how far things progressed before something broke.
-#  This one it is better to define in .AOK_VARS
+#  The path defines will be inside the new FS
+#
+#  OBSOLETE, no longer needed since deploy steps are wrapped inside
+#  an outes shell, and will no longer crash the deploy
+#  code related to this will be removed very soon!
 #
 # LOG_FILE=/var/log/aokfs-build.log
+
+########################################################################
+#
+#                   Hostname handling
+#
+########################################################################
+
+#
+#  Since iOS 17.0 iSH is no longer able to provide hostname at startup.
+#  If this is set to /etc/hostname, its content will only be displayed,
+#  and that file needs to be manually changed.
+#  Any other path would be asumed to be a sync file, written to by an iOS
+#  shortcut providing current hostname. The last line of this file will
+#  be copied to /etc/hostname when /usr/local/bin/hostname is run with -U
+#  If this is not defined alternate hostname will not be installed during
+#  deploy unless iOS >= 17.
+#  It can be installed later by running: aok -H enable
+#
+# ALT_HOSTNAME_SOURCE_FILE="/iCloud/temp/hostname_by_shortcut.txt"
+
+#
+#  If you run both iSH-AOK and regular iSH on the same device
+#  this setting modifies the hostname for aok kernels to have -aok suffix
+#  So my iPad JacPad would be calling itself JacPad-aok if you check
+#  `hostname` on iSH-AOK and JacPad if you check on regular iSH
+#  This feature also works for iOS >= 17
+#
+# AOK_HOSTNAME_SUFFIX="Y"
 
 ########################################################################
 #
@@ -128,15 +138,30 @@ QUICK_DEPLOY=0
 ########################################################################
 
 #
-#  ALPINE_VERSION defines what Alpine release will be used
+#  ALPINE_VERSION defines what Alpine release (minirootfs) will be used
 #
 # ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.7 # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.16.7  # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
-ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
+ALPINE_VERSION=3.18.4 # End of Alpine support 2025-05-09
 #
-# 2023-07-28 edge doesn't work ATM, will investigate...
-# #ALPINE_VERSION=edge # Current development tree
+#  For edge releases - Current development tree
+#  Format is the isodate featured in the minirootfs filename
+#  Meaning that: alpine-minirootfs-20230901-x86.tar.gz
+#  Would be requested as: ALPINE_VERSION="20230901"
+#
+# ALPINE_VERSION="20230901"  # 3.19_alpha20230901
+# ALPINE_VERSION="20230329"  # 3.18_alpha20230329
+# ALPINE_VERSION="20221110"  # 3.17_alpha20221110
+#
+#  If you need to detect if the build is an edge release in your
+#  .AOK_VARS, when making config desicions,
+#  you can check it thus:
+#
+#  if echo "$ALPINE_VERSION" | grep -Eq '^[0-9]{8}$'; then
+#      echo "this is edge"
+#  fi
+#
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
@@ -149,9 +174,9 @@ ALPINE_VERSION=3.18.3 # End of Alpine support 2025-05-09
 #
 #  Always installed packages
 #
-pkgs_tools="busybox-extras coreutils util-linux sudo shadow \
-    shadow-login tzdata findutils sed tar file gawk grep less git \
-    sqlite fzf py3-pip ncdu"
+pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
+    shadow-login tzdata findutils sed tar file gawk grep htop less \
+    git sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
@@ -164,12 +189,10 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #
 #  Additional packages. These don't work with stock iSH but work with
 #  iSH-AOK and will probably work with the Linux Kernel iSH
-#  Will only be installed if the kernel is identified as iSH-AOK.
-#  If doing a prebuild, these will be installed regardless of
-#  build platform, then on first boot at dest device, they
-#  will be removed if at this time the env is not iSH-AOK
-#
-AOK_APKS="procps nload"
+#  Will only be installed if the kernel is identified as iSH-AOK
+#  on first boot at dest device,
+#  not 3.17
+AOK_APKS="nload nload-doc"
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok_groups
@@ -179,27 +202,27 @@ AOK_APKS="procps nload"
 #  conveniently than having to open this file and then do cut/paste
 #  repeatedly.
 #
-#  You can add/modify all the groups to your liking.
-#  Again, consider using .AOK_VARS
+#  You can add/modify groups to your liking.
 #
-VNC_APKS="x11vnc xvfb xterm xorg-server xf86-video-dummy i3wm i3status \
-    i3lock xdpyinfo xdpyinfo-doc i3wm-doc i3lock-doc i3status-doc \
-    ttf-dejavu"
-
-DEVEL_APKS="build-base linux-headers cmake automake autoconf byacc \
-    ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
+VNC_APKS="x11vnc x11vnc-doc xvfb xterm xorg-server xf86-video-dummy \
+    i3wm i3wm-doc i3lock i3lock-doc i3status i3status-doc xdpyinfo \
+    xdpyinfo-doc ttf-dejavu"
+DEVEL_APKS="build-base musl-dev linux-headers cmake automake autoconf \
+    byacc ncurses-dev openssl-dev readline-dev libffi-dev openssl-dev \
     bzip2-dev zlib-dev xz-dev sqlite-dev tk-dev libevent-dev \
     libtool ncurses-dev python3-dev"
 NODEJS_APKS='nodejs nodejs-dev'
-# BLOAT3_APKS='emacs neofetch'
-
-DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
-    tmux-doc mandoc shadow-doc mosh-doc fortune-doc tzdata-doc \
-    elinks-doc dcron-doc vim-doc ncftp-doc coreutils-doc findutils-doc \
-    tar-doc ncurses-doc less-doc sed-doc gawk-doc grep-doc \
-    util-linux-doc tzdata-doc x11vnc-doc xdpyinfo-doc i3wm-doc \
-    i3lock-doc i3status-doc strace-doc mandoc man-pages bash-doc \
-    strace-doc procps-doc rsync-doc"
+#
+#  This only contains man pages for apps installed by default,
+#  not development related man pages, those doing development are
+#  assumed to know what man pages they might need :)
+#
+DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
+    shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
+    tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
+    sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
+    dcron-doc openssh-doc rsync-doc curl-doc wget-doc elinks-doc \
+    mosh-doc vim-doc nano-doc mg-doc newt-doc tmux-doc fortune-doc"
 
 ########################################################################
 #
@@ -208,19 +231,29 @@ DOCS_APKS="openssh-doc openrc-doc nload-doc procps-doc \
 ########################################################################
 
 #
-#  If this type of install is selected, this tarball will be used as base image
+#  If this type of install is selected, this tarball will be used as
+#  base image. Since apt install tends to be really slow on iSH-AOK,
+#  these images comes with all the default AOK_FS stuff pre-installed
+#  If you want to get rid of some default packages, use DEB_PKGS_SKIP
+#  Best of all if you pre-build, this package removal happens on the
+#  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/90a9s46b3qtox36wttre5/Debian10-ish-base-v42.tgz"
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/tlj1rqz2b4pxrkghiyt8b/Debian10-7-aok-1.tgz?rlkey=hculgm6kqqihfqwe1ey2anb8q"
 
 #
-#  Use alternate malloc suggested by xloem for Debian, still in development
+#  Since the Debian src image comes pre installed as close as possibly
+#  matching the Alpine packages, here you can list packages that should
+#  be excluded. This happens during the pre-build when it isused,
+#  it saves time compared to having to do it on the target device.
+#  DEB_PKGS_SKIP is processed before DEB_PKGS to ensure that
+#  this doesnt unintentionally deelete something for DEB_PKGS
 #
-# USE_MIMALLOC="YES"
+DEB_PKGS_SKIP=""
 
 #
-#  All the basics are installed, here one can add any additional
-#  packages to be installed during setup
+#  All the AOK packages used on Alpine are pre-installed,
+#  here one can add any additional packages to be installed during setup
+#  If pre-build is used, this will happen on the build host.
 #
 DEB_PKGS=""
 
@@ -229,5 +262,47 @@ DEB_PKGS=""
 #  If the file(-s) are relevant both for Alpine and Debian, point it to the same
 #  template file.
 #  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
+#  This points to a location on the destination device.
 #
 # DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
+
+########################################################################
+#
+#                   Devuan Specific
+#
+########################################################################
+
+#
+#  If this type of install is selected, this tarball will be used as
+#  base image. Since apt install tends to be really slow on iSH-AOK,
+#  these images comes with all the default AOK_FS stuff pre-installed
+#  If you want to get rid of some default packages, use DVU_PKGS_SKIP
+#  Best of all if you pre-build, this package removal happens on the
+#  buil-host, so will not have to be done on the dest device!
+#
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
+
+#
+#  Since the Devuan src image comes pre installed as close as possibly
+#  matching the Alpine packages, here you can list packages that should
+#  be excluded. This happens during the pre-build when it isused,
+#  it saves time compared to having to do it on the target device.
+#  DVU_PKGS_SKIP is processed before DVU_PKGS to ensure that
+#  this doesnt unintentionally deelete something for DVU_PKGS
+#
+DVU_PKGS_SKIP=""
+
+#
+#  Here one can add any additional packages to be installed during setup
+#  If pre-build is used, this will happen on the build host.
+#
+DVU_PKGS=""
+
+#
+#  Use this if you want to deploy your own /etc/hosts file etc
+#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
+#  template file.
+#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
+#  This points to a location on the destination device.
+#
+# DEVUAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"

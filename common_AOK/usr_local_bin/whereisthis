@@ -16,7 +16,13 @@ filter_out_chars() {
 #
 if ! command -v jq >/dev/null; then
     echo "Installing missing dependency jq"
-    sudo apk add jq || {
+    if [ -f /etc/debian_version ]; then
+        inst_pkg="apt install"
+    else
+        inst_pkg="apk add"
+    fi
+    #  shellcheck disable=SC2086 # in this case it should expand
+    sudo $inst_pkg jq || {
         echo "ERROR: Failed to install jq"
         exit 1
     }

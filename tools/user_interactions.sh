@@ -2,7 +2,7 @@
 # This is sourced. Fake bang-path to help editors and linters
 #  shellcheck disable=SC2154
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -33,7 +33,7 @@ user_interactions() {
 
     if [ -z "$AOK_TIMEZONE" ]; then
         msg_1 "Timezone selection"
-        "$aok_content"/common_AOK/usr_local_bin/set-timezone
+        "$d_aok_base"/common_AOK/usr_local_bin/set-timezone
     fi
     # msg_3 "user_interactions()  - done"
 }
@@ -64,7 +64,7 @@ should_icloud_be_mounted() {
         fi
         if destfs_is_alpine; then
             apk add "$sibm_dependency"
-        elif [ -f "$file_debian_version" ]; then
+        elif [ -f "$f_debian_version" ]; then
             apt install "$sibm_dependency"
         else
             error_msg "Unrecognized distro, aborting"

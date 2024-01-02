@@ -2,7 +2,7 @@
 # This is sourced. Fake bang-path to help editors and linters
 #  shellcheck disable=SC2034,SC2154
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
 #  License: MIT
 #
@@ -13,9 +13,51 @@
 
 #
 #  Display an error message, second optional param is exit code,
-#  defaulting to 1. If exit code is 0 this will not exit, just display
+#  defaulting to 1. If exit code is no_exit this will not exit, just display
 #  the error message, then continue.
 #
+
+log_it() {
+    _li="$1"
+    if [ -z "$_li" ]; then
+        unset LOG_FILE # ensure new call to error_msg doesnt suffer logfile
+        error_msg "log_it() - no param!"
+    fi
+    if [ -z "$LOG_FILE" ]; then
+        unset LOG_FILE # ensure new call to error_msg doesnt suffer logfile
+        error_msg "log_it() called without LOG_FILE defined!"
+    fi
+    #  Ensure dir for LOG_FILE exists
+    _log_dir="$(dirname -- "${d_build_root}$LOG_FILE")"
+    if [ ! -d "$_log_dir" ]; then
+        echo "Will create log_dir: $_log_dir"
+        # sleep 3
+        mkdir -p "$_log_dir"
+    fi
+
+    #
+    #  In case this was run in a FIRST_BOOT_ADDITIONAL_TASKS
+    #  and in a script run as USER_NAME, sudo will avoid
+    #  Permission denied errors
+    #
+    if [ "$(whoami)" != "root" ]; then
+        _lf_path="$(dirname "$LOG_FILE")"
+        _lf_name="$(basename "$LOG_FILE")"
+        _log_file="$_lf_path/${USER_NAME}-$_lf_name"
+        unset _lf_path
+        unset _lf_name
+        sudo touch "$_log_file"
+        sudo chown "$USER_NAME" "$_log_file"
+    else
+        _log_file="${d_build_root}$LOG_FILE"
+    fi
+    echo "$_li" >>"$_log_file" # 2>&1
+
+    unset _log_file
+    unset _li
+    unset _log_dir
+}
+
 error_msg() {
     _em_msg="$1"
     _em_exit_code="${2:-1}"
@@ -23,13 +65,25 @@ error_msg() {
         echo
         echo "error_msg() no param"
         exit 9
+    elif [ "$_em_exit_code" = "0" ]; then
+        echo
+        echo "error_msg() second parameter was 0"
+        echo "            if continuation is desired use no_exit"
+        exit 9
     fi
 
+    _em_msg="ERROR: $_em_msg"
     echo
-    echo "ERROR: $_em_msg"
+    echo "$_em_msg"
     echo
-    [ -n "$LOG_FILE" ] && echo "ERROR: $_em_msg" >>"$LOG_FILE" 2>&1
-    [ "$_em_exit_code" -gt -1 ] && exit "$_em_exit_code"
+    [ -n "$LOG_FILE" ] && log_it "$_em_msg"
+
+    if [ "$_em_exit_code" = "no_exit" ]; then
+        echo "no_exit given, will continue"
+        echo
+    else
+        exit "$_em_exit_code"
+    fi
     unset _em_msg
     unset _em_exit_code
 }
@@ -56,22 +110,28 @@ debug_sleep() {
 #
 msg_1() {
     [ -z "$1" ] && error_msg "msg_1() no param"
+    _msg="===  $1  ==="
     echo
-    echo "===  $1  ==="
+    echo "$_msg"
     echo
-    [ -n "$LOG_FILE" ] && echo "[$(date)] ===  $1  ===" >>"$LOG_FILE" 2>&1
+    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    unset _msg
 }
 
 msg_2() {
     [ -z "$1" ] && error_msg "msg_2() no param"
-    echo "---  $1"
-    [ -n "$LOG_FILE" ] && echo "[$(date)] ---  $1" >>"$LOG_FILE" 2>&1
+    _msg="---  $1"
+    echo "$_msg"
+    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    unset _msg
 }
 
 msg_3() {
     [ -z "$1" ] && error_msg "msg_3() no param"
-    echo "  -  $1"
-    [ -n "$LOG_FILE" ] && echo "[$(date)]   -  $1" >>"$LOG_FILE" 2>&1
+    _msg="  -  $1"
+    echo "$_msg"
+    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    unset _msg
 }
 
 msg_script_title() {
@@ -79,9 +139,94 @@ msg_script_title() {
     echo
     echo "***"
     echo "***  $1"
+    if [ -f "$f_aok_fs_release" ]; then
+        echo "***"
+        echo "***    creating AOK-FS: $(cat "$f_aok_fs_release")"
+    fi
     echo "***"
     echo
 
+}
+
+display_time_elapsed() {
+    _dte_t_in="$1"
+    _dte_label="$2"
+
+    _dte_mins="$((_dte_t_in / 60))"
+    _dte_seconds="$((_dte_t_in - _dte_mins * 60))"
+
+    #  Add zero prefix when < 10
+    [ "$_dte_mins" -gt 0 ] && [ "$_dte_mins" -lt 10 ] && _dte_mins="0$_dte_mins"
+    [ "$_dte_seconds" -lt 10 ] && _dte_seconds="0$_dte_seconds"
+
+    echo
+    echo "Time elapsed: $_dte_mins:$_dte_seconds - $_dte_label"
+    echo
+    unset _dte_t_in
+    unset _dte_label
+    unset _dte_mins
+    unset _dte_seconds
+}
+
+create_fs() {
+    #
+    #  Extract a $1 tarball at $2 location - verbose flag $3
+    #
+    msg_2 "create_fs()"
+    _cf_tarball="$1"
+    [ -z "$_cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
+    _cf_fs_location="${2:-$d_build_root}"
+    msg_3 "will be deployed in: $_cf_fs_location"
+    _cf_verbose="${3:-false}"
+    if $_cf_verbose; then # verbose mode
+        _cf_verbose="v"
+    else
+        _cf_verbose=""
+    fi
+    [ -z "$_cf_fs_location" ] && error_msg "no _cf_fs_location detected"
+    mkdir -p "$_cf_fs_location"
+    cd "$_cf_fs_location" || {
+        error_msg "Failed to cd into: $_cf_fs_location"
+    }
+
+    msg_3 "Extracting tarball, unpack time will be displayed"
+    case "$src_tarball" in
+    *alpine*) _cf_time_estimate="A minirootfs should not take that long" ;;
+    *)
+        _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
+        ;;
+    esac
+    msg_3 "  $_cf_time_estimate"
+    msg_3 "$_cf_tarball"
+    unset _cf_time_estimate
+
+    if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
+        _cf_filter="z"
+    else
+        msg_3 "detected bzip2 format"
+        _cf_filter="j"
+    fi
+
+    t_img_extract_start="$(date +%s)"
+    tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
+        echo "ERROR: Failed to untar image"
+        echo
+        echo "Try to remove the cached file and run this again"
+        echo "$d_src_img_cache/$src_tarball"
+        exit 1
+    }
+    t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
+    display_time_elapsed "$t_img_extract_duration" "Extract image"
+    unset t_img_extract_start
+    unset t_img_extract_duration
+
+    deploy_state_set "$deploy_state_initializing"
+
+    unset _cf_tarball
+    unset _cf_fs_location
+    unset _cf_verbose
+    unset _cf_filter
+    # msg_3 "create_fs() done"
 }
 
 min_release() {
@@ -143,15 +288,15 @@ initiate_deploy() {
     [ -z "$_ss_vers_info" ] && error_msg "initiate_deploy() no vers_info provided"
 
     # buildtype_set "$_ss_distro_name"
-    test -f "$additional_tasks_script" && notification_additional_tasks
+    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+        msg_2 "At the end of the install, additioal tasks will be run:"
+        echo "--------------------"
+        echo "$FIRST_BOOT_ADDITIONAL_TASKS"
+        echo "--------------------"
+    fi
     echo
 
-    msg_1 "Setting up iSH-AOK FS: $AOK_VERSION for ${_ss_distro_name}: $_ss_vers_info"
-
-    if [ "$QUICK_DEPLOY" -ne 0 ]; then
-        echo
-        echo "***  QUICK_DEPLOY=$QUICK_DEPLOY   ***"
-    fi
+    msg_1 "Setting up ${_ss_distro_name}: $_ss_vers_info"
 
     manual_runbg
 
@@ -174,88 +319,51 @@ set_new_etc_profile() {
     #  Avoid file replacement whilst running doesnt overwrite the
     #  previous script without first removing it, leaving a garbled file
     #
-    rm "$build_root_d"/etc/profile
+    rm "$d_build_root"/etc/profile
 
-    cp -a "$sp_new_profile" "$build_root_d"/etc/profile
+    if [ "$(basename "$sp_new_profile")" = "profile" ]; then
+        cp -a "$sp_new_profile" "$d_build_root"/etc/profile
+    else
+        (
+            echo "#"
+            echo "#  Script that is part of deploy,  wrap it inside other script"
+            echo "#  so that any error exits dont exit ish, just aborts deploy"
+            echo "#  special case exit 123 exits the profile, useful for prebuild"
+            echo "#  to exit out of the chroot"
+            echo "#"
+            echo "$sp_new_profile"
+            echo 'ex_code="$?"'
+            #  shellcheck disable=SC2016
+            echo '[ "$ex_code" = "123" ] && exit  # 123=prebuild done, exit without error' # use single quotes so $? isnt expanded here
+            #  shellcheck disable=SC2016
+            echo 'if [ "$ex_code" -ne 0 ]; then'
+
+            #
+            #  Use printf without linebreak to use continuation to
+            #  do first part of line expanding variables, and second part
+            #  not expanding them
+            #
+            printf "    echo \"ERROR: %s exited with code: " "$sp_new_profile"
+            #  shellcheck disable=SC2016
+            echo '$ex_code"'
+            echo "fi"
+            echo ""
+            echo "#"
+            echo "#  Since the deploy script was run in a subshell, its path"
+            echo "#  cant be shared when exiting deploy and dropping into an"
+            echo "#  interactive env, so here comes a generic path"
+            echo "#"
+            echo "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ) >"$d_build_root"/etc/profile
+    fi
 
     #
     #  Normaly profile is sourced, but in order to be able to directly
     #  run it if manually triggering a deploy, make it executable
     #
-    chmod 744 "$build_root_d"/etc/profile
+    chmod 744 "$d_build_root"/etc/profile
     unset sp_new_profile
     # msg_3 "set_new_etc_profile() done"
-}
-
-create_fs() {
-    #
-    #  Extract a $1 tarball at $2 location - verbose flag $3
-    #
-    msg_2 "create_fs()"
-    _cf_tarball="$1"
-    [ -z "$_cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
-    _cf_fs_location="${2:-$build_root_d}"
-    msg_3 "will be deployed in: $_cf_fs_location"
-    _cf_verbose="${3:-false}"
-    if $_cf_verbose; then # verbose mode
-        _cf_verbose="v"
-    else
-        _cf_verbose=""
-    fi
-    [ -z "$_cf_fs_location" ] && error_msg "no _cf_fs_location detected"
-    mkdir -p "$_cf_fs_location"
-    cd "$_cf_fs_location" || {
-        error_msg "Failed to cd into: $_cf_fs_location"
-    }
-
-    case "$src_tarball" in
-    *alpine*) _cf_time_estimate="Should not take that long" ;;
-    *) _cf_time_estimate="will take a while (iPad 7th:14 iPad 9th:6 minutes)" ;;
-    esac
-    msg_3 "Extracting $_cf_tarball $_cf_time_estimate"
-    unset _cf_time_estimate
-
-    if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
-        _cf_filter="z"
-    else
-        msg_3 "detected bzip2 format"
-        _cf_filter="j"
-    fi
-
-    tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
-        echo "ERROR: Failed to untar image"
-        echo
-        echo "Try to remove the cached file and run this again"
-        echo "$src_img_cache_d/$src_tarball"
-        exit 1
-    }
-    deploy_state_set "$deploy_state_initializing"
-
-    unset _cf_tarball
-    unset _cf_fs_location
-    unset _cf_verbose
-    unset _cf_filter
-    # msg_3 "create_fs() done"
-}
-
-display_time_elapsed() {
-    _dte_t_in="$1"
-    _dte_label="$2"
-
-    _dte_mins="$((_dte_t_in / 60))"
-    _dte_seconds="$((_dte_t_in - _dte_mins * 60))"
-
-    #  Add zero prefix when < 10
-    [ "$_dte_mins" -gt 0 ] && [ "$_dte_mins" -lt 10 ] && _dte_mins="0$_dte_mins"
-    [ "$_dte_seconds" -lt 10 ] && _dte_seconds="0$_dte_seconds"
-
-    echo
-    echo "Time elapsed: $_dte_mins:$_dte_seconds - $_dte_label"
-    echo
-    unset _dte_t_in
-    unset _dte_label
-    unset _dte_mins
-    unset _dte_seconds
 }
 
 copy_local_bins() {
@@ -267,7 +375,7 @@ copy_local_bins() {
 
     # msg_1 "Copying /usr/local stuff from $_clb_base_dir"
 
-    _clb_src_dir="${aok_content}/${_clb_base_dir}/usr_local_bin"
+    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_bin"
     if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
         mkdir -p /usr/local/bin
@@ -275,8 +383,7 @@ copy_local_bins() {
         chmod +x /usr/local/bin/*
     fi
 
-    _clb_src_dir="${aok_content}/${_clb_base_dir}/usr_local_sbin"
-    # if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
+    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
     if [ -d "$_clb_src_dir" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
         mkdir -p /usr/local/sbin
@@ -288,40 +395,102 @@ copy_local_bins() {
     # msg_3 "copy_local_bins() done"
 }
 
-copy_skel_files() {
-    _csf_dest="$1"
-    if [ -z "$_csf_dest" ]; then
-        error_msg "copy_skel_files() needs a destination param"
-    fi
-    cp -r /etc/skel/. "$_csf_dest"
-    cd "$_csf_dest" || {
-        error_msg "Failed to cd into: $_csf_dest"
+obsolete_setup_login() {
+    #
+    #  What login method will be used is setup during FIRST_BOOT,
+    #  at this point we just ensure everything is available and initial boot
+    #  will use the default loging that should work on all platforms.
+    #
+    # SKIP_LOGIN
+
+    _distro="$(hostfs_detect)"
+
+    # Devuan shares login bins wirh Debian
+    [ "$_distro" = "$distro_devuan" ] && _distro="$distro_debian"
+
+    msg_2 "Install $_distro AOK login methods"
+    cp "$d_aok_base/$_distro/bin/login.loop" /bin
+    chmod +x /bin/login.loop
+    cp "$d_aok_base/$_distro/bin/login.once" /bin
+    chmod +x /bin/login.once
+
+    mv /bin/login /bin/login.original
+    ln -sf /bin/login.original /bin/login
+
+    #
+    #  In order to ensure 1st boot will be able to run, for now
+    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
+    #  method will be activated at the end of the setup
+    #
+    /usr/local/bin/aok -l disable >/dev/null || {
+        error_msg "Failed to disable login during deploy"
     }
 
-    ln -sf .bash_profile .bashrc
-
-    unset _csf_dest
+    if [ ! -L /bin/login ]; then
+        ls -l /bin/login
+        error_msg "At this point /bin/login should be a softlink!"
+    fi
+    unset _distro
 }
 
-set_initial_login_mode() {
-    if [ -n "$INITIAL_LOGIN_MODE" ]; then
-        #
-        #  Now that final_tasks have run as root, the desired login method
-        #  can be set.
-        #
-        msg_2 "Using defined login method. It will be used next time App is run"
-        /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
-    else
-        msg_2 "No login mode defined, disabling console login"
-        /usr/local/bin/aok -l disable
+rsync_chown() {
+    #
+    #  Local copy, changing ovnership to root:
+    #
+    # msg_2 "rsync_chown()"
+    src="$1"
+    d_dest="$2"
+    [ -z "$src" ] && error_msg "rsync_chown() no source param"
+    [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
+    # echo "[$src] -> [$d_dest]"
+    rsync -ahP --exclude=.~ --chown=root:root "$src" "$d_dest" | grep -v ^./$
+    # rsync -ahv --exclude=.~ --chown=root:root "$src" "$d_dest"
+    unset src
+    unset d_dest
+    # msg_3 "rsync_chown() - done"
+}
+
+display_installed_versions() {
+    #
+    #  Display versions of deployed environment
+    #
+    if hostfs_is_alpine; then
+        # cat /etc/motd | head -n 3
+        head -n 3 </etc/motd
+        echo "[0m"
+    elif hostfs_is_debian; then
+        /etc/update-motd.d/11-aok-release
+        /etc/update-motd.d/12-deb-vers
+        /etc/update-motd.d/13-ish-release
+        echo
+    elif hostfs_is_devuan; then
+        /etc/update-motd.d/11-aok-release
+        /etc/update-motd.d/12-devu-vers
+        /etc/update-motd.d/13-ish-release
+        echo
     fi
 }
 
-#===============================================================
+installed_versions_if_prebuilt() {
+    if deploy_state_is_it "$deploy_state_pre_build"; then
+        echo
+        display_installed_versions
+    fi
+}
+
+ensure_ish_or_chrooted() {
+    #
+    #  Simple test to make sure this is not run on a non iSH host
+    #
+    this_is_ish && return
+    this_fs_is_chrooted && return
+}
+
+#---------------------------------------------------------------
 #
 #   boolean checks
 #
-#===============================================================
+#---------------------------------------------------------------
 
 this_is_ish() {
     test -d /proc/ish
@@ -331,112 +500,64 @@ this_is_aok_kernel() {
     grep -qi aok /proc/ish/version 2>/dev/null
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   chroot handling
 #
-#  Theese are convenience hints that can be set in order for
-#  scipts to keep
-#
-#===============================================================
+#---------------------------------------------------------------
 
 this_fs_is_chrooted() {
     #  Check this _ACTUAL_ fs
-    [ -n "$DEBUG_BUILD" ] && msg_2 "this_fs_is_chrooted() [$f_this_fs_is_chrooted_raw]"
-    [ -f "$f_this_fs_is_chrooted_raw" ]
+    [ -f "$f_host_fs_is_chrooted" ]
 }
+
 dest_fs_is_chrooted() {
-    [ -n "$DEBUG_BUILD" ] && msg_2 "dest_fs_is_chrooted() [$f_this_fs_is_chrooted]"
-    [ -f "$f_this_fs_is_chrooted" ]
+    [ -f "$f_dest_fs_is_chrooted" ]
 }
 
 destfs_set_is_chrooted() {
-    [ -n "$DEBUG_BUILD" ] && msg_1 "destfs_set_is_chrooted() [$f_this_fs_is_chrooted]"
-    if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
-        msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
-        msg_3 "$f_this_fs_is_chrooted"
+    # msg_2 "destfs_set_is_chrooted(()"
+    if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
+        msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
+        msg_3 "$f_dest_fs_is_chrooted"
         error_msg "flagging dest FS as chrooted NOT possible!"
     fi
-    mkdir -p "$(dirname "$f_this_fs_is_chrooted")"
-    touch "$f_this_fs_is_chrooted"
+    mkdir -p "$(dirname "$f_dest_fs_is_chrooted")"
+    touch "$f_dest_fs_is_chrooted"
+    # msg_3 "destfs_set_is_chrooted(() - done"
 }
 
 destfs_clear_chrooted() {
-    msg_2 "destfs_clear_chrooted(()"
+    # msg_2 "destfs_clear_chrooted(()"
 
-    if [ "$f_this_fs_is_chrooted" = "$f_this_fs_is_chrooted_raw" ]; then
-        msg_2 "f_this_fs_is_chrooted same as f_this_fs_is_chrooted_raw"
-        msg_3 "$f_this_fs_is_chrooted"
+    if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
+        msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
+        msg_3 "$f_dest_fs_is_chrooted"
         error_msg "clearing dest FS as chrooted NOT possible!"
     fi
 
-    if [ -f "$f_this_fs_is_chrooted" ]; then
-        rm "$f_this_fs_is_chrooted"
+    if [ -f "$f_dest_fs_is_chrooted" ]; then
+        rm "$f_dest_fs_is_chrooted"
     else
         error_msg "destfs_clear_chrooted() - could not find chroot indicator"
     fi
     # msg_3 "destfs_clear_chrooted(() - done"
 }
 
-#===============================================================
-#
-#   Related to custom settings
-#
-#===============================================================
-
-notification_additional_tasks() {
-    # msg_2 "notification_additional_tasks()"
-    if [ -f "$additional_tasks_script" ]; then
-        echo "At the end of the install, this will be run:"
-        echo "--------------------"
-        cat "$additional_tasks_script"
-        echo "--------------------"
-        echo
-    fi
-    # msg_3 "notification_additional_tasks() done"
-}
-
-replace_home_dirs() {
-    if [ -n "$HOME_DIR_USER" ]; then
-        [ ! -f "$HOME_DIR_USER" ] && error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER"
-        [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-        msg_2 "Replacing /home/$USER_NAME"
-        cd "/home" || error_msg "Failed cd /home"
-        rm -rf "$USER_NAME"
-        tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
-    fi
-
-    if [ -n "$HOME_DIR_ROOT" ]; then
-        [ ! -f "$HOME_DIR_ROOT" ] && error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT"
-        msg_2 "Replacing /root"
-        rm /root -rf
-        cd / || error_msg "Failed to cd into: /"
-        tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
-    fi
-}
-
-run_additional_tasks_if_found() {
-    msg_2 "run_additional_tasks_if_found()"
-    if [ -x "$additional_tasks_script" ]; then
-        msg_1 "Running additional setup tasks [$additional_tasks_script]"
-        "$additional_tasks_script" && rm "$additional_tasks_script"
-        echo
-    fi
-    # msg_3 "run_additional_tasks_if_found()  done"
-}
-
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Host FS
 #
-#===============================================================
+#  What this FS is
+#
+#---------------------------------------------------------------
 
 hostfs_is_alpine() {
     test -f /etc/alpine-release
 }
 
 hostfs_is_debian() {
-    test -f /etc/debian_version && ! destfs_is_devuan
+    test -f /etc/debian_version && ! hostfs_is_devuan
 }
 
 hostfs_is_devuan() {
@@ -449,6 +570,7 @@ hostfs_detect() {
     #  Since a select env also looks like Alpine, this must fist
     #  test if it matches the test criteria
     #
+    #error_msg 'abort in hostfs_detect()'
     if hostfs_is_alpine; then
         echo "$distro_alpine"
     elif hostfs_is_debian; then
@@ -460,27 +582,28 @@ hostfs_detect() {
         echo
     fi
 }
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Destination FS
 #
-#===============================================================
+#  destfs from the perspective of a build host
+#
+#---------------------------------------------------------------
 
-destfs_is_devuan() {
-    test -f "$build_root_d"/etc/devuan_version
+destfs_is_alpine() {
+    ! destfs_is_select && test -f "$f_alpine_release"
 }
 
 destfs_is_debian() {
-    test -f "$build_root_d"/etc/debian_version && ! destfs_is_devuan
+    test -f "$d_build_root"/etc/debian_version && ! destfs_is_devuan
 }
 
-destfs_is_alpine() {
-    ! destfs_is_select && test -f "$file_alpine_release"
+destfs_is_devuan() {
+    test -f "$d_build_root"/etc/devuan_version
 }
 
 destfs_is_select() {
-    [ -f "$destfs_select_hint" ]
-    # [ -f "$build_root_d"/etc/profile ] && grep -q select_distro "$build_root_d"/etc/profile
+    [ -f "$f_destfs_select_hint" ]
 }
 
 destfs_detect() {
@@ -488,10 +611,10 @@ destfs_detect() {
     #  Since a select env also looks like Alpine, this must fist
     #  test if it matches the test criteria
     #
-    if destfs_is_alpine; then
-        echo "$distro_alpine"
-    elif destfs_is_select; then
+    if destfs_is_select; then
         echo "$destfs_select"
+    elif destfs_is_alpine; then
+        echo "$distro_alpine"
     elif destfs_is_debian; then
         echo "$distro_debian"
     elif destfs_is_devuan; then
@@ -502,7 +625,7 @@ destfs_detect() {
     fi
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #   Deployment state
 #
@@ -510,7 +633,7 @@ destfs_detect() {
 #
 #   up to deploy_state_creating allways happens on build host
 #
-#===============================================================
+#---------------------------------------------------------------
 
 deploy_state_set() {
     # msg_1 "===============   deploy_state_set($1)   ============="
@@ -519,8 +642,8 @@ deploy_state_set() {
 
     deploy_state_check_param deploy_state_set "$_state"
 
-    mkdir -p "$(dirname "$f_deploy_state")"
-    echo "$_state" >"$f_deploy_state"
+    mkdir -p "$(dirname "$f_dest_fs_deploy_state")"
+    echo "$_state" >"$f_dest_fs_deploy_state"
 
     unset _state
 }
@@ -539,10 +662,10 @@ deploy_state_is_it() {
 }
 
 deploy_state_get() {
-    _state="$(cat "$f_deploy_state" 2>/dev/null)"
+    _state="$(cat "$f_dest_fs_deploy_state" 2>/dev/null)"
     if [ -z "$_state" ]; then
         # This will only be logged, that depends on LOG_FILE being set
-        msg_1 "deploy_state_get() did not find anything in [$f_deploy_state]" >/dev/null
+        msg_1 "deploy_state_get() did not find anything in [$f_dest_fs_deploy_state]" >/dev/null
         echo ""
     else
         echo "$_state"
@@ -567,14 +690,6 @@ deploy_state_check_param() {
     unset bspc_bs
 }
 
-deploy_state_clear() {
-    msg_2 "deploy_state_clear()"
-
-    rm "$f_deploy_state"
-
-    msg_3 "deploy_state_clear() - done"
-}
-
 deploy_starting() {
     if deploy_state_is_it "$deploy_state_initializing"; then
         deploy_state_set "$deploy_state_dest_build"
@@ -589,12 +704,7 @@ deploy_starting() {
 #
 #===============================================================
 
-#
-#  Only use if you want low-level debugging, in most cases not helpfull
-#
-# DEBUG_BUILD=1
-
-while [ -f "/run/fixdev.pid" ]; do
+while [ -f "/tmp/fixdev.pid" ]; do
     msg_3 "Waiting for fix_dev to complete"
     sleep 1
 done
@@ -610,23 +720,23 @@ LOG_FILE=""
 #  both on build platforms and dest systems
 #  Due to necesity, this file needs to be sourced as: . /opt/AOK/toold/utils.sh
 #  Please do not use the abs path /opt/AOK for anything else, in all other
-#  references, use $aok_content
+#  references, use $d_aok_base
 #  If this location is ever changed, this will keep the changes in the
 #  code to a minimum.
 #
-aok_content="/opt/AOK"
+d_aok_base="/opt/AOK"
 
 #
 #  Import default settings
 #
 #  shellcheck source=/opt/AOK/AOK_VARS
-. "$aok_content"/AOK_VARS || exit 1
+. "$d_aok_base"/AOK_VARS || exit 1
 
 #
 #  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
 #
 # if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
-conf_overrides="${aok_content}/.AOK_VARS"
+conf_overrides="${d_aok_base}/.AOK_VARS"
 if [ -f "$conf_overrides" ]; then
     # msg_2 "Found .AOK_VARS"
     #  shellcheck disable=SC1090
@@ -634,43 +744,41 @@ if [ -f "$conf_overrides" ]; then
 fi
 unset conf_overrides
 
-#
-#  Honour  TMPDIR if defined.
-#
 TMPDIR="${TMPDIR:-/tmp}"
 
 #
-#  temp value until we know if this is dest FS, so that build_root_d can
+#  temp value until we know if this is dest FS, so that d_images can
 #  be selected
 #
-build_ro1t_d=""
+d_build_root=""
 #
 #  Locations build host for working on a client FS
 #
-build_base_d="$TMPDIR/AOK"
+d_images="$TMPDIR/aok_imgs"
+[ ! -d "$d_images" ] && mkdir -p "$d_images"
 
 #
 #  Used for keeping track of deploy / chroot status
 #
-aok_content_etc="/etc$aok_content"
+d_aok_base_etc="/etc$d_aok_base"
 
-f_this_fs_is_chrooted_raw="/etc/opt/this_fs_is_chrooted"
-f_deploy_state_raw="${aok_content_etc}/deploy_state"
+#
+#  Figure out if this script is run as a build host
+#  or inside the dest File System
+#
+#  To make things work regardless, a build host adds
+#  a prefix to all absolute paths - d_build_root
+#  pointing to where the dest fs is located in the host fs
+#
+f_host_fs_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
+f_host_deploy_state="${d_aok_base_etc}/deploy_state"
 
-if [ -n "$DEBUG_BUILD" ]; then
-    echo ">>> --- Raw states"
-    echo ">>> this is f_this_fs_is_chrooted [$f_this_fs_is_chrooted_raw] f_deploy_state [$f_deploy_state_raw]"
+if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
+    d_build_root="$TMPDIR/aok_fs"
 fi
 
-if [ -f "$f_this_fs_is_chrooted_raw" ] || [ -f "$f_deploy_state_raw" ]; then
-    [ -n "$DEBUG_BUILD" ] && msg_3 "running inside dest FS"
-else
-    build_root_d="$build_base_d/FS"
-    [ -n "$DEBUG_BUILD" ] && msg_3 "running on build host FS"
-fi
-
-f_this_fs_is_chrooted="${build_root_d}${f_this_fs_is_chrooted_raw}"
-f_deploy_state="${build_root_d}${f_deploy_state_raw}"
+f_dest_fs_is_chrooted="${d_build_root}${f_host_fs_is_chrooted}"
+f_dest_fs_deploy_state="${d_build_root}${f_host_deploy_state}"
 
 #
 #  Detecting build environments
@@ -678,19 +786,17 @@ f_deploy_state="${build_root_d}${f_deploy_state_raw}"
 #  1 = iSH
 #  2 = Linux (x86)
 #
+#  >0   != "$be_other"  - no chroot
 
+be_ish="Build env iSH"
+be_linux="Build env x86 Linux"
+be_other="Build env other"
 if this_is_ish; then
-    build_env=1
+    build_env="$be_ish" # 1
 elif uname -a | grep -qi linux && uname -a | grep -q -e x86 -e i686; then
-    build_env=2
+    build_env="$be_linux" # 2
 else
-    build_env=0 # chroot not possible
-fi
-
-if [ -n "$DEBUG_BUILD" ]; then
-    echo ">>> === defined states"
-    echo ">>> f_this_fs_is_chrooted [$f_this_fs_is_chrooted]  f_deploy_state [$f_deploy_state]"
-    echo ">>> build_env [$build_env]"
+    build_env="$be_other" # chroot not possible 0
 fi
 
 #
@@ -698,13 +804,13 @@ fi
 #
 
 #  Location for src images
-src_img_cache_d="$TMPDIR/cache_AOK_images"
+d_src_img_cache="$TMPDIR/aok_cache"
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
 #  copied to this location
 #
-icloud_archive_d="/iCloud/AOK_Archive"
+d_icloud_archive="/iCloud/AOK_Archive"
 
 #
 #  Names of the rootfs tarballs used for initial population of FS
@@ -716,17 +822,15 @@ devuan_src_tb="$(echo "$DEVUAN_SRC_IMAGE" | cut -d'?' -f1 | grep -oE '[^/]+$')"
 #  Extract the release/branch/major version, from the requested Alpine,
 #  gives something like 3.14
 #
-if [ "$ALPINE_VERSION" = "edge" ]; then
-    alpine_src_tb="alpine-minirootfs-20230329-x86.tar.gz"
-    alpine_release="$ALPINE_VERSION"
-    _vers="$ALPINE_VERSION"
+
+alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
+if echo "$ALPINE_VERSION" | grep -Eq '^[0-9]{8}$'; then
+    alpine_release="edge"
+    alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/edge/releases/x86/$alpine_src_tb"
 else
-    alpine_src_tb="alpine-minirootfs-${ALPINE_VERSION}-x86.tar.gz"
     alpine_release="$(echo "$ALPINE_VERSION" | cut -d"." -f 1,2)"
-    _vers="v$alpine_release"
+    alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v${alpine_release}/releases/x86/$alpine_src_tb"
 fi
-alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/$_vers/releases/x86/$alpine_src_tb"
-unset _vers
 
 #
 #  Names of the generated distribution tarballs, no ext, that is ecided
@@ -738,29 +842,29 @@ debian_tb="AOK-Debian-10-$AOK_VERSION"
 devuan_tb="AOK-Devuan-4-$AOK_VERSION"
 
 #  Where to find native FS version
-file_alpine_release="$build_root_d"/etc/alpine-release
-file_debian_version="$build_root_d"/etc/debian_version
+f_alpine_release="$d_build_root"/etc/alpine-release
+f_debian_version="$d_build_root"/etc/debian_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
-file_aok_release="$build_root_d"/etc/aok-release
+f_aok_fs_release="$d_build_root"/etc/aok-fs-release
 
 #
 #  First boot additional tasks to be run, defined in AOK_VARS,
 #  FIRST_BOOT_ADDITIONAL_TASKS
 #
-additional_tasks_script="$build_root_d/opt/additional_tasks"
+additional_tasks_script="$d_build_root/opt/additional_tasks"
 
 #
 #  Either run this script chrooted if the host OS supports it, or run it
 #  inside iSH-AOK once it has booted this FS
 #
-setup_common_aok="$aok_content"/common_AOK/setup_common_env.sh
-setup_alpine_scr="$aok_content"/Alpine/setup_alpine.sh
-setup_debian_scr="$aok_content"/Debian/setup_debian.sh
-setup_devuan_scr="$aok_content"/Devuan/setup_devuan.sh
-setup_select_distro_prepare="$aok_content"/choose_distro/select_distro_prepare.sh
-setup_select_distro="$aok_content"/choose_distro/select_distro.sh
-setup_final="$aok_content"/common_AOK/setup_final_tasks.sh
+setup_common_aok="$d_aok_base"/common_AOK/setup_common_env.sh
+setup_alpine_scr="$d_aok_base"/Alpine/setup_alpine.sh
+setup_debian_scr="$d_aok_base"/Debian/setup_debian.sh
+setup_devuan_scr="$d_aok_base"/Devuan/setup_devuan.sh
+setup_select_distro_prepare="$d_aok_base"/choose_distro/select_distro_prepare.sh
+setup_select_distro="$d_aok_base"/choose_distro/select_distro.sh
+setup_final="$d_aok_base"/common_AOK/setup_final_tasks.sh
 
 #
 #  When reported what distro is used on Host or Dest FS uses this
@@ -776,4 +880,18 @@ deploy_state_dest_build="dest build"     # building FS on dest, dest details can
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
 destfs_select="select"
-destfs_select_hint="$build_root_d"/etc/opt/select_distro
+f_destfs_select_hint="$d_build_root"/etc/opt/select_distro
+
+pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
+
+#
+#  Location for alternate hostname, should normally be in a path
+#  location before /bin/hostname is found
+#
+f_hostname_alt=/usr/local/bin/hostname
+
+#  file alt hostname reads to find hostname
+#  the variable has been renamed to
+f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
+
+#hostname_sync_fname
