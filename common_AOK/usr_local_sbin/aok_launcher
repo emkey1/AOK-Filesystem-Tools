@@ -45,7 +45,7 @@ check_for_revovery_mode() {
     case "$keypress" in
     "r" | "R")
         touch "$f_recovery_mode"
-    	trap '' INT # abort capturing Ctrl-C
+        trap '' INT # abort capturing Ctrl-C
         echo
         echo "===  recovery node selected  ==="
         if [ -x /bin/ash ]; then
@@ -156,8 +156,8 @@ deploy_aok() {
         echo
         echo "It is recomended to reboot at this point"
         echo "to let the next step be processed."
-	echo
-	set_deploy_aok_abort
+        echo
+        set_deploy_aok_abort
     fi
 
     echo
@@ -193,12 +193,13 @@ runlevel_wait() {
     sleep 3
 
     while true; do
-	check_for_revovery_mode
-	current_runlevel="$(rc-status -r)"
-        echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
+        check_for_revovery_mode
+        current_runlevel="$(rc-status -r)"
         if [ "$current_runlevel" = "$expected_runlevel" ]; then
+            echo "runlevel is now '$expected_runlevel'"
             break
         fi
+        echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
         sleep 2
         [ -f "$f_recovery_mode" ] && return
         [ "$abort_runlevel_wait" = "1" ] && break
@@ -304,7 +305,6 @@ check_for_revovery_mode
 
 echo "AOK_launcher - Press 'r' during bootup for recovery mode"
 echo
-
 
 if [ ! -f "$f_is_chrooted" ]; then
     runlevel_wait
