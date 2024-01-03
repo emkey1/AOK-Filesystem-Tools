@@ -26,9 +26,6 @@ prepare_env_etc() {
     mkdir -p /etc/update-motd.d
     cp -a "$d_aok_base"/Debian/etc/update-motd.d/* /etc/update-motd.d
 
-    msg_3 "Installing /etc/environment"
-    cp "$d_aok_base"/Debian/etc/environment /etc
-
     msg_3 "prepare_env_etc() done"
 }
 

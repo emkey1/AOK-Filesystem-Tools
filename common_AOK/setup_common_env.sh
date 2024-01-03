@@ -63,6 +63,9 @@ setup_environment() {
         error_msg "Config file not found: >$_f<"
     fi
 
+    msg_3 "Installing /etc/environment"
+    cp "$d_aok_base"/common_AOK/etc/environment /etc
+
     #
     #  openrc is extreamly forgiving when it comes to dependencies, any
     #  dependency that is not pressent is simply ignored.
