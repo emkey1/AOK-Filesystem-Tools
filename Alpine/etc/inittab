@@ -18,7 +18,7 @@
 ::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir
 
 #  rotates logfiles > 10k
-::sysinit:/usr/local/sbin/R-check /usr/local/sbin/logrotate-wrapper.sh
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/rotate-logs.sh
 
 #
 # If you've configured your hostname to be updated through an iOS Shortcut,
