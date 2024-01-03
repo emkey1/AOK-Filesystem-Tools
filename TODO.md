@@ -5,55 +5,9 @@
 htop from A 3.14
 apk add lua5.3
 
-## init.d
-
-must be kept
-
-rc
-
-## /etc/opt/AOK
-
-Investigate how it is created and make sure everything using it can handle
-its absence
-
 ## vnc_start / stop
 
 Verify the new grep check works as intended
-
-## Hostname issue during deploy if AOK_HOSTNAME_SUFFIX is used
-
-Currently only the suffixed hostname is stored in the hosts file.
-During FIRST_BOOT_ADDITIONAL_TASKS if some script is run as a user, that
-needs to do a sudo, that sudo fails (current guestemate being due to the unsuffixed hostname not being in hosts)
-
-Next aproach, reconsider the order of related tasks
-
-- use ALT_HOSTNAME_SOURCE_FILE
-- if set to /etc/hoss
-  - Prompt requesting hostname
-- Set /etc/hostname
-
-Tasks that could be put into aok_launcher
-advantage: less dependence on opernrc, fairly simple code logic
-disadvantage: depends on aok_launcher in fact being the launch command
-
-- hostname_sync.sh
-- ensure_hostname_in_host_file
-- /usr/local/sbin/update_motd
-
-Unsorted other tasks
-
-- Install alternate hostname (not strictly needed on iSH-AOK)
-- Install hostname service
-- Install hostname_sync.sh
-- Install ensure_hostname_in_host_file
-
-## Launch Command
-
-make get/set _launch_command to as far as poosible use the same codes
-make templates for expecte defaults avilable to tools needing them
-
-aok_launcher
 
 ## /etc/environment
 
