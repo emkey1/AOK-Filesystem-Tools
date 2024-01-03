@@ -109,9 +109,10 @@ do_shutdown() {
 set_deploy_aok_abort() {
     trap '' INT # abort capturing Ctrl-C
     echo
-    print_log "***  Ctrl-C captured - aborting deploy, dropping to shell ***"
+    print_log "***  Aborting deploy, dropping to shell ***"
     echo
     /bin/bash
+    exit 1
 }
 
 deploy_aok() {
@@ -155,8 +156,8 @@ deploy_aok() {
         echo
         echo "It is recomended to reboot at this point"
         echo "to let the next step be processed."
-        echo "this will continue in 120s if you did not reboot"
-        sleep 120
+	echo
+	set_deploy_aok_abort
     fi
 
     echo
