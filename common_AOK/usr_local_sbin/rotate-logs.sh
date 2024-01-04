@@ -3,14 +3,15 @@
 LOG_DIR="/var/log"
 
 for log_file in "$LOG_DIR"/*log; do
+    [ "$log_file" = "lastlog" ] && continue
     file_size="$(stat --printf="%s" "$log_file")"
     echo "><> $file_size  $log_file"
-    if [ -f "$log_file" ] && [ "$file_size" -gt 10240 ]; then
+    if [ -f "$log_file" ] && [ "$file_size" -gt 20480 ]; then # > 20k
 	# Set the file paths
 	rotated_log_file="$(dirname "$log_file")/$(date +"%y%m%d-%H%M%S")-$(basename "$log_file")"
 
 	if [ "$(file -b "$log_file")" = "data" ]; then
-	    #  lastlog etc needs to be moved as is
+	    #  non text files needs to be moved as is
 	    mv "$log_file" "$rotated_log_file"
 	    continue
 	fi
