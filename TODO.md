@@ -1,5 +1,7 @@
 # TODO
 
+## make no login on pts/1 (console) an aok option
+
 ## Alpine app versions
 
 htop from A 3.14

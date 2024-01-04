@@ -348,7 +348,6 @@ while true; do
         sleep 3
     else
         #_cnt="$(ps ax | grep -v grep | grep $0 | wc -l)"
-        #echo "><> vterm count: $_cnt"
         #if [ "$_cnt" < "2" ]; then
         echo
         print_log "===  aok_launcher: $f_logins_continous not found, will terminate App"

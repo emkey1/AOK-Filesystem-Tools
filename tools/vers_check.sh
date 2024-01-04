@@ -36,10 +36,6 @@ EOF
     IFS='.' read -r _v2_1 _v2_2 _v2_3 _v2_4 <<-EOF
 $_vers2
 EOF
-    #echo "><> min_version($1, $2)  [$_vers1]  [$_vers2]"
-    #echo "><> arr1 [$_v1_1] [$_v1_2] [$_v1_3] [$_v1_4]"
-    #echo "><> arr2 [$_v2_1] [$_v2_2] [$_v2_3] [$_v2_4]"
-
     _is_true=""  #  Initial non 0 / 1 value makes it simple to see when it is set
 
     vers_check_do_compare "$_v1_1" "$_v2_1" || return 1
@@ -69,28 +65,22 @@ vers_check_do_compare() {
     _v1=$(printf '%d' "'${1:-0}")
     _v2=$(printf '%d' "'${2:-0}")
 
-    #echo "><> vers_check_do_compare($_v1, $_v2)  [$1]  [$2]"
 
     [ "$1" = "" ] || [ "$_v1" = "0" ] && {
-	#echo "><> $_v1 is 0 or empty  0"
 	_is_true=0
 	return 0
     }
 
     [ "$_v1" -lt "$_v2" ] && {
-	#echo "><> $_v1 -lt $_v2  0"
 	_is_true=0
 	return 0
     }
     [ "$_v1" = "$_v2" ] && {
-	#echo "><> $_v1 = $_v2  0"
 	return 0
     }
     [ "$_v1" -gt "$_v2" ] && {
-	#echo "><> $_v1 -gt $_v2  1"
 	return 1
     }
-    #echo "><> fell through"
     exit 1
 }
 
