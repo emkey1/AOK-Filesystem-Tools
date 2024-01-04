@@ -8,10 +8,10 @@ id:2:initdefault:
 fx1::sysinit:/usr/local/sbin/R-check /usr/local/bin/fake_syslog inittab "===  System startup  ==="
 
 # Clear /run/ since iSH doesnt mount it as tempfs
-fx2::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir.sh
+fx2::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir
 
 #  rotates logfiles > 10k
-::sysinit:/usr/local/sbin/R-check /usr/local/sbin/rotate-logs.sh
+fx3::sysinit:/usr/local/sbin/R-check /usr/local/sbin/rotate-logs.sh
 
 #
 # If you've configured your hostname to be updated through an iOS Shortcut,
@@ -21,7 +21,7 @@ fx2::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir.sh
 # a hostname fed by the Shortcut in the future.
 # For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
 #
-fx3::sysinit:/usr/local/sbin/R-check /usr/local/bin/hostname -U
+fx4::sysinit:/usr/local/sbin/R-check /usr/local/bin/hostname -U
 
 #
 # Initialization command
