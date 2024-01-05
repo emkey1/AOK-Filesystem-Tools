@@ -97,18 +97,15 @@ handle_aok_suffix() {
     #
     hn_suffix="-aok"
     hn_current="$(cat /etc/hostname)"
-    echo "><> handle_aok_suffix() - [$hn_current]"
 
     #  Only do this if this hint file exists
     [ -f "$f_hostname_aok_suffix" ] || return
-    echo "><> sti"
     #  If hostname -s allready ends with $hn_suffix, nothing needs to be done
     echo "$hn_current" | grep -q '\-aok' && {
         return
     }
 
     echo "${hn_current}${hn_suffix}" | sudo tee /etc/hostname >/dev/null
-    echo "><> hostname updated: $(cat /etc/hostname)"
 }
 
 read_syncfile() {
@@ -169,9 +166,10 @@ read_syncfile() {
     sudo /usr/local/sbin/ensure_hostname_in_host_file
 
     grep -qi aok /proc/ish/version 2>/dev/null || return
-    sudo /bin/hostname -F /etc/hostname
 
-    # sudo /usr/local/sbin/ensure_hostname_in_host_file
+    [ "$(hostname -s)" = "$(cat /etc/hostname)" ] || {
+        echo "Hostname set to: $(sudo /bin/hostname -F /etc/hostname)"
+    }
 }
 
 sudo_check() {
@@ -219,6 +217,7 @@ while [ -n "$1" ]; do
     "-U" | "--update")
         sudo_check
         read_syncfile
+        exit 0
         ;;
 
     *) ;;
