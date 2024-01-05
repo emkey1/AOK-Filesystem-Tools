@@ -5,7 +5,7 @@
 # The default runlevel.
 id:2:initdefault:
 
-fx1::sysinit:/usr/local/sbin/R-check /usr/local/bin/fake_syslog inittab "===  System startup  ==="
+fx1::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab "===  System startup  ==="
 
 # Clear /run/ since iSH doesnt mount it as tempfs
 fx2::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir

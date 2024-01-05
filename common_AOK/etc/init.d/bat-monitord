@@ -21,9 +21,9 @@ log_file=/var/log/services.log
 
 
 start_post() {
-    FAKE_SYSLOG_FILE="$log_file" /usr/local/bin/fake_syslog "$RC_SVCNAME" started
+    LOGGER_FILE="$log_file" /usr/local/bin/logger "$RC_SVCNAME" started
 }
 
 stop_post() {
-    FAKE_SYSLOG_FILE="$log_file" /usr/local/bin/fake_syslog "$RC_SVCNAME" stopped
+    LOGGER_FILE="$log_file" /usr/local/bin/logger "$RC_SVCNAME" stopped
 }

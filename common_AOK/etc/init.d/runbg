@@ -34,9 +34,9 @@ pidfile="/run/runbg.pid"
 log_file=/var/log/services.log
 log_it() {
     # if no supported loggers are found, fall back to a non-dependency solution
-    f_fake_syslog=/usr/local/bin/fake_syslog
-    if [ -x "$f_fake_syslog" ]; then
-        FAKE_SYSLOG_FILE="$log_file" "$f_fake_syslog" "$RC_SVCNAME" "$*"
+    f_logger=/usr/local/bin/logger
+    if [ -x "$f_logger" ]; then
+        LOGGER_FILE="$log_file" "$f_logger" "$RC_SVCNAME" "$*"
     else
         echo "$(date +"%Y-%m-%d %H:%M:%S") ${RC_SVCNAME}: $*" >>/var/log/messages
     fi

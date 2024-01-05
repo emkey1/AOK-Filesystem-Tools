@@ -278,7 +278,7 @@ tsaft_start="$(date +%s)"
 
 this_is_ish && wait_for_bootup
 
-if [ -n "$LOG_FILE" ]; then
+if [ -n "$LOG_FILE_BUILD" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
 fi
 

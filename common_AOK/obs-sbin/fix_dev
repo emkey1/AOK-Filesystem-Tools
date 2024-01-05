@@ -23,7 +23,7 @@ log_it() {
     #  param 2 indicates this should also be printed, if it is > -1
     #  it will be used as an exit code
     #
-    FAKE_SYSLOG_FILE="$FAKE_SYSLOG_FILE" /usr/local/bin/fake_syslog "$RC_SVCNAME" "$msg"
+    LOGGER_FILE="$LOGGER_FILE" /usr/local/bin/logger "$RC_SVCNAME" "$msg"
 
     if [ -n "$ex_code" ]; then
         echo "$msg"
@@ -70,7 +70,7 @@ is_char_dev() {
 #===============================================================
 
 # log_file="/var/log/fix_dev.log"
-FAKE_SYSLOG_FILE=/var/log/fix_dev.log
+LOGGER_FILE=/var/log/fix_dev.log
 
 # log_it "Skipping fix_dev for now" 0
 
@@ -110,7 +110,7 @@ if [ "$1" != "$skip_init_check" ]; then
             log_it "ALERT: Not started from init, parent is ($PPID) - exiting" 0
         fi
         log_it "Not started from inittab" -1
-        [ -n "$FAKE_SYSLOG_FILE" ] && pstree -p >>"$FAKE_SYSLOG_FILE"
+        [ -n "$LOGGER_FILE" ] && pstree -p >>"$LOGGER_FILE"
     fi
 else
     log_it "Allowed to run outside init due to $skip_init_check"

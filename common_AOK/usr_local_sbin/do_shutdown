@@ -44,7 +44,7 @@ display_msg() {
     _msg="$1"
     echo "$_msg"
 
-    /usr/local/bin/fake_syslog do_shutdown "$_msg"
+    /usr/local/bin/logger do_shutdown "$_msg"
     unset _msg
 }
 

@@ -54,4 +54,4 @@ fi
 
 cat "$f_motd_template" >>"$f_motd"
 
-/usr/local/bin/fake_syslog update_motd updated /etc/motd
+/usr/local/bin/logger update_motd updated /etc/motd

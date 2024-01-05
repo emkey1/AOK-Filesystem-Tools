@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.2.9"
+AOK_VERSION="0.11.2.10"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -93,17 +93,17 @@ INITIAL_LOGIN_MODE="enable"
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
 
 #
-#  If LOG_FILE is defined build progress printed is also logged to this
-#  file. This is mostly useful as a debugging tool, if during the deploy
-#  something goes wrong and iSH crashes. This way you can at least get
-#  an idea of how far things progressed before something broke.
-#  The path defines will be inside the new FS
+#  If LOG_FILE_BUILD_BUILD is defined build progress printed is also
+#  logged to this file. This is mostly useful as a debugging tool,
+#  if during the deploy something goes wrong and iSH crashes.
+#  This way you can at least get an idea of how far things progressed
+#  before something broke. The path defines will be inside the new FS
 #
 #  OBSOLETE, no longer needed since deploy steps are wrapped inside
-#  an outes shell, and will no longer crash the deploy
+#  an outer shell, and will no longer crash the deploy
 #  code related to this will be removed very soon!
 #
-LOG_FILE=/var/log/aokfs-build.log
+# LOG_FILE_BUILD=/var/log/aokfs-build.log
 
 ########################################################################
 #

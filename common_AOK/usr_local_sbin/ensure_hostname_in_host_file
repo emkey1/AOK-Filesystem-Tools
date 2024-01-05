@@ -25,6 +25,6 @@ host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
 #  iSH-AOK on the same device.
 #
 if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
-    /usr/local/bin/fake_syslog ensure_hostname_in_host_file adding "$host_name to $host_file"
+    /usr/local/bin/logger ensure_hostname_in_host_file adding "$host_name to $host_file"
     printf '127.0.0.1\t%s\n' "$host_name" >>"$host_file"
 fi

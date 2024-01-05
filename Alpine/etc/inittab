@@ -8,7 +8,7 @@
 # ::sysinit:/usr/local/sbin/fix_dev
 
 # Indicate bootup in the syslog
-::sysinit:/usr/local/sbin/R-check /usr/local/bin/fake_syslog inittab "===  System startup  ==="
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab "===  System startup  ==="
 
 #
 #  Regular iSH doesn't clear /run at startup, so it needs to
@@ -51,7 +51,7 @@
 #
 # ::sysinit:/sbin/openrc sysinit
 # ::sysinit:/sbin/openrc boot
-::sysinit:/usr/local/sbin/R-check /usr/local/bin/fake_syslog inittab doing openrc default
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab doing openrc default
 ::wait:/usr/local/sbin/R-check /sbin/openrc default
 
 #

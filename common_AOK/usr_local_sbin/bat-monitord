@@ -20,7 +20,7 @@ log_it() {
 }
 
 syslog_it() {
-    /usr/local/bin/fake_syslog "$this_is" "$1"
+    /usr/local/bin/logger "$this_is" "$1"
 }
 
 error_msg() {

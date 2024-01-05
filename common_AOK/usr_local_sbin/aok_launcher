@@ -74,9 +74,9 @@ log_it() {
     [ -f "$f_recovery_mode" ] && return
 
     # if no supported loggers are found, fall back to a non-dependency solution
-    f_fake_syslog=/usr/local/bin/fake_syslog
-    if [ -x "$f_fake_syslog" ]; then
-        "$f_fake_syslog" "$prog_name" "$*"
+    f_logger=/usr/local/bin/logger
+    if [ -x "$f_logger" ]; then
+        "$f_logger" "$prog_name" "$*"
     else
         echo "$(date +"%Y-%m-%d %H:%M:%S") ${prog_name}: $*" >>/var/log/messages
     fi
@@ -133,10 +133,10 @@ deploy_aok() {
     echo "******************************************************"
     echo
     da_depl_step="$(cat "$f_deploy_state")"
-    /usr/local/bin/fake_syslog aok_launcher Triggering deploy step: "$da_depl_step"
+    /usr/local/bin/logger aok_launcher Triggering deploy step: "$da_depl_step"
     #  AOK-FS uses /etc/profile as placeholder for deploy steps
     if /etc/profile; then
-        /usr/local/bin/fake_syslog aok_launcher Deploy completed - "$da_depl_step"
+        /usr/local/bin/logger aok_launcher Deploy completed - "$da_depl_step"
     else
         echo
         echo "ERROR returned from the deploy procedure!"
@@ -186,11 +186,16 @@ runlevel_wait() {
 
     trap 'set_abort_runlevel_wait INT' INT
 
-    #
-    #  Ensure /run has been cleared (if needed such as on regular iSH)
-    #  before first calling rc-status, since it will use /run
-    #
-    sleep 3
+    grep -qi aok /proc/ish/version 2>/dev/null || {
+        #
+        #  iSH-AOK empties /run before launch, this is not done by iSH
+        #  so for that kernel, hold here for a few seconds, so that
+        #  the inittab job doing this has time to complete.
+        #
+        printf "Waiting 3 seconds to let inittab clear /run..."
+        sleep 3
+        echo "done!"
+    }
 
     while true; do
         check_for_revovery_mode
@@ -213,7 +218,7 @@ network_check() {
     #echo "Checking networking - takes <5 seconds"
     if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
         if ping -c 2 google.com >/dev/null 2>&1; then
-            print_log "Connected to the Internet and DNS is resolving!"
+            print_log "===  Connected to the Internet and DNS is resolving!"
         else
             print_log "***  DNS does not seem to resolve!"
         fi
@@ -287,35 +292,35 @@ bootup() {
 
     #  If deploy has not completed - handle it
     if [ -f "$f_deploy_state" ]; then
-	deploy_aok
+        deploy_aok
     fi
 
     if [ -f "$f_pts_0_as_console" ]; then
-	echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
-	echo
-	[ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
+        echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
+        echo
+        [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
             echo "Setting up /dev/pts/0 as console"
             rm -f /dev/console && mknod -m 222 /dev/console c 136 0
-	}
-	check_for_revovery_mode
-	network_check
-	/bin/sleep infinity
-	exit 0 # shouldnt get here, but just in case
+        }
+        check_for_revovery_mode
+        network_check
+        /bin/sleep infinity
+        exit 0 # shouldnt get here, but just in case
     else
-	[ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
+        [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
             echo "Reverting console to normal mode"
             rm -f /dev/console && mknod -m 666 /dev/console c 5 1
-	}
+        }
     fi
 
     check_for_revovery_mode
     if [ ! -f "$f_is_chrooted" ]; then
-	runlevel_wait
-	network_check
+        runlevel_wait
+        network_check
     else
-	echo
-	echo "This is chrooted, so runlevel_wait & network check are skipped"
-	echo
+        echo
+        echo "This is chrooted, so runlevel_wait & network check are skipped"
+        echo
     fi
     check_for_revovery_mode
 }

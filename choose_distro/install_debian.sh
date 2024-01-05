@@ -66,10 +66,10 @@ rm -rf "$debian_download_location"
 #
 msg_2 "Deleting most of Alpine FS"
 
-if [ -n "$LOG_FILE" ]; then
-    msg_2 "Disabling LOG_FILE until Debian FS has been deployed"
-    orig_log_file="$LOG_FILE"
-    LOG_FILE=""
+if [ -n "$LOG_FILE_BUILD" ]; then
+    msg_2 "Disabling LOG_FILE_BUILD until Debian FS has been deployed"
+    orig_log_file="$LOG_FILE_BUILD"
+    LOG_FILE_BUILD=""
 fi
 
 #
@@ -131,9 +131,9 @@ msg_3 "Replacing /lib with a soft-link to /usr/lib"
 rm -f "$f_destfs_select_hint"
 
 if [ -n "$orig_log_file" ]; then
-    LOG_FILE="$orig_log_file"
+    LOG_FILE_BUILD="$orig_log_file"
     unset orig_log_file
-    msg_3 "LOG_FILE restored"
+    msg_3 "LOG_FILE_BUILD restored"
 fi
 
 msg_3 "Removing tmp area $distro_tmp_dir"

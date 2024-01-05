@@ -20,15 +20,15 @@
 log_it() {
     _li="$1"
     if [ -z "$_li" ]; then
-        unset LOG_FILE # ensure new call to error_msg doesnt suffer logfile
+        unset LOG_FILE_BUILD # ensure new call to error_msg doesnt suffer logfile
         error_msg "log_it() - no param!"
     fi
-    if [ -z "$LOG_FILE" ]; then
-        unset LOG_FILE # ensure new call to error_msg doesnt suffer logfile
-        error_msg "log_it() called without LOG_FILE defined!"
+    if [ -z "$LOG_FILE_BUILD" ]; then
+        unset LOG_FILE_BUILD # ensure new call to error_msg doesnt suffer logfile
+        error_msg "log_it() called without LOG_FILE_BUILD defined!"
     fi
-    #  Ensure dir for LOG_FILE exists
-    _log_dir="$(dirname -- "${d_build_root}$LOG_FILE")"
+    #  Ensure dir for LOG_FILE_BUILD exists
+    _log_dir="$(dirname -- "${d_build_root}$LOG_FILE_BUILD")"
     if [ ! -d "$_log_dir" ]; then
         echo "Will create log_dir: $_log_dir"
         # sleep 3
@@ -41,15 +41,15 @@ log_it() {
     #  Permission denied errors
     #
     if [ "$(whoami)" != "root" ]; then
-        _lf_path="$(dirname "$LOG_FILE")"
-        _lf_name="$(basename "$LOG_FILE")"
+        _lf_path="$(dirname "$LOG_FILE_BUILD")"
+        _lf_name="$(basename "$LOG_FILE_BUILD")"
         _log_file="$_lf_path/${USER_NAME}-$_lf_name"
         unset _lf_path
         unset _lf_name
         sudo touch "$_log_file"
         sudo chown "$USER_NAME" "$_log_file"
     else
-        _log_file="${d_build_root}$LOG_FILE"
+        _log_file="${d_build_root}$LOG_FILE_BUILD"
     fi
     echo "$_li" >>"$_log_file" # 2>&1
 
@@ -76,7 +76,7 @@ error_msg() {
     echo
     echo "$_em_msg"
     echo
-    [ -n "$LOG_FILE" ] && log_it "$_em_msg"
+    [ -n "$LOG_FILE_BUILD" ] && log_it "$_em_msg"
 
     if [ "$_em_exit_code" = "no_exit" ]; then
         echo "no_exit given, will continue"
@@ -112,7 +112,7 @@ do_msg() {
     _msg="$1"
     [ -z "$_msg" ] && error_msg "do_msg() no param"
     echo "$_msg"
-    [ -n "$LOG_FILE" ] && log_it "$_msg"
+    [ -n "$LOG_FILE_BUILD" ] && log_it "$_msg"
     unset _msg
 }
 
@@ -758,7 +758,7 @@ deploy_state_is_it() {
 deploy_state_get() {
     _state="$(cat "$f_dest_fs_deploy_state" 2>/dev/null)"
     if [ -z "$_state" ]; then
-        # This will only be logged, that depends on LOG_FILE being set
+        # This will only be logged, that depends on LOG_FILE_BUILD being set
         msg_1 "deploy_state_get() did not find anything in [$f_dest_fs_deploy_state]" >/dev/null
         echo ""
     else
@@ -808,7 +808,7 @@ deploy_starting() {
 #  Might be activated in AOK_VARS or .AOK_VARS
 #  initial state is disabled
 #
-LOG_FILE=""
+LOG_FILE_BUILD=""
 
 #
 #  To make things simple, this is the expected location for AOK-Filesystem-tools
