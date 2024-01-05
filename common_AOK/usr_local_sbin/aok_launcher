@@ -281,6 +281,45 @@ login_with_param_check() {
     fi
 }
 
+bootup() {
+    echo "AOK_launcher - Press 'r' during bootup for recovery mode"
+    echo
+
+    #  If deploy has not completed - handle it
+    if [ -f "$f_deploy_state" ]; then
+	deploy_aok
+    fi
+
+    if [ -f "$f_pts_0_as_console" ]; then
+	echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
+	echo
+	[ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
+            echo "Setting up /dev/pts/0 as console"
+            rm -f /dev/console
+            mknod -m 222 /dev/console c 136 0
+	}
+	check_for_revovery_mode
+	/bin/sleep infinity
+	exit 0
+    else
+	[ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
+            echo "Reverting console to normal mode"
+            rm -f /dev/console
+            mknod -m 666 /dev/console c 5 1
+	}
+    fi
+
+    check_for_revovery_mode
+    if [ ! -f "$f_is_chrooted" ]; then
+	runlevel_wait
+	network_check
+    else
+	echo
+	echo "This is chrooted, so runlevel_wait & network check are skipped"
+	echo
+    fi
+}
+
 #===============================================================
 #
 #   Main
@@ -303,43 +342,13 @@ f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
 
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
-echo "AOK_launcher - Press 'r' during bootup for recovery mode"
-echo
 
-if [ -f "$f_pts_0_as_console" ] && [ "$(tty)" = "/dev/pts/0" ]; then
-    echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
-    echo
-    [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
-        echo "Setting up /dev/pts/0 as console"
-        rm -f /dev/console
-        mknod -m 222 /dev/console c 136 0
-    }
-    check_for_revovery_mode
-    /bin/sleep infinity
-    exit 0
-else
-    [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
-        echo "Reverting console to normal mode"
-        rm -f /dev/console
-        mknod -m 666 /dev/console c 5 1
-    }
-fi
-
-if [ ! -f "$f_is_chrooted" ]; then
-    runlevel_wait
-    network_check
-else
-    echo
-    echo "This is chrooted, so runlevel_wait & network check are skipped"
-    echo
-fi
+#
+#  This is only run on first vterm
+#
+[ "$(tty)" = "/dev/pts/0" ] && bootup
 
 check_for_revovery_mode
-
-#  If deploy has not completed - handle it
-if [ -f "$f_deploy_state" ]; then
-    deploy_aok
-fi
 
 while true; do
     #

@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- only do bootup on 1st vterm
 - If /etc/opt/AOK/pts_0_as_console is present pts/0 will be used as console and no session will be started on that vterm
 - single-user mode renamed to recovery mode, triggers are r/R
 - reintroduced -aok suffix
