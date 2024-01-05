@@ -50,4 +50,4 @@ log_file="${FAKE_SYSLOG_FILE:-$f_def_log}"
 #
 ppid="${PPID:-$(ps -o ppid= -p $$)}"
 
-echo "$(date +"%Y-%m-%d %H:%M:%S") ${item}[$ppid]: $msg" >>"$log_file"
+echo "$(date +"%Y-%m-%d %H:%M:%S") ${item}[$ppid]: $msg" | tee -a  "$log_file" > /dev/console
