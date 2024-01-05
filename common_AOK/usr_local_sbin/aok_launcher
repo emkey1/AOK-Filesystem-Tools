@@ -295,8 +295,7 @@ bootup() {
 	echo
 	[ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
             echo "Setting up /dev/pts/0 as console"
-            rm -f /dev/console
-            mknod -m 222 /dev/console c 136 0
+            rm -f /dev/console && mknod -m 222 /dev/console c 136 0
 	}
 	check_for_revovery_mode
 	network_check
@@ -305,8 +304,7 @@ bootup() {
     else
 	[ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
             echo "Reverting console to normal mode"
-            rm -f /dev/console
-            mknod -m 666 /dev/console c 5 1
+            rm -f /dev/console && mknod -m 666 /dev/console c 5 1
 	}
     fi
 
