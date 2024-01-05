@@ -3,7 +3,7 @@
 LOG_DIR="/var/log"
 
 for log_file in "$LOG_DIR"/*log; do
-    [ "$log_file" = "lastlog" ] && continue
+    [ "$(basename "$log_file")" = "lastlog" ] && continue
     file_size="$(stat --printf="%s" "$log_file")"
     if [ -f "$log_file" ] && [ "$file_size" -gt 20480 ]; then # > 20k
 	# Set the file paths
@@ -12,6 +12,7 @@ for log_file in "$LOG_DIR"/*log; do
 	if [ "$(file -b "$log_file")" = "data" ]; then
 	    #  non text files needs to be moved as is
 	    mv "$log_file" "$rotated_log_file"
+	    gzip "$rotated_log_file"
 	    continue
 	fi
 
@@ -23,6 +24,7 @@ for log_file in "$LOG_DIR"/*log; do
 
 	# Use sed to copy all lines except the last ten to the new file
 	sed "1,${exclude_lines}d" "$log_file" > "$rotated_log_file"
+	gzip "$rotated_log_file"
 
 	# Truncate the original file, removing the copied lines
 	sed -i "1,${exclude_lines}d" "$log_file"
