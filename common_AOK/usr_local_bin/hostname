@@ -28,21 +28,20 @@
 #      as you use in the iOS shortcut
 
 show_help() { # Multi OK 1
-    if ! this_is_ish; then
+    if ! test -d /proc/ish; then
         echo
         echo "WARNING: this is only meaningfull on iSH"
         echo
     fi
     echo "Usage: hostname [-h] [-U] [ -S /full/path/to/sourcefile ]
 
-Uses hint provided by shortcut to update hostname
-If you run iSH on multiple iOS devices and you have iCloud syncing of
-shortcuts turned on. This source file will contain hostnames for various
-devices. Therefore this value is only read if there is no local cache
-on this instance of iSH.
+hostname version able to pick up hostname via syncfile.
+This automates hostname allocation if you run iSH on multiple devices,
+or run both iSH and iSH-AOK on the same device.
 
-If you change hostname of your iOS device, run this with -f to force it
-to reread the source file.
+If $f_hostname_aok_suffix is present,
+instances running the kernel iSH-AOK will be given the suffix -aok to
+their hostname, unless alrady present.
 
 To see an example of how to create the shortcut needed that feeds this
 check https://github.com/jaclu/AOK-Filesystem-Tools/Docs/hostname-shortcut.md
@@ -53,21 +52,22 @@ Available options:
 
 Custom options for this hostname implementation:
 
--S  --sourcefile   Informs this tool what file to check for the shortcut hint
-                   Special case, if this is /etc/hostname it is assumed
-                   that hostname is static. Current source file:
-                    $(get_sync_file_fn)
+-S  --sourcefile   Defines where to pickup hostname. Unless this is
+                   $f_etc_hostname,the last line of this file will be used
+                   when doing: -U / --update
+                   If it is $f_etc_hostname, hostname is asumed to be
+                   static. Current source file:
+                     $(get_sync_file_fn)
 
--U  --update       Re-read sourcefile. If sourcefile is /etc/hostname
-                   nothing happens. For any other sourcefile, hostname
-                   will be asumed to be the last line in the sourcefile
-                   and it will be copied to /etc/hostname, to be used.
-                   Be aware if you use this on multiple devices the
-                   source file will contain the name of the latest iSH
-                   started, in such cases do this update just after starting
-                   this instance.
-                   AOK-FS provides /usr/local/sbin/hostname_sync.sh and
-                   runs it from inittab at startup to do this update
+-U  --update       If source file is not /etc/hosts - re-read sourcefile.
+                   Last line of this file will be copied to /etc/hosts
+                   and used as hostname.
+                   If kernel is iSH-AOK, and the file:
+                     $f_hostname_aok_suffix
+                   is present, -aok will be added as suffix to hostname,
+                   unless already in hostname.
+                   Finally the new hostname will be added to /etc/hosts
+                   if not already present.
 
 All other options are ignored, for compatibility with the default hostnme"
     exit 0
@@ -91,7 +91,7 @@ get_sync_file_fn() {
     fi
 }
 
-handle_aok_suffix() {
+fn_handle_aok_suffix() {
     #
     #  Not used ATM
     #
@@ -121,18 +121,6 @@ read_syncfile() {
     [ -f "$fn_sync_file" ] || error_msg "sync file '$fn_sync_file' not found!"
 
     #
-    #  hostname should always be in /etc/hosts
-    #  otherwise any sudo will give this warning:
-    #
-    #  unable to resolve host [current hostname]: Name or service not known
-    #
-    #  If we later change it without this name being there, will trigger
-    #  that sudo warning
-    #
-
-    # /usr/local/sbin/ensure_hostname_in_host_file
-
-    #
     #  Use last line of sync file as hostname
     #
     awk 'END {print $1}' "$fn_sync_file" | sudo tee /etc/hostname >/dev/null
@@ -154,22 +142,9 @@ read_syncfile() {
         mv /tmp/sync_file "$fn_sync_file" 2>/dev/null
     fi
 
-    handle_aok_suffix
-
-    #
-    #  to avoid error msgs like
-    #  sudo: unable to resolve host JacPadJacPad-aok: Name or service not known
-    #  'ensure_hostname_in_host_file' needs to be run before and
-    #  after the name change
-    #
+    fn_handle_aok_suffix
 
     sudo /usr/local/sbin/ensure_hostname_in_host_file
-
-    grep -qi aok /proc/ish/version 2>/dev/null || return
-
-    [ "$(hostname -s)" = "$(cat /etc/hostname)" ] || {
-        echo "Hostname set to: $(sudo /bin/hostname -F /etc/hostname)"
-    }
 }
 
 sudo_check() {
@@ -188,6 +163,7 @@ sudo_check() {
 # shellcheck source=/opt/AOK/tools/utils.sh
 #. /opt/AOK/tools/utils.sh
 
+f_etc_hostname=/etc/hostname
 f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
 f_hostname_aok_suffix=/etc/opt/AOK/hostname-aok-suffix
 
