@@ -180,6 +180,9 @@ obsolete_files() {
     is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/opt/hostname_cached
+    is_obsolete_file_present /usr/local/bin/elock
+    is_obsolete_file_present /usr/local/bin/fake_syslog
+    is_obsolete_file_present /usr/local/bin/toggle_multicore
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
     is_obsolete_file_present /usr/local/sbin/bat_monitord
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
@@ -242,7 +245,7 @@ fi
 
 d_new_etc_opt_prefix="/etc/opt/AOK"
 
-this_is_ish || error_msg "This should only be run on an iSH platform!"
+#this_is_ish || error_msg "This should only be run on an iSH platform!"
 
 if [ "$1" = "configs" ]; then
     echo
