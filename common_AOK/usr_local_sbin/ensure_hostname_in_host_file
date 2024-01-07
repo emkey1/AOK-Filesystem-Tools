@@ -2,29 +2,38 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
-#  Ensure that hostname is in /etc/hosts, if not add it to loopback
-#  some stuff looks up 'hostname' and fail or display warnings if
-#  it cant be resolved, its not a CPU drain, and it never hurts...
+#  hostname should always be in /etc/hosts
+#  otherwise any sudo will give this warning:
+#
+#  unable to resolve host [current hostname]: Name or service not known
 #
 
-host_file="/etc/hosts"
+ensure_it_is_there() {
+    hname="$1"
+    host_file="/etc/hosts"
+    [ -z "$hname" ] && {
+        /usr/local/bin/logger "$this_app ensure_it_is_there() - no param"
+        exit 1
+    }
+    if ! grep -q "127.0.0.1[[:space:]]$hname$" "$host_file"; then
+        /usr/local/bin/logger "$this_app adding $hname to $host_file"
+        printf '127.0.0.1\t%s\n' "$hname" >>"$host_file"
+    fi
+
+}
+
+this_app="$(basename "$0")"
 host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
 
+ensure_it_is_there "$host_name"
+
 #
-#  Since this will be run from inittab before /etc/init.d/hostname
-#  has started, you most likely will end up with both variants of the
-#  hostname in /etc/hosts when using AOK_HOSTNAME_SUFFIX:
-#    127.0.0.1   myipad
-#    127.0.0.1   myipad-aok
-#  That shouldnt be a problem, since the typical reason for enabling
-#  AOK_HOSTNAME_SUFFIX in the first place is if you run both iSH &
-#  iSH-AOK on the same device.
+#  If hostname has suffix -aok, ensure the hostname without the suffix
+#  is also present in /etc/hosts, in order to be able to connect to the
+#  non iSH-AOK instance
 #
-if ! grep -q "127.0.0.1[[:space:]]$host_name$" "$host_file"; then
-    /usr/local/bin/logger ensure_hostname_in_host_file adding "$host_name to $host_file"
-    printf '127.0.0.1\t%s\n' "$host_name" >>"$host_file"
-fi
+echo "$host_name" | grep -q '\-aok' && ensure_it_is_there "${hname%-aok}"
