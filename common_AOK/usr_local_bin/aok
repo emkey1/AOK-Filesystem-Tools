@@ -27,9 +27,14 @@ Available options:
                 disabling logins on this vterm
 "
     this_is_aok_kernel && {
-        txt="${txt}-e --locking    Use kernel extralocking on|off
-                Switching it on may improve sxtability but impacts performance
-                WARNING: turning this off from a remote session crashes sshd!
+        txt="${txt}
+iSH-AOK options:
+
+-e --extra_locking  Use kernel extralocking on|off
+                    Switching it on may improve sxtability but impacts performance
+                    WARNING: turning this off from a remote session crashes sshd!
+-m --multicore      Switch multicore processing on or off
+                    Switching it off improves stability but impacts performance
 "
     }
     txt="$txt
@@ -41,6 +46,7 @@ console:      $(display_console_mode)
 "
     this_is_aok_kernel && {
         txt="${txt}extralocking: $(display_extralocking)
+multicore:    $(display_multicore)
 "
     }
     echo "$txt"
@@ -220,6 +226,42 @@ display_extralocking() {
 
 #===============================================================
 #
+#       multicore processing
+#
+#===============================================================
+
+change_multicore() {
+    this_is_aok_kernel || {
+        error_msg "change_multicore() only usable on iSH-AOK kernels"
+    }
+    do_multicore="$1"
+    [ -z "$do_multicore" ] && {
+        error_msg "change_multicore() - no param given, options are on/off"
+    }
+    case "$do_multicore" in
+    "on") echo "true" >"$f_multicore" ;;
+    "off") echo "false" >"$f_multicore" ;;
+    *)
+        error_msg "change_multicore() - options are on/off"
+        ;;
+    esac
+    echo "multicore:    $(display_multicore)"
+}
+
+display_multicore() {
+    this_is_aok_kernel || {
+        error_msg "display_multicore() only usable on iSH-AOK kernels"
+    }
+    [ -f "$f_multicore" ] || error_msg "Not found: $f_multicore"
+    case "$(cat "$f_multicore")" in
+    "true") echo "on" ;;
+    "false") echo "off" ;;
+    *) error_msg "Unknown state in $f_multicore" ;;
+    esac
+}
+
+#===============================================================
+#
 #   Main
 #
 #===============================================================
@@ -228,6 +270,7 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
 f_elock=/proc/ish/defaults/enable_extralocking
+f_multicore=/proc/ish/defaults/enable_multicore
 
 autologin_disabled="disabled"
 prog_name=$(basename "$0")
@@ -295,6 +338,15 @@ while [ -n "$1" ]; do
             shift # get rid of extra option
         else
             echo "extralocking: $(display_extralocking)"
+        fi
+        ;;
+
+    "-m" | "--multicore")
+        if [ -n "$2" ]; then
+            change_multicore "$2"
+            shift # get rid of extra option
+        else
+            echo "multicore:    $(display_multicore)"
         fi
         ;;
 

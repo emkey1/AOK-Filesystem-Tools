@@ -1,6 +1,10 @@
 # TODO
 
-## make no login on pts/1 (console) an aok option
+
+## remote aok -e off crashes ssh session
+
+Also makes sshd unable to accept new sessions.
+established vterms not impacted, you can still create additional vterms
 
 ## Alpine app versions
 

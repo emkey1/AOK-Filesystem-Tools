@@ -3,6 +3,9 @@
 I will try to keep track of changes between releases here
 
 ## next release
+
+- removed /usr/local/bin/toggle_multicore, this task is now done by aok
+
 - removed /usr/local/bin/elock, this task is now done by aok
 - Ensure hostname without suffix is in /etc/hosts
 - fake_syslog -> logger
