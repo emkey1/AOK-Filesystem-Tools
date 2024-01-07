@@ -3,8 +3,12 @@
 
 ## remote aok -e off crashes ssh session
 
-Also makes sshd unable to accept new sessions.
-established vterms not impacted, you can still create additional vterms
+Not sure what happens, seems to create at least 3
+ /bin/sh /usr/local/bin/aok -e off
+processes, ending up non responsive
+in most cases new ssh sessions can be created. existing sessions
+tends to survive as long as they didnt generate any output whilst the -e off took place
+
 
 ## Alpine app versions
 
