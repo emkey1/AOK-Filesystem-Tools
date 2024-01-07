@@ -32,7 +32,7 @@ iSH-AOK options:
 
 -e --extra_locking  Use kernel extralocking on|off
                     Switching it on may improve sxtability but impacts performance
-                    WARNING: turning this off from a remote session crashes sshd!
+                    WARNING: turning this off from a remote session causes crashes!
 -m --multicore      Switch multicore processing on or off
                     Switching it off improves stability but impacts performance
 "
