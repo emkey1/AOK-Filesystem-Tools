@@ -287,14 +287,6 @@ login_with_param_check() {
 }
 
 bootup() {
-    echo "AOK_launcher - Press 'r' during bootup for recovery mode"
-    echo
-
-    #  If deploy has not completed - handle it
-    if [ -f "$f_deploy_state" ]; then
-        deploy_aok
-    fi
-
     if [ -f "$f_pts_0_as_console" ]; then
         echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
         echo
@@ -348,6 +340,14 @@ f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
 
+echo "AOK_launcher - Press 'r' during bootup for recovery mode"
+echo
+
+#  If deploy has not completed - handle it
+if [ -f "$f_deploy_state" ]; then
+    deploy_aok
+fi
+
 #
 #  This is only run on first vterm
 #
@@ -373,15 +373,14 @@ while true; do
 
     if [ -f "$f_logins_continous" ]; then
         echo
-        echo "Will spawn a new login session. If this is not requested,"
-        echo "remove: $f_logins_continous, and iSH will shutown on logout"
+        echo "Will spawn a new login session. If this is not requested, run aok"
         echo
         sleep 3
     else
         #_cnt="$(ps ax | grep -v grep | grep $0 | wc -l)"
         #if [ "$_cnt" < "2" ]; then
         echo
-        print_log "===  aok_launcher: $f_logins_continous not found, will exit this vterm"
+        print_log "To enable continous vterm sessions, run aok"
         sleep 3
         exit 0
     fi
