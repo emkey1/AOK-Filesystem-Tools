@@ -106,8 +106,11 @@ hostname_fix() {
     rm /bin/hostname
     ln -f /usr/local/bin/hostname /bin/hostname
 
-    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE" || {
-        error_msg "Cmd failed: aok -H enable '$ALT_HOSTNAME_SOURCE_FILE'"
+    [ -n "$ALT_HOSTNAME_SOURCE_FILE" ] && {
+	msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
+	hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
+	    error_msg "Failed to soure hostname"
+	}
     }
 }
 
