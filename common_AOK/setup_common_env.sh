@@ -100,9 +100,6 @@ setup_environment() {
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
-    if [ -n "$USER_NAME" ]; then
-        echo "Default user is: $USER_NAME" >>/etc/issue
-    fi
     echo >>/etc/issue
 
     #
