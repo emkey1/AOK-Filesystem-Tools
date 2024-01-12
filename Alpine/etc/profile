@@ -48,13 +48,4 @@ if [ "$VERBOSE" -eq 1 ]; then
     echo
 fi
 
-if grep -qi aok /proc/ish/version 2>/dev/null; then
-    #  Only run this on AOK kernels
-    CPU_STATE="$(/usr/local/bin/toggle_multicore status)"
-    echo "Multicore State=$CPU_STATE"
-
-    LOCK_STATE="$(/usr/local/bin/elock status)"
-    echo "Extra Locking State=$LOCK_STATE"
-fi
-
 echo ""
