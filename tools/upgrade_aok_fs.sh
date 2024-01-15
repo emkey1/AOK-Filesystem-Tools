@@ -177,11 +177,14 @@ update_etc_opt_references() {
 obsolete_files() {
     msg_2 "Ensuring no obsolete files are present"
 
+    if [ -d /opt/iSH-conf ]; then
+        msg_3 "/opt/iSH-conf is used during deploy, no longer needed"
+    fi
+
     is_obsolete_file_present /etc/aok-release
     is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/opt/hostname_cached
-    is_obsolete_file_present /opt/iSH-conf
 
     is_obsolete_file_present /usr/local/bin/aok_groups
     is_obsolete_file_present /usr/local/bin/apk_find_pkg
