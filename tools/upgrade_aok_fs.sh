@@ -186,7 +186,9 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/apk_find_pkg
     is_obsolete_file_present /usr/local/bin/battery_charge
     is_obsolete_file_present /usr/local/bin/disable_sshd
+    is_obsolete_file_present /usr/local/bin/disable_vnc
     is_obsolete_file_present /usr/local/bin/elock
+    is_obsolete_file_present /usr/local/bin/enable_vnc
     is_obsolete_file_present /usr/local/bin/fake_syslog
     is_obsolete_file_present /usr/local/bin/ipad_tmux
     is_obsolete_file_present /usr/local/bin/iphone_tmux

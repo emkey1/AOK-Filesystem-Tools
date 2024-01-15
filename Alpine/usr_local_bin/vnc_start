@@ -11,7 +11,7 @@ TMPDIR="${TMPDIR:-/tmp}"
 
 # Do minimal sanity check to see if vnc/X11 are installed
 if [ ! -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
-    echo "You must run 'enable_vnc' first"
+    echo "You must run 'enable-vnc' first"
     exit 1
 fi
 
