@@ -37,7 +37,7 @@
 #  This means first boot after new iSH will show outdated version
 #  on bootup
 #
-::sysinit:/usr/local/sbin/R-check /usr/local/sbin/update_motd
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/update-motd
 
 #
 #  iSH typically does no cleanup at shutdown, it just suddenly terminates.

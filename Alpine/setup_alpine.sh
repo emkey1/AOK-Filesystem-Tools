@@ -184,7 +184,7 @@ if [ ! -x "$(readlink -f /bin/login)" ]; then
 fi
 
 msg_2 "Preparing initial motd"
-/usr/local/sbin/update_motd
+/usr/local/sbin/update-motd
 
 setup_cron_env
 

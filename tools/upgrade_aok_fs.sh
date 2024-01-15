@@ -207,6 +207,7 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
     is_obsolete_file_present /usr/local/sbin/hostname_sync.sh
     is_obsolete_file_present /usr/local/sbin/reset-run-dir.sh
+    is_obsolete_file_present /usr/local/sbin/update_motd
 }
 
 update_aok_release() {
@@ -239,7 +240,7 @@ update_aok_release() {
     msg_1 "Updated $f_aok_release to: $new_rel"
 
     if hostfs_is_alpine; then
-        /usr/local/sbin/update_motd
+        /usr/local/sbin/update-motd
     fi
 }
 
