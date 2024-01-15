@@ -21,7 +21,7 @@ Available options:
                 disable  - Will give login prompt
                 username - Will auto-login as username
 -c --continous  New login prompt after vterm logout [on|off]
--l --launcher   Choose Launch cmd: $launch_cmd_options
+-l --launch-cmd Choose Launch cmd: $launch_cmd_options
 -s --aoksuffix  Ensure -aok is added as suffix to hostname on iSH-AOK kernels [on|off]
                 Ignored on regular iSH
 -C --console    Use first vterm (/dev/pts/0) as console,

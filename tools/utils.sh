@@ -531,7 +531,7 @@ verify_launch_cmd() {
         echo
         echo "To set the default, run this, it will display the updated content:"
         echo
-        echo "aok -l aok"
+        echo "aok --launch-cmd aok"
         # echo "sudo echo '$launch_cmd_AOK' > $f_launch_cmd"
         echo
     fi
