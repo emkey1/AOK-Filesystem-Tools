@@ -57,9 +57,9 @@ is_obsolete_file_present() {
     [ -z "$f_name" ] && error_msg "is_obsolete_file_present() - no first param"
 
     if [ -f "$f_name" ]; then
-        msg_2 "Obsolete file found: $f_name"
+        msg_3 "Obsolete file found: $f_name"
     elif [ -e "$f_name" ]; then
-        msg_2 "Obsolete filename found, but was not file: $f_name"
+        msg_3 "Obsolete filename found, but was not file: $f_name"
     fi
 }
 
@@ -189,6 +189,7 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/ipad_tmux
     is_obsolete_file_present /usr/local/bin/iphone_tmux
     is_obsolete_file_present /usr/local/bin/nav_keys.sh
+    is_obsolete_file_present /usr/local/bin/network_check.sh
     is_obsolete_file_present /usr/local/bin/toggle_multicore
     is_obsolete_file_present /usr/local/sbin/aok_launcher
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
