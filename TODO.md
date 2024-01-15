@@ -15,7 +15,7 @@ tends to survive as long as they didnt generate any output whilst the -e off too
 htop from A 3.14
 apk add lua5.3
 
-## vnc_start / stop
+## vnc-start / stop
 
 Verify the new grep check works as intended
 

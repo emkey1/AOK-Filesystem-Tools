@@ -14,4 +14,4 @@ VNC
 
 enable-vnc: Create needed config files and download APK's
 disable-vnc: Reverse above
-vnc_start: Start X11 and the VNC server
+vnc-start: Start X11 and the VNC server

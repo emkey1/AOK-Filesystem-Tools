@@ -190,11 +190,14 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/elock
     is_obsolete_file_present /usr/local/bin/enable_vnc
     is_obsolete_file_present /usr/local/bin/fake_syslog
+    is_obsolete_file_present /usr/local/bin/idev_ip
     is_obsolete_file_present /usr/local/bin/ipad_tmux
     is_obsolete_file_present /usr/local/bin/iphone_tmux
     is_obsolete_file_present /usr/local/bin/nav_keys.sh
     is_obsolete_file_present /usr/local/bin/network_check.sh
     is_obsolete_file_present /usr/local/bin/toggle_multicore
+    is_obsolete_file_present /usr/local/bin/vnc_start
+    is_obsolete_file_present /usr/local/bin/vnc_stop
     is_obsolete_file_present /usr/local/sbin/aok_launcher
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
     is_obsolete_file_present /usr/local/sbin/bat_monitord

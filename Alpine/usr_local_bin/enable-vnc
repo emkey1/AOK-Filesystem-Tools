@@ -94,4 +94,4 @@ echo "------------------------------------------------------"
 echo "VNC has been enabled.  To start the VNC server run..."
 echo "------------------------------------------------------"
 echo
-echo "vnc_start"
+echo "vnc-start"
