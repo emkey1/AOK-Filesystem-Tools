@@ -78,6 +78,7 @@ general_upgrade() {
     rsync_chown "$d_aok_base"/common_AOK/usr_local_bin/ /usr/local/bin
     msg_3 "/usr/local/sbin"
     rsync_chown "$d_aok_base"/common_AOK/usr_local_sbin/ /usr/local/sbin
+    aok_launcher_set_aok_version || error_msg "Failed to set aok-launcher version"
     echo
     msg_3 "alternate hostname related"
     [ -f /etc/init.d/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/aok-hostname-service /etc/init.d/hostname
@@ -180,11 +181,15 @@ obsolete_files() {
     is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/opt/hostname_cached
+    is_obsolete_file_present /opt/iSH-conf
+    is_obsolete_file_present /usr/local/bin//battery_charge
     is_obsolete_file_present /usr/local/bin/elock
     is_obsolete_file_present /usr/local/bin/fake_syslog
     is_obsolete_file_present /usr/local/bin/toggle_multicore
+    is_obsolete_file_present /usr/local/sbin/aok_launcher
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
     is_obsolete_file_present /usr/local/sbin/bat_monitord
+    is_obsolete_file_present /usr/local/sbin/do_shutdown
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
     is_obsolete_file_present /usr/local/sbin/hostname_sync.sh
     is_obsolete_file_present /usr/local/sbin/reset-run-dir.sh
@@ -254,6 +259,6 @@ fi
 
 general_upgrade
 update_etc_opt_references
-obsolete_files
 update_aok_release
 verify_launch_cmd
+obsolete_files

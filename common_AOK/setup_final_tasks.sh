@@ -16,7 +16,7 @@
 #
 
 #
-#  If aok_launcher is used as Launch Cmd, it has already waited for
+#  If aok-launcher is used as Launch Cmd, it has already waited for
 #  system to be ready, so can be skipped here
 #
 wait_for_bootup() {
@@ -107,10 +107,10 @@ hostname_fix() {
     ln -f /usr/local/bin/hostname /bin/hostname
 
     [ -n "$ALT_HOSTNAME_SOURCE_FILE" ] && {
-	msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
-	hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
-	    error_msg "Failed to soure hostname"
-	}
+        msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
+        hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
+            error_msg "Failed to soure hostname"
+        }
     }
 }
 

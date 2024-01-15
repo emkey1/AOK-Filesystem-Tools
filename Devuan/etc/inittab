@@ -21,12 +21,6 @@ hns::sysinit:/usr/local/sbin/hostname_sync.sh
 #  This is not used atm, seems devices disapearing is no longer an issue
 # fx1::sysinit:/usr/local/sbin/fix_dev
 
-#
-#  Not system critical but we might as well do it here
-#  instead of creating a full service for the task
-#
-hna::sysinit:/usr/local/sbin/ensure_hostname_in_host_file
-
 # Boot-time system configuration/initialization script.
 # This is run first except when booting in emergency (-b) mode.
 si::sysinit:/etc/init.d/rcS

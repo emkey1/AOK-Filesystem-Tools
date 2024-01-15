@@ -42,7 +42,7 @@ log_file="${LOGGER_FILE:-$f_def_log}"
 #  Sample to log oddities in a separate log-file using itself
 # if [ "$item" = "runbg" ]; then
 #     LOGGER_FILE="$f_issues" /usr/local/bin/logger \
-#         logger "=== aok_launcher uses log_file=$log_file"
+#         logger "=== aok-launcher uses log_file=$log_file"
 # fi
 
 #

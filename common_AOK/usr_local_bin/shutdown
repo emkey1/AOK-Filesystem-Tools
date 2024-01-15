@@ -89,4 +89,4 @@ fi
 #  that will ignore if the triggering session disapears
 #
 
-/usr/local/sbin/do_shutdown nice &
+/usr/local/sbin/do-shutdown nice &

@@ -144,7 +144,7 @@ read_syncfile() {
 
     fn_handle_aok_suffix
 
-    sudo /usr/local/sbin/ensure_hostname_in_host_file
+    sudo /usr/local/sbin/ensure-hostname-in-host-file
 }
 
 sudo_check() {

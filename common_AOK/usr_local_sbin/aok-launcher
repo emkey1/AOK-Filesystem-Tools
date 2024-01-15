@@ -102,8 +102,8 @@ print_log() {
 
 do_shutdown() {
     echo
-    /usr/local/sbin/do_shutdown
-    print_log "Returned from do_shutdown..."
+    /usr/local/sbin/do-shutdown
+    print_log "Returned from do-shutdown..."
 }
 
 set_deploy_aok_abort() {
@@ -133,10 +133,10 @@ deploy_aok() {
     echo "******************************************************"
     echo
     da_depl_step="$(cat "$f_deploy_state")"
-    /usr/local/bin/logger aok_launcher Triggering deploy step: "$da_depl_step"
+    /usr/local/bin/logger aok-launcher Triggering deploy step: "$da_depl_step"
     #  AOK-FS uses /etc/profile as placeholder for deploy steps
     if /etc/profile; then
-        /usr/local/bin/logger aok_launcher Deploy completed - "$da_depl_step"
+        /usr/local/bin/logger aok-launcher Deploy completed - "$da_depl_step"
     else
         echo
         echo "ERROR returned from the deploy procedure!"
@@ -325,7 +325,7 @@ bootup() {
 
 prog_name=$(basename "$0")
 expected_runlevel="default"
-# f_status_log="/var/log/aok_launcher.log"
+# f_status_log="/var/log/aok-launcher.log"
 f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
 
@@ -340,7 +340,7 @@ f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
 
-echo "AOK_launcher - Press 'r' during bootup for recovery mode"
+echo "aok-launcher vPLACEHOLDER_AOK_VERSION - Press 'r' during bootup for recovery mode"
 echo
 
 #  If deploy has not completed - handle it
@@ -386,6 +386,6 @@ while true; do
     fi
 done
 
-print_log "===  Fell out of infinite aok_launcher loop - Should really not happen!"
+print_log "===  Fell out of infinite aok-launcher loop - Should really not happen!"
 echo "will sleep forever, please shutdown iSH"
 /bin/sleep infinity

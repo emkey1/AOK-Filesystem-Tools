@@ -591,10 +591,14 @@ set_launch_cmd() {
     unset _slc_current
 }
 
+aok_launcher_set_aok_version() {
+    sed -i "s#PLACEHOLDER_AOK_VERSION#$AOK_VERSION#" /usr/local/sbin/aok-launcher
+}
+
 # each param MUST be wrapped in ""...
 
 f_launch_cmd="/proc/ish/defaults/launch_command"
-launch_cmd_AOK='[ "/usr/local/sbin/aok_launcher" ]'
+launch_cmd_AOK='[ "/usr/local/sbin/aok-launcher" ]'
 launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 
 #---------------------------------------------------------------

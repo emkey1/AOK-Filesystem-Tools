@@ -73,7 +73,7 @@ syslog_it "Starting, logging battery charge every $sleep_time seconds to: $log_f
 
 while true; do
     charge_old="$charge_now"
-    charge_now="$(battery_charge)"
+    charge_now="$(battery-charge)"
     uptime_1="$(uptime | awk -F'average:' '{print $2}' | awk -F, '{print $1}' | tr -d ' ')"
     if [ "$charge_now" != "$charge_old" ]; then
         #echo "old:[$charge_old]"
