@@ -11,6 +11,8 @@
 #  to be here
 #
 
+d_here="$(dirname "$0")"
+
 echo
 echo "=== Doing apt update"
 echo
@@ -25,7 +27,7 @@ apt purge -y man-db groff-base
 echo
 echo "=== Do upgrade and apt maintenance"
 echo
-/root/img_build/bin/Mapt
+"$d_here"/Mapt
 
 # echo
 # echo "=== Create db over installed packages grouped by sections"

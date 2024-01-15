@@ -1,33 +1,65 @@
+--- Debian10-7.1-aok-1  2023-01-13
 
---- Debian10-minim-3
-Added some locales:
-  en_US.utf8 en_GB.utf8
+installed
+  binutils binutils-i686-linux-gnu build-essential bzip2 ca-certificates
+  cpp cpp-8 curl dbus dh-python dirmngr dpkg-dev elinks elinks-data
+  elogind fakeroot fortune-mod fortunes-min fzf g++ g++-8 gawk gcc gcc-8
+  gir1.2-glib-2.0 git git-man gnupg gnupg-l10n gnupg-utils gpg gpg-agent
+  gpg-wks-client gpg-wks-server gpgconf gpgsm htop krb5-locales
+  libalgorithm-diff-perl libalgorithm-diff-xs-perl libalgorithm-merge-perl
+  libapparmor1 libc-dev-bin libc6-dev libcurl3-gnutls libcurl4 libdbus-1-3
+  libdpkg-perl libelogind0 liberror-perl libev4 libevent-2.1-6
+  libexpat1-dev libfakeroot libfile-fcntllock-perl libfsplib0 libgcc-8-dev
+  libgirepository-1.0-1 libglib2.0-0 libglib2.0-data libgssapi-krb5-2
+  libicu63 libkrb5-3 libldap-2.4-2 libldap-common liblua5.1-0 libmpc3
+  libpam-elogind libperl5.28 libprotobuf17 libpython3-dev
+  libpython3-stdlib libpython3.7 libpython3.7-dev libpython3.7-minimal
+  libpython3.7-stdlib librecode0 libsigsegv2 libsqlite0 libssl1.1
+  libstdc++-8-dev libtre5 libutempter0 libx11-6 libx11-data libxext6
+  libxml2 libxmuu1 linux-libc-dev make manpages manpages-dev mime-support
+  mosh nano ncdu openssh-client openssh-server openssh-sftp-server openssl
+  patch perl perl-modules-5.28 pinentry-curses python-pip-whl python3
+  python3-asn1crypto python3-cffi-backend python3-crypto
+  python3-cryptography python3-dbus python3-dev python3-distutils
+  python3-entrypoints python3-gi python3-keyring python3-keyrings.alt
+  python3-lib2to3 python3-minimal python3-pip python3-pkg-resources
+  python3-secretstorage python3-setuptools python3-six python3-wheel
+  python3-xdg python3.7 python3.7-dev python3.7-minimal shared-mime-info
+  sqlite tmux tzdata ucf xauth xdg-user-dirs xz-utils zsh zsh-common
+purged
+  dbus dirmngr elogind gnupg gnupg-l10n gnupg-utils gpg gpg-agent
+  gpg-wks-client gpg-wks-server gpgconf gpgsm libapparmor1:i386
+  libdbus-1-3:i386 libelogind0:i386 libpam-elogind:i386 libx11-6:i386
+  libx11-data libxau6:i386 libxcb1:i386 libxext6:i386 libxmuu1:i386
+  pinentry-curses python3-asn1crypto python3-cffi-backend
+  python3-cryptography python3-dbus python3-entrypoints python3-keyring
+  python3-secretstorage xauth xdg-user-dirs
 
---- Debian10-minim-4
-Removed some pkgs not usable in iSH
-Ran mandb -c to hopefully get future updates of mandb to run quicker
-
---- Debian10-minim-5  2023-09-09
+--- Debian10-minim-7.1  2023-01-13
+apt purge
+  man-db groff-base libpipeline1 libuchardet0
 apt upgrade
-  libssh2-1
-
-Debian10-6-aok-2
---- Debian10-minim-6  2023-09-12
-Fine tuned what items can be removed without impacting iSH
+  libgnutls30 libk5crypto3 libkrb5support0 libncurses6 libncursesw6
+  libnghttp2-14 libtinfo6 ncurses-base ncurses-bin ncurses-term
 
 --- Debian10-minim-7  2023-10-10
 apt upgrade
   libelf1 libncurses6 libncursesw6 libtinfo6 ncurses-base ncurses-bin
   ncurses-term vim vim-common vim-runtime vim-tiny xxd
 
---- Debian10-minim-8  2023-12-16
+Debian10-6-aok-2
+--- Debian10-minim-6  2023-09-12
+Fine tuned what items can be removed without impacting iSH
+
+
+--- Debian10-minim-5  2023-09-09
 apt upgrade
-  libgnutls30 libk5crypto3 libkrb5support0 libncurses6 libncursesw6
-  libnghttp2-14 libtinfo6 ncurses-base ncurses-bin ncurses-term
+  libssh2-1
 
-# pending
-Added elogind updated /etc/pam.d /etc/environment /etc/aok-fs-release
-reverted /etc/login.defs to minim-7 version
+--- Debian10-minim-4
+Removed some pkgs not usable in iSH
+Ran mandb -c to hopefully get future updates of mandb to run quicker
 
---- Debian10-minim-9 & Debian10-9-aok-1 2023-12-26
-added initial /etc/aok-fs-release
+--- Debian10-minim-3
+Added some locales:
+  en_US.utf8 en_GB.utf8
