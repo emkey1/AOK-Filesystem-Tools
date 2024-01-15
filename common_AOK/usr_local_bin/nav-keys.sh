@@ -64,12 +64,12 @@ tmux_esc_prefix() {
         echo "#  For this to work, escape-time needs to be zero, or at least pretty low"
         echo "set -s escape-time 0"
         echo
-	
-	echo "#"
+
+        echo "#"
         echo "#  Using Esc prefix for nav keys"
-	echo "#"
+        echo "#"
         echo "set -s user-keys[200]  \"$sequence\"" # escPrefix
-	echo "bind -N \"Switch to -T escPrefix\" -n User200 switch-client -T escPrefix"
+        echo "bind -N \"Switch to -T escPrefix\" -n User200 switch-client -T escPrefix"
         echo
         echo "bind -T escPrefix  Down     send PageDown"
         echo "bind -T escPrefix  Up       send PageUp"
@@ -224,7 +224,7 @@ Since most iOS keyboards do not have dedicated PageUp, PageDn, Home and End
 keys, inside tmux this can be solved by using work-arrounds.
 Outside tmux, this setting will have no effect.
 
-This setting can be changed at any time by running /usr/local/bin/nav_keys.sh
+This setting can be changed at any time by running /usr/local/bin/nav-keys.sh
 And will take effect next time you start tmux.
 "
 
