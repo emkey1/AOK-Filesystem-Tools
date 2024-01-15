@@ -33,7 +33,7 @@ iSH-AOK options:
 
 -e --extra_locking  Use kernel extralocking [on|off]
                     Switching it on may improve stability but impacts performance
-                    WARNING: turning this off sometimes causes session to hang, 
+                    WARNING: turning this off sometimes causes session to hang,
                              but change did happen!
 -m --multicore      Switch multicore processing [on|off]
                     Switching it off improves stability but impacts performance
@@ -160,7 +160,7 @@ launch_cmd_custom() {
 }
 
 launch_cmd_display() {
-    echo "launch_cmd:   $(get_launch_cmd)"
+    echo "Launch cmd:   $(get_launch_cmd)"
 }
 
 #===============================================================
