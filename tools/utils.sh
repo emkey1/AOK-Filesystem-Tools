@@ -531,7 +531,7 @@ verify_launch_cmd() {
         echo
         echo "To set the default, run this, it will display the updated content:"
         echo
-        echo "echo '$launch_cmd_AOK' | sudo tee $f_launch_cmd > /dev/null && cat $f_launch_cmd"
+        echo "aok -l aok"
         # echo "sudo echo '$launch_cmd_AOK' > $f_launch_cmd"
         echo
     fi
@@ -592,13 +592,13 @@ set_launch_cmd() {
 }
 
 aok_launcher_set_aok_version() {
-    sed -i "s#PLACEHOLDER_AOK_VERSION#$AOK_VERSION#" /usr/local/sbin/aok-launcher
+    sed -i "s#PLACEHOLDER_AOK_VERSION#$AOK_VERSION#" /usr/local/sbin/aok_launcher
 }
 
 # each param MUST be wrapped in ""...
 
 f_launch_cmd="/proc/ish/defaults/launch_command"
-launch_cmd_AOK='[ "/usr/local/sbin/aok-launcher" ]'
+launch_cmd_AOK='[ "/usr/local/sbin/aok_launcher" ]'
 launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 
 #---------------------------------------------------------------

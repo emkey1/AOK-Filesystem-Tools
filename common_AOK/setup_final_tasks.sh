@@ -16,7 +16,7 @@
 #
 
 #
-#  If aok-launcher is used as Launch Cmd, it has already waited for
+#  If aok_launcher is used as Launch Cmd, it has already waited for
 #  system to be ready, so can be skipped here
 #
 wait_for_bootup() {
