@@ -47,8 +47,6 @@ setup_environment() {
 
     copy_local_bins common_AOK
 
-    aok_launcher_set_aok_version || error_msg "Failed to set aok_launcher version"
-
     msg_2 "Configure some /etc files"
 
     #

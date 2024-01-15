@@ -339,8 +339,12 @@ f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
 
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
-
-echo "aok_launcher vPLACEHOLDER_AOK_VERSION - Press 'r' during bootup for recovery mode"
+if [ -f /etc/aok-fs-release ]; then
+    aok_vers="$(cat /etc/aok-fs-release)" || aok_vers="Failed to read"
+else
+    aok_vers="Unknown"
+fi
+echo "aok_launcher v$aok_vers - Press 'r' during bootup for recovery mode"
 echo
 
 #  If deploy has not completed - handle it

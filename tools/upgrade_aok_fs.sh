@@ -78,7 +78,6 @@ general_upgrade() {
     rsync_chown "$d_aok_base"/common_AOK/usr_local_bin/ /usr/local/bin
     msg_3 "/usr/local/sbin"
     rsync_chown "$d_aok_base"/common_AOK/usr_local_sbin/ /usr/local/sbin
-    aok_launcher_set_aok_version || error_msg "Failed to set aok_launcher version"
     echo
     msg_3 "alternate hostname related"
     [ -f /etc/init.d/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/aok-hostname-service /etc/init.d/hostname
