@@ -580,9 +580,12 @@ set_launch_cmd() {
     [ "$_slc_current" = "$_slc_cmd" ] || {
         echo
         echo "ERROR: Failed to set Launch cmd"
-        echo "intended: >$_slc_cmd<"
-        echo "current:  >$_slc_current<"
+        echo
+        echo "Sample syntax: '$launch_cmd_default'"
+        echo "intended: '$_slc_cmd'"
+        echo "current:  '$_slc_current'"
         restore_launch_cmd "Failed to set a launch command"
+        exit 1
     }
     unset _slc_cmd
     unset _slc_current
