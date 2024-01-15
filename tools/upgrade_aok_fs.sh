@@ -182,6 +182,7 @@ obsolete_files() {
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/opt/hostname_cached
     is_obsolete_file_present /opt/iSH-conf
+
     is_obsolete_file_present /usr/local/bin/aok_groups
     is_obsolete_file_present /usr/local/bin/apk_find_pkg
     is_obsolete_file_present /usr/local/bin/battery_charge
@@ -190,7 +191,6 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/elock
     is_obsolete_file_present /usr/local/bin/enable_vnc
     is_obsolete_file_present /usr/local/bin/fake_syslog
-    is_obsolete_file_present /usr/local/bin/idev_ip
     is_obsolete_file_present /usr/local/bin/ipad_tmux
     is_obsolete_file_present /usr/local/bin/iphone_tmux
     is_obsolete_file_present /usr/local/bin/nav_keys.sh
@@ -198,6 +198,8 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/toggle_multicore
     is_obsolete_file_present /usr/local/bin/vnc_start
     is_obsolete_file_present /usr/local/bin/vnc_stop
+    is_obsolete_file_present /usr/local/bin/what_owns
+
     is_obsolete_file_present /usr/local/sbin/aok_launcher
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
     is_obsolete_file_present /usr/local/sbin/bat_monitord
