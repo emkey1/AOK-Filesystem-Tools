@@ -199,10 +199,10 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 AOK_APKS="nload nload-doc"
 
 #
-#  Additional APK groups managed with /usr/local/bin/aok_groups
+#  Additional APK groups managed with /usr/local/bin/aok-groups
 #
 #  Any variable ending with _APKS in this file, will be seen as a package
-#  group by aok_groups and with that tool you can add/delete groups more
+#  group by aok-groups and with that tool you can add/delete groups more
 #  conveniently than having to open this file and then do cut/paste
 #  repeatedly.
 #
