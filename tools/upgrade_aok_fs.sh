@@ -183,6 +183,7 @@ obsolete_files() {
     is_obsolete_file_present /etc/opt/hostname_cached
     is_obsolete_file_present /opt/iSH-conf
     is_obsolete_file_present /usr/local/bin/aok_groups
+    is_obsolete_file_present /usr/local/bin/apk_find_pkg
     is_obsolete_file_present /usr/local/bin/battery_charge
     is_obsolete_file_present /usr/local/bin/disable_sshd
     is_obsolete_file_present /usr/local/bin/elock

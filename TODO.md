@@ -33,7 +33,7 @@ Set it with a reasonable PATH
 
 ## Remove obsolete files
 
-Alpine/usr_local_bin/apk_find_pkg.sh it is now apk_find_pkg
+Alpine/usr_local_bin/apk-find-pkg.sh it is now apk-find-pkg
 
 ## Start working on using a working /run
 
