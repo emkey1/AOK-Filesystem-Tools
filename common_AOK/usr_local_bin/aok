@@ -109,6 +109,8 @@ autologin_display() {
     echo "autologin:    $(autologin_settting)"
 }
 
+autologin_disabled="disabled"
+
 #===============================================================
 #
 #       Continous login sessions
@@ -162,6 +164,8 @@ launch_cmd_custom() {
 launch_cmd_display() {
     echo "Launch cmd:   $(get_launch_cmd)"
 }
+
+launch_cmd_options="[default|aok|custom '\"cmd\"']"
 
 #===============================================================
 #
@@ -270,6 +274,8 @@ extralocking_display() {
     echo "extralocking: $(extralocking_setting)"
 }
 
+f_elock=/proc/ish/defaults/enable_extralocking
+
 #===============================================================
 #
 #       multicore processing
@@ -310,6 +316,8 @@ multicore_display() {
     echo "multicore:    $(multicore_setting)"
 }
 
+f_multicore=/proc/ish/defaults/enable_multicore
+
 #===============================================================
 #
 #   Main
@@ -320,12 +328,6 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
 prog_name=$(basename "$0")
-
-f_elock=/proc/ish/defaults/enable_extralocking
-f_multicore=/proc/ish/defaults/enable_multicore
-
-autologin_disabled="disabled"
-launch_cmd_options="[default|aok|custom '\"cmd\"']"
 
 [ -z "$1" ] && show_help
 
