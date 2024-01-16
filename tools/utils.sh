@@ -827,20 +827,20 @@ d_aok_base="/opt/AOK"
 #
 #  Import default settings
 #
+_f="$d_aok_base"/AOK_VARS
 #  shellcheck source=/opt/AOK/AOK_VARS
-. "$d_aok_base"/AOK_VARS || exit 1
+. "$_f" || error_msg "Not found: $_f"
 
 #
 #  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
 #
 # if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
-conf_overrides="${d_aok_base}/.AOK_VARS"
-if [ -f "$conf_overrides" ]; then
+_f="${d_aok_base}/.AOK_VARS"
+if [ -f "$_f" ]; then
     # msg_2 "Found .AOK_VARS"
     #  shellcheck disable=SC1090
-    . "$conf_overrides"
+    . "$_f"
 fi
-unset conf_overrides
 
 TMPDIR="${TMPDIR:-/tmp}"
 
@@ -921,27 +921,12 @@ else
     alpine_src_image="https://dl-cdn.alpinelinux.org/alpine/v${alpine_release}/releases/x86/$alpine_src_tb"
 fi
 
-#
-#  Names of the generated distribution tarballs, no ext, that is ecided
-#  upon during compression
-#
-alpine_tb="AOK-Alpine-${ALPINE_VERSION}-$AOK_VERSION"
-select_distro_tb="AOK-SelectDistro-$AOK_VERSION"
-debian_tb="AOK-Debian-10-$AOK_VERSION"
-devuan_tb="AOK-Devuan-4-$AOK_VERSION"
-
 #  Where to find native FS version
 f_alpine_release="$d_build_root"/etc/alpine-release
 f_debian_version="$d_build_root"/etc/debian_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
 f_aok_fs_release="$d_build_root"/etc/aok-fs-release
-
-#
-#  First boot additional tasks to be run, defined in AOK_VARS,
-#  FIRST_BOOT_ADDITIONAL_TASKS
-#
-additional_tasks_script="$d_build_root/opt/additional_tasks"
 
 #
 #  Either run this script chrooted if the host OS supports it, or run it
@@ -972,12 +957,6 @@ destfs_select="select"
 f_destfs_select_hint="$d_build_root"/etc/opt/select_distro
 
 pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
-
-#
-#  Location for alternate hostname, should normally be in a path
-#  location before /bin/hostname is found
-#
-f_hostname_alt=/usr/local/bin/hostname
 
 #  file alt hostname reads to find hostname
 #  the variable has been renamed to
