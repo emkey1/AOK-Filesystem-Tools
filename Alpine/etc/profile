@@ -34,7 +34,7 @@ if [ "$VERBOSE" -eq 1 ]; then
 fi
 
 if [ "$CHECK" -eq 0 ]; then
-    echo "Enable sshd on port 1022: [31menable_sshd[0m"
+    echo "Enable sshd on port 1022: [31menable-sshd[0m"
     echo
 fi
 
