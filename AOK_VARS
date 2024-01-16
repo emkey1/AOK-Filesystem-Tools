@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.2.22"
+AOK_VERSION="0.11.2.24"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -242,12 +242,12 @@ DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/t077i9zxjl4yc5iwzvfei/Debian10-7.1-aok-1.tgz?rlkey=ilxwf543m2tx4h6anb7neehky"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/5hyyn6vs48t0uvyltreng/Debian10-10-aok-2.tgz?rlkey=t8oq9e1sa8xm1g3n0j4cghb86"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly
 #  matching the Alpine packages, here you can list packages that should
-#  be excluded. This happens during the pre-build when it isused,
+#  be excluded. This happens during the pre-build when it is used,
 #  it saves time compared to having to do it on the target device.
 #  DEB_PKGS_SKIP is processed before DEB_PKGS to ensure that
 #  this doesnt unintentionally deelete something for DEB_PKGS
