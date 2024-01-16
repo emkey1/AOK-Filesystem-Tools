@@ -562,7 +562,9 @@ if [ -n "$POPULATE_FS" ]; then
     #  test deploys
     #
     pop_fs="$(echo "$POPULATE_FS" | sed "s#D_BUILD_ROOT#$d_build_root#g")"
-    msg_1 "POPULATE_FS: $pop_fs"
+    msg_2 "POPULATE_FS requested"
+    echo "$pop_fs"
+    echo
     /bin/sh -c "$pop_fs" || {
         error_msg "POPULATE_FS [$pop_fs] returned error"
     }
