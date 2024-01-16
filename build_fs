@@ -511,8 +511,8 @@ display_build_target
 
 msg_2 "Preparing build environment"
 
-[ -z "$d_build_root" ] && error_msg "build_root not assigned"
-[ -d "$d_build_root" ] || error_msg "build_root not a folder [$build_root]"
+[ -z "$d_build_root" ] && error_msg "d_build_root not assigned"
+[ -d "$d_build_root" ] || error_msg "d_build_root not a folder [$d_build_root]"
 
 msg_3 "Clearing build root $d_build_root"
 rm -rf "$d_build_root"
@@ -556,7 +556,7 @@ mkdir -p "$d_build_root"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
     #
-    #  So far unofficial hack, if you put D_BUILD_ROOT in POPULATE_FS
+    #  So far unofficial hack, if you put d_build_root in POPULATE_FS
     #  it will be replaced with actual build_root during creation of
     #  FS, most likely will never be used by anyone but me during chroot
     #  test deploys
