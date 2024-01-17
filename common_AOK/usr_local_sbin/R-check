@@ -10,10 +10,10 @@
 #  recovery mode is selected
 #
 
-f_recovery_mode="/etc/opt/AOK/recovery-mode"
-
+f_recovery_mode=/etc/opt/AOK/recovery-mode
+f_recovery_log_file=/var/log/recovery-mode.log
 [ -f "$f_recovery_mode" ] && {
-    echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped ${*}" >>/var/log/recovery-mode.log
+    echo "$(date +"%Y-%m-%d %H:%M:%S") init skipped ${*}" >>"$f_recovery_log_file"
     exit 0
 }
 
