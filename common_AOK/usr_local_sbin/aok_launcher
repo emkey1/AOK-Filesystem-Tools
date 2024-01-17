@@ -22,14 +22,46 @@
 #  directly to set up the user session
 #
 
+log_it() {
+    # In recovery mode, skip logging to minimize risk of issues
+    [ -f "$f_recovery_mode" ] && return
+
+    # if no supported loggers are found, fall back to a non-dependency solution
+    f_logger=/usr/local/bin/logger
+    if [ -x "$f_logger" ]; then
+        "$f_logger" "$prog_name" "$*"
+    else
+        echo "$(date +"%Y-%m-%d %H:%M:%S") ${prog_name}: $*" >>/var/log/messages
+    fi
+    unset f_logger
+}
+
+print_log() {
+    #
+    #  In case of bootup issues, this output is both displayed
+    #  and logged to a file, so that it can be reviewed
+    #  This is not used for all output, only "essentials" indicating
+    #  statuses during startup
+    #  For log only items, give noecho as 2nd param
+    #
+    msg="$1"
+
+    [ "$2" != "noecho" ] && echo "$msg"
+    #
+    #  Since other tools launched by this might have changed it, set it
+    #  here for now, later check if it is needed
+    #
+    log_it "$msg"
+}
+
 check_for_revovery_mode() {
     if [ -f "$f_is_chrooted" ]; then
         #
         #  On iSH boot there is time to press r during boot wait
         #  when chrooted there is no boot wait, so we make a short wait
-        #  to make recovery available instead
+        #  instead, to make recovery available
         #
-        sleep 0.5
+        sleep 0.7
     fi
 
     # Disable terminal line buffering and enable read without Enter
@@ -62,42 +94,77 @@ check_for_revovery_mode() {
         $cmd
         echo "Clearing recovery mode"
         rm -f "$f_recovery_mode"
-        sleep 1
+        sleep 2
         exit 1
         ;;
     *) ;;
     esac
 }
 
-log_it() {
-    # In recovery mode, skip logging to minimize risk of issues
-    [ -f "$f_recovery_mode" ] && return
+display_header() {
+    f_aok_release=/etc/aok-fs-release
+    f_rel_alpine=/etc/alpine-release
+    f_rel_devuan=/etc/devuan_version
+    f_rel_debian=/etc/debian_version
 
-    # if no supported loggers are found, fall back to a non-dependency solution
-    f_logger=/usr/local/bin/logger
-    if [ -x "$f_logger" ]; then
-        "$f_logger" "$prog_name" "$*"
+    if [ -f "$f_aok_release" ]; then
+        aok_vers="$(cat "$f_aok_release" 2>/dev/null)" || aok_vers="*** Failed to read $f_aok_release ***"
     else
-        echo "$(date +"%Y-%m-%d %H:%M:%S") ${prog_name}: $*" >>/var/log/messages
+        aok_vers=Unknown
     fi
+
+    if test -f "$f_rel_alpine"; then
+        fs_name="Alpine $(cat "$f_rel_alpine" 2>/dev/null)" || fs_name="Alpine Unknown"
+    elif test -f "$f_rel_devuan"; then
+        #  Devuan must come before Debian, since it also has thr f_rel_debian file
+        fs_name="Devuan $(cat "$f_rel_devuan" 2>/dev/null)" || fs_name="Devuan Unknown"
+    elif test -f "$f_rel_debian"; then
+        fs_name="Debian $(cat "$f_rel_debian" 2>/dev/nul)" || fs_name="Debian Unknown"
+    else
+        fs_name=Unknown
+    fi
+
+    echo "aok_launcher - AOK: $aok_vers - Filesystem: $fs_name"
+    echo "Press 'r' during bootup for recovery mode"
+    echo
+
+    unset f_aok_release
+    unset f_rel_alpine
+    unset f_rel_devuan
+    unset f_rel_debian
+    unset aok_vers
+    unset fs_name
 }
 
-print_log() {
-    #
-    #  In case of bootup issues, this output is both displayed
-    #  and logged to a file, so that it can be reviewed
-    #  This is not used for all output, only "essentials" indicating
-    #  statuses during startup
-    #  For log only items, give noecho as 2nd param
-    #
-    msg="$1"
+bootup() {
+    if [ -f "$f_pts_0_as_console" ]; then
+        echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
+        echo
+        [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
+            echo "Setting up /dev/pts/0 as console"
+            rm -f /dev/console && mknod -m 222 /dev/console c 136 0
+        }
+        check_for_revovery_mode
+        network_check
+        /bin/sleep infinity
+        exit 0 # shouldnt get here, but just in case
+    else
+        [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
+            echo "Reverting console to normal mode"
+            rm -f /dev/console && mknod -m 666 /dev/console c 5 1
+        }
+    fi
 
-    [ "$2" != "noecho" ] && echo "$msg"
-    #
-    #  Since other tools launched by this might have changed it, set it
-    #  here for now, later check if it is needed
-    #
-    log_it "$msg"
+    check_for_revovery_mode
+    if [ ! -f "$f_is_chrooted" ]; then
+        runlevel_wait
+        network_check
+    else
+        echo
+        echo "This is chrooted, so runlevel_wait & network check are skipped"
+        echo
+    fi
+    check_for_revovery_mode
 }
 
 do_shutdown() {
@@ -186,17 +253,6 @@ runlevel_wait() {
 
     trap 'set_abort_runlevel_wait INT' INT
 
-    grep -qi aok /proc/ish/version 2>/dev/null || {
-        #
-        #  iSH-AOK empties /run before launch, this is not done by iSH
-        #  so for that kernel, hold here for a few seconds, so that
-        #  the inittab job doing this has time to complete.
-        #
-        printf "Waiting 3 seconds to let inittab clear /run..."
-        sleep 3
-        echo "done!"
-    }
-
     while true; do
         check_for_revovery_mode
         current_runlevel="$(rc-status -r)"
@@ -215,7 +271,6 @@ runlevel_wait() {
 
 network_check() {
     echo
-    #echo "Checking networking - takes <5 seconds"
     if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
         if ping -c 2 google.com >/dev/null 2>&1; then
             print_log "===  Connected to the Internet and DNS is resolving!"
@@ -286,37 +341,6 @@ login_with_param_check() {
     fi
 }
 
-bootup() {
-    if [ -f "$f_pts_0_as_console" ]; then
-        echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
-        echo
-        [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
-            echo "Setting up /dev/pts/0 as console"
-            rm -f /dev/console && mknod -m 222 /dev/console c 136 0
-        }
-        check_for_revovery_mode
-        network_check
-        /bin/sleep infinity
-        exit 0 # shouldnt get here, but just in case
-    else
-        [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
-            echo "Reverting console to normal mode"
-            rm -f /dev/console && mknod -m 666 /dev/console c 5 1
-        }
-    fi
-
-    check_for_revovery_mode
-    if [ ! -f "$f_is_chrooted" ]; then
-        runlevel_wait
-        network_check
-    else
-        echo
-        echo "This is chrooted, so runlevel_wait & network check are skipped"
-        echo
-    fi
-    check_for_revovery_mode
-}
-
 #===============================================================
 #
 #   Main
@@ -329,7 +353,6 @@ expected_runlevel="default"
 f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
 
-f_deploy_state=/etc/opt/AOK/deploy_state
 f_deploy_state="/etc/opt/AOK/deploy_state"
 f_logins_continous="/etc/opt/AOK/login-continous"
 f_login_default_user="/etc/opt/AOK/login-default-username"
@@ -339,13 +362,8 @@ f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
 
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
-if [ -f /etc/aok-fs-release ]; then
-    aok_vers="$(cat /etc/aok-fs-release)" || aok_vers="Failed to read"
-else
-    aok_vers="Unknown"
-fi
-echo "aok_launcher v$aok_vers - Press 'r' during bootup for recovery mode"
-echo
+
+display_header
 
 #  If deploy has not completed - handle it
 if [ -f "$f_deploy_state" ]; then
@@ -381,8 +399,6 @@ while true; do
         echo
         sleep 3
     else
-        #_cnt="$(ps ax | grep -v grep | grep $0 | wc -l)"
-        #if [ "$_cnt" < "2" ]; then
         echo
         print_log "To enable continous vterm sessions, run aok"
         sleep 3
