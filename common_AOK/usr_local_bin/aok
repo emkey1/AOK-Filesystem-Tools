@@ -93,7 +93,12 @@ autologin_change() {
             error_msg "$uname_autologin does not seem to be a valid user on this system"
         }
         echo "$uname_autologin" >"$f_login_default_user"
-        echo "Enabled auto-login for user: $uname_autologin"
+        if [ -f "$f_logins_continous" ]; then
+            _s="continous "
+        else
+            _s=""
+        fi
+        echo "Enabled ${_s}auto-login for user: $uname_autologin"
     fi
 }
 
