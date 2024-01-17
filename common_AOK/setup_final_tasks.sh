@@ -161,7 +161,7 @@ verify_alpine_uptime() {
         #
         return
     fi
-    "$uptime_cmd" >/dev/null || {
+    "$uptime_cmd" >/dev/null 2>&1 || {
         msg_2 "WARNING: Installed uptime not useable!"
         msg_3 "changing it to busybox symbolic link"
         rm -f "$uptime_cmd"
@@ -279,15 +279,26 @@ tsaft_start="$(date +%s)"
 . /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
+deploy_state_set "$deploy_state_finalizing"
+msg_script_title "setup_final_tasks.sh - Final part of setup"
+
 this_is_ish && wait_for_bootup
+
+#
+#  Setting up chroot env to use aok_launcher
+#
+if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+    _f="/usr/local/sbin/aok_launcher"
+    msg_2 "Preparing chroot environment"
+    msg_3 "Setting default chroot app: $_f"
+    echo "$_f" >/.chroot_default_cmd
+    msg_3 "Enabling Autologin"
+    aok -a root
+fi
 
 if [ -n "$LOG_FILE_BUILD" ]; then
     debug_sleep "Since log file is defined, will pause before starting" 2
 fi
-
-deploy_state_set "$deploy_state_finalizing"
-
-msg_script_title "setup_final_tasks.sh - Final part of setup"
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -364,5 +375,10 @@ display_installed_versions
 echo "Setup has completed the last deploy steps and is ready!"
 echo "You are recomended to reboot in order to ensure that your environment is used."
 echo
+
+#
+#  This ridiculous extra step is needed if chrooted on iSH
+#
+cd / || error_msg "Failed to cd /"
 
 cd || error_msg "Failed to cd home"
