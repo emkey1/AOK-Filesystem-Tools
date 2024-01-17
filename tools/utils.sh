@@ -447,19 +447,35 @@ obsolete_setup_login() {
 
 rsync_chown() {
     #
-    #  Local copy, changing ovnership to root:
+    #  params: src dest [silent]
+    #  Copy then changing ovnership to root:
+    #  If silent is given, no progress will be displayed
     #
     # msg_2 "rsync_chown()"
     src="$1"
     d_dest="$2"
     [ -z "$src" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
-    # echo "[$src] -> [$d_dest]"
-    rsync -ahP --exclude=.~ --chown=root:root "$src" "$d_dest" | grep -v ^./$
-    # rsync -ahv --exclude=.~ --chown=root:root "$src" "$d_dest"
+    _r_params="-ah --exclude=.~ --chown=root:root $src $d_dest"
+    if [ "$3" = "silent" ]; then
+        #  shellcheck disable=SC2086
+        rsync $_r_params >/dev/null || {
+            error_msg "rsync_chown($src, $d_dest, silent) failed"
+        }
+    else
+        #
+        #  In order to only list actually changed files,
+        #  skip lines starting with whitespace - xfer stats
+        #  and the two first lines:
+        #   sending incremental file list
+        #   ./
+        #
+        #  shellcheck disable=SC2086
+        rsync -P $_r_params | tail -n +3 | grep -v '^[[:space:]]'
+    fi
     unset src
     unset d_dest
-    # msg_3 "rsync_chown() - done"
+    # msg_4 "rsync_chown() - done"
 }
 
 display_installed_versions() {
