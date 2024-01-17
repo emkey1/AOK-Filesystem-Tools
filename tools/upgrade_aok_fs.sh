@@ -23,7 +23,9 @@ restore_to_aok_state() {
     #[ -e "$dst" ] || error_msg "restore_to_aok_state() - dst not found $dst"
 
     msg_2 "Will restore $src -> $dst"
-    rsync_chown "$src" "$dst" || error_msg "restore_to_aok_state() - Failed to copy $src -> $dst"
+    rsync_chown "$src" "$dst" || {
+        error_msg "restore_to_aok_state() - Failed to copy $src -> $dst"
+    }
 }
 
 do_restore_configs() {
