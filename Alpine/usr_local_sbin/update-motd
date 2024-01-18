@@ -50,6 +50,7 @@ fi
 (
     echo "[35mAlpine release:  $alp_rel[0m"
     echo "[35miSH release:     $ish_rel[0m"
+    echo
 ) >>"$f_motd"
 
 if [ -f "$f_motd_template" ]; then
