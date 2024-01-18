@@ -11,12 +11,6 @@
 #  Prepares the Alpine image to show Distribution selection dialog
 #
 
-#  This is not used atm, seems devices disapearing is no longer an issue
-# #  Ensure important devices are present
-# echo "-> Running fix_dev <-"
-# /opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-# echo
-
 if [ ! -d "/opt/AOK" ]; then
     echo "ERROR: This is not an AOK File System!"
     echo

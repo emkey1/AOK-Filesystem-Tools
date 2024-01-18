@@ -1,12 +1,5 @@
 # inittab
 
-#
-#  Ensure all devices  are ok, doesnt seem to be needed anymore
-#  left here for now
-#
-#  This is not used atm, seems devices disapearing is no longer an issue
-# ::sysinit:/usr/local/sbin/fix_dev
-
 # Indicate bootup in the syslog
 ::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab "===  System startup  ==="
 
