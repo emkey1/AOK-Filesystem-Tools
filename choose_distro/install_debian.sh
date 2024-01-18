@@ -52,7 +52,6 @@ cd / || error_msg "Failed to cd into: /"
 
 msg_3 "Maintaining resolv.conf"
 cp -a /etc/resolv.conf "$distro_tmp_dir"/etc
-
 msg_3 "maintaining /etc/opt"
 cp -a /etc/opt "$distro_tmp_dir"/etc
 
