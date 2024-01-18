@@ -38,13 +38,10 @@ do_restore_configs() {
     restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc/login.defs
     restore_to_aok_state "$distro_prefix"/etc/inittab /etc/inittab
     restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
-    restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
     restore_to_aok_state /opt/AOK/common_AOK/etc/skel /etc
     if hostfs_is_alpine; then
-        restore_to_aok_state "$distro_prefix"/etc/inittab /etc
         restore_to_aok_state "$distro_prefix"/etc/motd_template /etc/motd_template
     elif hostfs_is_debian; then
-        restore_to_aok_state "$distro_prefix"/etc/inittab /etc
         restore_to_aok_state "$distro_prefix"/etc/pam.d /etc
         restore_to_aok_state "$distro_prefix"/etc/update-motd.d /etc
     elif hostfs_is_devuan; then

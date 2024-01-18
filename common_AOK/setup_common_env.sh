@@ -184,6 +184,9 @@ setup_environment() {
         msg_2 "sshd not installed - port not changed"
     fi
 
+    msg_2 "Enable profile hints"
+    touch "$f_profile_hints"
+
     setup_cron_env
 
     echo # Spacer to next task
