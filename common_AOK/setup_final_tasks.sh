@@ -76,42 +76,44 @@ ensure_path_items_are_available() {
 }
 
 hostname_fix() {
-    #
-    #  workarounds for iOS 17 no longer supporting hostname detection
-    #
-
-    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
-    elif [ "$(ios_matching 17.0)" = "Yes" ]; then
-        msg_2 "iOS >= 17, hostname workaround will be used"
-    elif [ "$(/bin/hostname)" = "localhost" ]; then
-        #
-        #  If hostname is localhost, assume this runs on iOS >= 17
-        #  In the utterly rare case ths user has named his iOS device
-        #  localhost, this would be an incorrect assumption
-        #
-        msg_2 "Will assume this runs on iOS >= 17, hostname workaround will be used"
-    else
-        msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
-        return
+    # echo "=V= hostname_fix()"
+    orig_hostname="$(/bin/hostname)"
+    if [ "$(/bin/hostname)" != "localhost" ]; then
+        if ! this_fs_is_chrooted; then
+            #
+            #  If hostname is localhost, assume this runs on iOS >= 17
+            #  In the utterly rare case ths user has named his iOS device
+            #  localhost, this would be an incorrect assumption
+            #
+            msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
+            return
+        fi
     fi
+
+    msg_2 "Using alternate hostname"
 
     # shellcheck disable=SC2154
     if this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ]; then
         msg_3 "Using -aok suffix"
         touch "$f_hostname_aok_suffix"
     fi
-
     msg_3 "Linking /usr/local/bin to /bin/hostname"
     rm /bin/hostname
-    ln -f /usr/local/bin/hostname /bin/hostname
+    ln -sf /usr/local/bin/hostname /bin/hostname
 
-    [ -n "$ALT_HOSTNAME_SOURCE_FILE" ] && {
+    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
         msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
         hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
             error_msg "Failed to soure hostname"
         }
-    }
+    elif this_fs_is_chrooted; then
+        echo "$orig_hostname" >/etc/hostname
+        hostname -S /etc/hostname
+    fi
+    #  Ensure hostname has been picked up, iSH-AOK also updates /bin/hostname
+    hostname -U >/dev/null
+    # echo "^^^ hostname_fix() - done"
+
 }
 
 aok_kernel_consideration() {
@@ -292,8 +294,8 @@ if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
     msg_2 "Preparing chroot environment"
     msg_3 "Setting default chroot app: $_f"
     echo "$_f" >/.chroot_default_cmd
-    msg_3 "Enabling Autologin"
-    aok -a root
+    msg_3 "Enabling Autologin for root"
+    aok -a root >/dev/null
 fi
 
 if [ -n "$LOG_FILE_BUILD" ]; then
@@ -318,9 +320,6 @@ hostname_fix
 hostfs_is_alpine && aok_kernel_consideration
 
 deploy_bat_monitord
-
-#  Ensure hostname has been picked up, iSH-AOK also updates /bin/hostname
-hostname -U >/dev/null
 
 # login feature didsabled tag
 # set_initial_login_mode
