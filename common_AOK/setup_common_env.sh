@@ -11,6 +11,7 @@
 # shellcheck disable=SC2154
 
 copy_skel_files() {
+    # echo "=V= copy_skel_files($1)"
     csf_dest="$1"
     if [ -z "$csf_dest" ]; then
         error_msg "copy_skel_files() needs a destination param"
@@ -18,7 +19,8 @@ copy_skel_files() {
         error_msg "copy_skel_files($csf_dest) - not indicating a directory"
     fi
 
-    cp -r /etc/skel/. "$csf_dest"
+    # cp -rv /etc/skel/. "$csf_dest"
+    rsync -ah /etc/skel/. "$csf_dest"
 
     #
     #  Ensure all files are owned by owner of this after skel copy
@@ -29,6 +31,7 @@ copy_skel_files() {
     # ln -sf .bash_profile .bashrc  # TODO: for old skel files, can probably go
     unset csf_dest
     unset csf_owner
+    # echo "^^^ copy_skel_files($1) - done"
 }
 
 setup_cron_env() {
@@ -147,7 +150,7 @@ setup_environment() {
 
     if command -v openrc >/dev/null; then
         msg_2 "Adding runbg service"
-        cp -a "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d
+        rsync_chown "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d silent
         # openrc_might_trigger_errors
         rc-update add runbg default
     else
