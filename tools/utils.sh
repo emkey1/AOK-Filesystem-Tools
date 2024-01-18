@@ -89,7 +89,7 @@ error_msg() {
 }
 
 debug_sleep() {
-    # msg_2 "debug_sleep($1,$2)"
+    # echo "=V= debug_sleep($1,$2)"
     _ds_msg="$1"
     [ -z "$_ds_msg" ] && error_msg "debug_sleep() - no msg param"
 
@@ -101,7 +101,7 @@ debug_sleep() {
 
     unset _ds_msg
     unset _ds_t_slp
-    # msg_3 "debug_sleep() - done"
+    # echo "^^^ debug_sleep() - done"
 }
 
 #
@@ -176,7 +176,7 @@ create_fs() {
     #
     #  Extract a $1 tarball at $2 location - verbose flag $3
     #
-    msg_2 "create_fs()"
+    # echo "=V= create_fs()"
     _cf_tarball="$1"
     [ -z "$_cf_tarball" ] && error_msg "cache_fs_image() no taball supplied"
     _cf_fs_location="${2:-$d_build_root}"
@@ -238,7 +238,7 @@ create_fs() {
     unset _cf_fs_location
     unset _cf_verbose
     unset _cf_filter
-    # msg_3 "create_fs() done"
+    # echo "^^^ create_fs() done"
 }
 
 min_release() {
@@ -288,7 +288,7 @@ manual_runbg() {
 }
 
 initiate_deploy() {
-    msg_2 "initiate_deploy()"
+    # echo "=V= initiate_deploy($1, $2)"
     #
     #  If either is not found, we dont know what to install and how
     #
@@ -301,14 +301,27 @@ initiate_deploy() {
 
     # buildtype_set "$_ss_distro_name"
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
-        msg_2 "At the end of the install, additioal tasks will be run:"
+        msg_3 "At the end of the install, additioal tasks will be run:"
         echo "--------------------"
         echo "$FIRST_BOOT_ADDITIONAL_TASKS"
         echo "--------------------"
+        echo
     fi
-    echo
 
     msg_1 "Setting up ${_ss_distro_name}: $_ss_vers_info"
+
+    if destfs_is_alpine; then
+        msg_3 "Installing rsync"
+        apk add rsync >/dev/null 2>&1 || error_msg "Failed to install rsync"
+    else
+        # Debian imgs normally have it already installed, so check first
+        if [ -z "$(command -v rsync)" ]; then
+            msg_3 "Ensuring rsync is available"
+            apt install rsync >/dev/null 2>&1 || {
+                error_msg "Failed to install rsync"
+            }
+        fi
+    fi
 
     manual_runbg
 
@@ -316,12 +329,12 @@ initiate_deploy() {
 
     unset _ss_distro_name
     unset _ss_vers_info
-    # msg_3 "initiate_deploy() done"
+    # echo "^^^ initiate_deploy() done"
 }
 
 #  shellcheck disable=SC2120
 set_new_etc_profile() {
-    msg_2 "set_new_etc_profile($1)"
+    # echo "=V= set_new_etc_profile($1)"
     sp_new_profile="$1"
     if [ -z "$sp_new_profile" ]; then
         error_msg "set_new_etc_profile() - no param"
@@ -375,11 +388,11 @@ set_new_etc_profile() {
     #
     chmod 744 "$d_build_root"/etc/profile
     unset sp_new_profile
-    # msg_3 "set_new_etc_profile() done"
+    # echo "^^^ set_new_etc_profile() done"
 }
 
 copy_local_bins() {
-    msg_2 "copy_local_bins($1)"
+    # echo "=V= copy_local_bins($1)"
     _clb_base_dir="$1"
     if [ -z "$_clb_base_dir" ]; then
         error_msg "call to copy_local_bins() without param!"
@@ -391,58 +404,18 @@ copy_local_bins() {
     if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
         mkdir -p /usr/local/bin
-        cp "$_clb_src_dir"/* /usr/local/bin
-        chmod +x /usr/local/bin/*
+        rsync_chown "$_clb_src_dir/*" /usr/local/bin silent
     fi
 
     _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
     if [ -d "$_clb_src_dir" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
         mkdir -p /usr/local/sbin
-        cp "$_clb_src_dir"/* /usr/local/sbin
-        chmod +x /usr/local/sbin/*
+        rsync_chown "$_clb_src_dir/*" /usr/local/sbin silent
     fi
     unset _clb_base_dir
     unset _clb_src_dir
-    # msg_3 "copy_local_bins() done"
-}
-
-obsolete_setup_login() {
-    #
-    #  What login method will be used is setup during FIRST_BOOT,
-    #  at this point we just ensure everything is available and initial boot
-    #  will use the default loging that should work on all platforms.
-    #
-    # SKIP_LOGIN
-
-    _distro="$(hostfs_detect)"
-
-    # Devuan shares login bins wirh Debian
-    [ "$_distro" = "$distro_devuan" ] && _distro="$distro_debian"
-
-    msg_2 "Install $_distro AOK login methods"
-    cp "$d_aok_base/$_distro/bin/login.loop" /bin
-    chmod +x /bin/login.loop
-    cp "$d_aok_base/$_distro/bin/login.once" /bin
-    chmod +x /bin/login.once
-
-    mv /bin/login /bin/login.original
-    ln -sf /bin/login.original /bin/login
-
-    #
-    #  In order to ensure 1st boot will be able to run, for now
-    #  disable login. If INITIAL_LOGIN_MODE was set, the selected
-    #  method will be activated at the end of the setup
-    #
-    /usr/local/bin/aok -l disable >/dev/null || {
-        error_msg "Failed to disable login during deploy"
-    }
-
-    if [ ! -L /bin/login ]; then
-        ls -l /bin/login
-        error_msg "At this point /bin/login should be a softlink!"
-    fi
-    unset _distro
+    # echo "^^^ copy_local_bins() done"
 }
 
 rsync_chown() {
@@ -451,7 +424,7 @@ rsync_chown() {
     #  Copy then changing ovnership to root:
     #  If silent is given, no progress will be displayed
     #
-    # msg_2 "rsync_chown()"
+    # echo "=V= rsync_chown($1, $2, $3)"
     src="$1"
     d_dest="$2"
     [ -z "$src" ] && error_msg "rsync_chown() no source param"
@@ -475,7 +448,7 @@ rsync_chown() {
     fi
     unset src
     unset d_dest
-    # msg_4 "rsync_chown() - done"
+    # echo "^^^ rsync_chown() - done"
 }
 
 display_installed_versions() {
@@ -629,7 +602,7 @@ dest_fs_is_chrooted() {
 }
 
 destfs_set_is_chrooted() {
-    # msg_2 "destfs_set_is_chrooted(()"
+    # echo "=V= destfs_set_is_chrooted(()"
     if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
         msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
         msg_3 "$f_dest_fs_is_chrooted"
@@ -637,11 +610,11 @@ destfs_set_is_chrooted() {
     fi
     mkdir -p "$(dirname "$f_dest_fs_is_chrooted")"
     touch "$f_dest_fs_is_chrooted"
-    # msg_3 "destfs_set_is_chrooted(() - done"
+    # echo "^^^ destfs_set_is_chrooted(() - done"
 }
 
 destfs_clear_chrooted() {
-    # msg_2 "destfs_clear_chrooted(()"
+    # echo "=V= destfs_clear_chrooted(()"
 
     if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
         msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
@@ -654,7 +627,7 @@ destfs_clear_chrooted() {
     else
         error_msg "destfs_clear_chrooted() - could not find chroot indicator"
     fi
-    # msg_3 "destfs_clear_chrooted(() - done"
+    # echo "^^^ destfs_clear_chrooted(() - done"
 }
 
 #---------------------------------------------------------------
@@ -804,6 +777,18 @@ deploy_state_check_param() {
 }
 
 deploy_starting() {
+    if [ "$build_env" = "$be_other" ]; then
+        echo
+        echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
+        echo "##           You have been warned"
+        echo
+    fi
+
+    if [ -n "$LOG_FILE_BUILD" ]; then
+        # I use this on deploy crashes
+        debug_sleep "Since log file is defined, will pause before starting" 2
+    fi
+
     if deploy_state_is_it "$deploy_state_initializing"; then
         deploy_state_set "$deploy_state_dest_build"
     elif ! deploy_state_is_it "$deploy_state_pre_build"; then
@@ -816,12 +801,6 @@ deploy_starting() {
 #   Main
 #
 #===============================================================
-
-#  This is not used atm, seems devices disapearing is no longer an issue
-# while [ -f "/tmp/fixdev.pid" ]; do
-#     msg_3 "Waiting for fix_dev to complete"
-#     sleep 1
-# done
 
 #
 #  Might be activated in AOK_VARS or .AOK_VARS
