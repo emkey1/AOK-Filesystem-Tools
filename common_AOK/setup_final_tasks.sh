@@ -298,10 +298,6 @@ if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
     aok -a root >/dev/null
 fi
 
-if [ -n "$LOG_FILE_BUILD" ]; then
-    debug_sleep "Since log file is defined, will pause before starting" 2
-fi
-
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
     rm -rf /AOK
