@@ -16,25 +16,32 @@ An AOK-only script that manages iSH/AOK specific things.
 
 Available options:
 
--h --help       Print this help and exit
--a --autologin  Auto-login as user [disable|username]
-                disable  - Will give login prompt
-                username - Will auto-login as username
--c --continous  New login prompt after vterm logout [on|off]
--l --launch-cmd Choose Launch cmd: $launch_cmd_options
--s --aoksuffix  Ensure -aok is added as suffix to hostname on iSH-AOK kernels [on|off]
-                Ignored on regular iSH
--C --console    Use first vterm (/dev/pts/0) as console,
-                disabling logins on this vterm
+-h --help          Print this help and exit
+-a --autologin     Auto-login as user [disable|username]
+                   disable  - Will give login prompt
+                   username - Will auto-login as username
+-c --continous     New login prompt after vterm logout [on|off]
+-l --launch-cmd    Choose Launch cmd: $launch_cmd_options
+                   Launch cmd has very strict syntax requirements.
+                   1. wrap it in '[ ]'
+                   2. Each statement/param must be wrapped in \"\"
+                   3. If more than one statement, separate with commma space
+                   The default: '$launch_cmd_default'
+-H --profile-hints Show env hints in /etc/profile [on|off]
+-s --aoksuffix     Ensure -aok is added as suffix to hostname
+                   on iSH-AOK kernels [on|off]
+                   Ignored on regular iSH
+-C --console       Use first vterm (/dev/pts/0) as console,
+                   disabling logins on this vterm
 "
     this_is_aok_kernel && {
         txt="${txt}
 iSH-AOK options:
 
 -e --extra_locking  Use kernel extralocking [on|off]
-                    Switching it on may improve stability but impacts performance
-                    WARNING: turning this off sometimes causes session to hang,
-                             but change did happen!
+                    Switching it on may improve stability but impacts
+                    performance  WARNING: turning this off sometimes causes
+                    session to hang, but change did happen!
 -m --multicore      Switch multicore processing [on|off]
                     Switching it off improves stability but impacts performance
 "
@@ -45,6 +52,7 @@ $(
         autologin_display
         continous_sessions_display
         launch_cmd_display
+        profile_hints_display
         aok_suffix_display
         console_mode_display
     )
@@ -69,6 +77,18 @@ $(
 #  shellcheck disable=SC2317
 destfs_is_alpine() {
     test -f /etc/alpine-release
+}
+
+show_on_off_by_file() {
+    f_name="$1"
+    [ -z "$f_name" ] && {
+        error_msg "show_on_off_by_file() - no param given"
+    }
+    if [ -f "$f_name" ]; then
+        echo "on"
+    else
+        echo "off"
+    fi
 }
 
 #===============================================================
@@ -111,7 +131,7 @@ autologin_settting() {
 }
 
 autologin_display() {
-    echo "autologin:    $(autologin_settting)"
+    echo "autologin:     $(autologin_settting)"
 }
 
 autologin_disabled="disabled"
@@ -131,25 +151,38 @@ continous_sessions_change() {
         error_msg "continous_sessions_change() - f_logins_continous undefined"
     }
     case "$continous_mode" in
-    "on") touch "$f_logins_continous" ;;
+    "on")
+        if this_fs_is_chrooted; then
+            continous_sessions_change "off"
+            error_msg "Can't set continous sessions on chrooted system"
+        fi
+        touch "$f_logins_continous"
+        ;;
+
     "off") rm -f "$f_logins_continous" ;;
+
     *)
         error_msg "continous_sessions_change() - options are on/off"
         ;;
     esac
-    continous_sessions_display
 }
 
 continous_sessions_setting() {
-    if [ -f "$f_logins_continous" ]; then
-        echo "on"
+    _s="$(show_on_off_by_file "$f_logins_continous")"
+    if [ "$_s" = "off" ]; then
+        echo "vterm will terminate after logout"
     else
-        echo "off"
+        _s="$(autologin_settting)"
+        if [ "$_s" = "$autologin_disabled" ]; then
+            echo "vterm will sttart a new session after logout"
+        else
+            echo "vterm will autlogin as username: $_s"
+        fi
     fi
 }
 
 continous_sessions_display() {
-    echo "continnous:   $(continous_sessions_setting)"
+    echo "continnous:    $(continous_sessions_setting)"
 }
 
 #===============================================================
@@ -157,6 +190,18 @@ continous_sessions_display() {
 #       Launch Cmd
 #
 #===============================================================
+
+launch_cmd_change() {
+    lnch_cmd="$1"
+    [ -z "$lnch_cmd" ] && {
+        error_msg "launch_cmd_change() - no param given, options are on/off"
+    }
+    case "$lnch_cmd" in
+    "default") set_launch_cmd "$launch_cmd_default" ;;
+    "aok") set_launch_cmd "$launch_cmd_AOK" ;;
+    *) launch_cmd_custom "$lnch_cmd" ;;
+    esac
+}
 
 launch_cmd_custom() {
     custom_cmd="$1"
@@ -167,10 +212,40 @@ launch_cmd_custom() {
 }
 
 launch_cmd_display() {
-    echo "Launch cmd:   $(get_launch_cmd)"
+    echo "Launch cmd:    '$(get_launch_cmd)'"
 }
 
-launch_cmd_options="[default|aok|custom '\"cmd\"']"
+launch_cmd_options="aok|default|'[ \"custom_cmd\" ]'"
+
+#===============================================================
+#
+#       Profile hints
+#
+#  Display suggestons about sshd and sudo in profile
+#
+#===============================================================
+
+profile_hints_change() {
+    hints_mode="$1"
+    [ -z "$hints_mode" ] && {
+        error_msg "profile_hints_change() - no param given, options are on/off"
+    }
+    case "$hints_mode" in
+    "on") touch "$f_profile_hints" ;;
+    "off") rm -f "$f_profile_hints" ;;
+    *)
+        error_msg "profile_hints_change() - options are on/off"
+        ;;
+    esac
+}
+
+profile_hints_setting() {
+    show_on_off_by_file "$f_profile_hints"
+}
+
+profile_hints_display() {
+    echo "profile-hints: $(profile_hints_setting)"
+}
 
 #===============================================================
 #
@@ -190,19 +265,14 @@ aok_suffix_change() {
         error_msg "aok_suffix_change() - options are on/off"
         ;;
     esac
-    aok_suffix_display
 }
 
 aok_suffix_setting() {
-    if [ -f "$f_hostname_aok_suffix" ]; then
-        echo "on"
-    else
-        echo "off"
-    fi
+    show_on_off_by_file "$f_hostname_aok_suffix"
 }
 
 aok_suffix_display() {
-    echo "aoksuffix:    $(aok_suffix_setting)"
+    echo "aoksuffix:     $(aok_suffix_setting)"
 }
 
 #===============================================================
@@ -224,19 +294,14 @@ console_mode_change() {
         ;;
     esac
     echo "This will take effect next time App is run."
-    console_mode_display
 }
 
 console_mode_setting() {
-    if [ -f "$f_pts_0_as_console" ]; then
-        echo "on"
-    else
-        echo "off"
-    fi
+    show_on_off_by_file "$f_pts_0_as_console"
 }
 
 console_mode_display() {
-    echo "console:      $(console_mode_setting)"
+    echo "console:       $(console_mode_setting)"
 }
 
 #===============================================================
@@ -260,7 +325,6 @@ extralocking_change() {
         error_msg "extralocking_change() - options are on/off"
         ;;
     esac
-    extralocking_display
 }
 
 extralocking_setting() {
@@ -276,7 +340,7 @@ extralocking_setting() {
 }
 
 extralocking_display() {
-    echo "extralocking: $(extralocking_setting)"
+    echo "extralocking:  $(extralocking_setting)"
 }
 
 f_elock=/proc/ish/defaults/enable_extralocking
@@ -302,7 +366,6 @@ multicore_change() {
         error_msg "multicore_change() - options are on/off"
         ;;
     esac
-    multicore_display
 }
 
 multicore_setting() {
@@ -318,7 +381,7 @@ multicore_setting() {
 }
 
 multicore_display() {
-    echo "multicore:    $(multicore_setting)"
+    echo "multicore:     $(multicore_setting)"
 }
 
 f_multicore=/proc/ish/defaults/enable_multicore
@@ -344,6 +407,7 @@ while [ -n "$1" ]; do
         ;;
 
     "-a" | "--autologin")
+        #  skip if $2 starts with - another option
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
             # this_fs_is_chrooted && error_msg "Can't change autologin on chrooted system"
             autologin_change "$2"
@@ -355,74 +419,58 @@ while [ -n "$1" ]; do
 
     "-c" | "--continous")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            this_fs_is_chrooted && error_msg "Can\t change continous on chrooted system"
             continous_sessions_change "$2"
             shift # get rid of extra option
-        else
-            _s="$(continous_sessions_setting)"
-            if [ "$_s" = "off" ]; then
-                echo "vterm will terminate after logout"
-            else
-                _s="$(autologin_settting)"
-                if [ "$_s" = "$autologin_disabled" ]; then
-                    echo "vterm will sttart a new session after logout"
-                else
-                    echo "vterm will autlogin as username: $_s"
-                fi
-            fi
         fi
+        continous_sessions_display
         ;;
 
-    "-l" | "--launcher")
+    "-l" | "--launch-cmd")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            case "$2" in
-            "default") set_launch_cmd "$launch_cmd_default" ;;
-            "aok") set_launch_cmd "$launch_cmd_AOK" ;;
-            "custom")
-                launch_cmd_custom "$3"
-                shift # get rid of extra option
-                ;;
-            *) error_msg "Valid options: $launch_cmd_options" ;;
-            esac
+            launch_cmd_change "$2"
             shift # get rid of extra option
         fi
         launch_cmd_display
+        ;;
+
+    "-H" | "--profile-hints")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            profile_hints_change "$2"
+            shift # get rid of extra option
+        fi
+        profile_hints_display
         ;;
 
     "-s" | "--aoksuffix")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
             aok_suffix_change "$2"
             shift # get rid of extra option
-        else
-            aok_suffix_display
         fi
+        aok_suffix_display
         ;;
 
     "-C" | "--console")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
             console_mode_change "$2"
             shift # get rid of extra option
-        else
-            console_mode_display
         fi
+        console_mode_display
         ;;
 
     "-e" | "--extra_locking")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
             extralocking_change "$2"
             shift # get rid of extra option
-        else
-            extralocking_display
         fi
+        extralocking_display
         ;;
 
     "-m" | "--multicore")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
             multicore_change "$2"
             shift # get rid of extra option
-        else
-            multicore_display
         fi
+        multicore_display
         ;;
 
     *)
