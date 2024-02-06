@@ -3,7 +3,22 @@
 I will try to keep track of changes between releases here
 
 ## next release
+- aok rebuilt and tested
+- tools/do_chroot.sh - improved env checks
+- tools/shellchecker.sh - reimplemented
+- tools/upgrade_aok_fs.sh - reworked to also update configs
+- AOK_VARS -Removed feature LOG_FILE
+- build_fs additional Debian steps
+- vers_check.sh corrected header explaining what it does, removed debug prints
+- compress_image added support for pigz (tgz using all cores)
 
+- Added /etc/environment
+- Added /etc/login.defs
+- shell env updated - displays load lvl and battery
+- New features: logger
+- AOK: added bat-monitord
+- removed auto run of fix_dev
+- renamed bins with underscore to dash names
 - aok handles launch cmd
 - removed /usr/local/bin/toggle_multicore, this task is now done by aok
 
