@@ -17,6 +17,7 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 #  Only do the rest on fresh login, not for subshells
 [ -n "$SHLVL" ] && [ "$SHLVL" -gt 1 ] && return
 
+# shellcheck source=/dev/null
 if [ -f "/etc/opt/AOK/show_profile_hints" ]; then
     . /etc/profile-hints
 fi
