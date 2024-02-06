@@ -46,30 +46,7 @@ if [ -d /etc/profile.d ]; then
 fi
 
 if [ -f "/etc/opt/AOK/show_profile_hints" ]; then
-    user_id="$(id -u)"
-    sshd_enabled="$(/bin/rc-status show default 2>/dev/null | grep -q " ssh")"
-    echo "><> user_id [$user_id] sshd_enabled [$sshd_enabled]"
-
-    if [ "$user_id" -ne 1 ] || [ -z "$sshd_enabled" ]; then
-        echo
-        echo "------------------------------------------"
-        echo
-
-        if [ -z "$sshd_enabled" ]; then
-            echo "Enable sshd on port 1022: [31menable-sshd[0m"
-            echo
-        fi
-
-        if [ "$user_id" -ne 0 ]; then
-            echo "Use [31msudo[0m to run commands as root"
-            echo
-        fi
-
-        echo "------------------------------------------"
-        echo
-    fi
-    unser user_id
-    unset sshd_enabled
+    . /etc/profile-hints
 fi
 
 # Be sure to set the locale
