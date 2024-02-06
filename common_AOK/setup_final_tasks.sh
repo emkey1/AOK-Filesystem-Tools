@@ -77,26 +77,14 @@ ensure_path_items_are_available() {
 
 hostname_fix() {
     # echo "=V= hostname_fix()"
-    orig_hostname="$(/bin/hostname)"
-    if [ "$(/bin/hostname)" != "localhost" ]; then
-        if ! this_fs_is_chrooted; then
-            #
-            #  If hostname is localhost, assume this runs on iOS >= 17
-            #  In the utterly rare case ths user has named his iOS device
-            #  localhost, this would be an incorrect assumption
-            #
-            msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
-            return
-        fi
-    fi
-
     msg_2 "Using alternate hostname"
+    orig_hostname="$(/bin/hostname)"
 
     # shellcheck disable=SC2154
-    if this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ]; then
+    this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ] && {
         msg_3 "Using -aok suffix"
-        touch "$f_hostname_aok_suffix"
-    fi
+        aok -s on
+    }
     msg_3 "Linking /usr/local/bin to /bin/hostname"
     rm /bin/hostname
     ln -sf /usr/local/bin/hostname /bin/hostname
@@ -136,20 +124,6 @@ aok_kernel_consideration() {
     # msg_3 "aok_kernel_consideration() - done"
 }
 
-set_initial_login_mode() {
-    if [ -n "$INITIAL_LOGIN_MODE" ]; then
-        #
-        #  Now that final_tasks have run as root, the desired login method
-        #  can be set.
-        #
-        msg_2 "Using defined login method. It will be used next time App is run"
-        /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
-    else
-        msg_2 "No login mode defined, disabling console login"
-        /usr/local/bin/aok -l disable
-    fi
-}
-
 verify_alpine_uptime() {
     #
     #  Some versions of uptime doesnt work in iSH, test and
@@ -157,12 +131,9 @@ verify_alpine_uptime() {
     #
     uptime_cmd="$(command -v uptime)"
     uptime_cmd_real="$(realpath "$uptime_cmd")"
-    if [ "$uptime_cmd_real" = "/bin/busybox" ]; then
-        #
-        #  Already using busybox, nothing needs to be done
-        #
-        return
-    fi
+
+    [ "$uptime_cmd_real" = "/bin/busybox" ] && return
+
     "$uptime_cmd" >/dev/null 2>&1 || {
         msg_2 "WARNING: Installed uptime not useable!"
         msg_3 "changing it to busybox symbolic link"
@@ -199,7 +170,7 @@ start_cron_if_active() {
 }
 
 replace_home_dirs() {
-    if [ -n "$HOME_DIR_USER" ]; then
+    [ -n "$HOME_DIR_USER" ] && {
         if [ -f "$HOME_DIR_USER" ]; then
             [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
             msg_2 "Replacing /home/$USER_NAME"
@@ -209,9 +180,9 @@ replace_home_dirs() {
         else
             error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
         fi
-    fi
+    }
 
-    if [ -n "$HOME_DIR_ROOT" ]; then
+    [ -n "$HOME_DIR_ROOT" ] && {
         if [ -f "$HOME_DIR_ROOT" ]; then
             msg_2 "Replacing /root"
             mv /root /root.ORIG
@@ -220,7 +191,7 @@ replace_home_dirs() {
         else
             error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
         fi
-    fi
+    }
 }
 
 deploy_bat_monitord() {
@@ -246,7 +217,7 @@ deploy_bat_monitord() {
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
-    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+    [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ] && {
         msg_1 "Running additional setup tasks"
         echo "---------------"
         echo "$FIRST_BOOT_ADDITIONAL_TASKS"
@@ -255,7 +226,7 @@ run_additional_tasks_if_found() {
             error_msg "FIRST_BOOT_ADDITIONAL_TASKS returned error"
         }
         msg_1 "Returned from the additional setup tasks"
-    fi
+    }
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
@@ -289,14 +260,21 @@ this_is_ish && wait_for_bootup
 #
 #  Setting up chroot env to use aok_launcher
 #
-if [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+if this_fs_is_chrooted; then
     _f="/usr/local/sbin/aok_launcher"
     msg_2 "Preparing chroot environment"
     msg_3 "Setting default chroot app: $_f"
     echo "$_f" >/.chroot_default_cmd
-    msg_3 "Enabling Autologin for root"
-    aok -a root >/dev/null
+    [ -z "$USER_NAME" ] && aok -a "root"
+else
+    msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
+    set_launch_cmd "$launch_cmd_AOK"
 fi
+
+[ -n "$USER_NAME" ] && {
+    msg_3 "Enabling Autologin for $USER_NAME"
+    aok -a "$USER_NAME"
+}
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -317,9 +295,6 @@ hostfs_is_alpine && aok_kernel_consideration
 
 deploy_bat_monitord
 
-# login feature didsabled tag
-# set_initial_login_mode
-
 if hostfs_is_alpine; then
     next_etc_profile="$d_aok_base/Alpine/etc/profile"
     #
@@ -339,11 +314,6 @@ set_new_etc_profile "$next_etc_profile"
 
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
-
-if ! this_fs_is_chrooted; then
-    msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
-    set_launch_cmd "$launch_cmd_AOK"
-fi
 
 #
 #  Handling custom files
