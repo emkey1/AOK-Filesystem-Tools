@@ -3,6 +3,7 @@
 I will try to keep track of changes between releases here
 
 ## next release
+- as of 2024-02-06 sudo insta-crashes ish/ish-aok on 3.19 test: sudo ls
 - aok rebuilt and tested
 - tools/do_chroot.sh - improved env checks
 - tools/shellchecker.sh - reimplemented
