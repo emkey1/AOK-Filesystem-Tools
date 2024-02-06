@@ -35,7 +35,7 @@ copy_skel_files() {
 }
 
 setup_cron_env() {
-    msg_2 "Setup geeral cron env"
+    msg_2 "Setup general cron env"
     #
     #  These files will always be setup and ready
     #  The cron/dcron service will only be acrive
@@ -68,6 +68,9 @@ setup_environment() {
 
     msg_3 "Installing /etc/environment"
     cp "$d_aok_base"/common_AOK/etc/environment /etc
+
+    msg_3 "Installing profile-hints file"
+    cp "$d_aok_base"/common_AOK/etc/profile-hints /etc
 
     #
     #  openrc is extreamly forgiving when it comes to dependencies, any
@@ -184,8 +187,14 @@ setup_environment() {
         msg_2 "sshd not installed - port not changed"
     fi
 
-    msg_2 "Enable profile hints"
-    touch "$f_profile_hints"
+    msg_2 "Set default aok preferences"
+    #
+    # If AOK_HOSTNAME_SUFFIX is defined and this runs on an aok kernel
+    # on first boot aok -s on  will be set
+    #
+    aok -c off -H on -s off -C off
+    # only set if not chrootedgeeral
+    this_fs_is_chrooted || aok -l aok
 
     setup_cron_env
 
