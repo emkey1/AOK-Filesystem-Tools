@@ -293,7 +293,7 @@ copy_AOK_to_dest() {
     rsync -ah \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        "$d_aok_base" "$d_build_root"/opt
+        "$d_aok_base"/ "$d_build_root"/opt/AOK
 
     io_dst_conf="$aok_files"/AOK_VARS
     io_conf_overrides="$d_aok_base"/.AOK_VARS
