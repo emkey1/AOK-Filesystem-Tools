@@ -17,47 +17,6 @@
 #  the error message, then continue.
 #
 
-log_it() {
-    _li="$1"
-    if [ -z "$_li" ]; then
-        unset LOG_FILE_BUILD # ensure new call to error_msg doesnt suffer logfile
-        error_msg "log_it() - no param!"
-    fi
-    if [ -z "$LOG_FILE_BUILD" ]; then
-        unset LOG_FILE_BUILD # ensure new call to error_msg doesnt suffer logfile
-        error_msg "log_it() called without LOG_FILE_BUILD defined!"
-    fi
-    #  Ensure dir for LOG_FILE_BUILD exists
-    _log_dir="$(dirname -- "${d_build_root}$LOG_FILE_BUILD")"
-    if [ ! -d "$_log_dir" ]; then
-        echo "Will create log_dir: $_log_dir"
-        # sleep 3
-        mkdir -p "$_log_dir"
-    fi
-
-    #
-    #  In case this was run in a FIRST_BOOT_ADDITIONAL_TASKS
-    #  and in a script run as USER_NAME, sudo will avoid
-    #  Permission denied errors
-    #
-    if [ "$(whoami)" != "root" ]; then
-        _lf_path="$(dirname "$LOG_FILE_BUILD")"
-        _lf_name="$(basename "$LOG_FILE_BUILD")"
-        _log_file="$_lf_path/${USER_NAME}-$_lf_name"
-        unset _lf_path
-        unset _lf_name
-        sudo touch "$_log_file"
-        sudo chown "$USER_NAME" "$_log_file"
-    else
-        _log_file="${d_build_root}$LOG_FILE_BUILD"
-    fi
-    echo "$_li" >>"$_log_file" # 2>&1
-
-    unset _log_file
-    unset _li
-    unset _log_dir
-}
-
 error_msg() {
     _em_msg="$1"
     _em_exit_code="${2:-1}"
@@ -76,7 +35,6 @@ error_msg() {
     echo
     echo "$_em_msg"
     echo
-    [ -n "$LOG_FILE_BUILD" ] && log_it "$_em_msg"
 
     if [ "$_em_exit_code" = "no_exit" ]; then
         echo "no_exit given, will continue"
@@ -112,7 +70,6 @@ do_msg() {
     _msg="$1"
     [ -z "$_msg" ] && error_msg "do_msg() no param"
     echo "$_msg"
-    [ -n "$LOG_FILE_BUILD" ] && log_it "$_msg"
     unset _msg
 }
 
@@ -310,19 +267,6 @@ initiate_deploy() {
 
     msg_1 "Setting up ${_ss_distro_name}: $_ss_vers_info"
 
-    if destfs_is_alpine; then
-        msg_3 "Installing rsync"
-        apk add rsync >/dev/null 2>&1 || error_msg "Failed to install rsync"
-    else
-        # Debian imgs normally have it already installed, so check first
-        if [ -z "$(command -v rsync)" ]; then
-            msg_3 "Ensuring rsync is available"
-            apt install rsync >/dev/null 2>&1 || {
-                error_msg "Failed to install rsync"
-            }
-        fi
-    fi
-
     manual_runbg
 
     copy_local_bins "$_ss_distro_name"
@@ -429,6 +373,24 @@ rsync_chown() {
     d_dest="$2"
     [ -z "$src" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
+
+    #
+    #  rsync is used early on in deploy, so make sure it is installed
+    #  before attempt to use it
+    #
+    if [ -z "$(command -v rsync)" ]; then
+        msg_3 "Installing rsync"
+        if destfs_is_alpine; then
+            apk add rsync >/dev/null 2>&1 || error_msg "Failed to install rsync"
+        else
+            # Debian imgs normally have it already installed, this is just in case
+            msg_3 "Ensuring rsync is available"
+            apt install rsync >/dev/null 2>&1 || {
+                error_msg "Failed to install rsync"
+            }
+        fi
+    fi
+
     _r_params="-ah --exclude=.~ --chown=root:root $src $d_dest"
     if [ "$3" = "silent" ]; then
         #  shellcheck disable=SC2086
@@ -557,13 +519,21 @@ get_launch_cmd() {
     #  notation, to make it easier to compare vs the launch_md_XXX
     #  templates
     #
+    if this_fs_is_chrooted; then
+        echo "Launch cmd not available when chrooted"
+        exit
+    fi
     tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/'
 }
 
 set_launch_cmd() {
     _slc_cmd="$1"
     [ -z "$_slc_cmd" ] && error_msg "set_launch_cmd() - no param"
-    # printf '%s' $_slc_cmd >"$f_launch_cmd"
+    if this_fs_is_chrooted; then
+        echo "Launch cmd not available when chrooted"
+        exit
+    fi
+    # echo "><> set_launch_cmd($_slc_cmd)"
     echo "$_slc_cmd" >"$f_launch_cmd"
     _slc_current="$(get_launch_cmd)"
     [ "$_slc_current" = "$_slc_cmd" ] || {
@@ -749,11 +719,7 @@ deploy_state_is_it() {
 
 deploy_state_get() {
     _state="$(cat "$f_dest_fs_deploy_state" 2>/dev/null)"
-    if [ -z "$_state" ]; then
-        # This will only be logged, that depends on LOG_FILE_BUILD being set
-        msg_1 "deploy_state_get() did not find anything in [$f_dest_fs_deploy_state]" >/dev/null
-        echo ""
-    else
+    if [ -n "$_state" ]; then
         echo "$_state"
     fi
     unset _state
@@ -784,11 +750,6 @@ deploy_starting() {
         echo
     fi
 
-    if [ -n "$LOG_FILE_BUILD" ]; then
-        # I use this on deploy crashes
-        debug_sleep "Since log file is defined, will pause before starting" 2
-    fi
-
     if deploy_state_is_it "$deploy_state_initializing"; then
         deploy_state_set "$deploy_state_dest_build"
     elif ! deploy_state_is_it "$deploy_state_pre_build"; then
@@ -801,12 +762,6 @@ deploy_starting() {
 #   Main
 #
 #===============================================================
-
-#
-#  Might be activated in AOK_VARS or .AOK_VARS
-#  initial state is disabled
-#
-LOG_FILE_BUILD=""
 
 #
 #  To make things simple, this is the expected location for AOK-Filesystem-tools

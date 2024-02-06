@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.2.29"
+AOK_VERSION="0.11.2.35"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -37,12 +37,6 @@ USER_NAME="ish"
 # root will also use this shell by default, to make switching used simpler
 #
 USER_SHELL="/bin/bash"
-
-#
-#  Alternatives are: enable disable once
-#  If USER_NAME is not set INITIAL_LOGIN_MODE will be forced to disable
-#
-INITIAL_LOGIN_MODE="enable"
 
 #
 #  If you want to hard-code timezone, the FS will be setup without
@@ -91,19 +85,6 @@ INITIAL_LOGIN_MODE="enable"
 #  Unless you have used POPULATE_FS to insert it into the regular FS
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
-
-#
-#  If LOG_FILE_BUILD_BUILD is defined build progress printed is also
-#  logged to this file. This is mostly useful as a debugging tool,
-#  if during the deploy something goes wrong and iSH crashes.
-#  This way you can at least get an idea of how far things progressed
-#  before something broke. The path defines will be inside the new FS
-#
-#  OBSOLETE, no longer needed since deploy steps are wrapped inside
-#  an outer shell, and will no longer crash the deploy
-#  code related to this will be removed very soon!
-#
-# LOG_FILE_BUILD=/var/log/aokfs-build.log
 
 ########################################################################
 #
@@ -180,7 +161,7 @@ ALPINE_VERSION=3.18.5 # End of Alpine support 2025-05-09
 #
 pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep htop less \
-    man-db sqlite fzf py3-pip ncdu"
+    sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
