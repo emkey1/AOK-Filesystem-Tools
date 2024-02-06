@@ -16,7 +16,7 @@
 
 restore_to_aok_state() {
     src="$1"
-    dst="$2"
+    dst="$2"        
     [ -z "$src" ] && error_msg "restore_to_aok_state() - no 1st param"
     [ -z "$dst" ] && error_msg "restore_to_aok_state() - no 2nd param"
     [ -e "$src" ] || error_msg "restore_to_aok_state() - src not found $src"
@@ -34,6 +34,7 @@ do_restore_configs() {
     #
     echo "===  Upgrade of configs is requested, will update /etc/inittab and similar configs"
     restore_to_aok_state /opt/AOK/common_AOK/etc/environment /etc
+    restore_to_aok_state /opt/AOK/common_AOK/etc/profile-hints /etc
     restore_to_aok_state /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d/runbg
     restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc/login.defs
     restore_to_aok_state "$distro_prefix"/etc/inittab /etc/inittab
@@ -74,40 +75,40 @@ general_upgrade() {
     #
     msg_2 "Common stuff"
     msg_3 "/usr/local/bin"
-    rsync_chown "$d_aok_base"/common_AOK/usr_local_bin/ /usr/local/bin
+    rsync_chown /opt/AOK/common_AOK/usr_local_bin/ /usr/local/bin
     msg_3 "/usr/local/sbin"
-    rsync_chown "$d_aok_base"/common_AOK/usr_local_sbin/ /usr/local/sbin
+    rsync_chown /opt/AOK/common_AOK/usr_local_sbin/ /usr/local/sbin
     echo
     msg_3 "alternate hostname related"
-    [ -f /etc/init.d/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/aok-hostname-service /etc/init.d/hostname
-    # [ -f /usr/local/bin/hostname ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/hostname_alt /usr/local/bin/hostname
-    # [ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown "$d_aok_base"/common_AOK/hostname_handling/hostname_sync.sh /usr/local/sbin
+    [ -f /etc/init.d/hostname ] && rsync_chown /opt/AOK/common_AOK/hostname_handling/aok-hostname-service /etc/init.d/hostname
+    # [ -f /usr/local/bin/hostname ] && rsync_chown /opt/AOK/common_AOK/hostname_handling/hostname_alt /usr/local/bin/hostname
+    # [ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown /opt/AOK/common_AOK/hostname_handling/hostname_sync.sh /usr/local/sbin
     echo
 
     msg_3 "runbg"
-    rsync_chown "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d
+    rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d
     #
     #  Copy distro specific stuff
     #
     if hostfs_is_alpine; then
         msg_2 "Alpine specifics"
         msg_3 "/usr/local/bin"
-        rsync_chown "$d_aok_base"/Alpine/usr_local_bin/ /usr/local/bin
+        rsync_chown /opt/AOK/Alpine/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
-        rsync_chown "$d_aok_base"/Alpine/usr_local_sbin/ /usr/local/sbin
+        rsync_chown /opt/AOK/Alpine/usr_local_sbin/ /usr/local/sbin
     elif hostfs_is_debian; then
         msg_2 "Debian specifics"
         msg_3 "/usr/local/bin"
-        rsync_chown "$d_aok_base"/Debian/usr_local_bin/ /usr/local/bin
+        rsync_chown /opt/AOK/Debian/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
-        rsync_chown "$d_aok_base"/Debian/usr_local_sbin/ /usr/local/sbin
-        rsync_chown "$d_aok_base"/Debian/etc/init.d/rc /etc/init.d
+        rsync_chown /opt/AOK/Debian/usr_local_sbin/ /usr/local/sbin
+        rsync_chown /opt/AOK/Debian/etc/init.d/rc /etc/init.d
     elif hostfs_is_devuan; then
         msg_2 "Devuan specifics"
         msg_3 "/usr/local/bin"
-        rsync_chown "$d_aok_base"/Devuan/usr_local_bin/ /usr/local/bin
+        rsync_chown /opt/AOK/Devuan/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
-        rsync_chown "$d_aok_base"/Devuan/usr_local_sbin/ /usr/local/sbin
+        rsync_chown /opt/AOK/Devuan/usr_local_sbin/ /usr/local/sbin
     else
         error_msg "Failed to recognize Distro, aborting."
     fi
@@ -197,12 +198,12 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/vnc_start
     is_obsolete_file_present /usr/local/bin/vnc_stop
     is_obsolete_file_present /usr/local/bin/what_owns
-
     is_obsolete_file_present /usr/local/sbin/aok-launcher
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
     is_obsolete_file_present /usr/local/sbin/bat_monitord
     is_obsolete_file_present /usr/local/sbin/do_shutdown
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
+    is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file
     is_obsolete_file_present /usr/local/sbin/hostname_sync.sh
     is_obsolete_file_present /usr/local/sbin/reset-run-dir.sh
     is_obsolete_file_present /usr/local/sbin/update_motd
@@ -232,13 +233,20 @@ update_aok_release() {
         new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/\"//g')$sub_release"
     fi
 
-    #  Update the release file
-    cp "$f_aok_release" "$f_aok_release".old
-    echo "$new_rel" >"$f_aok_release"
-    msg_1 "Updated $f_aok_release to: $new_rel"
+    echo "$new_rel" >"$f_aok_release".new
 
-    if hostfs_is_alpine; then
-        /usr/local/sbin/update-motd
+    if diff -q "$f_aok_release" "$f_aok_release".new; then
+        echo "><> versions differ"
+        #  Update the release file
+        cp "$f_aok_release" "$f_aok_release".old
+        mv "$f_aok_release".new "$f_aok_release"
+        msg_1 "Updated $f_aok_release to: $new_rel"
+        if hostfs_is_alpine; then
+            /usr/local/sbin/update-motd
+        fi
+    else
+        echo "><> versions same"
+        rm "$f_aok_release".new
     fi
 }
 
