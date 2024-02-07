@@ -17,7 +17,8 @@ if [ ! -d "/opt/AOK" ]; then
     exit 1
 fi
 
-. /opt/AOK/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 msg_script_title "select_distro_prepare.sh  Prep for distro select"
 
@@ -27,8 +28,8 @@ msg_script_title "select_distro_prepare.sh  Prep for distro select"
 msg_2 "apk update & upgrade"
 apk update && apk upgrade
 
-msg_3 "Installing wget (needed for Debian download)"
-apk add wget
+msg_3 "Installing wget (needed for Debian download) & pigz (multicore untar)"
+apk add wget pigz
 
 set_new_etc_profile "$setup_select_distro"
 

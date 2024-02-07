@@ -154,7 +154,7 @@ create_fs() {
     case "$src_tarball" in
     *alpine*) _cf_time_estimate="A minirootfs should not take that long" ;;
     *)
-        _cf_time_estimate="will take a while (iPad 5th:16 iPad 7th:7 minutes)"
+        _cf_time_estimate="will take a while (iPad 5th:8, iPad 7th:4 minutes)"
         ;;
     esac
     msg_3 "  $_cf_time_estimate"
