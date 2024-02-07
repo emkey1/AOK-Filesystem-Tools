@@ -1,6 +1,12 @@
 #!/bin/sh
-# Fake bangpath to help editors and linters
-
+#   Fake bangpath to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
+#
 # ~/.profile: executed by the command interpreter for login shells.
 # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
 # exists.

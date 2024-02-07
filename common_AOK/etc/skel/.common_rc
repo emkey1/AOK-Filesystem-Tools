@@ -5,7 +5,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
 #
 #  Common settings that can be used by most shells
 #
@@ -53,6 +53,65 @@ set_current_shell_name() {
     fi
 }
 
+basic_aliases() {
+    #
+    # enable color support of ls and also add handy aliases
+    #
+    if test -x /usr/bin/dircolors; then
+        if test -r ~/.dircolors; then
+            eval "$(dircolors -b ~/.dircolors)"
+        else
+            eval "$(dircolors -b)"
+        fi
+        alias ls='ls --color=auto'
+        #alias dir='dir --color=auto'
+        #alias vdir='vdir --color=auto'
+
+        alias grep='grep --color=auto'
+        alias fgrep='fgrep --color=auto'
+        alias egrep='egrep --color=auto'
+    fi
+
+    #
+    #  Some more ls aliases
+    #
+    alias ll='ls -alFh'
+    alias la='ls -A'
+    alias lt='ls -lt'
+    alias ld='ls -d */'
+}
+
+prompt_colors() {
+    #
+    #  Here the colors are just defined in the xterm-256 color schema
+    #  Next, depending on shells this needs to be translated to
+    #  the actual prompt code fort this color
+    #
+
+    #
+    #  EUID / UID is not available in the ash shell, 'id -u' always works
+    #
+    if [ "$(id -u)" -eq 0 ]; then
+        PCOL_USERNAME=1
+    else
+        PCOL_USERNAME=34
+    fi
+    PCOL_CWD=12
+    PCOL_GREY=240 # For things that should be less intense
+
+    #
+    #  To make iSH nodes stand out if connected from the outside,
+    #  or if it is chrooted under another host.
+    #  It should also not be pointlessly in your face if you are using
+    #  the iSH console
+    #
+    if [ -n "$SSH_CLIENT" ] || [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
+        PCOL_HOSTNAME=222
+    else
+        PCOL_HOSTNAME=34
+    fi
+}
+
 #  Function to get battery info and status, if running on iSH-AOK
 get_battery_info() {
     # Only supported on iSH-AOK
@@ -96,7 +155,7 @@ get_battery_info() {
     unset _shell_name
 
     if [ -z "$capacity" ]; then
-        echo "Battery not found" >/dev/stderr
+        echo "Battery not found " >/dev/stderr
     else
         case $chrg_stat in
         "Full") _bat_state="${capacity}F" ;;
@@ -110,67 +169,29 @@ get_battery_info() {
     fi
 }
 
-basic_aliases() {
-    #
-    # enable color support of ls and also add handy aliases
-    #
-    if test -x /usr/bin/dircolors; then
-        if test -r ~/.dircolors; then
-            eval "$(dircolors -b ~/.dircolors)"
-        else
-            eval "$(dircolors -b)"
-        fi
-        alias ls='ls --color=auto'
-        #alias dir='dir --color=auto'
-        #alias vdir='vdir --color=auto'
-
-        alias grep='grep --color=auto'
-        alias fgrep='fgrep --color=auto'
-        alias egrep='egrep --color=auto'
+get_sysload_lvl() {
+    _sysload="$(uptime | awk -F'average:' '{print $2}' | awk -F, '{print $1}' | tr -d ' ')"
+    _load_lvl="$(echo "$_sysload" | cut -d. -f 1)"
+    if [ "$_load_lvl" -ge 20 ]; then
+        _load_color=196 # red
+    elif [ "$_load_lvl" -ge 5 ]; then
+        _load_color=3 # yellow
+    else
+        _load_color="242" # green
     fi
 
-    #
-    #  Some more ls aliases
-    #
-    alias ll='ls -alFh'
-    alias la='ls -A'
-    alias lt='ls -lt'
-    alias ld='ls -d */'
+    case "$CURRENT_SHELL" in
+    zsh) printf '%s' "%F{$_load_color}$_sysload" ;;
+    bash | ash) printf '%s' "\[\e[38;5;${_load_color}m\]$_sysload" ;;
+    *) ;;
+    esac
+
+    unset _sysload
+    unset _load_lvl
+    unset _load_color
 }
 
-prompt_colors() {
-    #
-    #  Here the colors are just defined in the xterm-256 color schema.
-    #  Depending on shells this might need to be translated to
-    #  the actual prompt code for this color.
-    #  zsh can handle this notation directly.
-    #
-
-    #
-    #  EUID / UID is not available in the ash shell, 'id -u' always works
-    #
-    if [ "$(id -u)" -eq 0 ]; then
-        PCOL_USERNAME=1
-    else
-        PCOL_USERNAME=34
-    fi
-    PCOL_CWD=12
-    PCOL_GREY=240 # For things that should be less intense
-
-    #
-    #  To make iSH nodes stand out if connected from the outside,
-    #  or if it is chrooted under another host.
-    #  It should also not be pointlessly in your face if you are using
-    #  the iSH console
-    #
-    if [ -n "$SSH_CLIENT" ] || [ -f /etc/opt/AOK/this_fs_is_chrooted ]; then
-        PCOL_HOSTNAME=222
-    else
-        PCOL_HOSTNAME="$PCOL_USERNAME"
-    fi
-}
-
-bash_prompt() {
+use_static_bash_prompt() {
     #
     #  Since Ash also uses the Bash style prompt, it is defined here
     #  so that Ash also can use it
@@ -184,7 +205,17 @@ bash_prompt() {
     PCOL_GREY="\[\e[38;5;${PCOL_GREY}m\]"
     PCOL_CLR="\e[0m"
 
-    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}$(get_battery_info "$CURRENT_SHELL")${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
+    # "'$(get_battery_info $CURRENT_SHELL)'"
+}
+
+use_dynamic_bash_prompt() {
+    use_static_bash_prompt # call to get the colors defined
+    PROMPT_COMMAND='update_dynamic_bash_prompt;'"$PROMPT_COMMAND"
+}
+
+update_dynamic_bash_prompt() {
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn} ${PCOL_GREY}$(get_sysload_lvl)$(get_battery_info "$CURRENT_SHELL")${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
 }
 
 #===============================================================
@@ -214,6 +245,5 @@ set_current_shell_name
 if test -x /usr/local/bin/hostname; then
     _hn="$(/usr/local/bin/hostname)"
 else
-    #  shellcheck disable=SC2154
-    _hn="$_hc$(/bin/hostname -s)"
+    _hn="$(/bin/hostname -s)"
 fi

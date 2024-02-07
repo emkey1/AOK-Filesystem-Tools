@@ -1,5 +1,11 @@
 #!/bin/sh
-#  Fake bangpath to help editors and linters
+#   Fake bangpath to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
 #
 #   Sets up ash to be somewhat similar to bash
 #
@@ -23,8 +29,10 @@ if [ -f ~/.common_rc ]; then
     . ~/.common_rc
 fi
 
-#  Ash can use the bash prompt
-bash_prompt
+#
+#  Ash can use the bash prompt, but doesnt support dynamic propmpt
+#
+use_static_bash_prompt
 
 #
 #  To make it possible to see what shell is used atm, ash tries

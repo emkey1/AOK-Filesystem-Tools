@@ -1,7 +1,13 @@
 #!/bin/bash
 #   Fake bangpath to help editors and linters
 #
-# executed by bash(1) for non-login shells.
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
+#
+#  executed by bash(1) for non-login shells.
 #
 
 #
@@ -44,9 +50,7 @@ shopt -s checkwinsize
 #shopt -s globstar
 
 #
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
+#  enable programmable completion features
 #
 if ! shopt -oq posix; then
     if [[ -f /usr/share/bash-completion/bash_completion ]]; then
@@ -58,4 +62,8 @@ if ! shopt -oq posix; then
     fi
 fi
 
-bash_prompt
+#
+#  Use either one, dynamic will display sysload 5 and on ish-AOK batt-lvl
+#
+use_dynamic_bash_prompt
+# use_static_bash_prompt
