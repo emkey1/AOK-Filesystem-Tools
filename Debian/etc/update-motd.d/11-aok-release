@@ -8,8 +8,11 @@
 #
 #  Displays AOK release info
 #
-aok_release="/etc/aok-release"
+f_aok_fs_release="/etc/aok-fs-release"
 
-if [ -e "$aok_release" ]; then
-    echo "[35mAOK-FS release:  $(cat "$aok_release")[0m"
+#  LF to create separaion from pam.d  uname-a
+echo
+
+if [ -e "$f_aok_fs_release" ]; then
+    echo "[35mAOK-FS release:  $(cat "$f_aok_fs_release")[0m"
 fi

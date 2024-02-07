@@ -69,25 +69,18 @@ debian_services() {
 
 tsd_start="$(date +%s)"
 
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 deploy_starting
-
-if [ "$build_env" = "$be_other" ]; then
-    echo
-    echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
-    echo "##           You have been warned"
-    echo
-fi
-
 msg_script_title "setup_debian.sh  Debian specific AOK env"
 
 msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
 
-initiate_deploy Debian "$(cat /etc/debian_version)"
-prepare_env_etc
-
+#
+#  Not normally needed, unless /var/cache/apt had been cleared,
+#  so in this case, better safe than sorry
+#
 msg_1 "apt update"
 apt update -y
 
@@ -95,6 +88,9 @@ msg_1 "apt upgrade"
 apt upgrade -y || {
     error_msg "apt upgrade failed"
 }
+
+initiate_deploy Debian "$(cat /etc/debian_version)"
+prepare_env_etc
 
 #
 #  To ensure that
@@ -131,6 +127,11 @@ if [ -n "$DEB_PKGS" ]; then
     }
 fi
 echo
+
+#
+#  Our
+#
+cp -a "$d_aok_base"/Debian/etc/init.d/rc /etc/init.d
 
 #
 #  Common deploy, used both for Alpine & Debian

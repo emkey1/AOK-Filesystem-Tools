@@ -1,30 +1,27 @@
 # inittab
 
-#
-#  Ensure all devices  are ok, doesnt seem to be needed anymore
-#  left here for now
-#
-# ::sysinit:/usr/local/sbin/fix_dev
+# Indicate bootup in the syslog
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab "===  System startup  ==="
 
 #
-#  hostname is not set automatically since iOS 17, assuming the
-#  neccesary shortcuts have been set up, an Automation event writes
-#  current hostname to a file that iSH can read
-#  Link to explaination about how to set this up is in the below script
+#  Regular iSH doesn't clear /run at startup, so it needs to
+#  Clear /run/ to an initial state with no services running
+#  This is not needed on iSH-AOK, and for such can be commented out
 #
-::sysinit:/usr/local/sbin/hostname_sync.sh
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir
+
+#  rotates logfiles > 10k
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/rotate-logs.sh
 
 #
-#  Login crashes if /etc/issue is not pressent.
-#  This ensures at least an empty file is there
+# If you've configured your hostname to be updated through an iOS Shortcut,
+# this ensures that the hostname reflects what the Shortcut provides.
+# If you maintain a static hostname in /etc/hosts, this may not be necessary,
+# but keeping it enables quick updates in case you decide to switch to
+# a hostname fed by the Shortcut in the future.
+# For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
 #
-::sysinit:/usr/local/sbin/ensure_issue_exists.sh
-
-#
-#  Not system critical but we might as well do it here
-#  instead of creating a full service for the task
-#
-::sysinit:/usr/local/sbin/ensure_hostname_in_host_file.sh
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/hostname -U
 
 #
 #  Update motd (in case iSH has been updated)
@@ -33,7 +30,7 @@
 #  This means first boot after new iSH will show outdated version
 #  on bootup
 #
-::sysinit:/usr/local/sbin/update_motd
+::sysinit:/usr/local/sbin/R-check /usr/local/sbin/update-motd
 
 #
 #  iSH typically does no cleanup at shutdown, it just suddenly terminates.
@@ -45,9 +42,10 @@
 #  This leads to services first being stoped and then started, ensuring
 #  they start up regardless of logged runstate at startup.
 #
-::sysinit:/sbin/openrc sysinit
-::sysinit:/sbin/openrc boot
-::wait:/sbin/openrc default
+# ::sysinit:/sbin/openrc sysinit
+# ::sysinit:/sbin/openrc boot
+::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab doing openrc default
+::wait:/usr/local/sbin/R-check /sbin/openrc default
 
 #
 #  I highly doubt these states can be triggered in iSH
@@ -57,16 +55,3 @@
 
 # Stuff to do before rebooting
 # ::shutdown:/sbin/openrc shutdown
-
-#
-#  Before enabling either of the agetty's for pts/0 Launch cmd should be
-#  changed into this: /bin/sleep infinity
-#  If you want to use /dev/console for general output, also do
-#    rm -f /dev/console && mknod -m 222 /dev/console c 136 0
-#
-
-#  Using login prompt
-# tty1::respawn:/sbin/agetty pts/0 xterm-256color
-
-#  Autologin as selected user, be aware that logout will instantly log you in again...
-# tty1::respawn:/sbin/agetty -a root pts/0 xterm-256color

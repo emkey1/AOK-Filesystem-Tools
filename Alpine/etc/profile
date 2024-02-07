@@ -17,44 +17,9 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 #  Only do the rest on fresh login, not for subshells
 [ -n "$SHLVL" ] && [ "$SHLVL" -gt 1 ] && return
 
-ID="$(id -u)"
-CHECK="$(/bin/rc-status 2>/dev/null | grep -c sshd)"
-VERBOSE=0
-
-if [ "$CHECK" -eq 0 ] || [ "$ID" -ne 0 ]; then
-    VERBOSE=1
+# shellcheck source=/dev/null
+if [ -f "/etc/opt/AOK/show_profile_hints" ]; then
+    . /etc/profile-hints
 fi
 
-# echo $CHECK $ID $VERBOSE
-
-if [ "$VERBOSE" -eq 1 ]; then
-    echo
-    echo "------------------------------------------"
-    echo
-fi
-
-if [ "$CHECK" -eq 0 ]; then
-    echo "Enable sshd on port 1022: [31menable_sshd[0m"
-    echo
-fi
-
-if [ "$ID" -ne 0 ]; then
-    echo "Use [31msudo[0m to run commands as root"
-    echo
-fi
-
-if [ "$VERBOSE" -eq 1 ]; then
-    echo "------------------------------------------"
-    echo
-fi
-
-if grep -qi aok /proc/ish/version 2>/dev/null; then
-    #  Only run this on AOK kernels
-    CPU_STATE="$(/usr/local/bin/toggle_multicore status)"
-    echo "Multicore State=$CPU_STATE"
-
-    LOCK_STATE="$(/usr/local/bin/elock status)"
-    echo "Extra Locking State=$LOCK_STATE"
-fi
-
-echo ""
+echo

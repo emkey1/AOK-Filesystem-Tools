@@ -45,5 +45,7 @@ if [ -d /etc/profile.d ]; then
     unset i
 fi
 
-# Be sure to set the locale
-# export LANG=en_US.UTF-8
+# shellcheck source=/dev/null
+if [ -f "/etc/opt/AOK/show_profile_hints" ]; then
+    . /etc/profile-hints
+fi

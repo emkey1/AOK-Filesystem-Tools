@@ -107,7 +107,7 @@ else
 fi
 
 # set location
-tarball="$d_images/$tarball_fn"
+tarball="$TMPDIR/aok_imgs/$tarball_fn"
 
 # echo "removing temp /dev items"
 # rm  -f "$d_build_root"/dev/*
@@ -136,15 +136,14 @@ fi
 clear_build_triggered_logfiles
 
 echo
-msg_2 "Wrting image file"
+msg_2 "Writing image file"
 msg_3 " $tarball"
-
 if [ -n "$cmd_pigz" ]; then
-    msg_3 "Using $cmd_pigz"
+    msg_4 "Using $cmd_pigz"
     # time tar -cf - . | pigz -p 2 > foo.tgz
     tar -cf - . | $cmd_pigz >"$tarball"
 else
-    msg_3 "No pigz"
+    msg_4 "No pigz"
     tar "$opts" "$tarball" .
 fi
 ex_code="$?"
@@ -159,6 +158,6 @@ if this_is_ish && [ "$(find /iCloud/ -maxdepth 1 | wc -l)" -gt 1 ]; then
     cp "$tarball" "$d_icloud_archive"
 fi
 
-msg_3 "Image is ready!"
+msg_3 "Image is ready: $tarball"
 
 exit "$ex_code" #  Propagate tar any tar error

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/helpfull_scripts
 #
 #  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
 #
@@ -18,12 +18,12 @@
 #  completed
 #
 
-#
-#  Display error, and exit if exit code > -1
-#
 error_msg() {
+    #
+    #  Display error, and exit if exit code > -1
+    #
     local em_msg="$1"
-    local em_exit_code="${2:-"-1"}"
+    local em_exit_code="${2:-1}"
     if [[ -z "$em_msg" ]]; then
         echo
         echo "error_msg() no param"
@@ -53,98 +53,72 @@ string_in_array() {
     return 1 # String not found in the array
 }
 
-#
-#  Scan for and define usable linters
-#
-identify_available_linters() {
-    shellcheck_p="$(command -v shellcheck)"
-    checkbashisms_p="$(command -v checkbashisms)"
-    vale_p="$(command -v vale)"
+get_config() {
+    #
+    #  Defaults that can be overriden in a project config file
+    #
 
-    if [[ "${shellcheck_p}" = "" ]] && [[ "${checkbashisms_p}" = "" ]]; then
-        echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
-        exit 1
-    fi
-    if [[ -n "$shellcheck_p" ]]; then
-        v_sc="$(shellcheck -V | grep version: | awk '{ print $2 }')"
-        if [[ "$v_sc" > "0.5.0" ]]; then
-            sc_extra="-o all"
-        else
-            sc_extra=""
-        fi
-    fi
+    #
+    #  Specifix excludes
+    #
+    excludes=(
+    )
 
-    if [[ "$hour_limit" != "0" ]]; then
+    #
+    #  Excludes by prefix/suffix
+    #
+    prefixes=(
+        ./.git/
+        ./.vscode
+    )
+    suffixes=(
+        \~
+        \#
+    )
 
-        printf "Using: "
-        if [[ -n "${shellcheck_p}" ]]; then
-            printf "%s " "shellcheck"
-        fi
-        if [[ -n "${checkbashisms_p}" ]]; then
-            printf "%s " "checkbashisms"
-            #  shellcheck disable=SC2154
-            if [[ "$build_env" = "$be_ish" ]]; then
-                if checkbashisms --version | grep -q 2.21; then
-                    echo
-                    echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
-                    echo "         close to a minute/script"
-                fi
-            fi
-        fi
-        printf '\n\n'
+    _f=.shellchecker
+    if [[ -f "$_f" ]]; then
+        # shellcheck source=/dev/null
+        source "$_f" || error_msg "Failed to source exclusions: $_f"
+        echo "===  Using: $_f  ==="
+    else
+        echo "===  No exclusion file found, using defaults  ==="
     fi
 }
 
 #===============================================================
 #
-#   Lint specific file types
+#   File Age related
 #
 #===============================================================
 
-do_shellcheck() {
-    local fn2="$1"
-    [[ -z "$fn2" ]] && error_msg "do_shellcheck() - no paran given!" 1
-    if [[ -n "${shellcheck_p}" ]]; then
-        #  shellcheck disable=SC2086
-        shellcheck -a -x -e SC2039,SC2250,SC2312 $sc_extra "$fn2" || exit 1
+recent_enough() {
+    #  should_it_be_linted() {
+    local current_time
+    local span_in_seconds
+    local cutoff_time
 
+    case "$h_max_age" in
+
+    0) return 0 ;;
+
+    -1) return 1 ;;
+
+    *) ;;
+    esac
+
+    [[ "$h_max_age" = "0" ]] && return 0
+
+    if [[ -z "$cutoff_time" ]]; then
+        current_time=$(date +%s) # Get current time in seconds since epoch
+        span_in_seconds="$((3600 * h_max_age))"
+        cutoff_time="$((current_time - span_in_seconds))"
     fi
-}
-
-do_checkbashisms() {
-    local fn="$1"
-    [[ -z "$fn" ]] && error_msg "do_checkbashisms() - no paran given!" 1
-    if [[ -n "${checkbashisms_p}" ]]; then
-        checkbashisms -n -e -x "$fn" || exit 1
+    # display_file_age "$fname"
+    if [[ "$(get_mtime "$fname")" -lt "$cutoff_time" ]]; then
+        return 1
     fi
-}
-
-do_vale() {
-    local fn1="$1"
-    local vale_tmp="/tmp/shlchk-vale"
-    [[ -z "$fn1" ]] && error_msg "do_vale() - no paran given!" 1
-    if [[ -n "${vale_p}" ]]; then
-        echo "checking text: $fn1"
-        if ! "$vale_p" "$fn1" >"$vale_tmp"; then
-            cat "$vale_tmp"
-            exit 0
-        fi
-    fi
-}
-
-lint_posix() {
-    local fn="$1"
-    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
-    echo "checking posix: $fn"
-    do_shellcheck "$fn"
-    do_checkbashisms "$fn"
-}
-
-lint_bash() {
-    local fn="$1"
-    [[ -z "$fn" ]] && error_msg "lint_bash() - no paran given!" 1
-    echo "checking bash: $fn"
-    do_shellcheck "$fn"
+    return 0
 }
 
 get_mtime() {
@@ -197,24 +171,102 @@ display_file_age() {
     return 0
 }
 
-should_it_be_linted() {
-    local current_time
-    local span_in_seconds
-    local cutoff_time
+#===============================================================
+#
+#   Linting actions
+#
+#===============================================================
 
-    [[ -z "$hour_limit" ]] && return 0
-    if [[ -z "$cutoff_time" ]]; then
-        current_time=$(date +%s) # Get current time in seconds since epoch
-        span_in_seconds="$((3600 * hour_limit))"
-        cutoff_time="$((current_time - span_in_seconds))"
+identify_available_linters() {
+    #
+    #  Scan for and define usable linters
+    #
+    p_shellcheck="$(command -v shellcheck)"
+    p_checkbashisms="$(command -v checkbashisms)"
+    vale_p="$(command -v vale)"
+
+    if [[ "${p_shellcheck}" = "" ]] && [[ "${p_checkbashisms}" = "" ]]; then
+        echo "ERROR: neither shellcheck nor checkbashisms found, can not proceed!"
+        exit 1
     fi
-    # display_file_age "$fname"
-    if [[ "$(get_mtime "$fname")" -lt "$cutoff_time" ]]; then
-        # echo ">>> Cut of time reached limit: $hour_limit"
-        files_aged_out_for_linting=1
-        return 1
+    if [[ -n "$p_shellcheck" ]]; then
+        v_sc="$(shellcheck -V | grep version: | awk '{ print $2 }')"
+        if [[ "$v_sc" > "0.5.0" ]]; then
+            sc_extra="-o all"
+        else
+            sc_extra=""
+        fi
     fi
-    return 0
+
+    if [[ "$h_max_age" != "0" ]]; then
+
+        printf "Using: "
+        if [[ -n "${p_shellcheck}" ]]; then
+            printf "%s " "shellcheck"
+        fi
+        if [[ -n "${p_checkbashisms}" ]]; then
+            printf "%s " "checkbashisms"
+            #  shellcheck disable=SC2154
+            if [[ "$build_env" = "$be_ish" ]]; then
+                if checkbashisms --version | grep -q 2.21; then
+                    echo
+                    echo "WARNING: this version of checkbashisms runs extreamly slowly on iSH!"
+                    echo "         close to a minute/script"
+                fi
+            fi
+        fi
+        printf '\n\n'
+    fi
+}
+
+do_shellcheck() {
+    local fn2="$1"
+    [[ -z "$fn2" ]] && error_msg "do_shellcheck() - no paran given!" 1
+    if [[ -n "${p_shellcheck}" ]]; then
+        #  shellcheck disable=SC2086
+        shellcheck -a -x -e SC2039,SC2250,SC2312 $sc_extra "$fn2" || exit 1
+
+    fi
+}
+
+do_checkbashisms() {
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "do_checkbashisms() - no paran given!" 1
+    if [[ -n "${p_checkbashisms}" ]]; then
+        #
+        #  Dont exit for checkbasims issues, just display them
+        #  and do a LF to make the warning stand out
+        #
+        checkbashisms -n -x "$fn" || echo
+    fi
+}
+
+do_vale() {
+    local fn1="$1"
+    local vale_tmp="/tmp/shlchk-vale"
+    [[ -z "$fn1" ]] && error_msg "do_vale() - no paran given!" 1
+    if [[ -n "${vale_p}" ]]; then
+        echo "checking text: $fn1"
+        if ! "$vale_p" "$fn1" >"$vale_tmp"; then
+            cat "$vale_tmp"
+            exit 0
+        fi
+    fi
+}
+
+lint_posix() {
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "lint_posix() - no paran given!" 1
+    echo "checking posix: $fn"
+    do_shellcheck "$fn"
+    do_checkbashisms "$fn"
+}
+
+lint_bash() {
+    local fn="$1"
+    [[ -z "$fn" ]] && error_msg "lint_bash() - no paran given!" 1
+    echo "checking bash: $fn"
+    do_shellcheck "$fn"
 }
 
 #===============================================================
@@ -246,10 +298,7 @@ process_file_tree() {
     for fname in "${all_files[@]}"; do
         [[ -d "$fname" ]] && continue
 
-        if [[ "$hour_limit" != "0" ]] && [[ "$files_aged_out_for_linting" = "1" ]]; then
-            # echo ">>> Files aged out!"
-            break
-        fi
+        recent_enough || break
 
         for exclude in "${excludes[@]}"; do
             [[ "$fname" == "$exclude" ]] && continue 2
@@ -264,7 +313,7 @@ process_file_tree() {
         done
 
         # # display_file_age "$fname"
-        # should_it_be_linted
+        # recent_enough
         # continue
 
         f_type="$(file -b "$fname")"
@@ -278,24 +327,41 @@ process_file_tree() {
         #
         if [[ "$f_type" == *"POSIX shell script"* ]]; then
             items_posix+=("$fname")
-            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_posix "$fname"
+            lint_posix "$fname"
             continue
         elif [[ "$f_type" == *"Bourne-Again shell script"* ]]; then
             items_bash+=("$fname")
-            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && lint_bash "$fname"
+            lint_bash "$fname"
             continue
         elif [[ "$f_type" == *"ASCII text"* ]]; then
             #  This must come after items_ucode_esc, otherwise this
             #  very generic string would match most files
-            [[ "$files_aged_out_for_linting" != "1" ]] && should_it_be_linted && do_vale "$fname"
             items_ascii+=("$fname")
+            do_vale "$fname"
+            continue
+        elif [[ "$f_type" == *"Unicode text, UTF-8 text, with escape"* ]] ||
+            [[ "$f_type" == *"UTF-8 Unicode text, with escape"* ]]; then
+            #  Who might have guessed on MacOS file -b output looks different...
+            items_ucode_esc+=("$fname")
+            do_vale "$fname"
+            continue
+        elif [[ "$f_type" == *"Unicode text, UTF-8 text"* ]] ||
+            [[ "$f_type" == *"UTF-8 Unicode text"* ]]; then
+            #  This must come after items_ucode_esc, otherwise that would eat this
+            items_ucode+=("$fname")
+            do_vale "$fname"
             continue
         fi
-        #
-        #  Only gather data about other file types, if they will be displayed in the end
-        #  in order to make this process quicker on the rather sloowish iSH systems
-        #
-        if [[ "$hour_limit" = "0" ]]; then
+    done
+}
+
+foo_1() {
+    #
+    #  Only gather data about other file types, if they will be displayed in the end
+    #  in order to make this process quicker on the rather sloowish iSH systems
+    #
+    for fname in "${all_files[@]}"; do
+        if [[ "$h_max_age" = "0" ]]; then
 
             if [[ "$f_type" == *"C source"* ]]; then
                 items_c+=("$fname")
@@ -373,6 +439,8 @@ echo
 
 # Only lint files changed last 24h
 
+h_max_age=0 # no max time
+
 case "$1" in
 
 "") ;; #  no param
@@ -380,19 +448,19 @@ case "$1" in
 "-f")
     echo "Will only check files changed in the last 24h"
     echo
-    hour_limit=24
+    h_max_age=24
     ;;
 
 "-F")
     echo "Will only check files changed in the last hour"
     echo
-    hour_limit=1
+    h_max_age=1
     ;;
 
 "-q")
     echo "Will skip any linting, only list files by type"
     echo
-    hour_limit=0
+    h_max_age=-1
     ;;
 
 *)
@@ -400,34 +468,12 @@ case "$1" in
     ;;
 esac
 
-#
-#  Ensure this is run in the intended location in case this was launched from
-#  somewhere else.
-#
-cd /opt/AOK || error_msg "The AOK file tools needs to be saved to /opt/AOK for things to work!" 1
-
-#
-#  Specifix excludes
-#
-excludes=(
-)
-
-#
-#  Excludes by prefix/suffix
-#
-prefixes=(
-    ./.git
-    ./.vscode
-)
-suffixes=(
-    \~
-    \#
-)
+get_config
 
 identify_available_linters
 process_file_tree
 
-if [[ "$hour_limit" = "0" ]]; then
+if [[ "$h_max_age" = "0" ]]; then
     #
     #  Display selected file types
     #

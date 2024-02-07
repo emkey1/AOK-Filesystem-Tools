@@ -71,20 +71,12 @@ Select distro:
 #===============================================================
 
 #
-#  Mostly needed in case nav_keys.sh or some other config task
+#  Mostly needed in case nav-keys.sh or some other config task
 #  would be run before the first re-boot
 #
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
 
 tcd_start="$(date +%s)"
-
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
 
 . "$d_aok_base"/tools/utils.sh
 

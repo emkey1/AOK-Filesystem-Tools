@@ -1,0 +1,98 @@
+# This should not have a shebang for system stability reasons!
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  this is called by 'shutdown' and does the actual shutdown procedure.
+#
+#  For normall shutdown, do: shutdown
+#  it will announce the pending shutdown to all connected sessions
+#  and can be aborted
+#
+#  This scriot will do instant shutdown.
+#
+
+error_msg() {
+    msg="$1"
+    [ -z "$msg" ] && error_msg "error_msg() called with no param"
+    echo "ERROR: $msg"
+    exit 1
+}
+
+this_is_ish() {
+    test -d /proc/ish
+}
+
+this_fs_is_chrooted() {
+    #  Check this _ACTUAL_ fs
+    [ -f /etc/opt/AOK/this_fs_is_chrooted ]
+}
+
+ensure_ish_or_chrooted() {
+    #
+    #  Simple test to make sure this is not run on a non iSH host
+    #
+    this_is_ish && return
+    this_fs_is_chrooted && return
+    error_msg "Can only run on iSH or when chrooted"
+}
+
+display_msg() {
+    _msg="$1"
+    echo "$_msg"
+
+    /usr/local/bin/logger do-shutdown "$_msg"
+    unset _msg
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+uid="$(id | awk -F'[(=]' '{print $2}')"
+if [ "$uid" -ne 0 ]; then
+    echo "ERROR: do-shutdown requires root privileges!"
+    exit 1
+fi
+
+ensure_ish_or_chrooted
+
+echo
+echo "Commencing shutdown..."
+
+if [ "$1" = "nice" ]; then
+    #
+    #  Terminates all running services, not completing until all are done.
+    #  During this, most remote sessions will be terminated...
+    #
+    display_msg "will do openrc shutdown"
+    openrc shutdown
+    display_msg "completed openrc shutdown"
+fi
+
+key_process="$(ps ax | grep 'pts/0' | awk '!/grep/ { print $1 }' | head -n 1)"
+if [ -n "$key_process" ]; then
+    display_msg "Will kill the key console process [$key_process]"
+    kill -9 "$key_process"
+else
+    display_msg "*** failed to find key console process!"
+fi
+
+#
+#  Havent fully figured out how to do "brutal" kill wihout somwrimes
+#  triggering an ish crash popup,
+#
+sleep 5
+display_msg "Controlled kill failed, doing it brutually, might leave crash popup"
+killall -9 login init
+
+#
+#  Should never show up, just to indicate complete shutdown failure
+#
+sleep 5
+display_msg "shutdown failed"

@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  hostname should always be in /etc/hosts
+#  otherwise any sudo will give this warning:
+#
+#  unable to resolve host [current hostname]: Name or service not known
+#
+
+ensure_it_is_there() {
+    hname="$1"
+    host_file="/etc/hosts"
+    [ -z "$hname" ] && {
+        /usr/local/bin/logger "$this_app ensure_it_is_there() - no param"
+        exit 1
+    }
+    if ! grep -q "127.0.0.1[[:space:]]$hname$" "$host_file"; then
+        /usr/local/bin/logger "$this_app adding $hname to $host_file"
+        printf '127.0.0.1\t%s\n' "$hname" >>"$host_file"
+    fi
+
+}
+
+this_app="$(basename "$0")"
+host_name="$(hostname | tr '[:upper:]' '[:lower:]')"
+
+ensure_it_is_there "$host_name"
+
+#
+#  If hostname has suffix -aok, ensure the hostname without the suffix
+#  is also present in /etc/hosts, in order to be able to connect to the
+#  non iSH-AOK instance
+#
+echo "$host_name" | grep -q '\-aok' && ensure_it_is_there "${hname%-aok}"

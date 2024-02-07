@@ -14,7 +14,7 @@
 install_sshd() {
     #
     #  Install sshd, then remove the service, in order to not leave it running
-    #  unless requested to: with enable_sshd / disable_sshd
+    #  unless requested to: with enable-sshd / disable_sshd
     #
     msg_1 "Installing openssh-server"
 
@@ -26,7 +26,7 @@ install_sshd() {
     msg_3 "Install sshd and sftp-server (scp server part)"
     apt install -y openssh-server openssh-sftp-server
 
-    msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    msg_3 "Disable sshd for now, enable it with: enable-sshd"
     rc-update del ssh default
 }
 
@@ -60,7 +60,7 @@ prepare_env_etc() {
 
 tsdev_start="$(date +%s)"
 
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 deploy_starting
 

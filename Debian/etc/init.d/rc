@@ -1,0 +1,35 @@
+#!/bin/sh
+# Wrapper of OpenRC called from inittab
+
+#
+#  AOK-FS change:  handles rlvl 0 - shutdown
+#
+set -e
+
+[ -f "/etc/opt/AOK/recovery-mode" ] && {
+	echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped /etc/init.d/rc $1" >>/var/log/recovery-mode.log
+	exit 0
+}
+
+# map numbered to named runlevel
+case $1 in
+0)
+	# /sbin/openrc off && /sbin/openrc shutdown && \
+	# 	/etc/init.d/halt stop
+	/usr/local/bin/shutdown now
+	;;
+1)
+	exec /sbin/openrc recovery
+	;;
+6)
+	# /sbin/openrc off && /sbin/openrc reboot &&
+	# 	/etc/init.d/reboot stop
+	echo
+	echo "iSH doesn't support reboot, will do shutdown instead!"
+	echo
+	/usr/local/bin/shutdown now
+	;;
+*)
+	exec /sbin/openrc default
+	;;
+esac

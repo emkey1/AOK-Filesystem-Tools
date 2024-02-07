@@ -55,13 +55,20 @@ notification="
 
     *** SYSTEM SHUTDOWN NOTICE ***
 
-$(hostname) will be shutdown in $hold_time seconds!!
 "
+
 #
 #  Append param 1 if pressent on new line
 #
 [ -n "$1" ] && notification="${notification}
-$*"
+$*
+"
+
+if [ "$hold_time" != "0" ]; then
+    notification="${notification}
+$(hostname) will be shutdown in $hold_time seconds!!
+"
+fi
 
 /usr/local/bin/wall "$notification"
 
@@ -80,16 +87,6 @@ fi
 #  aborting the shutdown script before it completes.
 #  Thus the actual shutdown is run in a separate backgrounded script
 #  that will ignore if the triggering session disapears
-#  Since do_shutdown will shut the system down without any warning,
-#  it has no shebang, so intended shell must be mentioned by the caller.
 #
-(
-    echo
-    date
-) >>/var/log/shutdown.log
 
-#
-#  Since do_shutdown does an instant shutdown, place it in /usr/local/lib
-#  and dont give it a shebang. To minimize risk of unintentional triggering
-#
-/usr/local/sbin/do_shutdown nice &
+/usr/local/sbin/do-shutdown nice &

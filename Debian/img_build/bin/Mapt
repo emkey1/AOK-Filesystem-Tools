@@ -38,7 +38,7 @@ display_time_elapsed() {
 
 t_start="$(date +%s)"
 
-echo "Mapt - apt maintenance"
+echo "===  Mapt - apt maintenance  ==="
 
 if [ "$(whoami)" != "root" ]; then
     echo "***  This must be run using sudo!  ***"
@@ -50,9 +50,8 @@ apt autoremove -y && apt autoclean && apt -y upgrade
 purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
 if [ -n "$purge_candidates" ]; then
     echo
-    echo "===  In need of purging  ==="
+    echo "---  In need of purging  ---"
     echo "$purge_candidates"
-    echo
 else
     echo "---  No  purges needed  ---"
 fi

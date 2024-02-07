@@ -8,6 +8,8 @@
 #
 #  License: MIT
 #
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
 #  Environment variables defining how this AOK-FS should be setup
 #
 
@@ -23,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.0.4"
+AOK_VERSION="0.11.3"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -35,12 +37,6 @@ USER_NAME="ish"
 # root will also use this shell by default, to make switching used simpler
 #
 USER_SHELL="/bin/bash"
-
-#
-#  Alternatives are: enable disable once
-#  If USER_NAME is not set INITIAL_LOGIN_MODE will be forced to disable
-#
-INITIAL_LOGIN_MODE="enable"
 
 #
 #  If you want to hard-code timezone, the FS will be setup without
@@ -90,19 +86,6 @@ INITIAL_LOGIN_MODE="enable"
 #
 # FIRST_BOOT_ADDITIONAL_TASKS="/iCloud/deploy/additional-tasks"
 
-#
-#  If LOG_FILE is defined build progress printed is also logged to this
-#  file. This is mostly useful as a debugging tool, if during the deploy
-#  something goes wrong and iSH crashes. This way you can at least get
-#  an idea of how far things progressed before something broke.
-#  The path defines will be inside the new FS
-#
-#  OBSOLETE, no longer needed since deploy steps are wrapped inside
-#  an outes shell, and will no longer crash the deploy
-#  code related to this will be removed very soon!
-#
-# LOG_FILE=/var/log/aokfs-build.log
-
 ########################################################################
 #
 #                   Hostname handling
@@ -116,9 +99,10 @@ INITIAL_LOGIN_MODE="enable"
 #  Any other path would be asumed to be a sync file, written to by an iOS
 #  shortcut providing current hostname. The last line of this file will
 #  be copied to /etc/hostname when /usr/local/bin/hostname is run with -U
-#  If this is not defined alternate hostname will not be installed during
-#  deploy unless iOS >= 17.
-#  It can be installed later by running: aok -H enable
+#  If this is not defined, no hostname syncing will happen, and
+#  /etc/hostname will be used as a static hostname.
+#  During the final deploy step a hostname will be requested.
+#  It can be changed later by running: aok -H enable
 #
 # ALT_HOSTNAME_SOURCE_FILE="/iCloud/temp/hostname_by_shortcut.txt"
 
@@ -140,10 +124,12 @@ INITIAL_LOGIN_MODE="enable"
 #
 #  ALPINE_VERSION defines what Alpine release (minirootfs) will be used
 #
-# ALPINE_VERSION=3.15.10 # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.7  # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.5 # End of Alpine support 2024-11-22
-ALPINE_VERSION=3.18.4 # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.15.11 # End of Alpine support 2023-11-01
+# ALPINE_VERSION=3.16.9  # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.17.7 # End of Alpine support 2024-11-22
+ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
+# As of 2024-02-06 sudo insta crashes ish if using 3.19... test: sudo ls
+##ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
 #
 #  For edge releases - Current development tree
 #  Format is the isodate featured in the minirootfs filename
@@ -176,10 +162,10 @@ ALPINE_VERSION=3.18.4 # End of Alpine support 2025-05-09
 #
 pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep htop less \
-    git sqlite fzf py3-pip ncdu"
+    sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
-pkgs_net_tools="ssl_client openssh rsync curl wget elinks mosh"
+pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
@@ -195,10 +181,10 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 AOK_APKS="nload nload-doc"
 
 #
-#  Additional APK groups managed with /usr/local/bin/aok_groups
+#  Additional APK groups managed with /usr/local/bin/aok-groups
 #
 #  Any variable ending with _APKS in this file, will be seen as a package
-#  group by aok_groups and with that tool you can add/delete groups more
+#  group by aok-groups and with that tool you can add/delete groups more
 #  conveniently than having to open this file and then do cut/paste
 #  repeatedly.
 #
@@ -217,7 +203,7 @@ NODEJS_APKS='nodejs nodejs-dev'
 #  not development related man pages, those doing development are
 #  assumed to know what man pages they might need :)
 #
-DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
+DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
     shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
     tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
     sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
@@ -238,12 +224,12 @@ DOCS_APKS="mandoc busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/tlj1rqz2b4pxrkghiyt8b/Debian10-7-aok-1.tgz?rlkey=hculgm6kqqihfqwe1ey2anb8q"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/5hyyn6vs48t0uvyltreng/Debian10-10-aok-2.tgz?rlkey=t8oq9e1sa8xm1g3n0j4cghb86"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly
 #  matching the Alpine packages, here you can list packages that should
-#  be excluded. This happens during the pre-build when it isused,
+#  be excluded. This happens during the pre-build when it is used,
 #  it saves time compared to having to do it on the target device.
 #  DEB_PKGS_SKIP is processed before DEB_PKGS to ensure that
 #  this doesnt unintentionally deelete something for DEB_PKGS

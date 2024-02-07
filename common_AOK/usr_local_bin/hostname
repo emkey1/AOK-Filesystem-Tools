@@ -1,0 +1,205 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Custom hostname, solving that iOS >= 17 no longer provides hostname
+#  to Apps.
+#
+#  Two modes of operation
+#
+#  1)  Working around regular iSH inability to use /etc/hostname, simple
+#      setup like traditional Linux, set the hostname once for a Device
+#      and unless you touch it all is good.
+#      To select this mode give /etc/hostname as sourcefile.
+#      This will skip any syncing, just displaying what is in /etc/hostname
+#
+#  2)  Using a source file, fed by an iOS Shortcut tied to the iSH App starting,
+#      then writing curent hostname to last line of this source file.
+#      This will automatically propagate to all iOS devices using the
+#      same AppleId, so a bit of a task to setup, but once done it will
+#      spread to all your devices and update iSH to whatever is the
+#      hostname when the app starts
+#      To select this mode give any filename other than /etc/hostname
+#      as sourcefile. For this to work this must be the same iOS filename
+#      as you use in the iOS shortcut
+
+show_help() { # Multi OK 1
+    if ! test -d /proc/ish; then
+        echo
+        echo "WARNING: this is only meaningfull on iSH"
+        echo
+    fi
+    echo "Usage: hostname [-h] [-U] [ -S /full/path/to/sourcefile ]
+
+hostname version able to pick up hostname via syncfile.
+This automates hostname allocation if you run iSH on multiple devices,
+or run both iSH and iSH-AOK on the same device.
+
+If $f_hostname_aok_suffix is present,
+instances running the kernel iSH-AOK will be given the suffix -aok to
+their hostname, unless alrady present.
+
+To see an example of how to create the shortcut needed that feeds this
+check https://github.com/jaclu/AOK-Filesystem-Tools/Docs/hostname-shortcut.md
+
+Available options:
+
+-h  --help         Print this help and exit
+
+Custom options for this hostname implementation:
+
+-S  --sourcefile   Defines where to pickup hostname. Unless this is
+                   $f_etc_hostname,the last line of this file will be used
+                   when doing: -U / --update
+                   If it is $f_etc_hostname, hostname is asumed to be
+                   static. Current source file:
+                     $(get_sync_file_fn)
+
+-U  --update       If source file is not /etc/hosts - re-read sourcefile.
+                   Last line of this file will be copied to /etc/hosts
+                   and used as hostname.
+                   If kernel is iSH-AOK, and the file:
+                     $f_hostname_aok_suffix
+                   is present, -aok will be added as suffix to hostname,
+                   unless already in hostname.
+                   Finally the new hostname will be added to /etc/hosts
+                   if not already present.
+
+All other options are ignored, for compatibility with the default hostnme"
+    exit 0
+}
+
+error_msg() {
+    echo
+    echo "ERROR: $1"
+    echo
+
+    exit 1
+}
+
+#read_source_file_name() {
+get_sync_file_fn() {
+    if [ -z "$f_hostname_source_fname" ] || [ ! -f "$f_hostname_source_fname" ]; then
+        # f_src_file=""
+        echo ""
+    else
+        cat "$f_hostname_source_fname"
+    fi
+}
+
+fn_handle_aok_suffix() {
+    #
+    #  Not used ATM
+    #
+    hn_suffix="-aok"
+    hn_current="$(cat /etc/hostname)"
+
+    #  Only do this if this hint file exists
+    [ -f "$f_hostname_aok_suffix" ] || return
+    #  If hostname -s allready ends with $hn_suffix, nothing needs to be done
+    echo "$hn_current" | grep -q '\-aok' && {
+        return
+    }
+
+    echo "${hn_current}${hn_suffix}" | sudo tee /etc/hostname >/dev/null
+}
+
+read_syncfile() {
+    #
+    #  Copies last line of sync file to /etc/hosts
+    #
+
+    #
+    #  First find sync file
+    #
+    fn_sync_file="$(get_sync_file_fn)"
+    [ -z "$fn_sync_file" ] && error_msg "No sync file defined!"
+    [ -f "$fn_sync_file" ] || error_msg "sync file '$fn_sync_file' not found!"
+
+    #
+    #  Use last line of sync file as hostname
+    #
+    awk 'END {print $1}' "$fn_sync_file" | sudo tee /etc/hostname >/dev/null
+
+    #
+    #  Since only the last line is of interest, and the shortcut keeps
+    #  adding new ones, make sure fn_sync_file doesnt grow to much
+    #
+    if [ "$(wc -l <"$fn_sync_file" | awk '{ print $1 }')" -gt 15 ]; then
+        # Truncate the file to the last 10 lines
+        tail -n 10 "$fn_sync_file" >/tmp/sync_file
+
+        #
+        #  If sync file is on iCloud, iCloud is owned by a user
+        #  and this is run as root, there will be an error printed
+        #  since owner of dest cant be changed to root (!)
+        #  However the file is still copied, so it can be ignored
+        #
+        mv /tmp/sync_file "$fn_sync_file" 2>/dev/null
+    fi
+
+    fn_handle_aok_suffix
+
+    sudo /usr/local/sbin/ensure-hostname-in-host-file
+}
+
+sudo_check() {
+    sudo -n -v 2>&1 | grep -q Sorry && {
+        echo "You need sudo privs in order to change this setting!"
+        exit 1
+    }
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# shellcheck source=/opt/AOK/tools/utils.sh
+#. /opt/AOK/tools/utils.sh
+
+f_etc_hostname=/etc/hostname
+f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
+f_hostname_aok_suffix=/etc/opt/AOK/hostname-aok-suffix
+
+while [ -n "$1" ]; do
+
+    case "$1" in
+
+    "-h" | "--help") show_help ;;
+
+    "-S" | "--sourcefile")
+        sudo_check
+        sync_file="$2"
+        shift # This one uses two items, so do an extra shift
+        if [ -z "$sync_file" ]; then
+            error_msg "-S / --sourcefile needs a filename as additional param!"
+        elif [ ! -f "$sync_file" ]; then
+            error_msg "-S / --sourcefile file not found: $sync_file"
+        fi
+
+        [ "$sync_file" != "/etc/hostname" ] && [ "${sync_file#"/etc"}" != "$sync_file" ] && {
+            error_msg "syncfile can't start with /etc, unless /etc/hostname"
+        }
+        echo "$sync_file" | sudo tee "$f_hostname_source_fname" >/dev/null
+        read_syncfile
+        ;;
+
+    "-U" | "--update")
+        sudo_check
+        read_syncfile
+        exit 0
+        ;;
+
+    *) ;;
+
+    esac
+    shift
+done
+
+cat /etc/hostname

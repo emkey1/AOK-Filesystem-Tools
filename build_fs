@@ -39,7 +39,23 @@ Available options:
 -C  --full_clear   Do a clear, and in addition clear the download cache
 -j  --bzip2        Use bzip2 compression for distribution
 -N  --no_compress  Terminates when FS is prepared, without generating
-                   a FS tarball."
+                   a FS tarball.
+
+A newly created FS is located at: $d_build_root
+
+If there are remining deploy steps, they will be auto-performed
+when you chroot or first boot into it using iSH.
+
+If you want to access the FS without risking to move the deploy
+forward, then you can do it like this: ./tools/do_chroot.sh /bin/bash
+
+For normal chroot, just do:  ./tools/do_chroot.sh
+
+After potential FS modifications, you can create a tarball from the FS
+by running:  ./compress_image
+
+Then just import this into iSH!
+"
     exit 0
 }
 
@@ -244,7 +260,7 @@ cache_fs_image() {
         error_msg "Failed to cd to $d_src_img_cache"
     }
     if [ ! -f "$d_src_img_cache/$src_tarball" ]; then
-        cmd="wget $src_image"
+        cmd="wget --no-check-certificate $src_image"
         #  Ensure basename for tar ball is used
         case "$build_target" in
         "$distro_alpine" | "$destfs_select") cmd="$cmd -O $alpine_src_tb" ;;
@@ -277,7 +293,7 @@ copy_AOK_to_dest() {
     rsync -ah \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        "$d_aok_base" "$d_build_root"/opt
+        "$d_aok_base"/ "$d_build_root"/opt/AOK
 
     io_dst_conf="$aok_files"/AOK_VARS
     io_conf_overrides="$d_aok_base"/.AOK_VARS
@@ -314,6 +330,7 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
+    . "$d_aok_base"/Debian/deb_utils.sh
     intial_fs_prep_debian
 
     # buildtype_set "$distro_debian"
@@ -455,8 +472,7 @@ display_build_time() {
 #===============================================================
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-. /opt/AOK/tools/utils.sh
-. "$d_aok_base"/Debian/deb_utils.sh
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 t_start="$(date +%s)"
 
@@ -489,12 +505,14 @@ parse_arguments "$@"
 
 check_dependencies
 
+this_fs_is_chrooted && error_msg "You can't build an FS when already chrooted!"
+
 display_build_target
 
 msg_2 "Preparing build environment"
 
-[ -z "$d_build_root" ] && error_msg "build_root not assigned"
-[ -d "$d_build_root" ] || error_msg "build_root not a folder [$build_root]"
+[ -z "$d_build_root" ] && error_msg "d_build_root not assigned"
+[ -d "$d_build_root" ] || error_msg "d_build_root not a folder [$d_build_root]"
 
 msg_3 "Clearing build root $d_build_root"
 rm -rf "$d_build_root"
@@ -538,13 +556,15 @@ mkdir -p "$d_build_root"/iCloud
 
 if [ -n "$POPULATE_FS" ]; then
     #
-    #  So far unofficial hack, if you put D_BUILD_ROOT in POPULATE_FS
+    #  So far unofficial hack, if you put d_build_root in POPULATE_FS
     #  it will be replaced with actual build_root during creation of
     #  FS, most likely will never be used by anyone but me during chroot
     #  test deploys
     #
     pop_fs="$(echo "$POPULATE_FS" | sed "s#D_BUILD_ROOT#$d_build_root#g")"
-    msg_1 "POPULATE_FS: $pop_fs"
+    msg_2 "POPULATE_FS requested"
+    echo "$pop_fs"
+    echo
     /bin/sh -c "$pop_fs" || {
         error_msg "POPULATE_FS [$pop_fs] returned error"
     }
@@ -570,23 +590,9 @@ if [ "$build_env" != "$be_other" ]; then
     if [ "$build_target" = "$distro_alpine" ] || [ "$build_target" = "$distro_select" ]; then
         shell_not_triggering_profile="/bin/ash"
     else
+        #  shellcheck disable=SC2034
         shell_not_triggering_profile="/bin/sh"
     fi
-    msg_1 "How to access the just created FS from this env"
-    echo "The newly created FS is located at: $d_build_root"
-    echo
-    echo "If there are remining deploy steps, they will be auto-performed"
-    echo "when you chroot."
-    echo
-    echo "If you want to access the FS without risking to move the deploy"
-    echo "forward, then you can do it like this:"
-    echo
-    echo "  ./tools/do_chroot.sh $shell_not_triggering_profile"
-    echo
-    echo "For normal chroot, just do:  ./tools/do_chroot.sh"
-    echo
-    echo "After your modifications, you can create a tarball from the FS"
-    echo "by running:  ./compress_image"
     echo
     unset set_shell
 else

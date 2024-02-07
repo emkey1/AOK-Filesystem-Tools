@@ -1,0 +1,89 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Monitors battery charge and logs it every time
+#  a change is detected. This alos monitors
+#  uptime 1, and will print a warning if it seems too high
+#  This uses its own separate logfile
+#
+#  Can be run either as a daemon, or as a standalone
+#
+
+# For battery status (and uptime) data
+log_it() {
+    echo "$(date) $1" | tee -a "$log_file"
+}
+
+syslog_it() {
+    /usr/local/bin/logger "$this_is" "$1"
+}
+
+error_msg() {
+    echo "$1"
+    syslog_it "$1"
+    exit 1
+}
+
+gather_hostname() {
+    hname="$(hostname)"
+    if [ "$hname" = " localhost" ]; then
+        read -r hname </etc/hostname
+        if [ "$hname" = " localhost" ]; then
+            error_msg "ERROR: hostname still localhost, after reading /etc/hostname, aborting!"
+        fi
+    fi
+
+    if [ "$hname" = "" ]; then
+        error_msg "ERROR: hostname is empty, after reading /etc/hostname, aborting!"
+    fi
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+uptime_trigger=20
+sleep_time=30
+this_is="$(basename "$0")"
+
+# gather_hostname
+# log_file="/iCloud/temp/bat_stat-${hname}.log"
+log_file="/var/log/battery_state.log"
+
+#
+#  Try to grab last logged charge level, to prevent repeating the same
+#  status if this is restarted
+#
+if [ -f "$log_file" ]; then
+    charge_now="$(tail -n -1 "$log_file" | awk '{ print " "$10 }')"
+fi
+
+echo "Will log battery charge changes and if uptime 1 is above $uptime_trigger"
+echo "every $sleep_time seconds"
+echo "Will log to: $log_file"
+echo
+syslog_it "Starting, logging battery charge every $sleep_time seconds to: $log_file"
+
+while true; do
+    charge_old="$charge_now"
+    charge_now="$(battery-charge)"
+    uptime_1="$(uptime | awk -F'average:' '{print $2}' | awk -F, '{print $1}' | tr -d ' ')"
+    if [ "$charge_now" != "$charge_old" ]; then
+        #echo "old:[$charge_old]"
+        #echo "now:[$charge_now]"
+        log_it "uptime1: $uptime_1 charge: $charge_now"
+    else
+        load_lvl="$(echo "$uptime_1" | cut -d. -f 1)"
+        if [ "$load_lvl" -ge "$uptime_trigger" ]; then
+            log_it "HIGH uptime 1:  $uptime_1"
+        fi
+    fi
+    sleep "$sleep_time"
+done

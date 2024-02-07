@@ -1,0 +1,2 @@
+MOTD_FILE       /etc/motd
+USERGROUPS_ENAB yes

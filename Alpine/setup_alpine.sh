@@ -116,34 +116,24 @@ setup_cron_env() {
 
 tsa_start="$(date +%s)"
 
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
-
-. /opt/AOK/tools/utils.sh
-
-if [ -n "$LOG_FILE" ]; then
-    debug_sleep "Since log file is defined, will pause before starting" 2
-fi
-
-deploy_starting
-
-#
-#  Switches over into edge, so skip for now
-#
-#find_fastest_mirror
-
-msg_script_title "setup_alpine.sh - Setup Alpine"
-
-initiate_deploy Alpine "$ALPINE_VERSION"
+[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
 if [ -z "$ALPINE_VERSION" ]; then
     error_msg "ALPINE_VERSION param not supplied"
 fi
+
+deploy_starting
+msg_script_title "setup_alpine.sh - Setup Alpine"
+
+msg_1 "apk upgrade"
+apk upgrade || {
+    error_msg "apk upgrade failed"
+}
+echo
+
+initiate_deploy Alpine "$ALPINE_VERSION"
+
+prepare_env_etc
 
 if ! min_release "3.16"; then
     if [ -z "${CORE_APKS##*shadow-login*}" ]; then
@@ -152,13 +142,6 @@ if ! min_release "3.16"; then
         CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
     fi
 fi
-
-prepare_env_etc
-
-msg_1 "apk upgrade"
-apk upgrade || {
-    error_msg "apk upgrade failed"
-}
 
 install_apks
 
@@ -183,7 +166,7 @@ if [ ! -x "$(readlink -f /bin/login)" ]; then
 fi
 
 msg_2 "Preparing initial motd"
-/usr/local/sbin/update_motd
+/usr/local/sbin/update-motd
 
 setup_cron_env
 

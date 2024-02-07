@@ -2,37 +2,17 @@
 
 I will try to keep track of changes between releases here
 
-## next release
+## 0.11.3
 
-- New tool in /usr/local/bin/network_check.sh - repors if world and DNS responds
-- Added support for pigz (if installed) when packing and unpacking File images
-- gave more aparantly used files obs- prefix, and I don't see any errors. Will delete them eventually
-- stopped using custom logins,since now it is controlled via aok -c and no patched logins are needed
-- removed duplicated extract image time elapsed for select distro
-- new feature dynamic_login handles console login
-- shutdown reworked
-
-### 0.11.0.4
-
-- Reworked f_hostname_alt and related tools
-- For Alpine the installed uptime is tested, if it fails - usually a seg fault. It is replaced with a symbolic link to busybox
-- Started work on detecting ios and dev type by guessing
-- upgrade also handles alt hostname files
-- Displays time to unpack File system image
-
-### 0.11.0.3
-
-- corrected motd for Alpine to be in sync with Debians
-- Split up Debian and Devuan config in AOK_VARS
-- added common display_instlled_versions()
-
-### 0.11.0.2
-
-- Display insalled versions at end of deploy
-
-### 0.11.0.1
-
-- dispplay FS version $AOK_VERSION at end of deploy
+- New Launcher cmd 'aok_launcher'. This waits for runlevel default before progressing Allowing for things like clearing /run and updating motd during sysinit before initiating the first session. Will only wait for bootup on the 1st vterm.
+- tool to configure most aspects of the AOK FS '/usr/local/bin/aok'
+- Removed custom logins, since all is now handled by aok_launcher, and configured via '/usr/local/bin/aok'
+- Updated skels (shell init files), added sysload and batt_lvl to bash & zsh
+- Deploy has been rewrittten
+- New feature: logger
+- New tool in /usr/local/bin/network-check.sh - repors if world and DNS responds
+- /opt/AOK/tools/upgrade_aok_fs.sh - upgades AOK-FS tools, with param configs will also update config files
+- as of 2024-02-06 sudo insta-crashes ish/ish-aok on 3.19 test: sudo ls
 
 ## release 0.11.0
 
@@ -56,16 +36,9 @@ Now has two modes:
 - ash & bash different prompts - helps you see what the current shell is
 - setup_final_tasks.sh now defines a full PATH including /usr/local/bin
 - Alpine/etc/profile - added the sbins to common PATH, which makes sense since in most cases, this is run by root
-
-## next release
-
 - added common display_instlled_versions function
 
-### 0.11.0.1
-
-- Display FS vers $AOK_VERSION at end of deploy
-
-## release 0.11.0
+## release 0.11.0 - details
 
 - alternate hostname handling for iOS >= 17 rewritten. Will be automatically enabled during deployment if iOS >= 17, can be manually enabled/disabled by running `/usr/local/bin/aok -H`
 Now has two modes:

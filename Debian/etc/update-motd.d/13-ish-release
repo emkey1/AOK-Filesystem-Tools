@@ -14,3 +14,4 @@ if [ -d /proc/ish ]; then
 else
     echo "[35miSH release:     Can't be detected whilst chrooted[0m"
 fi
+echo

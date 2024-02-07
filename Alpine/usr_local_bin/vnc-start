@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+# Start vnc-server if not running
+#
+
+TMPDIR="${TMPDIR:-/tmp}"
+
+# Do minimal sanity check to see if vnc/X11 are installed
+if [ ! -f /etc/X11/xorg.conf.d/10-headless.conf ]; then
+    echo "You must run 'enable-vnc' first"
+    exit 1
+fi
+
+# Only run once.  The grep causes CHECK to equal 1
+# pgrep fails when running Debian on iSH-AOK, so usnig grep for now...
+# shellcheck disable=SC2009
+if ! ps ax | grep -v grep | grep -q startx; then # Nothing running, clear stale locks
+    rm -rf "$TMPDIR/.X*"
+else
+    echo "startx is already running.  We're done here."
+    exit 1
+fi
+
+startx &
+#x11vnc -display :0 -noshm -forever -geometry 1600x1668 &
+x11vnc -display :0 -noshm -ncache 10 -forever &
