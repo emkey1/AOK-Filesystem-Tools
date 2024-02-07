@@ -2,75 +2,17 @@
 
 I will try to keep track of changes between releases here
 
-## next release
+## 0.11.3
 
-- updated skels, added sysload and batt_lvl to bash & zsh
+- New Launcher cmd 'aok_launcher'. This waits for runlevel default before progressing Allowing for things like clearing /run and updating motd during sysinit before initiating the first session. Will only wait for bootup on the 1st vterm.
+- tool to configure most aspects of the AOK FS '/usr/local/bin/aok'
+- Removed custom logins, since all is now handled by aok_launcher, and configured via '/usr/local/bin/aok'
+- Updated skels (shell init files), added sysload and batt_lvl to bash & zsh
+- Deploy has been rewrittten
+- New feature: logger
+- New tool in /usr/local/bin/network-check.sh - repors if world and DNS responds
+- /opt/AOK/tools/upgrade_aok_fs.sh - upgades AOK-FS tools, with param configs will also update config files
 - as of 2024-02-06 sudo insta-crashes ish/ish-aok on 3.19 test: sudo ls
-- aok rebuilt and tested
-- tools/do_chroot.sh - improved env checks
-- tools/shellchecker.sh - reimplemented
-- tools/upgrade_aok_fs.sh - reworked to also update configs
-- AOK_VARS -Removed feature LOG_FILE
-- build_fs additional Debian steps
-- vers_check.sh corrected header explaining what it does, removed debug prints
-- compress_image added support for pigz (tgz using all cores)
-
-- Added /etc/environment
-- Added /etc/login.defs
-- shell env updated - displays load lvl and battery
-- New features: logger
-- AOK: added bat-monitord
-- removed auto run of fix_dev
-- renamed bins with underscore to dash names
-- aok handles launch cmd
-- removed /usr/local/bin/toggle_multicore, this task is now done by aok
-
-- removed /usr/local/bin/elock, this task is now done by aok
-- Ensure hostname without suffix is in /etc/hosts
-- fake_syslog -> logger
-- only do bootup on 1st vterm
-- If /etc/opt/AOK/pts_0_as_console is present pts/0 will be used as console and no session will be started on that vterm
-- single-user mode renamed to recovery mode, triggers are r/R
-- reintroduced -aok suffix
-- single user mode if s/S is pressed during startup
-- pgrep fails on iSH-AOK Debian, so reverted to grep fo now
-- if multiple vterms are open, just close the one exiting, otherwise shutdown
-- added battery monitor service
-- updated inittabs
-- moving all unused services to /etc/init.d/NOT
-- new service bat-monitord
-- Debian: halt and shutdown now works
-- initial init handling by aok_launcher
-- dynamic_login renamed to aok_launcher, added supporing stuff in tools/utils.sh
-- New tool in /usr/local/bin/network_check.sh - repors if world and DNS responds
-- Added support for pigz (if installed) when packing and unpacking File images
-- gave more aparantly used files obs- prefix, and I don't see any errors. Will delete them eventually
-- stopped using custom logins,since now it is controlled via aok -c and no patched logins are needed
-- removed duplicated extract image time elapsed for select distro
-- new feature dynamic_login handles console login
-- shutdown reworked
-
-### 0.11.0.4
-
-- Reworked f_hostname_alt and related tools
-- For Alpine the installed uptime is tested, if it fails - usually a seg fault. It is replaced with a symbolic link to busybox
-- Started work on detecting ios and dev type by guessing
-- upgrade also handles alt hostname files
-- Displays time to unpack File system image
-
-### 0.11.0.3
-
-- corrected motd for Alpine to be in sync with Debians
-- Split up Debian and Devuan config in AOK_VARS
-- added common display_instlled_versions()
-
-### 0.11.0.2
-
-- Display insalled versions at end of deploy
-
-### 0.11.0.1
-
-- dispplay FS version $AOK_VERSION at end of deploy
 
 ## release 0.11.0
 

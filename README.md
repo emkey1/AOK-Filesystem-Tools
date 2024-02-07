@@ -1,6 +1,6 @@
 # AOK-Filesystems-Tools
 
-The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI. Initially focused on the iSH-AOK fork, but this also works fine on the mainline iSH, with the exception that Debian/Devuan can't be used.
+The aim of this is to create a consistent iSH environment that provides a mostly normal Linux experience, minus the obvious lack of a GUI. Initially focused on the iSH-AOK fork, but this also works fine on the mainline iSH, with the exception that Debian/Devuan can't be used, and features not supported by the regular iSH shell, such as displaying battery charge won't be available.
 
 You can choose between the distributions Alpine or Debian. For shells it comes with a basic setup for Bash, Zsh and Ash, using a common init file shared between the different shells, for settings not bound to a specific shell, such as PATH aliases and so on.
 
@@ -48,30 +48,29 @@ Fully usable. Be aware that this is Debian 10, since that was the last version o
 
 #### Performance issues running Debian
 
-Any time you add/delete a package containing man pages it will cause a man-db trigger to reindex all man pages. On a normal system, this is so close to instantaneous that it is a non-issue. However, when running Debian on iSH-AOK this reindexing takes a long time...
+Any time you add/delete a package containing man pages it will cause a man-db trigger to reindex all man pages. On a normal system, this is so close to instantaneous that it is a non-issue. However, when running Debian on iSH this reindexing takes a long time...
 
-By default, the iSH-AOK Debian base images include the man tools, since it is normally expected to be present on a Debian. If you can live without them, getting rid of them will vastly improve responsiveness when adding/removing packages.
-
-You can achieve this by adding the following to your config
+For this reason, by default the iSH-AOK Debian base images does not include the man tools.
+Since it is normally expected to be present on a Debian, if you wan't to enable man you can achieve this by adding the following to your config
 
 ```sh
-DEB_PKGS_SKIP="man-db"
+DEB_PKGS="man-db"
 ```
 
-This will disable the man system in the new File Systems you create.
+This will install the man system in the new File Systems you create.
 
-If you can use prebuild when you generate your FS, DEB_PKGS_SKIP will be processed on the build host, completing the task in seconds, instead of minutes on the destination platform.
+If you can use prebuild when you generate your FS, DEB_PKGS will be processed on the build host, completing the task in seconds, instead of minutes on the destination platform.
 
 In an already deployed Debian 10, instead do:
 
 ```sh
-apt remove man-db
+apt install man-db
 ```
 
-You can always reactivate man pages by installing it again
+If the delays of the man-db trigger becomes an issue, just disable man by doing
 
 ```sh
-apt install man-db
+apt remove man-db
 ```
 
 ### Devuan File System

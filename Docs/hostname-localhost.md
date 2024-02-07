@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Starting with iOS 17 Apple no longer supports the API that iSH uses
+Starting with iOS 17 Apple no longer supports the API that iSH used
 to retrieve hostname from iOS. Until that is resolved this is a
 workaround to handle this.
 
