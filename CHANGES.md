@@ -5,14 +5,15 @@ I will try to keep track of changes between releases here
 ## 0.11.3
 
 - New Launcher cmd 'aok_launcher'. This waits for runlevel default before progressing Allowing for things like clearing /run and updating motd during sysinit before initiating the first session. Will only wait for bootup on the 1st vterm.
-- tool to configure most aspects of the AOK FS '/usr/local/bin/aok'
-- Removed custom logins, since all is now handled by aok_launcher, and configured via '/usr/local/bin/aok'
-- Updated skels (shell init files), added sysload and batt_lvl to bash & zsh
-- Deploy has been rewrittten
+- a tool to configure most aspects of the AOK FS '/usr/local/bin/aok'
+- Removed custom logins, since all are now handled by aok_launcher, and configured via '/usr/local/bin/aok'
+- Updated skels (shell init files), added sys load and batt_lvl to bash & zsh
+- Deploy has been rewritten
+- Added usage of pigz for multithreaded tar/untar - greatly reducing deploy times!
 - New feature: logger
-- New tool in /usr/local/bin/network-check.sh - repors if world and DNS responds
-- /opt/AOK/tools/upgrade_aok_fs.sh - upgades AOK-FS tools, with param configs will also update config files
-- as of 2024-02-06 sudo insta-crashes ish/ish-aok on 3.19 test: sudo ls
+- New tool in /usr/local/bin/network-check.sh - reports if world and DNS responds
+- /opt/AOK/tools/upgrade_aok_fs.sh - upgrades AOK-FS tools, with param configs, it will also update config files
+- as of 2024-02-06 sudo insta-crashes ish/ish-aok on Alpine 3.19 test: sudo ls
 
 ## release 0.11.0
 
