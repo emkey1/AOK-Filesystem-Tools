@@ -397,11 +397,11 @@ while true; do
         echo
         echo "Will spawn a new login session. If this is not requested, run aok"
         echo
-        sleep 3
+        sleep 1
     else
         echo
         print_log "To enable continous vterm sessions, run aok"
-        sleep 3
+        sleep 1
         exit 0
     fi
 done
