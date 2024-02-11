@@ -23,7 +23,7 @@ d_here="$(dirname "$0")"
 #  is needed to repopulate the cache for the packet manager
 #
 echo
-echo "=== Do update in cashe caches are gone"
+echo "=== Do update in case caches are gone"
 echo
 apt update
 

@@ -2,6 +2,11 @@
 
 I will try to keep track of changes between releases here
 
+## 0.11.4
+- Changes sleep after vterm session 3s -> 1s
+- Debian src img with sudo update
+- Some fixes for select_distro 
+
 ## 0.11.3
 
 - New Launcher cmd 'aok_launcher'. This waits for runlevel default before progressing Allowing for things like clearing /run and updating motd during sysinit before initiating the first session. Will only wait for bootup on the 1st vterm. Before mounting a non AOK-FS, run `aok -l default` to ensure that a normal FS will boot properly.

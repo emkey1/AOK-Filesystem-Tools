@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.3"
+AOK_VERSION="0.11.4"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -33,8 +33,9 @@ AOK_VERSION="0.11.3"
 USER_NAME="ish"
 
 #
-# Shell for account USER_NAME (if defined) if  USER_NAME is defined
-# root will also use this shell by default, to make switching used simpler
+#  Shell for account USER_NAME (if defined).
+#  If USER_NAME is defined root will also use this shell by default,
+#  to make sudo / switching user more convenient
 #
 USER_SHELL="/bin/bash"
 
@@ -224,7 +225,7 @@ DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/5hyyn6vs48t0uvyltreng/Debian10-10-aok-2.tgz?rlkey=t8oq9e1sa8xm1g3n0j4cghb86"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/v2p92ippndnobexorkuy7/Debian10-11-aok-1.tgz?rlkey=paawg12m6aorx8obz13i4k8wx"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly

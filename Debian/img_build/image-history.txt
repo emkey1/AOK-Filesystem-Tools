@@ -1,4 +1,11 @@
---- Debian10-10-aok-1  2023-01-15
+--- Debian10-11-aok-1  2023-02-11
+Same as Debian10-10-aok-2
+
+--- Debian10-minim-11  2023-02-11
+apt upgrade
+  sudo
+
+--- Debian10-10-aok-2  2023-01-15
 Installed
   binutils binutils-i686-linux-gnu build-essential bzip2 ca-certificates
   cpp cpp-8 curl dbus dh-python dirmngr dpkg-dev elinks elinks-data

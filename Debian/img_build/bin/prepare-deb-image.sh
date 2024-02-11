@@ -18,8 +18,8 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
 d_base=/mnt/HC_Volume_36916115/aok_tmp
 
-d_ish_FS="$d_base"/Debian10-10-aok-1
-f_deb_img=/home/jaclu/cloud/Dropbox/aok_images/Debian10-10-aok-1.tgz
+d_ish_FS="$d_base"/Debian10-minim-10
+f_deb_img=/home/jaclu/cloud/Dropbox/aok_images/Debian10-minim-10.tgz
 
 cd "$d_base" || {
     error_msg "Failed cd $d_base"
