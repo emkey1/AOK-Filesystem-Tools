@@ -2,6 +2,10 @@
 
 I will try to keep track of changes between releases here
 
+## Next release
+
+- Ensures aok_imgs folder is created before generating compressed image
+
 ## 0.11.5
 
 - Added pigz to Debian src image and Alpine packages
