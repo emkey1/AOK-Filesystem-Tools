@@ -2,7 +2,13 @@
 
 I will try to keep track of changes between releases here
 
+## 0.11.5
+
+- Added pigz to Debian src image and Alpine packages
+- Debian src img with pigz
+
 ## 0.11.4
+
 - Changes sleep after vterm session 3s -> 1s
 - Debian src img with sudo update
 - Some fixes for select_distro 

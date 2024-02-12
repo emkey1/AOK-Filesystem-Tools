@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.11.4"
+AOK_VERSION="0.11.5"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -162,8 +162,8 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 #  Always installed packages
 #
 pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
-    shadow-login tzdata findutils sed tar file gawk grep htop less \
-    sqlite fzf py3-pip ncdu pigz"
+    shadow-login tzdata findutils sed tar pigz file gawk grep htop less \
+    sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
@@ -225,7 +225,7 @@ DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/v2p92ippndnobexorkuy7/Debian10-11-aok-1.tgz?rlkey=paawg12m6aorx8obz13i4k8wx"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/svcru9u50zz5ga5ik0szj/Debian10-11-aok-2.tgz?rlkey=j08gxjc4i4jtahab1ce9phana"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly

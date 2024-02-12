@@ -43,7 +43,7 @@ echo
 #  if man is indeed wanted, do: apt install man-db
 #
 pkgs_tools="psmisc
-coreutils procps util-linux sudo tzdata findutils sed tar
+coreutils procps util-linux sudo tzdata findutils sed tar pigz
 file gawk grep htop less sqlite fzf python3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc cron"
