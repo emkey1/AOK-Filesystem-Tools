@@ -107,6 +107,7 @@ else
 fi
 
 # set location
+mkdir -p "$TMPDIR/aok_imgs"
 tarball="$TMPDIR/aok_imgs/$tarball_fn"
 
 # echo "removing temp /dev items"
