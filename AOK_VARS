@@ -163,7 +163,7 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 #
 pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
     shadow-login tzdata findutils sed tar file gawk grep htop less \
-    sqlite fzf py3-pip ncdu"
+    sqlite fzf py3-pip ncdu pigz"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
