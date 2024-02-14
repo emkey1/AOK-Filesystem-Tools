@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## Next release
 
+- Expanded post deploy message in aok_launcher
 - Ensures aok_imgs folder is created before generating compressed image
 - Added untar_file() to make sure pigz is always used for untaring (if available)
 
