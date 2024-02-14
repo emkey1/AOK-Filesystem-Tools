@@ -176,7 +176,7 @@ replace_home_dirs() {
             msg_2 "Replacing /home/$USER_NAME"
             cd "/home" || error_msg "Failed cd /home"
             rm -rf "$USER_NAME"
-            tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
+            untar_file "$HOME_DIR_USER"
         else
             error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
         fi
@@ -187,7 +187,7 @@ replace_home_dirs() {
             msg_2 "Replacing /root"
             mv /root /root.ORIG
             cd / || error_msg "Failed to cd into: /"
-            tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
+            untar_file "$HOME_DIR_ROOT"
         else
             error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
         fi

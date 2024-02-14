@@ -129,6 +129,33 @@ display_time_elapsed() {
     unset _dte_seconds
 }
 
+untar_file() {
+    _tarball="$1"
+    _tar_params="${2:-z}"
+    [ -z "$_tarball" ] && error_msg "untar_file() - no param"
+    msg_3 "Unpacking $_tarball into: $(pwd)"
+
+    if [ -n "$cmd_pigz" ]; then
+        # pigz -dc your_archive.tgz | tar -xf -
+        msg_4 "Using $cmd_pigz"
+        # pigz doesnt need z or j params
+        _tar_params="$(echo "$_tar_params" | sed 's/z//' | sed 's/j//')"
+
+        $cmd_pigz -dc "$_tarball" | tar -xf"$_tar_params" - || {
+            error_msg "Failed to untar $_tarball"
+        }
+    else
+        msg_4 "No pigz"
+        tar "xf${_tar_params}" "$_tarball" || {
+            error_msg "Failed to untar $_tarball"
+        }
+    fi
+
+    unset _tarball
+    unset _tar_params
+    msg_4 "Unpacking - done"
+}
+
 create_fs() {
     #
     #  Extract a $1 tarball at $2 location - verbose flag $3
@@ -158,7 +185,6 @@ create_fs() {
         ;;
     esac
     msg_3 "  $_cf_time_estimate"
-    msg_3 "$_cf_tarball"
     unset _cf_time_estimate
 
     if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
@@ -169,20 +195,7 @@ create_fs() {
     fi
 
     t_img_extract_start="$(date +%s)"
-    if [ -n "$cmd_pigz" ]; then
-        # pigz -dc your_archive.tgz | tar -xf -
-        msg_4 "Using $cmd_pigz"
-        $cmd_pigz -dc "$_cf_tarball" | tar -xf -
-    else
-        msg_4 "No pigz"
-        tar "xf${_cf_verbose}${_cf_filter}" "$_cf_tarball" || {
-            echo "ERROR: Failed to untar image"
-            echo
-            echo "Try to remove the cached file and run this again"
-            echo "$d_src_img_cache/$src_tarball"
-            exit 1
-        }
-    fi
+    untar_file "$_cf_tarball" "${_cf_verbose}${_cf_filter}"
 
     t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
     display_time_elapsed "$t_img_extract_duration" "Extract image"

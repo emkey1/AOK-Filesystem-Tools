@@ -40,10 +40,7 @@ cd "$d_ish_FS" || {
     error_msg "Failed cd $d_ish_FS"
 }
 
-msg_3 "extracting $f_deb_img"
-tar xfz "$f_deb_img" || {
-    error_msg "Failed extract $f_deb_img"
-}
+untar_file "$f_deb_img"
 
 msg_3 "rsyncing img_build -> $d_ish_FS/root"
 rsync -ahP --delete /opt/AOK/Debian/img_build "$d_ish_FS"/root || {

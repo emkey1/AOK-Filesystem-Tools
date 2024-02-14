@@ -5,6 +5,7 @@ I will try to keep track of changes between releases here
 ## Next release
 
 - Ensures aok_imgs folder is created before generating compressed image
+- Added untar_file() to make sure pigz is always used for untaring (if available)
 
 ## 0.11.5
 
@@ -15,7 +16,7 @@ I will try to keep track of changes between releases here
 
 - Changes sleep after vterm session 3s -> 1s
 - Debian src img with sudo update
-- Some fixes for select_distro 
+- Some fixes for select_distro
 
 ## 0.11.3
 
