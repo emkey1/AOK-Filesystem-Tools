@@ -233,7 +233,7 @@ deploy_aok() {
     echo "*   Returned from deploy, resuming this Launch cmd   *"
     echo "*                                                    *"
     echo "*   A reboot is recomended,                          *"
-    echo "*   to ensure all servicesare running.               *"
+    echo "*   to ensure all services are running.              *"
     echo "*                                                    *"
     echo "******************************************************"
     echo
