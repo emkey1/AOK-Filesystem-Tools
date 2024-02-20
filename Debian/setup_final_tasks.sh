@@ -24,7 +24,6 @@
 if this_is_ish && ! this_is_aok_kernel ; then
     msg_2 "Replacing uptime on regular iSH kernel"
     mv /usr/bin/uptime /usr/bin/org-uptime
-    error_msg "><> abort"
     rsync_chown /opt/AOK/Debian/ish_replacement_bins/uptime /usr/bin
 else
     msg_2 "Debian uptime works on this env"
