@@ -14,6 +14,19 @@
 #  when possible. Warnings will be printed if obsolete files are found.
 #
 
+show_help() {
+    echo "Usage: $prog_name [-h] [-c]
+
+This upgrades the iSH-AOK filesystem.
+
+Available options:
+
+-h  --help     Print this help and exit
+-c  --configs  Updates config files
+"
+    exit 0
+}
+
 restore_to_aok_state() {
     src="$1"
     dst="$2"        
@@ -28,7 +41,7 @@ restore_to_aok_state() {
     }
 }
 
-do_restore_configs() {
+restore_configs() {
     #
     #  This covers config style files, that might overwrite user configs
     #
@@ -74,8 +87,6 @@ general_upgrade() {
     #  Always copy common stuff
     #
     msg_2 "Common stuff"
-    msg_3 "/etc/init.d/runbg"
-    rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d
     msg_3 "/usr/local/bin"
     rsync_chown /opt/AOK/common_AOK/usr_local_bin/ /usr/local/bin
     msg_3 "/usr/local/sbin"
@@ -227,35 +238,26 @@ update_aok_release() {
         error_msg "Failed to read old release, leaving it as is" noexit
     fi
 
+    #
+    #  Special handling of my custom release names
+    #
     splitter="-JL-"
-
-    # Use awk to split the string based on '-JL-'
-    #aok_release=$(echo "$old_release" | awk -v splitter="$splitter" -F "$splitter" '{print $1}')
     sub_release=$(echo "$old_release" | awk -v splitter="$splitter" -F "$splitter" '{print $2}')
-    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/\"//g')"
-    #
-    #  If there is no sub release, set it to an empty string, otherwise
-    #  re-add splitter
-    #
-    [ -z "$sub_release" ] && sub_release='' || sub_release="$splitter$sub_release"
-
-    if true; then
-        new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/\"//g')$sub_release"
-    fi
+    [ -n "$sub_release" ] && sub_release="$splitter$sub_release"
+    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/\"//g')$sub_release"
 
     echo "$new_rel" >"$f_aok_release".new
 
-    if diff -q "$f_aok_release" "$f_aok_release".new; then
-        echo "><> versions differ"
+    # diff returns false if file differ...
+    if ! diff -q "$f_aok_release" "$f_aok_release".new >/dev/null; then
         #  Update the release file
-        cp "$f_aok_release" "$f_aok_release".old
-        mv "$f_aok_release".new "$f_aok_release"
+        cp "$f_aok_release" "$f_aok_release".old || error_msg "Failed to rename current aok_release"
+        mv "$f_aok_release".new "$f_aok_release" || error_msg "Failed to rename new aok_release"
         msg_1 "Updated $f_aok_release to: $new_rel"
         if hostfs_is_alpine; then
             /usr/local/sbin/update-motd
         fi
     else
-        echo "><> versions same"
         rm "$f_aok_release".new
     fi
 }
@@ -269,6 +271,22 @@ update_aok_release() {
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
+# shellcheck disable=SC1007
+prog_name=$(basename "$0")
+
+while [ -n "$1" ]; do
+    case "$1" in
+	-h | --help )    show_help ;;
+	-c | --configs ) update_configs=1 ;;
+	*) echo
+	   echo "ERROR: Bad param '$1'"
+	   echo
+	   show_help
+	   ;;
+    esac
+    shift
+done
+
 ensure_ish_or_chrooted
 
 if hostfs_is_alpine; then
@@ -281,11 +299,9 @@ fi
 
 d_new_etc_opt_prefix="/etc/opt/AOK"
 
-#this_is_ish || error_msg "This should only be run on an iSH platform!"
-
-if [ "$1" = "configs" ]; then
+if [ "$update_configs" -eq 1 ]; then
     echo
-    do_restore_configs
+    restore_configs
 fi
 
 general_upgrade
