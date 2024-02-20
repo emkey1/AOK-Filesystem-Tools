@@ -244,10 +244,9 @@ update_aok_release() {
     splitter="-JL-"
     sub_release=$(echo "$old_release" | awk -v splitter="$splitter" -F "$splitter" '{print $2}')
     [ -n "$sub_release" ] && sub_release="$splitter$sub_release"
-    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | cut -d= -f 2 | sed 's/\"//g')$sub_release"
+    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | head -n 1 | cut -d= -f 2 | sed 's/\"//g')$sub_release"
 
     echo "$new_rel" >"$f_aok_release".new
-
     # diff returns false if file differ...
     if ! diff -q "$f_aok_release" "$f_aok_release".new >/dev/null; then
         #  Update the release file

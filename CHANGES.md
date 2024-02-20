@@ -2,6 +2,10 @@
 
 I will try to keep track of changes between releases here
 
+## next release
+
+- tools/upgrade-aok-fs.sh - improved aok vers handling
+
 ## 0.14.1
 
 - tools/upgrade-aok-fs.sh - changeed param handling
