@@ -1,5 +1,15 @@
 # TODO
 
+## kernel glitches
+
+### /proc/loadavg
+
+causes uptime, htop, top to fail
+
+env & last checked
+
+ish-Debian missing 24-02-19
+
 ## remote aok -e off crashes ssh session
 
 Not sure what happens, seems to create at least 3

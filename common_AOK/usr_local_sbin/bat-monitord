@@ -7,7 +7,7 @@
 #  License: MIT
 #
 #  Monitors battery charge and logs it every time
-#  a change is detected. This alos monitors
+#  a change is detected. This also monitors
 #  uptime 1, and will print a warning if it seems too high
 #  This uses its own separate logfile
 #

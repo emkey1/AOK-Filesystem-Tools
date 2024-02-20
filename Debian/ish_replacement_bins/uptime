@@ -1,0 +1,139 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  In Debian on regular iSH, there is no /proc/loadavg
+#  This causes uptime to fail.
+#  This is a workaround, calculating uptime via /proc/uptime
+#  and faking sysload, always reporting 0.00
+#
+#  Be aware that the lack of /proc/loadavg also causes other tools
+#  depending on it, such as top & htop to fail.
+#
+
+wrong_env_warning() {
+    if [ ! -d /proc/ish ] || grep -qi aok /proc/ish/version 2>/dev/null || [ ! -f /etc/debian_version ]; then
+	echo "
+WARNING: this is a replacement uptime for Debian not running on iSH-AOK!
+"
+    fi
+}
+
+show_help() {
+    echo "
+Usage:
+ uptime [options]
+
+Options:
+ -p, --pretty   show uptime in pretty format
+ -h, --help     display this help and exit
+ -s, --since    system up since
+ -V, --version  output version information and exit
+
+For more details see uptime(1)."
+    exit 0
+}
+
+calculate_uptime() {
+    # Read the uptime from /proc/uptime
+    uptime_raw="$(cut -d' ' -f1 < /proc/uptime)"
+
+    if test -d /proc/ish && grep -qiv aok /proc/ish/version 2>/dev/null ; then
+	raw_s_hundreds="$(echo "$uptime_raw" | cut -d. -f1)"
+	raw_s="$(echo "$uptime_raw" | cut -d. -f2)"
+	uptime_seconds="$(echo "$raw_s_hundreds * 100 + $raw_s" | bc)"
+    else
+	uptime_seconds="$uptime_raw"
+    fi
+
+    # Calculate days, hours, minutes, and seconds
+    ut_weeks=$(echo "$uptime_seconds / 86400 / 7" | bc)
+    ut_days=$(echo "$uptime_seconds / 86400" | bc)
+    ut_hours=$(echo "($uptime_seconds % 86400) / 3600" | bc)
+    ut_minutes=$(echo "($uptime_seconds % 3600) / 60" | bc)
+    # ut_seconds=$(echo "$uptime_seconds % 60" | bc)
+
+    unset uptime_raw
+    unset raw_s_hundreds
+    unset raw_s
+}
+
+show_pretty() {
+    output="$ut_minutes minutes"
+    [ "$ut_hours" -gt 0 ] && output="$ut_hours hours, $output"
+    [ "$ut_days" -gt 0 ] && output="$ut_days days, $output"
+    [ "$ut_weeks" -gt 0 ] && output="$ut_weeks weeks, $output"
+
+    echo "up $output"
+}
+
+show_since() {
+    date -d "$uptime_seconds seconds ago" "+%Y-%m-%d %H:%M:%S"
+}
+
+show_version() {
+    _f=/etc/aok-fs-release
+    if [ -f "$_f" ]; then
+	_vers="$(cat "$_f")"
+    else
+	_vers="unknown AOK-FS version"
+    fi
+    echo "uptime from AOK-FS $_vers"
+}
+
+default_view() {
+    # Print the uptime in the format used by uptime command
+
+    # < 1h
+    # 17:42:51 up 27 min,  1 user,
+
+    if [ "$ut_minutes" -lt 10 ]; then
+	_minutes=$(printf "0%d" "$ut_minutes")
+    else
+	_minutes=$(printf "%d" "$ut_minutes")
+    fi
+
+    if [ "$ut_hours" -lt 10 ]; then
+	_hours=$(printf " %d" "$ut_hours")
+    else
+	_hours=$(printf "%d" "$ut_hours")
+    fi
+
+    output="$ut_minutes min"
+    [ "$ut_hours" -gt 0 ] && output="$_hours:$_minutes"
+    [ "$ut_days" -gt 0 ] && output="$ut_days days, $output"
+    [ "$ut_weeks" -gt 0 ] && output="$ut_weeks weeks, $output"
+
+    user_count="$(ls /dev/pts | wc -l)"
+    user_field="$user_count user"
+    [ "$user_count" -gt 1 ] && user_field="${user_field}s"
+
+    echo " $(date +%H:%M:%S) up $output,  $user_field,  load average: 0.00, 0.00, 0.00"
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# wrong_env_warning
+
+calculate_uptime
+
+if [ -n "$1" ]; then
+    case "$1" in
+	-h | --help)    show_help ;;
+	-p | --pretty)  show_pretty ;;
+	-s | --since)   show_since ;;
+	-V | --version) show_version ;;
+	*) echo "uptime: invalid option -- '$1'"
+	   show_help ;;
+    esac
+else
+    default_view
+fi

@@ -74,6 +74,8 @@ general_upgrade() {
     #  Always copy common stuff
     #
     msg_2 "Common stuff"
+    msg_3 "/etc/init.d/runbg"
+    rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d
     msg_3 "/usr/local/bin"
     rsync_chown /opt/AOK/common_AOK/usr_local_bin/ /usr/local/bin
     msg_3 "/usr/local/sbin"
@@ -85,8 +87,6 @@ general_upgrade() {
     # [ -f /usr/local/sbin/hostname_sync.sh ] && rsync_chown /opt/AOK/common_AOK/hostname_handling/hostname_sync.sh /usr/local/sbin
     echo
 
-    msg_3 "runbg"
-    rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d
     #
     #  Copy distro specific stuff
     #
@@ -102,6 +102,16 @@ general_upgrade() {
         rsync_chown /opt/AOK/Debian/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
         rsync_chown /opt/AOK/Debian/usr_local_sbin/ /usr/local/sbin
+	this_is_aok_kernel || {
+	    _f="/usr/bin/uptime"
+            msg_3 "$_f"
+	    file "$_f" | grep -q ELF && {
+		msg_4 "Saving ELF $_f -> /usr/bin/org-uptime"
+		mv "$_f" /usr/bin/org-uptime
+	    }
+	    rsync_chown /opt/AOK/Debian/ish_replacement_bins/uptime /usr/bin
+	}
+	msg_3 "/etc/init.d/rc"
         rsync_chown /opt/AOK/Debian/etc/init.d/rc /etc/init.d
     elif hostfs_is_devuan; then
         msg_2 "Devuan specifics"

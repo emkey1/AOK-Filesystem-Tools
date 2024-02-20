@@ -4,6 +4,8 @@ I will try to keep track of changes between releases here
 
 ## Next release
 
+- made separate bin aok-version, displaying AOK-FS, FS and iSH kernel releases
+- When Debian is installed on regular iSH, uptime needs to be replaced, since /proc/sysload is not available, original uptime is kept as /usr/bin/org-uptime
 - Expanded post deploy message in aok_launcher
 - Ensures aok_imgs folder is created before generating compressed image
 - Added untar_file() to make sure pigz is always used for untaring (if available)

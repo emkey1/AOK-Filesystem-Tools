@@ -9,7 +9,7 @@
 #
 #  setup_final_tasks.sh
 #
-#  Completes the setup of Alpine or Debian.
+#  Completes the setup of AOK-FS
 #  On normal installs, this runs at the end of the install.
 #  On pre-builds this will be run on first boot at destination device,
 #  so it can be assumed this is running on deploy destination
@@ -255,6 +255,15 @@ tsaft_start="$(date +%s)"
 deploy_state_set "$deploy_state_finalizing"
 msg_script_title "setup_final_tasks.sh - Final part of setup"
 
+hostfs_name="$(hostfs_detect)"
+f_fs_final_tasks=/opt/AOK/"$hostfs_name"/setup_final_tasks.sh
+[ -f "$f_fs_final_tasks" ] && {
+    msg_1 "Running $hostfs_name final tasks"
+    "$f_fs_final_tasks"
+    msg_2 "$hostfs_name final tasks - done"
+    echo
+}
+
 this_is_ish && wait_for_bootup
 
 #
@@ -335,11 +344,11 @@ verify_launch_cmd
 
 msg_1 "File system deploy completed"
 
-display_installed_versions
+/usr/local/bin/aok-versions
 
-echo "Setup has completed the last deploy steps and is ready!"
-echo "You are recomended to reboot in order to ensure that your environment is used."
-echo
+echo "Setup has completed the last deploy steps and is ready!
+You are recomended to reboot in order to ensure that all services are started,
+and your environment is used."
 
 #
 #  This ridiculous extra step is needed if chrooted on iSH

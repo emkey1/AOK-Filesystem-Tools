@@ -398,12 +398,13 @@ while true; do
 
     if [ -f "$f_logins_continous" ]; then
         echo
-        echo "Will spawn a new login session. If this is not requested, run aok"
+        print_log "Will spawn a new login session. If this is not requested, run aok"
         echo
         sleep 1
     else
         echo
-        print_log "To enable continous vterm sessions, run aok"
+        echo "To enable continous vterm sessions, run aok"
+	print_log "Terminating vterm $(tty)"
         sleep 1
         exit 0
     fi

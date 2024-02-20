@@ -404,7 +404,7 @@ rsync_chown() {
         fi
     fi
 
-    _r_params="-ah --exclude=.~ --chown=root:root $src $d_dest"
+    _r_params="-ah --exclude="*~" --chown=root:root $src $d_dest"
     if [ "$3" = "silent" ]; then
         #  shellcheck disable=SC2086
         rsync $_r_params >/dev/null || {
@@ -414,43 +414,23 @@ rsync_chown() {
         #
         #  In order to only list actually changed files,
         #  skip lines starting with whitespace - xfer stats
-        #  and the two first lines:
+        #  and the specific lines:
         #   sending incremental file list
         #   ./
         #
         #  shellcheck disable=SC2086
-        rsync -P $_r_params | tail -n +3 | grep -v '^[[:space:]]'
+        #rsync -P $_r_params | tail -n +3 | grep -v '^[[:space:]]'
+	rsync -P $_r_params | grep -v -e '^./$' -e '^sending incremental' -e '^[[:space:]]'
     fi
     unset src
     unset d_dest
     # echo "^^^ rsync_chown() - done"
 }
 
-display_installed_versions() {
-    #
-    #  Display versions of deployed environment
-    #
-    if hostfs_is_alpine; then
-        # cat /etc/motd | head -n 3
-        head -n 3 </etc/motd
-        echo "[0m"
-    elif hostfs_is_debian; then
-        /etc/update-motd.d/11-aok-release
-        /etc/update-motd.d/12-deb-vers
-        /etc/update-motd.d/13-ish-release
-        echo
-    elif hostfs_is_devuan; then
-        /etc/update-motd.d/11-aok-release
-        /etc/update-motd.d/12-devu-vers
-        /etc/update-motd.d/13-ish-release
-        echo
-    fi
-}
-
 installed_versions_if_prebuilt() {
     if deploy_state_is_it "$deploy_state_pre_build"; then
         echo
-        display_installed_versions
+        /usr/local/bin/aok-versions
     fi
 }
 
@@ -630,7 +610,7 @@ hostfs_is_debian() {
 }
 
 hostfs_is_devuan() {
-    test -f "/etc/devuan_version"
+    test -f /etc/devuan_version
 }
 
 hostfs_detect() {
