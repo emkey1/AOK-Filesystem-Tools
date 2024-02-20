@@ -16,6 +16,12 @@
 #
 
 wrong_env_warning() {
+    [ "$(uname -s)" = "Darwin" ] && {
+        echo "
+ERROR: this can not run on Darwin!
+"
+        exit 1
+    }
     if [ ! -d /proc/ish ] || grep -qi aok /proc/ish/version 2>/dev/null || [ ! -f /etc/debian_version ]; then
 	echo "
 WARNING: this is a replacement uptime for Debian not running on iSH-AOK!
