@@ -14,8 +14,7 @@
 #  Display versions of deployed environment
 #
 if test -f /etc/alpine-release; then
-    # cat /etc/motd | head -n 3
-    head -n 3 </etc/motd
+    head -n 4 </etc/motd
     echo "[0m"
 elif test -f /etc/debian_version && ! test -f /etc/devuan_version; then
     /etc/update-motd.d/11-aok-release
