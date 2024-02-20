@@ -2,7 +2,7 @@
 
 I will try to keep track of changes between releases here
 
-## 0.12
+## 0.14
 
 - When Debian is installed on regular iSH, uptime needs to be replaced, since /proc/sysload is not available, original uptime is kept as /usr/bin/or\
 g-uptime
