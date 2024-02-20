@@ -404,7 +404,7 @@ rsync_chown() {
         fi
     fi
 
-    _r_params="-ah --exclude="*~" --chown=root:root $src $d_dest"
+    _r_params="-ah --exclude=*~ --chown=root:root $src $d_dest"
     if [ "$3" = "silent" ]; then
         #  shellcheck disable=SC2086
         rsync $_r_params >/dev/null || {

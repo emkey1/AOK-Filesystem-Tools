@@ -114,7 +114,7 @@ default_view() {
     [ "$ut_days" -gt 0 ] && output="$ut_days days, $output"
     [ "$ut_weeks" -gt 0 ] && output="$ut_weeks weeks, $output"
 
-    user_count="$(ls /dev/pts | wc -l)"
+    user_count="$(find /dev/pts/* | wc -l)"
     user_field="$user_count user"
     [ "$user_count" -gt 1 ] && user_field="${user_field}s"
 
