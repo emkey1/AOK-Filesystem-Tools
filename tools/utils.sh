@@ -110,23 +110,38 @@ msg_script_title() {
 }
 
 display_time_elapsed() {
-    _dte_t_in="$1"
-    _dte_label="$2"
+    dte_t_in="$1"
+    dte_label="$2"
+    #  Save prebuild time, so it can be added when finalizing deploy
+    f_dte_pb=/tmp/prebuild-time
 
-    _dte_mins="$((_dte_t_in / 60))"
-    _dte_seconds="$((_dte_t_in - _dte_mins * 60))"
+    if [ -f "$f_dte_pb" ] &&  deploy_state_is_it "$deploy_state_finalizing"; then
+	dte_prebuild_time="$(cat "$f_dte_pb" )" || error_msg "Failed to read $f_dte_pb"
+	rm -f "$f_dte_pb"
+	dte_t_in="$((dte_prebuild_time + dte_t_in))"
+	unset dte_prebuild_time
+    fi
+
+    dte_mins="$((dte_t_in / 60))"
+    dte_seconds="$((dte_t_in - dte_mins * 60))"
+
+    [ -z "$d_build_root" ] && deploy_state_is_it "$deploy_state_pre_build" && {
+	echo "$dte_t_in" >> "$f_dte_pb"
+    }
 
     #  Add zero prefix when < 10
-    [ "$_dte_mins" -gt 0 ] && [ "$_dte_mins" -lt 10 ] && _dte_mins="0$_dte_mins"
-    [ "$_dte_seconds" -lt 10 ] && _dte_seconds="0$_dte_seconds"
+    [ "$dte_mins" -gt 0 ] && [ "$dte_mins" -lt 10 ] && dte_mins="0$_dte_mins"
+    [ "$dte_seconds" -lt 10 ] && dte_seconds="0$dte_seconds"
 
     echo
-    echo "Time elapsed: $_dte_mins:$_dte_seconds - $_dte_label"
+    echo "Time elapsed: $dte_mins:$dte_seconds - $dte_label"
     echo
-    unset _dte_t_in
-    unset _dte_label
-    unset _dte_mins
-    unset _dte_seconds
+
+    unset dte_t_in
+    unset dte_label
+    unset f_dte_pb
+    unset dte_mins
+    unset dte_seconds
 }
 
 untar_file() {
@@ -211,7 +226,7 @@ create_fs() {
     # echo "^^^ create_fs() done"
 }
 
-min_release() {
+qmin_release() {
     #
     #  Param is major release, like 3.16 or 3.17
     #  returns true if the current release matches or is higher
@@ -526,7 +541,6 @@ set_launch_cmd() {
         echo "Launch cmd not available when chrooted"
         exit
     fi
-    # echo "><> set_launch_cmd($_slc_cmd)"
     echo "$_slc_cmd" >"$f_launch_cmd"
     _slc_current="$(get_launch_cmd)"
     [ "$_slc_current" = "$_slc_cmd" ] || {
