@@ -2,7 +2,6 @@
 if [ -f "/etc/opt/AOK/show_profile_hints" ]; then
     user_id="$(id -u)"
     sshd_enabled="$(/bin/rc-status show default 2>/dev/null | grep -q " ssh")"
-    echo "><> user_id [$user_id] sshd_enabled [$sshd_enabled]"
 
     if [ "$user_id" -ne 1 ] || [ -z "$sshd_enabled" ]; then
         echo
