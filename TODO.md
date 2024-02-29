@@ -2,8 +2,8 @@
 
 ## kernel glitches
 
-282 initiate_deploy
-823 deploy_starting
+fontconfig
+
 
 ##  minim install
 
