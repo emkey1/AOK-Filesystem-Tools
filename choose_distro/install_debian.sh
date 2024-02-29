@@ -7,7 +7,8 @@
 
 . /opt/AOK/tools/utils.sh
 
-. "$d_aok_base"/Debian/deb_utils.sh
+# shellcheck source=/dev/null
+. "$d_aok_base"/FamDeb/deb_utils.sh
 
 tid_start="$(date +%s)"
 

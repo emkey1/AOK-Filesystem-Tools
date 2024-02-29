@@ -334,8 +334,10 @@ set_new_etc_profile "$next_etc_profile"
 
 replace_home_dirs
 run_additional_tasks_if_found
+
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
+
 deploy_state_clear
 verify_launch_cmd
 
