@@ -454,6 +454,19 @@ copy_local_bins() {
     fi
     # [ "$_clb_base_dir" = "$distro_alpine" ] && error_msg "><> Abort"
 
+    [ "$_clb_base_dir" = "common_AOK" ] && {
+        #
+        #  Since the right one is needed early on, they are both installed
+        #  via common_AOK & then the one not used on this platform is
+        #  removed
+        #
+        if destfs_is_alpine; then
+            rm -f /usr/local/bin/Mapt
+        else
+            rm -f /usr/local/bin/Mapk
+        fi
+    }
+
     _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
     if [ -d "$_clb_src_dir" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
