@@ -109,11 +109,11 @@ msg_script_title() {
 }
 
 display_time_elapsed() {
+    # echo "=V= tools/utils display_time_elapsed($1, $2) $(date)"
     dte_t_in="$1"
     dte_label="$2"
     #  Save prebuild time, so it can be added when finalizing deploy
     f_dte_pb=/tmp/prebuild-time
-    echo "=V= display_time_elapsed($1, $2) $(date)"
 
     if [ -f "$f_dte_pb" ] && deploy_state_is_it "$deploy_state_finalizing"; then
         dte_prebuild_time="$(cat "$f_dte_pb")" || error_msg "Failed to read $f_dte_pb"
@@ -122,8 +122,6 @@ display_time_elapsed() {
         msg_1 "><> deploy_state_finalizing[$deploy_state_finalizing] dte_prebuild_time[$dte_prebuild_time]"
         echo "$dte_t_in" >"$f_dte_pb"
         unset dte_prebuild_time
-    else
-        msg_1 "><> deploy_state_finalizing[$deploy_state_finalizing]"
     fi
 
     dte_mins="$((dte_t_in / 60))"
@@ -134,11 +132,11 @@ display_time_elapsed() {
     }
 
     #  Add zero prefix when < 10
-    [ "$dte_mins" -gt 0 ] && [ "$dte_mins" -lt 10 ] && dte_mins="0$_dte_mins"
+    [ "$dte_mins" -gt 0 ] && [ "$dte_mins" -lt 10 ] && dte_mins="0$dte_mins"
     [ "$dte_seconds" -lt 10 ] && dte_seconds="0$dte_seconds"
 
     echo
-    echo "Time elapsed: (tools/utils) $dte_mins:$dte_seconds - $dte_label"
+    echo "display_time_elapsed - Time elapsed: $dte_mins:$dte_seconds - $dte_label"
     echo
 
     unset dte_t_in
@@ -146,8 +144,7 @@ display_time_elapsed() {
     unset f_dte_pb
     unset dte_mins
     unset dte_seconds
-    echo "^^^ display_time_elapsed() - done"
-
+    # echo "^^^ tools/utils display_time_elapsed() - done"
 }
 
 untar_file() {
