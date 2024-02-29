@@ -30,6 +30,9 @@ prepare_env_etc() {
     [ -f "$_f" ] && {
         msg_3 "Removing $_f to prevent clear screen"
         rm "$_f"
+        _f=/root/.bash_logout
+        msg_4 "Remove (potentially) already present $_f"
+        rm -f "$_f"
     }
 
     msg_3 "prepare_env_etc() done"
