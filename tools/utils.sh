@@ -106,7 +106,6 @@ msg_script_title() {
     fi
     echo "***"
     echo
-
 }
 
 display_time_elapsed() {
@@ -114,19 +113,24 @@ display_time_elapsed() {
     dte_label="$2"
     #  Save prebuild time, so it can be added when finalizing deploy
     f_dte_pb=/tmp/prebuild-time
+    echo "=V= display_time_elapsed($1, $2) $(date)"
 
-    if [ -f "$f_dte_pb" ] &&  deploy_state_is_it "$deploy_state_finalizing"; then
-	dte_prebuild_time="$(cat "$f_dte_pb" )" || error_msg "Failed to read $f_dte_pb"
-	rm -f "$f_dte_pb"
-	dte_t_in="$((dte_prebuild_time + dte_t_in))"
-	unset dte_prebuild_time
+    if [ -f "$f_dte_pb" ] && deploy_state_is_it "$deploy_state_finalizing"; then
+        dte_prebuild_time="$(cat "$f_dte_pb")" || error_msg "Failed to read $f_dte_pb"
+        # rm -f "$f_dte_pb"
+        dte_t_in="$((dte_prebuild_time + dte_t_in))"
+        msg_1 "><> deploy_state_finalizing[$deploy_state_finalizing] dte_prebuild_time[$dte_prebuild_time]"
+        echo "$dte_t_in" >"$f_dte_pb"
+        unset dte_prebuild_time
+    else
+        msg_1 "><> deploy_state_finalizing[$deploy_state_finalizing]"
     fi
 
     dte_mins="$((dte_t_in / 60))"
     dte_seconds="$((dte_t_in - dte_mins * 60))"
 
     [ -z "$d_build_root" ] && deploy_state_is_it "$deploy_state_pre_build" && {
-	echo "$dte_t_in" >> "$f_dte_pb"
+        echo "$dte_t_in" >>"$f_dte_pb"
     }
 
     #  Add zero prefix when < 10
@@ -134,7 +138,7 @@ display_time_elapsed() {
     [ "$dte_seconds" -lt 10 ] && dte_seconds="0$dte_seconds"
 
     echo
-    echo "Time elapsed: $dte_mins:$dte_seconds - $dte_label"
+    echo "Time elapsed: (tools/utils) $dte_mins:$dte_seconds - $dte_label"
     echo
 
     unset dte_t_in
@@ -142,32 +146,42 @@ display_time_elapsed() {
     unset f_dte_pb
     unset dte_mins
     unset dte_seconds
+    echo "^^^ display_time_elapsed() - done"
+
 }
 
 untar_file() {
     _tarball="$1"
     _tar_params="${2:-z}"
+    _no_exit="$3" # set to NO_EXIT_ON_ERROR if untar failures should not cause abort
+
     [ -z "$_tarball" ] && error_msg "untar_file() - no param"
-    msg_3 "Unpacking $_tarball into: $(pwd)"
+
+    if [ "${#_tarball}" -lt 15 ]; then
+        msg_3 "Unpacking $_tarball into: $(pwd)"
+    else
+        msg_3 "Unpacking: $_tarball"
+        msg_3 "     into: $(pwd)"
+    fi
 
     if [ -n "$cmd_pigz" ]; then
         # pigz -dc your_archive.tgz | tar -xf -
         msg_4 "Using $cmd_pigz"
         # pigz doesnt need z or j params
         _tar_params="$(echo "$_tar_params" | sed 's/z//' | sed 's/j//')"
-
         $cmd_pigz -dc "$_tarball" | tar -xf"$_tar_params" - || {
-            error_msg "Failed to untar $_tarball"
+            [ "$_no_exit" != "NO_EXIT_ON_ERROR" ] && error_msg "Failed to untar $_tarball"
         }
     else
         msg_4 "No pigz"
         tar "xf${_tar_params}" "$_tarball" || {
-            error_msg "Failed to untar $_tarball"
+            [ "$_no_exit" != "NO_EXIT_ON_ERROR" ] && error_msg "Failed to untar $_tarball"
         }
     fi
 
     unset _tarball
     unset _tar_params
+    unset _no_exit
     msg_4 "Unpacking - done"
 }
 
@@ -223,10 +237,10 @@ create_fs() {
     unset _cf_fs_location
     unset _cf_verbose
     unset _cf_filter
-    # echo "^^^ create_fs() done"
+    # echo "^^^ create_fs() - done"
 }
 
-qmin_release() {
+min_release() {
     #
     #  Param is major release, like 3.16 or 3.17
     #  returns true if the current release matches or is higher
@@ -284,6 +298,8 @@ initiate_deploy() {
     _ss_vers_info="$2"
     [ -z "$_ss_vers_info" ] && error_msg "initiate_deploy() no vers_info provided"
 
+    deploy_starting
+
     # buildtype_set "$_ss_distro_name"
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
         msg_3 "At the end of the install, additioal tasks will be run:"
@@ -297,11 +313,15 @@ initiate_deploy() {
 
     manual_runbg
 
-    copy_local_bins "$_ss_distro_name"
+    if destfs_is_alpine; then
+        copy_local_bins Alpine
+    else
+        copy_local_bins FamDeb
+    fi
 
     unset _ss_distro_name
     unset _ss_vers_info
-    # echo "^^^ initiate_deploy() done"
+    # echo "^^^ initiate_deploy() - done"
 }
 
 #  shellcheck disable=SC2120
@@ -360,34 +380,7 @@ set_new_etc_profile() {
     #
     chmod 744 "$d_build_root"/etc/profile
     unset sp_new_profile
-    # echo "^^^ set_new_etc_profile() done"
-}
-
-copy_local_bins() {
-    # echo "=V= copy_local_bins($1)"
-    _clb_base_dir="$1"
-    if [ -z "$_clb_base_dir" ]; then
-        error_msg "call to copy_local_bins() without param!"
-    fi
-
-    # msg_1 "Copying /usr/local stuff from $_clb_base_dir"
-
-    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_bin"
-    if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
-        msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
-        mkdir -p /usr/local/bin
-        rsync_chown "$_clb_src_dir/*" /usr/local/bin silent
-    fi
-
-    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
-    if [ -d "$_clb_src_dir" ]; then
-        msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
-        mkdir -p /usr/local/sbin
-        rsync_chown "$_clb_src_dir/*" /usr/local/sbin silent
-    fi
-    unset _clb_base_dir
-    unset _clb_src_dir
-    # echo "^^^ copy_local_bins() done"
+    # echo "^^^ set_new_etc_profile() - done"
 }
 
 rsync_chown() {
@@ -401,6 +394,7 @@ rsync_chown() {
     d_dest="$2"
     [ -z "$src" ] && error_msg "rsync_chown() no source param"
     [ -z "$d_dest" ] && error_msg "rsync_chown() no dest param"
+    [ -n "$3" ] && _silent_mode=1
 
     #
     #  rsync is used early on in deploy, so make sure it is installed
@@ -420,7 +414,7 @@ rsync_chown() {
     fi
 
     _r_params="-ah --exclude=*~ --chown=root:root $src $d_dest"
-    if [ "$3" = "silent" ]; then
+    if [ -n "$_silent_mode" ]; then
         #  shellcheck disable=SC2086
         rsync $_r_params >/dev/null || {
             error_msg "rsync_chown($src, $d_dest, silent) failed"
@@ -434,12 +428,41 @@ rsync_chown() {
         #   ./
         #
         #  shellcheck disable=SC2086
-        #rsync -P $_r_params | tail -n +3 | grep -v '^[[:space:]]'
-	rsync -P $_r_params | grep -v -e '^./$' -e '^sending incremental' -e '^[[:space:]]'
+        rsync -P $_r_params | grep -v -e '^./$' -e '^sending incremental' -e '^[[:space:]]' || {
+            error_msg "rsync_chown($src, $d_dest) failed"
+        }
     fi
     unset src
     unset d_dest
+    unset _silent_mode
     # echo "^^^ rsync_chown() - done"
+}
+
+copy_local_bins() {
+    echo "=V= copy_local_bins($1)"
+    _clb_base_dir="$1"
+    if [ -z "$_clb_base_dir" ]; then
+        error_msg "call to copy_local_bins() without param!"
+    fi
+
+    # msg_1 "Copying /usr/local stuff from $_clb_base_dir"
+    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_bin"
+    if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
+        msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
+        mkdir -p /usr/local/bin
+        rsync_chown "$_clb_src_dir/*" /usr/local/bin silent
+    fi
+    # [ "$_clb_base_dir" = "$distro_alpine" ] && error_msg "><> Abort"
+
+    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
+    if [ -d "$_clb_src_dir" ]; then
+        msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
+        mkdir -p /usr/local/sbin
+        rsync_chown "$_clb_src_dir/*" /usr/local/sbin silent
+    fi
+    unset _clb_base_dir
+    unset _clb_src_dir
+    echo "^^^ copy_local_bins() - done"
 }
 
 installed_versions_if_prebuilt() {
@@ -456,6 +479,11 @@ ensure_ish_or_chrooted() {
     this_is_ish && return
     this_fs_is_chrooted && return
     error_msg "Can only run on iSH or when chrooted"
+}
+
+strip_str() {
+    [ -z "$1" ] && error_msg "strip_str() - no param"
+    echo "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
 #---------------------------------------------------------------
@@ -645,6 +673,7 @@ hostfs_detect() {
         echo
     fi
 }
+
 #---------------------------------------------------------------
 #
 #   Destination FS
@@ -686,6 +715,61 @@ destfs_detect() {
         #  Failed to detect
         echo
     fi
+}
+
+#---------------------------------------------------------------
+#
+#   lsb-release
+#
+#   get_lsb_release will install lsb-release tools if not present
+#   and set the two variables:
+#      lsb_DistributorID
+#      lsb_Release
+#
+#---------------------------------------------------------------
+
+#  shellcheck disable=SC2120
+get_lsb_release() {
+    _do_chroot="$1"
+    #
+    #  If param 1 is chroot, then this will display lsb info for the
+    #  dest fs, such as when compressing an FS
+    #
+
+    # Check if lsb_release command is available
+    if ! command -v lsb_release >/dev/null 2>&1; then
+        msg_1 "lsb-release will be installed!"
+        if destfs_is_alpine; then
+            apk add lsb-release-minimal || error_msg "Failed to install lsb-release-minimal"
+        elif destfs_is_devuan || destfs_is_debian; then
+            apt install -y lsb-release || error_msg "Failed to install lsb-release"
+        else
+            error_msg "Don't know how to install lsb-release on this platform"
+        fi
+    fi
+
+    _f=/tmp/aok-lsb_info.tmp
+
+    if [ "$_do_chroot" = "chroot" ]; then
+        /opt/AOK/tools/do_chroot.sh "/usr/bin/lsb_release -a" >"$_f"
+    else
+        lsb_release -a 2>/dev/null >"$_f"
+    fi
+
+    while IFS=':' read -r key value; do
+        key=$(printf '%s' "$key" | tr -d '[:space:]')
+        case "$key" in
+        DistributorID) lsb_DistributorID="$(strip_str "$value")" ;;
+        Release) lsb_Release="$(strip_str "$value")" ;;
+        *) ;;
+        esac
+    done <"$_f"
+    rm -f "$_f" || error_msg "Failed to remove tmp file: $_f"
+
+    unset _do_chroot
+    unset _f
+    unset key
+    unset value
 }
 
 #---------------------------------------------------------------
@@ -891,6 +975,7 @@ f_aok_fs_release="$d_build_root"/etc/aok-fs-release
 #
 setup_common_aok="$d_aok_base"/common_AOK/setup_common_env.sh
 setup_alpine_scr="$d_aok_base"/Alpine/setup_alpine.sh
+setup_famdeb_scr="$d_aok_base"/FamDeb/setup_famdeb.sh
 setup_debian_scr="$d_aok_base"/Debian/setup_debian.sh
 setup_devuan_scr="$d_aok_base"/Devuan/setup_devuan.sh
 setup_select_distro_prepare="$d_aok_base"/choose_distro/select_distro_prepare.sh

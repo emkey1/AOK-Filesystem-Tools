@@ -330,7 +330,7 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
-    . "$d_aok_base"/Debian/deb_utils.sh
+    . "$d_aok_base"/FamDeb/deb_utils.sh
     intial_fs_prep_debian
 
     # buildtype_set "$distro_debian"
@@ -341,6 +341,9 @@ setup_Debian_on_1st_boot() {
 
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
+
+    . "$d_aok_base"/FamDeb/deb_utils.sh
+    intial_fs_prep_debian
 
     # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"
@@ -453,7 +456,7 @@ consider_generating_tarball() {
 
 display_build_time() {
     msg_2 "display_build_time()"
-    dbt_duration="$(($(date +%s) - t_start))"
+    dbt_duration="$(($(date +%s) - t_build_start))"
     if $pre_build_FS; then
         dbt_lbl="Create and setup FS"
     else
@@ -474,7 +477,7 @@ display_build_time() {
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 [ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
-t_start="$(date +%s)"
+t_build_start="$(date +%s)"
 
 # shellcheck disable=SC1007
 prog_name=$(basename "$0")

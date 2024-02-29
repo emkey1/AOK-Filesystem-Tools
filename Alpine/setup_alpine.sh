@@ -20,19 +20,46 @@ find_fastest_mirror() {
     setup-apkrepos -f
 }
 
-install_apks() {
+handle_apks() {
+
+    msg_1 "apk upgrade"
+    apk upgrade || {
+        error_msg "apk upgrade failed"
+    }
+    echo
+
+    if ! min_release "3.16"; then
+        if [ -z "${CORE_APKS##*shadow-login*}" ]; then
+            # This package was introduced starting with Alpine 3.16
+            msg_3 "Excluding not yet available apk 'shadow-login"
+            CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
+        fi
+    fi
+
     if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
+        echo "$CORE_APKS"
+        echo
 
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
         apk add $CORE_APKS || {
             error_msg "apk add CORE_APKS failed"
         }
+        echo
     else
         msg_1 "No CORE_APKS defined"
     fi
 
+    if [ -n "$AOK_PKGS_SKIP" ]; then
+        msg_1 "Removing packages"
+        echo "$AOK_PKGS_SKIP"
+        echo
+
+        #  shellcheck disable=SC2086
+        apk del $AOK_PKGS_SKIP || error_msg "Failed to delete AOK_PKGS_SKIP"
+        echo
+    fi
     #
     #  Install some custom apks, where the current repo version cant
     #  be used, so we use the last known to work on Debian version
@@ -47,6 +74,9 @@ install_apks() {
             error_msg "apk add mtr failed"
         }
     fi
+
+    echo
+    Mapk
 }
 
 prepare_env_etc() {
@@ -122,28 +152,12 @@ if [ -z "$ALPINE_VERSION" ]; then
     error_msg "ALPINE_VERSION param not supplied"
 fi
 
-deploy_starting
+# deploy_starting
 msg_script_title "setup_alpine.sh - Setup Alpine"
-
-msg_1 "apk upgrade"
-apk upgrade || {
-    error_msg "apk upgrade failed"
-}
-echo
-
 initiate_deploy Alpine "$ALPINE_VERSION"
 
 prepare_env_etc
-
-if ! min_release "3.16"; then
-    if [ -z "${CORE_APKS##*shadow-login*}" ]; then
-        # This package was introduced starting with Alpine 3.16
-        msg_3 "Excluding not yet available apk 'shadow-login"
-        CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
-    fi
-fi
-
-install_apks
+handle_apks
 
 msg_2 "adding group sudo"
 groupadd sudo

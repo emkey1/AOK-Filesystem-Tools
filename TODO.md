@@ -2,6 +2,19 @@
 
 ## kernel glitches
 
+282 initiate_deploy
+823 deploy_starting
+
+##  minim install
+
+bc gawk grep procps sed ncurses-bin wget cron whiptail
+man-db groff-base rsyslog
+
+## aok install
+
+file less sudo tar util-linux openrc vim curl rsync sqlite3
+? groff-base
+
 ### /proc/loadavg
 
 causes uptime, htop, top to fail

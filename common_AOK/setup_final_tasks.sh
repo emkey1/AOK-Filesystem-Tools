@@ -176,7 +176,7 @@ replace_home_dirs() {
             msg_2 "Replacing /home/$USER_NAME"
             cd "/home" || error_msg "Failed cd /home"
             rm -rf "$USER_NAME"
-            untar_file "$HOME_DIR_USER"
+            untar_file "$HOME_DIR_USER" z NO_EXIT_ON_ERROR
         else
             error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
         fi
@@ -187,7 +187,7 @@ replace_home_dirs() {
             msg_2 "Replacing /root"
             mv /root /root.ORIG
             cd / || error_msg "Failed to cd into: /"
-            untar_file "$HOME_DIR_ROOT"
+            untar_file "$HOME_DIR_ROOT" z NO_EXIT_ON_ERROR
         else
             error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
         fi
@@ -244,9 +244,14 @@ deploy_state_clear() {
 #
 #===============================================================
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
+echo
+echo "=_=_="
+echo "=====   tsaft_start triggered $(date)   ====="
+echo "=_=_="
+echo
 tsaft_start="$(date +%s)"
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 [ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/ios_version.sh
@@ -291,9 +296,7 @@ if test -f /AOK; then
 fi
 
 user_interactions
-
 ensure_path_items_are_available
-
 hostname_fix
 
 #
@@ -311,10 +314,8 @@ if hostfs_is_alpine; then
     #  replace with softlink to busybox if that is the case
     #
     verify_alpine_uptime
-elif hostfs_is_debian; then
-    next_etc_profile="$d_aok_base/Debian/etc/profile"
-elif hostfs_is_devuan; then
-    next_etc_profile="$d_aok_base/Devuan/etc/profile"
+elif hostfs_is_debian || hostfs_is_devuan; then
+    next_etc_profile="$d_aok_base/FamDeb/etc/profile"
 else
     error_msg "Undefined Distro, cant set next_etc_profile"
 fi
@@ -332,14 +333,10 @@ set_new_etc_profile "$next_etc_profile"
 }
 
 replace_home_dirs
-
 run_additional_tasks_if_found
-
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
-
 deploy_state_clear
-
 verify_launch_cmd
 
 msg_1 "File system deploy completed"
@@ -354,5 +351,4 @@ and your environment is used."
 #  This ridiculous extra step is needed if chrooted on iSH
 #
 cd / || error_msg "Failed to cd /"
-
 cd || error_msg "Failed to cd home"

@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- Corrected build time to include compress step
 - Save prebuild time & add it (if applicable) when displaying total deploy time
 - tools/upgrade-aok-fs.sh - improved aok vers handling
 

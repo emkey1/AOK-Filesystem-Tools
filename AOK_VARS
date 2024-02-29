@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.2"
+AOK_VERSION="0.14.9"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -129,8 +129,8 @@ USER_SHELL="/bin/bash"
 # ALPINE_VERSION=3.16.9  # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.7 # End of Alpine support 2024-11-22
 ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
-# As of 2024-02-06 sudo insta crashes ish if using 3.19... test: sudo ls
-##ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
+# As of 2024-02-27 sudo insta crashes ish if using 3.19... test: sudo ls
+## ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
 #
 #  For edge releases - Current development tree
 #  Format is the isodate featured in the minirootfs filename
@@ -161,9 +161,9 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 #
 #  Always installed packages
 #
-pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
-    shadow-login tzdata findutils sed tar pigz file gawk grep htop less \
-    sqlite fzf py3-pip ncdu"
+pkgs_tools="busybox-extras coreutils procps util-linux lsb-release-minimal
+    sudo shadow shadow-login tzdata findutils sed tar pigz file gawk
+    grep htop less man-db sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron dcron-openrc"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
@@ -180,6 +180,12 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #  on first boot at dest device,
 #  not 3.17
 AOK_APKS="nload nload-doc"
+
+#
+#  Packages that should be removed, typically this would make most
+#  sense to use in an .AOK_VARS
+#
+AOK_PKGS_SKIP=""
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok-groups
@@ -225,7 +231,7 @@ DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/svcru9u50zz5ga5ik0szj/Debian10-11-aok-2.tgz?rlkey=j08gxjc4i4jtahab1ce9phana"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/2gq6yj01407dw0m21umc4/Debian10-12-aok-1.tgz?rlkey=fp2sksfd7chudru35h8rbzpu2"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly
@@ -267,7 +273,8 @@ DEB_PKGS=""
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/s0ssuie57ttsafhx5w38o/Devuan4-6-aok-1.tgz?rlkey=ajiuzpk8835426zhmkjluvofz"
+# DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
 
 #
 #  Since the Devuan src image comes pre installed as close as possibly
@@ -277,13 +284,13 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-
 #  DVU_PKGS_SKIP is processed before DVU_PKGS to ensure that
 #  this doesnt unintentionally deelete something for DVU_PKGS
 #
-DVU_PKGS_SKIP=""
+DEVU_PKGS_SKIP=""
 
 #
 #  Here one can add any additional packages to be installed during setup
 #  If pre-build is used, this will happen on the build host.
 #
-DVU_PKGS=""
+DEVU_PKGS=""
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc

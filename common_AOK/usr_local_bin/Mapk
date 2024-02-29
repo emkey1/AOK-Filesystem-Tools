@@ -5,7 +5,7 @@
 #
 # Part of https://github.com/jaclu/helpfull_scripts
 #
-#  Updates apt status of a Debian based box
+#  Updates apk status of an Alpine based box
 #
 
 display_time_elapsed() {
@@ -38,30 +38,18 @@ display_time_elapsed() {
 
 t_start="$(date +%s)"
 
-echo "===  Mapt - apt maintenance  ==="
+echo "Mapk - apk maintenance"
 
 if [ "$(whoami)" != "root" ]; then
     echo "***  This must be run using sudo!  ***"
     exit 1
 fi
 
-apt autoremove -y && apt autoclean && apt -y upgrade
-
-purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
-if [ -n "$purge_candidates" ]; then
-    echo
-    echo "---  In need of purging  ---"
-    echo "$purge_candidates"
-else
-    echo "---  No  purges needed  ---"
-fi
+apk fix && apk upgrade
 
 #
 #  Check if reboot is required
 #
+# /usr/lib/update-notifier/update-motd-reboot-required
 
-if [ -f /var/run/reboot-required ]; then
-    cat /var/run/reboot-required
-fi
-
-display_time_elapsed "Mapt"
+display_time_elapsed "Mapk"

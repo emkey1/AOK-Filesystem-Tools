@@ -405,8 +405,8 @@ foo_1() {
                 #  For unhandled file types, ignore the file, just store the new file type
                 #  to a list.
                 #
-                echo ">>> Unhandled file: $fname" # - $f_type"
-                echo ">>> Unhandled type: $f_type"
+                echo "><> Unhandled file: $fname" # - $f_type"
+                echo "><> Unhandled type: $f_type"
                 file_types+=("$f_type")
             fi
         fi

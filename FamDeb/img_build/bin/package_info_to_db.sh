@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
@@ -22,6 +22,8 @@ database="/tmp/package_info.db"
 #  Always build from scratch
 rm -f "$database"
 
+[ -z "$(command -v sqlite3)" ] && apt install sqlite3
+
 sqlite3 "$database" <<EOF
 CREATE TABLE IF NOT EXISTS packages (
     priority TEXT,
@@ -31,18 +33,18 @@ CREATE TABLE IF NOT EXISTS packages (
 );
 EOF
 
-echo ">>> db created"
+echo "===  db created  ==="
 
 # Function to print a progress dot
 print_progress_dot() {
-    echo -n "."
+    printf "."
 }
 
 #
 #  Checking dependencies inside iSH would take longer than forever,
 #  so on iSH skip this check
 #
-if [[ ! -d /proc/ish ]]; then
+if [ ! -d /proc/ish ]; then
     check_dependencies=1
 fi
 
@@ -52,7 +54,7 @@ for package in $(dpkg-query -f '${Package}\n' -W); do
     #  Check if the package has dependencies
 
     is_leaf="" #  Defaults to not be a leaf
-    if [[ "$check_dependencies" = 1 ]]; then
+    if [ "$check_dependencies" = 1 ]; then
         # If the package has no dependencies, it's a leaf package
         if ! apt-cache depends "$package" 2>/dev/null | grep -q "Depends:"; then
             is_leaf="*"
