@@ -30,3 +30,5 @@ Debian/src/login_loop
 Debian/src/login_once
 
 _dev_send_changed_to_ish
+
+.shellchecker.cache
