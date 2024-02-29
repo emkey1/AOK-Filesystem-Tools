@@ -2,9 +2,6 @@
 
 ## kernel glitches
 
-fontconfig
-
-
 ##  minim install
 
 bc gawk grep procps sed ncurses-bin wget cron whiptail

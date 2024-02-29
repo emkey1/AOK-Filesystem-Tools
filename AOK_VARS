@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.9"
+AOK_VERSION="0.14.10"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -273,7 +273,7 @@ DEB_PKGS=""
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/s0ssuie57ttsafhx5w38o/Devuan4-6-aok-1.tgz?rlkey=ajiuzpk8835426zhmkjluvofz"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/uhnwbwvl8jnq4fjaqcc2z/Devuan4-6-aok-2.tgz?rlkey=971g4znp1k02f567hgcytd2mf"
 # DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
 
 #
