@@ -14,7 +14,7 @@
 
 health_check() {
     msg_1 "Ensure apt is in good health"
-    Mapt
+    Mapt no_timing
 }
 
 update_aok_fs_releae() {
@@ -44,6 +44,39 @@ update_aok_fs_releae() {
     echo "$aok_release" >/"$f_aok_fs_release"
     echo
     echo "$f_aok_fs_release - Set to: $aok_release"
+}
+
+rmdir_if_only_uuid() {
+    echo "rmdir_if_only_uuid($1)"
+    _p="$1"
+    [ -z "$_p" ] && error_msg "rmdir_if_only_uuid() - no param"
+    [ -d "$_p" ] || error_msg "rmdir_if_only_uuid($_p) - no such dir"
+
+    max_count=1
+    [ -f "$_p"/.uuid ] && max_count=2
+
+    if [ "$(find "$_p" | wc -l)" -gt "$max_count" ]; then
+        echo
+        ls -la "$_p"
+        error_msg "$_p contains items other than .uuid!"
+    else
+        rm -f "$_p"/.uuid
+        rmdir "$_p" || error_msg "rmdir failed"
+    fi
+
+    # echo "^^^ rmdir_if_only_uuid() - done"
+}
+
+ensure_empty_folder() {
+    echo "ensure_empty_folder($1)"
+    _p="$1"
+    [ -z "$_p" ] && error_msg "ensure_empty_folder() - no param"
+
+    if [ "$(find "$_p" | wc -l)" -gt 1 ]; then
+        error_msg "$_p not empty"
+    fi
+
+    # echo "^^^ ensure_empty_folder() - done"
 }
 
 clear_AOK() {

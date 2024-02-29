@@ -17,9 +17,13 @@
 #  default, so items not wanted will have to instead be removed.
 #
 
+aiprep_time_start="$(date +%s)"
+aiprep_prog_name=$(basename "$0")
 d_here="$(dirname "$0")"
 
 . /opt/AOK/tools/utils.sh
+# shellcheck source=/dev/null
+. "$d_here"/img_build_utils.sh
 
 #
 #  Since the minim FS comes with caches cleared, an apt update
@@ -27,7 +31,13 @@ d_here="$(dirname "$0")"
 #
 msg_1 "Do update in case caches are gone"
 apt update
+health_check
 
-_f=aok_img_populate.sh
-msg_1 "Ensure apt is in good health, then chain to $_f"
-Mapt && "$d_here/$_f"
+duration="$(($(date +%s) - aiprep_time_start))"
+display_time_elapsed "$duration" "$aiprep_prog_name"
+
+if true; then
+    _f=aok_img_populate.sh
+    msg_1 "Ensure apt is in good health, then chain to $_f"
+    "$d_here/$_f"
+fi

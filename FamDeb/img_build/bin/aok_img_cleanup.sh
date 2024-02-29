@@ -18,11 +18,13 @@ d_here="$(dirname "$0")"
 health_check
 clear_log_tmp
 update_aok_fs_releae
+ensure_empty_folder /tmp
+ensure_empty_folder /var/tmp
 clear_AOK
 
 echo "After you exit the chroot"
-echo "1. Clear out tmp using something like:"
-echo "   rm -rf [mountpoint]/tmp/*"
+echo "1. Consider removing /root/img_build"
+echo "   rm -rf [mountpoint]/root/img_build"
 echo
 echo "2. Depending on privacy concerns, since this image is typically"
 echo "   made available for public download, consider to check"

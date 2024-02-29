@@ -26,8 +26,8 @@ rm -f /etc/aok_release # obsolete file that might be around in some minim files
 pkgs_purge="groff-base file pigz less curl rsync sqlite3 tinysshd vim
     vim-runtime x11-common sysv-rc fontconfig-config fontconfig
     fonts-dejavu-core at-spi2-core libfontconfig1 libmagic1:i386"
-#  shellcheck disable=SC2086
 echo "   $pkgs_purge"
+#  shellcheck disable=SC2086
 apt purge -y $pkgs_purge
 
 health_check

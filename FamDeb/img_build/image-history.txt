@@ -1,3 +1,6 @@
+--- Devuan4-6-aok-2 2023-02-29
+cleanup of unneeded stuff - mostly fonts
+
 --- Devuan4-minim-6 2023-02-27
 Using lsb_release -a to detect DistributorID & Release
 major rewrite of the img_build tools, and what is installed

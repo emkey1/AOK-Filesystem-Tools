@@ -16,7 +16,8 @@
 #  inside iSH is quite slow, for Devuan everything is installed by
 #  default, so items not wanted will have to instead be removed.
 #
-
+aipop_time_start="$(date +%s)"
+aiprop_prog_name=$(basename "$0")
 d_here="$(dirname "$0")"
 
 . /opt/AOK/tools/utils.sh
@@ -61,9 +62,28 @@ CORE_APTS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 
 #  shellcheck disable=SC2086
 apt install -y $CORE_APTS
+health_check
 
-msg_1 "Remove stuff not needed by iSH"
-apt purge -y exim4-config
+purges="exim4-config shared-mime-info"
+# fontconfig related
+purges="$purges adwaita-icon-theme at-spi2-core fontconfig
+    fontconfig-config fonts-dejavu-core
+    libgdk-pixbuf-2.0-0:i386 libgtk-3-common x11-common
+"
+
+msg_1 "Remove stuff not needed by iSH-AOK"
+#  shellcheck disable=SC2086
+apt purge -y $purges
+health_check
 
 disable_services
+
+rmdir_if_only_uuid /usr/local/share/fonts
+rmdir_if_only_uuid /usr/share/fonts/truetype/dejavu
+rmdir_if_only_uuid /usr/share/fonts/truetype
+rmdir_if_only_uuid /usr/share/fonts
+
 health_check
+
+duration="$(($(date +%s) - aipop_time_start))"
+display_time_elapsed "$duration" "$aiprop_prog_name"

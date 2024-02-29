@@ -24,7 +24,9 @@ update_aok_fs_releae minim
 clear_log_tmp
 # clear_apt_cache
 
+ensure_empty_folder /tmp
+ensure_empty_folder /var/tmp
+
 msg_1 "if image file is saved - clear AOK files!"
 echo "  rm /opt/AOK /etc/opt/AOK -rf
 "
-# remove_aok
