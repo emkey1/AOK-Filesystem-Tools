@@ -92,7 +92,7 @@ _f="$d_ish_FS"/opt/AOK/.AOK_VARS
 msg_3 "Copying img_build -> $d_ish_FS/root"
 rsync_chown /opt/AOK/FamDeb/img_build "$d_ish_FS"/root silent
 msg_4 "Copying Mapt to img_build/bin"
-rsync_chown /opt/AOK/FamDeb/usr_local_bin/Mapt "$d_ish_FS"/root/img_build/bin silent
+rsync_chown /opt/AOK/common_AOK/usr_local_bin/Mapt "$d_ish_FS"/root/img_build/bin silent
 
 msg_3 "copying skels -> $d_ish_FS/root"
 rsync_chown /opt/AOK/common_AOK/etc/skel/ "$d_ish_FS"/root silent
