@@ -51,6 +51,7 @@ esac
 #
 #  Read config settings
 #
+# shellcheck source=/dev/null
 . /opt/AOK/"$img_type"/img_build.conf || {
     error_msg "Failed to read img_build conf for Debian"
 }
@@ -100,4 +101,18 @@ rsync_chown /opt/AOK/common_AOK/etc/skel/ "$d_ish_FS"/root silent
 msg_3 "Adding img_build to PATH"
 echo "export PATH=\"/root/img_build/bin:$PATH\"" >>"$d_ish_FS"/root/.common_rc
 
+#
+#  Ensuring .bash_logout isn't present
+#
+_f="$d_ish_FS"//etc/skel/.bash_logout
+[ -f "$_f" ] && {
+    msg_3 "Removing $_f"
+    rm "$_f"
+}
+_f="$d_ish_FS"//etc/skel/.bash_logout
+[ -f "$_f" ] && {
+    msg_3 "Removing $_f"
+    rm "$_f"
+}
+msg_2 "chrooting into the image"
 /opt/AOK/tools/do_chroot.sh -p "$d_ish_FS"
