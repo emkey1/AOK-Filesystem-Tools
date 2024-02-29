@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.10"
+AOK_VERSION="0.14.12"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -152,11 +152,9 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
-#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
-#  template file.
 #  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
 #
-# ALPINE_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
+# CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
 
 #
 #  Always installed packages
@@ -250,15 +248,6 @@ DEB_PKGS_SKIP=""
 #
 DEB_PKGS=""
 
-#
-#  Use this if you want to deploy your own /etc/hosts file etc
-#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
-#  template file.
-#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
-#  This points to a location on the destination device.
-#
-# DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
-
 ########################################################################
 #
 #                   Devuan Specific
@@ -273,7 +262,7 @@ DEB_PKGS=""
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/uhnwbwvl8jnq4fjaqcc2z/Devuan4-6-aok-2.tgz?rlkey=971g4znp1k02f567hgcytd2mf"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/07wtt4x38lhg5kvnxw9qf/Devuan4-6-aok-3.tgz?rlkey=1rslv4yj5toyqp2fva5xh5smb"
 # DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
 
 #
@@ -291,12 +280,3 @@ DEVU_PKGS_SKIP=""
 #  If pre-build is used, this will happen on the build host.
 #
 DEVU_PKGS=""
-
-#
-#  Use this if you want to deploy your own /etc/hosts file etc
-#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
-#  template file.
-#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
-#  This points to a location on the destination device.
-#
-# DEVUAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"

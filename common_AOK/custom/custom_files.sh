@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
 process_custom_file_list() {
+    # echo "=V= process_custom_file_list($1)"
     files_template="$1"
+
     [[ -z "$files_template" ]] && error_msg "process_custom_file_list() no param"
+    [[ -f "$files_template" ]] || error_msg "CUSTOM_FILES_TEMPLATE [$files_template] does not point to a file"
 
     msg_2 "process_custom_file_list($files_template)"
     #  shellcheck disable=SC1090
@@ -30,7 +33,7 @@ process_custom_file_list() {
         #  Remove the first item from the array
         file_list=("${file_list[@]:3}")
     done
-    # msg_3 "process_custom_file_list($files_template) - done"
+    # echo "^^^ process_custom_file_list($files_template) - done"
 }
 
 #===============================================================
@@ -42,17 +45,6 @@ process_custom_file_list() {
 # shellcheck source=/dev/null
 source /opt/AOK/tools/utils.sh
 
-if destfs_is_alpine && [[ -n "$ALPINE_CUSTOM_FILES_TEMPLATE" ]]; then
-    if [[ -f "$ALPINE_CUSTOM_FILES_TEMPLATE" ]]; then
-        process_custom_file_list "$ALPINE_CUSTOM_FILES_TEMPLATE"
-    else
-        error_msg "ALPINE_CUSTOM_FILES_TEMPLATE [$ALPINE_CUSTOM_FILES_TEMPLATE] does not point to a file"
-    fi
-fi
-if destfs_is_debian && [[ -n "$DEBIAN_CUSTOM_FILES_TEMPLATE" ]]; then
-    if [[ -f "$DEBIAN_CUSTOM_FILES_TEMPLATE" ]]; then
-        process_custom_file_list "$DEBIAN_CUSTOM_FILES_TEMPLATE"
-    else
-        error_msg "DEBIAN_CUSTOM_FILES_TEMPLATE [$DEBIAN_CUSTOM_FILES_TEMPLATE] does not point to a file"
-    fi
-fi
+[[ -n "$CUSTOM_FILES_TEMPLATE" ]] && {
+    process_custom_file_list "$CUSTOM_FILES_TEMPLATE"
+}

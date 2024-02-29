@@ -57,8 +57,7 @@ ensure_path_items_are_available() {
         $POPULATE_FS \
         $FIRST_BOOT_ADDITIONAL_TASKS \
         $ALT_HOSTNAME_SOURCE_FILE \
-        $ALPINE_CUSTOM_FILES_TEMPLATE \
-        $DEBIAN_CUSTOM_FILES_TEMPLATE"
+        $CUSTOM_FILES_TEMPLATE"
 
     while true; do
         one_item="${items_to_check%% *}"
