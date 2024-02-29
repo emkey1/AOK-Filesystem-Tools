@@ -26,6 +26,12 @@ prepare_env_etc() {
     mkdir -p /etc/update-motd.d
     rsync_chown "$d_aok_base"/FamDeb/etc/update-motd.d /etc
 
+    _f=/etc/skel/.bash_logout
+    [ -f "$_f" ] && {
+        msg_3 "Removing $_f to prevent clear screen"
+        rm "$_f"
+    }
+
     msg_3 "prepare_env_etc() done"
 }
 
