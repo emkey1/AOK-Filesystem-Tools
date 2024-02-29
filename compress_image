@@ -94,10 +94,11 @@ else
         tarball_fn="SelectDistro-AOK-${AOK_VERSION}"
         ;;
     "$distro_alpine")
-        tarball_fn="Alpine-${ALPINE_VERSION}-${ALPINE_VERSION}-AOK-${AOK_VERSION}"
+        get_lsb_release chroot 2>/dev/null || error_msg "get_lsb_release error"
+        tarball_fn="${lsb_DistributorID}-${lsb_Release}-AOK-${AOK_VERSION}"
         ;;
     "$distro_debian" | "$distro_devuan")
-        get_lsb_release chroot
+        get_lsb_release chroot 2>/dev/null || error_msg "get_lsb_release error"
         tarball_fn="${lsb_DistributorID}${lsb_Release}-AOK-${AOK_VERSION}"
         ;;
 
@@ -136,7 +137,6 @@ fi
 
 clear_build_triggered_logfiles
 
-echo
 msg_2 "Writing image file"
 msg_3 " $tarball"
 if [ -n "$cmd_pigz" ]; then
