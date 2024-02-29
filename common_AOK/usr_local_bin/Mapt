@@ -9,50 +9,49 @@
 #
 
 display_time_elapsed() {
-    _dte_label="$1"
-
-    _dte_t_in="$(($(date +%s) - t_start))"
-    _dte_mins="$((_dte_t_in / 60))"
-    _dte_seconds="$((_dte_t_in - _dte_mins * 60))"
+    # echo "=V= Mapt display_time_elapsed($1)"
+    duration="$(($(date +%s) - mapt_time_start))"
+    mins="$((duration / 60))"
+    seconds="$((duration - mins * 60))"
 
     #  Add zero prefix when < 10
-    [ "$_dte_mins" -gt 0 ] && [ "$_dte_mins" -lt 10 ] && _dte_mins="0$_dte_mins"
-    [ "$_dte_seconds" -lt 10 ] && _dte_seconds="0$_dte_seconds"
+    [ "$mins" -gt 0 ] && [ "$mins" -lt 10 ] && mins="0$mins"
+    [ "$seconds" -lt 10 ] && seconds="0$seconds"
 
     echo
-    echo "Time elapsed: $_dte_mins:$_dte_seconds - $_dte_label"
+    echo "display_time_elapsed - Time elapsed: $mins:$seconds - $prog_name"
     echo
-    unset _dte_t_in
-    unset _dte_label
-    unset _dte_mins
-    unset _dte_seconds
+
+    unset duration
+    unset mins
+    unset seconds
+    # echo "^^^ Mapt display_time_elapsed() - done"
 }
-
 
 #===============================================================
 #
 #   Main
 #
 #===============================================================
+prog_name=$(basename "$0")
+mapt_time_start="$(date +%s)"
+[ "$1" = "no_timing" ] && mapt_no_timing=1
 
-
-t_start="$(date +%s)"
-
-echo "Mapt - apt maintenance"
+echo "===  Mapt - apt maintenance  ==="
 
 if [ "$(whoami)" != "root" ]; then
     echo "***  This must be run using sudo!  ***"
     exit 1
 fi
 
-apt autoremove -y && apt clean && apt -y upgrade
+apt autoremove -y && apt autoclean && apt -y upgrade
 
 purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
 if [ -n "$purge_candidates" ]; then
     echo
-    echo "===  In need of purging  ==="
+    echo "---  In need of purging  ---"
     echo "$purge_candidates"
-    echo
+    exit 1
 else
     echo "---  No  purges needed  ---"
 fi
@@ -63,6 +62,7 @@ fi
 
 if [ -f /var/run/reboot-required ]; then
     cat /var/run/reboot-required
+    exit 1
 fi
 
-display_time_elapsed "Mapt"
+[ -z "$mapt_no_timing" ] && display_time_elapsed
