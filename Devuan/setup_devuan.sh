@@ -54,10 +54,7 @@ tsd_start="$(date +%s)"
 
 $setup_famdeb_scr || error_msg "in $setup_famdeb_scr"
 
-erorr_msg "><> abort early"
-
 initiate_deploy Devuan "$(cat /etc/devuan_version)"
-erorr_msg "><> abort id"
 
 msg_script_title "setup_devuan.sh  Devuan specific AOK env"
 initiate_deploy Devuan "$(cat /etc/devuan_version)"

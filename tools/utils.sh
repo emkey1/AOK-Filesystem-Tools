@@ -119,7 +119,7 @@ display_time_elapsed() {
         dte_prebuild_time="$(cat "$f_dte_pb")" || error_msg "Failed to read $f_dte_pb"
         # rm -f "$f_dte_pb"
         dte_t_in="$((dte_prebuild_time + dte_t_in))"
-        msg_1 "><> deploy_state_finalizing[$deploy_state_finalizing] dte_prebuild_time[$dte_prebuild_time]"
+        # echo "><> deploy_state_finalizing[$deploy_state_finalizing] dte_prebuild_time[$dte_prebuild_time]"
         echo "$dte_t_in" >"$f_dte_pb"
         unset dte_prebuild_time
     fi
