@@ -410,7 +410,7 @@ rsync_chown() {
         fi
     fi
 
-    _r_params="-ah --exclude=*~ --chown=root:root $src $d_dest"
+    _r_params="-ah --exclude="'*~'" --chown=root:root $src $d_dest"
     if [ -n "$_silent_mode" ]; then
         #  shellcheck disable=SC2086
         rsync $_r_params >/dev/null || {
@@ -424,10 +424,19 @@ rsync_chown() {
         #   sending incremental file list
         #   ./
         #
+        # rsync -P $_r_params | grep -v -e '\^./$' -e '^sending incremental' -e '^\[[:space:]]' || {
+        rsync_output=/tmp/aok-rsync-chown-output
         #  shellcheck disable=SC2086
-        rsync -P $_r_params | grep -v -e '^./$' -e '^sending incremental' -e '^[[:space:]]' || {
+        rsync -P $_r_params >"$rsync_output" || {
             error_msg "rsync_chown($src, $d_dest) failed"
         }
+        grep -v -e '^./$' -e '^sending incremental' -e '^[[:space:]]' "$rsync_output"
+        case "$?" in
+        0 | 1) ;; # 0=something found 1=nothing found
+        *)        # actual error
+            error_msg "filtering output of rsync_chown() failed"
+            ;;
+        esac
     fi
     unset src
     unset d_dest
@@ -436,7 +445,7 @@ rsync_chown() {
 }
 
 copy_local_bins() {
-    echo "=V= copy_local_bins($1)"
+    # echo "=V= copy_local_bins($1)"
     _clb_base_dir="$1"
     if [ -z "$_clb_base_dir" ]; then
         error_msg "call to copy_local_bins() without param!"
@@ -472,7 +481,7 @@ copy_local_bins() {
     fi
     unset _clb_base_dir
     unset _clb_src_dir
-    echo "^^^ copy_local_bins() - done"
+    # echo "^^^ copy_local_bins() - done"
 }
 
 installed_versions_if_prebuilt() {
