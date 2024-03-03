@@ -272,20 +272,6 @@ runlevel_wait() {
     print_log "runlevel_wait completed, runlevel is now $(rc-status -r)" noecho
 }
 
-network_check() {
-    echo
-    if ping -c 2 8.8.8.8 >/dev/null 2>&1; then
-        if ping -c 2 google.com >/dev/null 2>&1; then
-            print_log "===  Connected to the Internet and DNS is resolving!"
-        else
-            print_log "***  DNS does not seem to resolve!"
-        fi
-    else
-        print_log "***  Not able to access the Internet!"
-    fi
-    echo
-}
-
 handle_etc_issue() {
     #
     #  I havent managed to get /etc/issue to display on console sessions.
@@ -376,7 +362,12 @@ fi
 #
 #  This is only run on first vterm
 #
-[ "$(tty)" = "/dev/pts/0" ] && bootup
+if [ "$(tty)" = "/dev/pts/0" ]; then
+    bootup
+    print_log "$(network-check.sh)"
+else
+    network-check.sh
+fi
 
 while true; do
     #
@@ -404,7 +395,7 @@ while true; do
     else
         echo
         echo "To enable continous vterm sessions, run aok"
-	print_log "Terminating vterm $(tty)"
+        print_log "Terminating vterm $(tty)"
         sleep 1
         exit 0
     fi
