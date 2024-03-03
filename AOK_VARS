@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.13"
+AOK_VERSION="0.14.14"
 
 #
 #  If defined this will be created as a no-password sudo capable user
