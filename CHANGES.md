@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- moved Debian/ish_replacement_bins -> FamDeb
 - preventing mistaken error detection if CUSTOM_FILES_TEMPLATE is undefined
 - aok_launcher - added network-check
 - Corrected build time to include compress step
