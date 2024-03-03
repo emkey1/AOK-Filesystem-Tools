@@ -41,10 +41,16 @@ process_custom_file_list() {
 #   Main
 #
 #===============================================================
-
 # shellcheck source=/dev/null
 source /opt/AOK/tools/utils.sh
 
 [[ -n "$CUSTOM_FILES_TEMPLATE" ]] && {
+    echo "><> will do: process_custom_file_list $CUSTOM_FILES_TEMPLATE"
     process_custom_file_list "$CUSTOM_FILES_TEMPLATE"
 }
+
+#
+#  needed since the -n check above would leave the last ex code an error,
+#  if this variable is undefined
+#
+exit 0

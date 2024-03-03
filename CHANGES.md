@@ -4,6 +4,7 @@ I will try to keep track of changes between releases here
 
 ## next release
 
+- preventing mistaken error detection if CUSTOM_FILES_TEMPLATE is undefined
 - aok_launcher - added network-check
 - Corrected build time to include compress step
 - Save prebuild time & add it (if applicable) when displaying total deploy time
