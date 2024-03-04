@@ -1,6 +1,8 @@
 # vscode
 *.code-workspace
 
+.cache.olint
+
 ### VisualStudioCode ###
 .vscode/* # Maybe .vscode/**/* instead - see comments
 !.vscode/settings.json
@@ -29,6 +31,3 @@ Alpine/src/login_once
 Debian/src/login_loop
 Debian/src/login_once
 
-_dev_send_changed_to_ish
-
-.shellchecker.cache

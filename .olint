@@ -1,0 +1,8 @@
+
+excludes+=(
+    ./.AOK_VARS
+)
+
+prefixes+=(
+    ./common_AOK/obs-sbin/
+)
