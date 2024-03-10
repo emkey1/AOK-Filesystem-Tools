@@ -109,7 +109,6 @@ msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
 
 prepare_env_etc
-intial_fs_prep_debian
 handle_apts
 
 msg_3 "Create /var/log/wtmp"
