@@ -331,7 +331,7 @@ setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
     . "$d_aok_base"/FamDeb/deb_utils.sh
-    intial_fs_prep_debian
+    initial_fs_prep_debian
 
     # buildtype_set "$distro_debian"
     set_new_etc_profile "$setup_debian_scr"
@@ -343,7 +343,7 @@ setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
     . "$d_aok_base"/FamDeb/deb_utils.sh
-    intial_fs_prep_debian
+    initial_fs_prep_debian
 
     # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"

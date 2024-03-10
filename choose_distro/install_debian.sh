@@ -134,7 +134,7 @@ rm /busybox
 rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
 
-intial_fs_prep_debian
+initial_fs_prep_debian
 
 msg_2 "Set openrc to runlevel default"
 /usr/sbin/openrc default
