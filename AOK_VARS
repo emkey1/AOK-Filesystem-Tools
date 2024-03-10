@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.14"
+AOK_VERSION="0.14.15"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -262,7 +262,12 @@ DEB_PKGS=""
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
+#  Devuan 4 has network but no DNS on iSH
+#
 DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/07wtt4x38lhg5kvnxw9qf/Devuan4-6-aok-3.tgz?rlkey=1rslv4yj5toyqp2fva5xh5smb"
+#
+#  Devuan 5 insta-crashes on iSH and has issues in ish-AOK
+#
 # DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
 
 #
