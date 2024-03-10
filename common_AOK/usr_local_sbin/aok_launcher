@@ -145,7 +145,8 @@ bootup() {
             rm -f /dev/console && mknod -m 222 /dev/console c 136 0
         }
         check_for_revovery_mode
-        network_check
+	echo "><> console bootup"
+        /usr/local/bin/network-check.sh
         /bin/sleep infinity
         exit 0 # shouldnt get here, but just in case
     else
@@ -158,7 +159,6 @@ bootup() {
     check_for_revovery_mode
     if [ ! -f "$f_is_chrooted" ]; then
         runlevel_wait
-        network_check
     else
         echo
         echo "This is chrooted, so runlevel_wait & network check are skipped"
@@ -196,6 +196,8 @@ deploy_aok() {
     echo "******************************************************"
     echo "*                                                    *"
     echo "*   AOK-FS deploy has not completed, continuing it   *"
+    echo "*                                                    *"
+    echo "*   Deploy can be aborted by pressing Ctrl-C         *"
     echo "*                                                    *"
     echo "******************************************************"
     echo
@@ -364,9 +366,10 @@ fi
 #
 if [ "$(tty)" = "/dev/pts/0" ]; then
     bootup
-    print_log "$(network-check.sh)"
+    # at bootup (first pts) also log it
+    print_log "$(/usr/local/bin/network-check.sh)"
 else
-    network-check.sh
+    /usr/local/bin/network-check.sh
 fi
 
 while true; do
