@@ -6,8 +6,6 @@ Will drop in replacement init scripts, helping you to see what init scripts are 
 It is not adviced to use on a "real" FS, since there will be a lot of cleanup to be done.
 Better suited for a temp FS
 
-
-
 ## init order, Alpine
 
 ### Ash
@@ -65,9 +63,6 @@ Better suited for a temp FS
        ZDOTDIR []
 --- F  ~/.zshrc (no login: D) [50098] [zsh] []
 
-
-
-
 ## init order, Debian
 
 ### Bash
@@ -99,7 +94,6 @@ Better suited for a temp FS
 --- H  ~/.zlogin [57463] [/bin/zsh] []
 
 #### Interactive shell
-
 
 --- A!  /etc/zsh/zshenv [58406] [zsh] []
        testing with ENV [/root/.env_init]

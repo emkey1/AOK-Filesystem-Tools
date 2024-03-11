@@ -1,5 +1,7 @@
 # TODO
 
+## famdeb Mapt installed after apt install/purge
+
 ## kernel glitches
 
 ## minim install

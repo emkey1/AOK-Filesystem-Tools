@@ -1,3 +1,5 @@
+# Hostname
+
 Starting with iOS 17 Apple no longer offers the iOS hostname to apps, instead just reporting "localhost"
 
 Since it used to be provided via iOS, nobody has implemented any functinolly to change hostname within iSH. Hopefully that gets fixed at some point.
@@ -46,22 +48,23 @@ By default, all the shells I am aware of use the kernel to get the hostname, so 
 
 Currently, The only way to get shell prompts to display the intended hostname is to replace the shell-specific shortcut for the hostname either with a fixed string or by running your alternate hostname cmd.
 
-| shell | hostname shortcut to replacce
-| - | - |
-ash | `\h` | text ot
+shell | hostname shortcut to replacce
+-|-
+ash | `\h`
 bash | `\h`
 zsh  | `%m`
 
 Method | Impacts
-| - | - |
+-|-
 text | Simple solution, if you only have iSH installed on one device, this is sufficient. It will become an issue if you want to use your iSH env on multiple iSH devices, then you would have to remember to change the name again each time you sync your environment files to another system
 $(/bin/hostname) | This way you abstract setting the hostname to a separate tool, and nothing in your shell setup is hardcoded to a specific hostname. You can copy your shell env to all your iSH devices and they will display their own hostname when the env files are updated to other nodes.<br> This will also work in the future when the default /bin/hostname can report the intended name. So it is Future proof, and you wont have to change it later on.<br><br> The CPU over head by running /bin/hostname in a shell vs using the shortcut and getting it directly from the kernel would not have any impact - how many times per second do you normally press Enter?
-
 
 ## Other general tools
 
 ### POSIX & Bash
+
 Most general scripts use /bin/hostname, so they would typically show your intended hostname.
 
 ### Python
+
 Python has built in support for reading the hostname from the kernel, so in most cases Python code would display localhost, but with Python you normally have source-code, so you could change places that really bother you to either display a static name, or displaying the output of /bin/hostname
