@@ -23,6 +23,7 @@ log_it() {
     #  param 2 indicates this should also be printed, if it is > -1
     #  it will be used as an exit code
     #
+    #  shellcheck disable=SC2154
     LOGGER_FILE="$LOGGER_FILE" /usr/local/bin/logger "$RC_SVCNAME" "$msg"
 
     if [ -n "$ex_code" ]; then
