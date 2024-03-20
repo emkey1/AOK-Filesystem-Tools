@@ -225,6 +225,12 @@ update_dynamic_bash_prompt() {
 #===============================================================
 
 #
+#  Setup environment to use UTF-8 and 24h time notation
+#
+export LC_ALL=en_US.UTF-8
+export LC_TIME=en_GB.UTF-8
+
+#
 #  Some common bin locations in home dir,
 #  add in reverse order, last will be first in PATH
 #
