@@ -137,6 +137,10 @@ display_header() {
 }
 
 bootup() {
+    # echo "><> console bootup"
+    check_for_revovery_mode
+    # at bootup also log it
+    print_log "$(/usr/local/bin/network-check.sh)"
     if [ -f "$f_pts_0_as_console" ]; then
         echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
         echo
@@ -145,8 +149,6 @@ bootup() {
             rm -f /dev/console && mknod -m 222 /dev/console c 136 0
         }
         check_for_revovery_mode
-	echo "><> console bootup"
-        /usr/local/bin/network-check.sh
         /bin/sleep infinity
         exit 0 # shouldnt get here, but just in case
     else
@@ -165,12 +167,6 @@ bootup() {
         echo
     fi
     check_for_revovery_mode
-}
-
-do_shutdown() {
-    echo
-    /usr/local/sbin/do-shutdown
-    print_log "Returned from do-shutdown..."
 }
 
 set_deploy_aok_abort() {
@@ -201,6 +197,8 @@ deploy_aok() {
     echo "*                                                    *"
     echo "******************************************************"
     echo
+    /usr/local/bin/network-check.sh
+
     da_depl_step="$(cat "$f_deploy_state")"
     /usr/local/bin/logger aok_launcher Triggering deploy step: "$da_depl_step"
     #  AOK-FS uses /etc/profile as placeholder for deploy steps
@@ -344,12 +342,13 @@ expected_runlevel="default"
 f_issue_file="/etc/issue"
 f_login_prog="/bin/login"
 
-f_deploy_state="/etc/opt/AOK/deploy_state"
-f_logins_continous="/etc/opt/AOK/login-continous"
-f_login_default_user="/etc/opt/AOK/login-default-username"
-f_recovery_mode="/etc/opt/AOK/recovery-mode"
-f_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
-f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
+state_prefix=/etc/opt/AOK
+f_deploy_state="$state_prefix"/deploy_state
+f_logins_continous="$state_prefix"/login-continous
+f_login_default_user="$state_prefix"/login-default-username
+f_pts_0_as_console="$state_prefix"/pts_0_as_console
+f_recovery_mode="$state_prefix"/recovery-mode
+f_is_chrooted="$state_prefix"/this_fs_is_chrooted
 
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
@@ -366,8 +365,6 @@ fi
 #
 if [ "$(tty)" = "/dev/pts/0" ]; then
     bootup
-    # at bootup (first pts) also log it
-    print_log "$(/usr/local/bin/network-check.sh)"
 else
     /usr/local/bin/network-check.sh
 fi
