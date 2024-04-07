@@ -160,9 +160,6 @@ sudo_check() {
 #
 #===============================================================
 
-# shellcheck source=/opt/AOK/tools/utils.sh
-#. /opt/AOK/tools/utils.sh
-
 f_etc_hostname=/etc/hostname
 f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
 f_hostname_aok_suffix=/etc/opt/AOK/hostname-aok-suffix
