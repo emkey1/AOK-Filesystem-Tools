@@ -286,6 +286,8 @@ create_user() {
 # shellcheck source=/dev/null
 [ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
+ensure_ish_or_chrooted
+
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
 if ! command -v sudo >/dev/null; then

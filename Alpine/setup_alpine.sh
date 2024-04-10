@@ -148,6 +148,8 @@ tsa_start="$(date +%s)"
 
 [ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
+ensure_ish_or_chrooted
+
 if [ -z "$ALPINE_VERSION" ]; then
     error_msg "ALPINE_VERSION param not supplied"
 fi

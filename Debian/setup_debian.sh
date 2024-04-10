@@ -53,6 +53,8 @@ tsd_start="$(date +%s)"
 
 [ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
 
+ensure_ish_or_chrooted
+
 $setup_famdeb_scr || error_msg "in $setup_famdeb_scr"
 
 msg_script_title "setup_debian.sh  Debian specific AOK env"
