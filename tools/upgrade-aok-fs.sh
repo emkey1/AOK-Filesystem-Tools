@@ -259,7 +259,9 @@ update_aok_release() {
 #
 #===============================================================
 
+# shellcheck source=/dev/null
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+# shellcheck source=/dev/null
 . /opt/AOK/tools/utils.sh
 
 # shellcheck disable=SC1007
