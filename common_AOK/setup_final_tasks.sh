@@ -84,6 +84,15 @@ hostname_fix() {
         msg_3 "Using -aok suffix"
         aok -s on
     }
+
+    _f=/bin/ORIG-hostname
+    if [ ! -f "$_f" ]; then
+        msg_3 "Renaming original /bin/hostname -> $_f"
+        mv /bin/hostname "$_f"
+    else
+        rm -f /bin/hostname
+    fi
+
     msg_3 "Linking /usr/local/bin to /bin/hostname"
     rm /bin/hostname
     ln -sf /usr/local/bin/hostname /bin/hostname
