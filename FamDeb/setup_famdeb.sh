@@ -1,4 +1,3 @@
-
 #!/bin/sh
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools

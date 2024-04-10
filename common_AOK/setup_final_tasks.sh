@@ -243,12 +243,13 @@ deploy_state_clear() {
 #
 #===============================================================
 
-echo
-echo "=_=_="
-echo "=====   tsaft_start triggered $(date)   ====="
-echo "=_=_="
-echo
+prog_name_sft=$(basename "$0")
 tsaft_start="$(date +%s)"
+echo
+echo "=_=_="
+echo "=====   $prog_name_sft started $(date)   ====="
+echo "=_=_="
+echo
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -257,7 +258,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 . /opt/AOK/tools/user_interactions.sh
 
 deploy_state_set "$deploy_state_finalizing"
-msg_script_title "setup_final_tasks.sh - Final part of setup"
+msg_script_title "$prog_name_sft - Final part of setup"
 
 hostfs_name="$(hostfs_detect)"
 f_fs_final_tasks=/opt/AOK/"$hostfs_name"/setup_final_tasks.sh
