@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2021-2023: Jacob.Lundqvist@gmail.com
+# Copyright (c) 2021-2024: Jacob.Lundqvist@gmail.com
 # License: MIT
 #
 # Part of https://github.com/jaclu/helpfull_scripts
@@ -51,7 +51,6 @@ if [ -n "$purge_candidates" ]; then
     echo
     echo "---  In need of purging  ---"
     echo "$purge_candidates"
-    exit 1
 else
     echo "---  No  purges needed  ---"
 fi
@@ -61,8 +60,8 @@ fi
 #
 
 if [ -f /var/run/reboot-required ]; then
+    echo
     cat /var/run/reboot-required
-    exit 1
 fi
 
 [ -z "$mapt_no_timing" ] && display_time_elapsed
