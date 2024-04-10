@@ -46,15 +46,6 @@ fi
 
 apt autoremove -y && apt autoclean && apt -y upgrade
 
-purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
-if [ -n "$purge_candidates" ]; then
-    echo
-    echo "---  In need of purging  ---"
-    echo "$purge_candidates"
-else
-    echo "---  No  purges needed  ---"
-fi
-
 #
 #  Check if reboot is required
 #
@@ -62,6 +53,17 @@ fi
 if [ -f /var/run/reboot-required ]; then
     echo
     cat /var/run/reboot-required
+    exit 1
+fi
+
+purge_candidates="$(dpkg -l | grep '^rc' | awk '{print $2}')"
+if [ -n "$purge_candidates" ]; then
+    echo
+    echo "---  In need of purging  ---"
+    echo "$purge_candidates"
+    exit 1
+else
+    echo "---  No  purges needed  ---"
 fi
 
 [ -z "$mapt_no_timing" ] && display_time_elapsed
