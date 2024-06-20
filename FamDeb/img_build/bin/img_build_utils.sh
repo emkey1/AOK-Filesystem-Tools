@@ -23,7 +23,7 @@ update_aok_fs_releae() {
 
     msg_1 "Update $f_aok_fs_release"
 
-    get_lsb_release
+    get_lsb_release ""
     if [ -n "$_minim" ]; then
         aok_fs_type="minim"
     else

@@ -103,7 +103,7 @@ parse_arguments() { # Multi OK 1
 
         "-d" | "--debian")
             if [ "$build_target" = "$destfs_select" ]; then
-                echo "-d and -s can not be combined!"
+                echo "Can not be combined: -d and -s"
                 exit 1
             fi
             build_target="$distro_debian"
@@ -111,7 +111,7 @@ parse_arguments() { # Multi OK 1
 
         "-D" | "--devuan")
             if [ "$build_target" = "$destfs_select" ]; then
-                echo "-D and -s can not be combined!"
+                echo "Can not be combined: -D and -s"
                 exit 1
             fi
             build_target="$distro_devuan"
@@ -120,11 +120,11 @@ parse_arguments() { # Multi OK 1
         "-s" | "--select")
             if [ "$build_target" = "$distro_debian" ] ||
                 [ "$build_target" = "$distro_devuan" ]; then
-                echo "-d/-D and -s can not be combined!"
+                echo "Can not be combined: -d/-D and -s"
                 exit 1
             fi
             if $pre_build_FS; then
-                echo "-p and -s can not be combined!"
+                echo "Can not be combined: -p and -s"
                 exit 1
             fi
             build_target="$destfs_select"
@@ -132,7 +132,7 @@ parse_arguments() { # Multi OK 1
 
         "-p" | "--prebuilt")
             if [ "$build_target" = "$destfs_select" ]; then
-                echo "-p and -s can not be combined!"
+                echo "Can not be combined: -p and -s"
                 exit 1
             fi
             pre_build_FS=true
@@ -154,7 +154,7 @@ parse_arguments() { # Multi OK 1
 
         "-j" | "--bzip2")
             if ! $aok_FS_do_compress; then
-                echo "-j and -N can not be combined!"
+                echo "Can not be combined: -j and -N"
                 exit 1
             fi
             use_bzip2=true
@@ -162,7 +162,7 @@ parse_arguments() { # Multi OK 1
 
         "-N" | "--no_compress")
             if $use_bzip2; then
-                echo "-j and -N can not be combined!"
+                echo "Can not be combined: -j and -N"
                 exit 1
             fi
             aok_FS_do_compress=false
@@ -330,6 +330,7 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
+    # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
     . "$d_aok_base"/FamDeb/deb_utils.sh
     initial_fs_prep_debian
 
@@ -342,6 +343,7 @@ setup_Debian_on_1st_boot() {
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
+    # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
     . "$d_aok_base"/FamDeb/deb_utils.sh
     initial_fs_prep_debian
 

@@ -55,7 +55,9 @@ esac
 . /opt/AOK/"$img_type"/img_build.conf || {
     error_msg "Failed to read img_build conf for Debian"
 }
+#  shellcheck disable=SC2154
 [ -z "$d_ish_FS" ] && error_msg "d_ish_FS config missing!"
+#  shellcheck disable=SC2154
 [ -z "$f_deb_img" ] && error_msg "f_deb_img config missing!"
 
 # d_ish_FS="$d_base"/Devuan5-minim-3
