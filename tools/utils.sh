@@ -492,6 +492,25 @@ strip_str() {
     echo "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
+fix_stdio_device() {
+    dev_src="$1"
+    dev_name="/dev/$2"
+
+    [ -c "$dev_name" ] || {
+        msg_4 "Replacing $dev_name"
+        rm -f "$dev_name"
+        ln -sf "$dev_src" "$dev_name"
+    }
+    return 0
+}
+
+fix_stdio() {
+    msg_3 "Ensuring stdio devices are setup"
+    fix_stdio_device /proc/self/fd/0 stdin
+    fix_stdio_device /proc/self/fd/1 stdout
+    fix_stdio_device /proc/self/fd/2 stderr
+}
+
 #---------------------------------------------------------------
 #
 #   boolean checks
