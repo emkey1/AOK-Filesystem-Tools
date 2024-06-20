@@ -760,6 +760,11 @@ get_lsb_release() {
     #  If param 1 is chroot, then this will display lsb info for the
     #  dest fs, such as when compressing an FS
     #
+    ! min_release "3.17" && {
+        lsb_DistributorID="Alpine"
+        lsb_Release="$ALPINE_VERSION"
+        return
+    }
 
     # Check if lsb_release command is available
     if ! command -v lsb_release >/dev/null 2>&1; then
