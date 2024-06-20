@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.16"
+AOK_VERSION="0.14.18"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -129,8 +129,9 @@ USER_SHELL="/bin/bash"
 # ALPINE_VERSION=3.16.9  # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.7 # End of Alpine support 2024-11-22
 ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
-# As of 2024-02-27 sudo insta crashes ish if using 3.19... test: sudo ls
+# As of 2024-06-12 sudo insta crashes ish if using 3.19 or 3.20... test: sudo ls
 ## ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
+## ALPINE_VERSION=3.20.0 # End of Alpine support  2026-04-01
 #
 #  For edge releases - Current development tree
 #  Format is the isodate featured in the minirootfs filename
@@ -158,12 +159,12 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 
 #
 #  Always installed packages
-#
-pkgs_tools="busybox-extras coreutils procps util-linux lsb-release-minimal
+# lsb-release-minimal
+pkgs_tools="busybox-extras coreutils procps util-linux
     sudo shadow shadow-login tzdata findutils sed tar pigz file gawk
-    grep htop less man-db sqlite fzf py3-pip ncdu"
+    grep htop less sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
-pkgs_services="openrc dcron dcron-openrc"
+pkgs_services="openrc dcron"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
