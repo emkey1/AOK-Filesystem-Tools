@@ -86,7 +86,7 @@ handle_apts() {
             error_msg "apt purge failed"
         }
         msg_1 "Ensure apt is in good health"
-        Mapt || error_msg "Mapt reported error"
+        Mapt || error_msg "Mapt reported error after purge"
     fi
 }
 

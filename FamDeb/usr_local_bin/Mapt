@@ -67,3 +67,4 @@ else
 fi
 
 [ -z "$mapt_no_timing" ] && display_time_elapsed
+return 0

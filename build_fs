@@ -542,9 +542,6 @@ msg_3 "Deployed /opt/AOK on new filesystem"
 #  Announce what AOK release this is
 msg_2 "Set $(echo "$f_aok_fs_release" | sed "s|$d_build_root||") to $AOK_VERSION"
 
-# /mnt/HC_Volume_36916115/aok_tmp/aok_fs/etc/aok-release
-# etc/aok-release
-
 echo "$AOK_VERSION" >"$f_aok_fs_release"
 
 #
