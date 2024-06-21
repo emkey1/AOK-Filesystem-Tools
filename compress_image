@@ -94,11 +94,13 @@ else
         tarball_fn="SelectDistro-AOK-${AOK_VERSION}"
         ;;
     "$distro_alpine")
-        get_lsb_release chroot 2>/dev/null || error_msg "get_lsb_release error"
+        msg_3 "Getting release details for Alpine"
+        get_lsb_release chroot || error_msg "get_lsb_release error"
         tarball_fn="${lsb_DistributorID}-${lsb_Release}-AOK-${AOK_VERSION}"
         ;;
     "$distro_debian" | "$distro_devuan")
-        get_lsb_release chroot 2>/dev/null || error_msg "get_lsb_release error"
+        msg_3 "Getting release details for Debian/Devuan"
+        get_lsb_release chroot || error_msg "get_lsb_release error"
         tarball_fn="${lsb_DistributorID}${lsb_Release}-AOK-${AOK_VERSION}"
         ;;
 
