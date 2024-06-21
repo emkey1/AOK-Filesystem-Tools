@@ -76,7 +76,7 @@ handle_apks() {
     fi
 
     echo
-    Mapk
+    Mapk || error_msg "Mapk reported error"
 }
 
 prepare_env_etc() {

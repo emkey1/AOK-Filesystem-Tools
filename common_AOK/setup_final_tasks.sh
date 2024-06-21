@@ -276,7 +276,7 @@ hostfs_name="$(hostfs_detect)"
 f_fs_final_tasks=/opt/AOK/"$hostfs_name"/setup_final_tasks.sh
 [ -f "$f_fs_final_tasks" ] && {
     msg_1 "Running $hostfs_name final tasks"
-    "$f_fs_final_tasks"
+    "$f_fs_final_tasks" || error_msg "$f_fs_final_tasks failed"
     msg_2 "$hostfs_name final tasks - done"
     echo
 }

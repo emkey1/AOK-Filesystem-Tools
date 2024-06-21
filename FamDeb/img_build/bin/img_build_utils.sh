@@ -14,7 +14,7 @@
 
 health_check() {
     msg_1 "Ensure apt is in good health"
-    Mapt no_timing
+    Mapt no_timing || error_msg "Mapt reported error"
 }
 
 update_aok_fs_releae() {
