@@ -93,9 +93,12 @@ hostname_fix() {
         rm -f /bin/hostname
     fi
 
-    msg_3 "Linking /usr/local/bin to /bin/hostname"
-    rm /bin/hostname
-    ln -sf /usr/local/bin/hostname /bin/hostname
+    _f=/bin/hostname
+    [ -f "$_f" ] && [ ! -h "$_f" ] && {
+        msg_3 "Linking /usr/local/bin to /bin/hostname"
+        rm /bin/hostname
+        ln -sf /usr/local/bin/hostname /bin/hostname
+    }
 
     if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
         msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
