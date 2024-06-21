@@ -6,15 +6,10 @@
 #
 #  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
 #
-#  Populates a Devuan5-minim-x image into an Devuan-x-aok-y ready to
-#  be used to build an AOK-Filesystems-Tools Devuan image
+#  What is said here for Debian, also goes for Devuan
 #
-#  This populates the Devuan image to have as far as possible, the
-#  same things installed, as would be on an Alpine deploy.
-#
-#  Since adding the default software during deploy in a Devuan running
-#  inside iSH is quite slow, for Devuan everything is installed by
-#  default, so items not wanted will have to instead be removed.
+#  Prepares a Debian10-minim-x image by ensuring that the apt cache is
+#  present, then chains to aok_image_populate.sh
 #
 
 aiprep_time_start="$(date +%s)"
@@ -30,14 +25,12 @@ d_here="$(dirname "$0")"
 #  is needed to repopulate the cache for the packet manager
 #
 msg_1 "Do update in case caches are gone"
-apt update
+apt update || error_msg "apt update issue"
 health_check
 
 duration="$(($(date +%s) - aiprep_time_start))"
 display_time_elapsed "$duration" "$aiprep_prog_name"
 
-if true; then
-    _f=aok_img_populate.sh
-    msg_1 "Ensure apt is in good health, then chain to $_f"
-    "$d_here/$_f"
-fi
+next_task="$d_here"/aok_img_populate.sh
+msg_1 "aok_img_prepare.sh done - chaining to $next_task"
+$next_task

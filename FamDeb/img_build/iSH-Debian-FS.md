@@ -6,6 +6,22 @@ pre installed. You can add or drop packages during prebuild in order to
 get the content to match your expectations without having to add/delete
 apt packages on the device itself.
 
+## aok_img_prepare.sh
+
+Prepares a Debian10-minim-x image by ensuring that the apt cache is
+present, and doing an apt upgrade
+
+## aok_img_populate.sh
+
+Populates a Debian10-minim-x image into an Debian10-x-aok-y ready to
+be used to build an AOK-Filesystems-Tools Debian10 image
+It is recomended to cancel all "Configuring tzdata" menus, and let
+the installing user choose the right TZ
+
+## aok_image_cleanup.sh
+
+Prepare image to be used as a DEBIAN_SRC_IMAGE
+
 ## image-history.txt
 
 Keeps track of changes in the Debian1-minim-X File system, used as

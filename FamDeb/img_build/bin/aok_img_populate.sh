@@ -6,14 +6,16 @@
 #
 #  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
 #
-#  Populates a Devuan5-minim-x image into an Devuan-x-aok-y ready to
-#  be used to build an AOK-Filesystems-Tools Devuan image
+#  What is said here for Debian, also goes for Devuan
 #
-#  This populates the Devuan image to have as far as possible, the
+#  Populates a Debian10-minim-x image into an Debian10-x-aok-y ready to
+#  be used to build an AOK-Filesystems-Tools Debian10 image
+#
+#  This populates the Debian image to have as far as possible, the
 #  same things installed, as would be on an Alpine deploy.
 #
-#  Since adding the default software during deploy in a Devuan running
-#  inside iSH is quite slow, for Devuan everything is installed by
+#  Since adding the default software during deploy in a Debian running
+#  inside iSH is quite slow, for Debian everything is installed by
 #  default, so items not wanted will have to instead be removed.
 #
 aipop_time_start="$(date +%s)"
@@ -33,7 +35,7 @@ d_here="$(dirname "$0")"
 
 #
 #  This needs to be synced with AOK_VARS from time to time, to ensure
-#  the Devuan install is as similar as possible to the Alpine
+#  the Debian install is as similar as possible to the Alpine
 #
 # Packages to add in order to create an AOK style image
 #
@@ -45,23 +47,23 @@ msg_1 "Install AOK-FS packages"
 #  are run, and on iSH it takes a loong time...
 #  if man is indeed wanted, do: apt install man-db
 #
-pkgs_tools="psmisc coreutils util-linux procps sudo
-grep bc file gawk sed tar pigz less
-tzdata htop sqlite3 fzf python3-pip ncdu"
+pkg_busybox="bc dnsutils lsof tree"
+pkgs_tools="psmisc coreutils procps util-linux
+    sudo tzdata findutils sed tar pigz file gawk
+    grep htop less sqlite3 fzf python3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc cron"
-# pkgs_net_tools - openssl?
-pkgs_net_tools="openssh-client openssh-server git rsync curl wget
-elinks mosh"
+pkgs_net_tools="openssh-client openssh-server git rsync curl wget elinks mosh"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses-bin whiptail tmux"
 pkgs_other="fortune-mod" # make sure /usr/games is in PATH
+
 # pkgs_devel="build-essential cmake automake autoconf bison flex"
-CORE_APTS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
-    $pkgs_editing $pkgs_text_ui $pkgs_other"
+CORE_APTS="$pkg_busybox $pkgs_tools $pkgs_shells $pkgs_services
+    $pkgs_net_tools $pkgs_editing $pkgs_text_ui $pkgs_other"
 
 #  shellcheck disable=SC2086
-apt install -y $CORE_APTS
+apt install -y $CORE_APTS || error_msg "apt install issue"
 health_check
 
 # purges="exim4-config shared-mime-info"
@@ -87,3 +89,7 @@ health_check
 
 duration="$(($(date +%s) - aipop_time_start))"
 display_time_elapsed "$duration" "$aiprop_prog_name"
+
+next_task="$d_here"/aok_img_cleanup.sh
+msg_1 "aok_img_populate.sh done - chaining to $next_task"
+$next_task

@@ -1,3 +1,7 @@
+
+--- Debian10-12-aok-3 2024-06-21
+Added debs: dnsutils lsof tree
+
 --- Devuan4-6-aok-2 2023-02-29
 cleanup of unneeded stuff - mostly fonts
 

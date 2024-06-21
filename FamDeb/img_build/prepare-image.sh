@@ -26,8 +26,10 @@ This unpacks a disk image, and copies into it the img_build stuff
 #
 #===============================================================
 
-d_base=/mnt/HC_Volume_36916115/aok_tmp
+d_base=/tmp/aok_tmp
 prog_name=$(basename "$0")
+
+mkdir -p "$d_base"
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
@@ -93,12 +95,12 @@ _f="$d_ish_FS"/opt/AOK/.AOK_VARS
 }
 
 msg_3 "Copying img_build -> $d_ish_FS/root"
-rsync_chown /opt/AOK/FamDeb/img_build "$d_ish_FS"/root silent
+rsync_chown /opt/AOK/FamDeb/img_build "$d_ish_FS"/root
 msg_4 "Copying Mapt to img_build/bin"
-rsync_chown /opt/AOK/FamDeb/usr_local_bin/Mapt "$d_ish_FS"/root/img_build/bin silent
+rsync_chown /opt/AOK/FamDeb/usr_local_bin/Mapt "$d_ish_FS"/root/img_build/bin
 
 msg_3 "copying skels -> $d_ish_FS/root"
-rsync_chown /opt/AOK/common_AOK/etc/skel/ "$d_ish_FS"/root silent
+rsync_chown /opt/AOK/common_AOK/etc/skel/ "$d_ish_FS"/root
 
 msg_3 "Adding img_build to PATH"
 echo "export PATH=\"/root/img_build/bin:$PATH\"" >>"$d_ish_FS"/root/.common_rc

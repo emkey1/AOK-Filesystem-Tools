@@ -115,5 +115,5 @@ remove_aok() {
 
 disable_services() {
     msg_1 "Disable ssh service"
-    rc-update del ssh default
+    rc-update del ssh default || error_msg "rc-update del ... issue"
 }
