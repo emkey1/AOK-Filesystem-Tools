@@ -70,7 +70,7 @@ handle_apts() {
             error_msg "apt install failed"
         }
         msg_1 "Ensure apt is in good health"
-        Mapt
+        /usr/local/bin/Mapt
     fi
 
     if [ -n "$apts_to_remove" ]; then
@@ -86,7 +86,7 @@ handle_apts() {
             error_msg "apt purge failed"
         }
         msg_1 "Ensure apt is in good health"
-        Mapt
+        /usr/local/bin/Mapt
     fi
 }
 
@@ -116,7 +116,7 @@ handle_apts
 msg_3 "Create /var/log/wtmp"
 touch /var/log/wtmp
 
-Mapt
+/usr/local/bin/Mapt
 
 #
 #  Our
