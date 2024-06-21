@@ -137,7 +137,6 @@ display_header() {
 }
 
 bootup() {
-    # echo "><> console bootup"
     check_for_revovery_mode
     # at bootup also log it
     print_log "$(/usr/local/bin/network-check.sh)"

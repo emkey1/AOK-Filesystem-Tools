@@ -119,7 +119,6 @@ display_time_elapsed() {
         dte_prebuild_time="$(cat "$f_dte_pb")" || error_msg "Failed to read $f_dte_pb"
         # rm -f "$f_dte_pb"
         dte_t_in="$((dte_prebuild_time + dte_t_in))"
-        # echo "><> deploy_state_finalizing[$deploy_state_finalizing] dte_prebuild_time[$dte_prebuild_time]"
         echo "$dte_t_in" >"$f_dte_pb"
         unset dte_prebuild_time
     fi
@@ -458,7 +457,6 @@ copy_local_bins() {
         mkdir -p /usr/local/bin
         rsync_chown "$_clb_src_dir/*" /usr/local/bin silent
     fi
-    # [ "$_clb_base_dir" = "$distro_alpine" ] && error_msg "><> Abort"
 
     _clb_src_dir="/opt/AOK/${_clb_base_dir}/usr_local_sbin"
     if [ -d "$_clb_src_dir" ]; then

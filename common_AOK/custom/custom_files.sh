@@ -45,7 +45,6 @@ process_custom_file_list() {
 source /opt/AOK/tools/utils.sh
 
 [[ -n "$CUSTOM_FILES_TEMPLATE" ]] && {
-    echo "><> will do: process_custom_file_list $CUSTOM_FILES_TEMPLATE"
     process_custom_file_list "$CUSTOM_FILES_TEMPLATE"
 }
 
