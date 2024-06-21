@@ -49,7 +49,7 @@ msg_3 "maintaining /etc/opt"
 cp -a /etc/opt "$distro_tmp_dir"/etc
 
 msg_2 "Moving Devuan /etc/profile into place"
-cp "$d_aok_base"/Devuan/etc/profile "$distro_tmp_dir"/etc/profile
+cp /opt/AOK/Devuan/etc/profile "$distro_tmp_dir"/etc/profile
 
 rm -rf "$devuan_download_location"
 

@@ -47,12 +47,12 @@ Select distro:
 
     2)
         echo "Debian selected"
-        "$d_aok_base"/choose_distro/install_debian.sh
+        /opt/AOK/choose_distro/install_debian.sh
         ;;
 
     3)
         echo "Devuan selected"
-        "$d_aok_base"/choose_distro/install_devuan.sh
+        /opt/AOK/choose_distro/install_devuan.sh
         ;;
 
     *)
@@ -79,7 +79,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
 tcd_start="$(date +%s)"
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 manual_runbg
 

@@ -50,7 +50,7 @@ devuan_services() {
 
 tsd_start="$(date +%s)"
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 ensure_ish_or_chrooted
 
@@ -61,7 +61,7 @@ initiate_deploy Devuan "$(cat /etc/devuan_version)"
 msg_script_title "setup_devuan.sh  Devuan specific AOK env"
 initiate_deploy Devuan "$(cat /etc/devuan_version)"
 
-rsync_chown "$d_aok_base"/Devuan/etc/update-motd.d /etc
+rsync_chown /opt/AOK/Devuan/etc/update-motd.d /etc
 
 install_sshd
 # setup_login

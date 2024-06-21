@@ -19,7 +19,7 @@ initial_fs_prep_debian() {
     #  going to runlevel S
     #
     msg_3 "FamDeb AOK inittab"
-    cp -a "$d_aok_base"/FamDeb/etc/inittab "$d_build_root"/etc
+    cp -a /opt/AOK/FamDeb/etc/inittab "$d_build_root"/etc
 
     # msg_3 "initial_fs_prep_debian() - done"
 }
@@ -30,4 +30,4 @@ initial_fs_prep_debian() {
 #
 #===============================================================
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh

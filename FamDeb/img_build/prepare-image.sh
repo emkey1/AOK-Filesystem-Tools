@@ -30,7 +30,7 @@ d_base=/mnt/HC_Volume_36916115/aok_tmp
 prog_name=$(basename "$0")
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 [ -z "$1" ] && {
     show_help

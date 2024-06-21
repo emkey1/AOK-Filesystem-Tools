@@ -42,7 +42,7 @@ setup_cron_env() {
     #  if USE_CRON_SERVICE="Y
     #
     msg_3 "Setting cron periodic files"
-    rsync_chown "$d_aok_base"/common_AOK/cron/periodic /etc silent
+    rsync_chown /opt/AOK/common_AOK/cron/periodic /etc silent
     #msg_3 "setup_cron_env() - done"
 }
 
@@ -67,10 +67,10 @@ setup_environment() {
     fi
 
     msg_3 "Installing /etc/environment"
-    cp "$d_aok_base"/common_AOK/etc/environment /etc
+    cp /opt/AOK/common_AOK/etc/environment /etc
 
     msg_3 "Installing profile-hints file"
-    cp "$d_aok_base"/common_AOK/etc/profile-hints /etc
+    cp /opt/AOK/common_AOK/etc/profile-hints /etc
 
     #
     #  openrc is extreamly forgiving when it comes to dependencies, any
@@ -98,10 +98,10 @@ setup_environment() {
     msg_4 "Unused files cleared from init.d"
 
     msg_3 "Populate /etc/skel"
-    rsync_chown "$d_aok_base"/common_AOK/etc/skel /etc silent
+    rsync_chown /opt/AOK/common_AOK/etc/skel /etc silent
 
     msg_3 "Activating group sudo for no passwd sudo"
-    cp "$d_aok_base"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
+    cp /opt/AOK/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
     chmod 440 /etc/sudoers.d/sudo_no_passwd
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
@@ -153,7 +153,7 @@ setup_environment() {
 
     if command -v openrc >/dev/null; then
         msg_2 "Adding runbg service"
-        rsync_chown "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d silent
+        rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d silent
         # openrc_might_trigger_errors
         rc-update add runbg default
     else
@@ -268,7 +268,7 @@ create_user() {
     copy_skel_files "$cu_home_dir"
 
     msg_3 "Adding documentation to userdir"
-    cp -a "$d_aok_base"/Docs "$cu_home_dir"
+    cp -a /opt/AOK/Docs "$cu_home_dir"
 
     # set ownership
     chown -R "$USER_NAME": "$cu_home_dir"
@@ -284,7 +284,7 @@ create_user() {
 #===============================================================
 
 # shellcheck source=/dev/null
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 ensure_ish_or_chrooted
 

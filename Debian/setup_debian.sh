@@ -16,7 +16,7 @@ setup_cron_env() {
 
     msg_3 "Adding root crontab running periodic content"
     mkdir -p /var/spool/cron/crontabs
-    rsync_chown "$d_aok_base"/common_AOK/cron/crontab-root /var/spool/cron/crontabs/root
+    rsync_chown /opt/AOK/common_AOK/cron/crontab-root /var/spool/cron/crontabs/root
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
@@ -51,7 +51,7 @@ debian_services() {
 
 tsd_start="$(date +%s)"
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 ensure_ish_or_chrooted
 
@@ -60,7 +60,7 @@ $setup_famdeb_scr || error_msg "in $setup_famdeb_scr"
 msg_script_title "setup_debian.sh  Debian specific AOK env"
 initiate_deploy Debian "$(cat /etc/debian_version)"
 
-rsync_chown "$d_aok_base"/Debian/etc/update-motd.d /etc
+rsync_chown /opt/AOK/Debian/etc/update-motd.d /etc
 
 # setup_login
 debian_services

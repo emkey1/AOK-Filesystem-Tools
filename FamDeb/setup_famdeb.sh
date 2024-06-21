@@ -24,7 +24,7 @@ prepare_env_etc() {
 
     msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
-    rsync_chown "$d_aok_base"/FamDeb/etc/update-motd.d /etc
+    rsync_chown /opt/AOK/FamDeb/etc/update-motd.d /etc
 
     _f=/etc/skel/.bash_logout
     [ -f "$_f" ] && {
@@ -96,7 +96,7 @@ handle_apts() {
 #
 #===============================================================
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 ensure_ish_or_chrooted
 
@@ -121,7 +121,7 @@ Mapt
 #
 #  Our
 #
-rsync_chown "$d_aok_base"/FamDeb/etc/init.d/rc /etc/init.d silent
+rsync_chown /opt/AOK/FamDeb/etc/init.d/rc /etc/init.d silent
 
 #  Ensure that login is required
-rsync_chown "$d_aok_base"/FamDeb/etc/pam.d/common-auth /etc/pam.d silent
+rsync_chown /opt/AOK/FamDeb/etc/pam.d/common-auth /etc/pam.d silent

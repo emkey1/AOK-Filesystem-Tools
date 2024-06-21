@@ -293,10 +293,10 @@ copy_AOK_to_dest() {
     rsync -ah \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        "$d_aok_base"/ "$d_build_root"/opt/AOK
+        /opt/AOK/ "$d_build_root"/opt/AOK
 
     io_dst_conf="$aok_files"/AOK_VARS
-    io_conf_overrides="$d_aok_base"/.AOK_VARS
+    io_conf_overrides=/opt/AOK/.AOK_VARS
     if [ -f "$io_conf_overrides" ]; then
         msg_3 "Appending .AOK_CONF on dest FS"
         (
@@ -331,7 +331,7 @@ setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
     # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
-    . "$d_aok_base"/FamDeb/deb_utils.sh
+    . /opt/AOK/FamDeb/deb_utils.sh
     initial_fs_prep_debian
 
     # buildtype_set "$distro_debian"
@@ -344,7 +344,7 @@ setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
 
     # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
-    . "$d_aok_base"/FamDeb/deb_utils.sh
+    . /opt/AOK/FamDeb/deb_utils.sh
     initial_fs_prep_debian
 
     # buildtype_set "$distro_devuan"
@@ -368,7 +368,7 @@ select_distro_on_1st_boot() {
     #
     if [ "$build_env" != "$be_other" ]; then
         [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
-        if ! "$d_aok_base"/tools/do_chroot.sh "$force_chroot" /etc/profile; then
+        if ! /opt/AOK/tools/do_chroot.sh "$force_chroot" /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
     else
@@ -390,15 +390,15 @@ prebuild_fs() {
     #
     # chrooting and doing setup
     #
-    cd "$d_aok_base" || {
-        error_msg "Failed to cd into: $d_aok_base"
+    cd /opt/AOK || {
+        error_msg "Failed to cd into: /opt/AOK"
     }
 
     deploy_state_set "$deploy_state_pre_build"
 
     [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
 
-    "$d_aok_base"/tools/do_chroot.sh "$force_chroot" /etc/profile || {
+    /opt/AOK/tools/do_chroot.sh "$force_chroot" /etc/profile || {
         error_msg "There was an error during prebuild"
     }
 
@@ -445,7 +445,7 @@ consider_generating_tarball() {
         #  Here the tarball is generated
         #
         #  shellcheck disable=SC2086,SC2248
-        if ! "$d_aok_base"/compress_image $cgt_extra_params; then
+        if ! /opt/AOK/compress_image $cgt_extra_params; then
             error_msg "detected in compress_image"
         fi
 
@@ -477,7 +477,7 @@ display_build_time() {
 #===============================================================
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 t_build_start="$(date +%s)"
 
@@ -491,8 +491,8 @@ deploy_state_set "$deploy_state_na" # Dest FS not yet created
 #  to keep things relative and simple
 #
 #  shellcheck disable=SC1007
-cd "$d_aok_base" || {
-    error_msg "Failed to cd into: $d_aok_base"
+cd /opt/AOK || {
+    error_msg "Failed to cd into: /opt/AOK"
 }
 
 #
@@ -504,7 +504,7 @@ use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true means generate pre-built FS
 aok_FS_do_compress=true       # compress FS at end of build_fs
 
-aok_files="${d_build_root}${d_aok_base}"
+aok_files="${d_build_root}/opt/AOK"
 
 parse_arguments "$@"
 
@@ -537,7 +537,7 @@ cache_fs_image
 create_fs "${d_src_img_cache}/$src_tarball" "$d_build_root" "$verbose"
 
 copy_AOK_to_dest
-msg_3 "Deployed $d_aok_base on new filesystem"
+msg_3 "Deployed /opt/AOK on new filesystem"
 
 #  Announce what AOK release this is
 msg_2 "Set $(echo "$f_aok_fs_release" | sed "s|$d_build_root||") to $AOK_VERSION"

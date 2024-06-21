@@ -18,7 +18,7 @@
 #
 #===============================================================
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 if this_is_ish && ! this_is_aok_kernel; then
     msg_2 "Replacing uptime on regular iSH kernel"

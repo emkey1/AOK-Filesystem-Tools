@@ -452,7 +452,7 @@ copy_local_bins() {
     fi
 
     # msg_1 "Copying /usr/local stuff from $_clb_base_dir"
-    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_bin"
+    _clb_src_dir="/opt/AOK/${_clb_base_dir}/usr_local_bin"
     if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
         mkdir -p /usr/local/bin
@@ -460,7 +460,7 @@ copy_local_bins() {
     fi
     # [ "$_clb_base_dir" = "$distro_alpine" ] && error_msg "><> Abort"
 
-    _clb_src_dir="${d_aok_base}/${_clb_base_dir}/usr_local_sbin"
+    _clb_src_dir="/opt/AOK/${_clb_base_dir}/usr_local_sbin"
     if [ -d "$_clb_src_dir" ]; then
         msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
         mkdir -p /usr/local/sbin
@@ -885,20 +885,9 @@ deploy_starting() {
 #===============================================================
 
 #
-#  To make things simple, this is the expected location for AOK-Filesystem-tools
-#  both on build platforms and dest systems
-#  Due to necesity, this file needs to be sourced as: . /opt/AOK/toold/utils.sh
-#  Please do not use the abs path /opt/AOK for anything else, in all other
-#  references, use $d_aok_base
-#  If this location is ever changed, this will keep the changes in the
-#  code to a minimum.
-#
-d_aok_base="/opt/AOK"
-
-#
 #  Import default settings
 #
-_f="$d_aok_base"/AOK_VARS
+_f=/opt/AOK/AOK_VARS
 #  shellcheck source=/opt/AOK/AOK_VARS
 . "$_f" || error_msg "Not found: $_f"
 
@@ -906,7 +895,7 @@ _f="$d_aok_base"/AOK_VARS
 #  Read .AOK_VARS if pressent, allowing it to overide AOK_VARS
 #
 # if [ "$(echo "$0" | sed 's/\// /g' | awk '{print $NF}')" = "build_fs" ]; then
-_f="${d_aok_base}/.AOK_VARS"
+_f=/opt/AOK/.AOK_VARS
 if [ -f "$_f" ]; then
     # msg_2 "Found .AOK_VARS"
     #  shellcheck disable=SC1090
@@ -918,7 +907,7 @@ TMPDIR="${TMPDIR:-/tmp}"
 #
 #  Used for keeping track of deploy / chroot status
 #
-d_aok_base_etc="/etc$d_aok_base"
+d_aok_etc="/etc/opt/AOK"
 
 #
 #  Figure out if this script is run as a build host
@@ -929,7 +918,7 @@ d_aok_base_etc="/etc$d_aok_base"
 #  pointing to where the dest fs is located in the host fs
 #
 f_host_fs_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
-f_host_deploy_state="${d_aok_base_etc}/deploy_state"
+f_host_deploy_state="${d_aok_etc}/deploy_state"
 
 if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
     d_build_root="$TMPDIR/aok_fs"
@@ -1003,14 +992,14 @@ f_aok_fs_release="$d_build_root"/etc/aok-fs-release
 #  Either run this script chrooted if the host OS supports it, or run it
 #  inside iSH-AOK once it has booted this FS
 #
-setup_common_aok="$d_aok_base"/common_AOK/setup_common_env.sh
-setup_alpine_scr="$d_aok_base"/Alpine/setup_alpine.sh
-setup_famdeb_scr="$d_aok_base"/FamDeb/setup_famdeb.sh
-setup_debian_scr="$d_aok_base"/Debian/setup_debian.sh
-setup_devuan_scr="$d_aok_base"/Devuan/setup_devuan.sh
-setup_select_distro_prepare="$d_aok_base"/choose_distro/select_distro_prepare.sh
-setup_select_distro="$d_aok_base"/choose_distro/select_distro.sh
-setup_final="$d_aok_base"/common_AOK/setup_final_tasks.sh
+setup_common_aok=/opt/AOK/common_AOK/setup_common_env.sh
+setup_alpine_scr=/opt/AOK/Alpine/setup_alpine.sh
+setup_famdeb_scr=/opt/AOK/FamDeb/setup_famdeb.sh
+setup_debian_scr=/opt/AOK/Debian/setup_debian.sh
+setup_devuan_scr=/opt/AOK/Devuan/setup_devuan.sh
+setup_select_distro_prepare=/opt/AOK/choose_distro/select_distro_prepare.sh
+setup_select_distro=/opt/AOK/choose_distro/select_distro.sh
+setup_final=/opt/AOK/common_AOK/setup_final_tasks.sh
 
 #
 #  When reported what distro is used on Host or Dest FS uses this

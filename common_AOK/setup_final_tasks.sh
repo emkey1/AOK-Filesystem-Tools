@@ -213,7 +213,7 @@ deploy_bat_monitord() {
     }
 
     msg_3 "Adding $s_name service"
-    cp -a "$d_aok_base"/common_AOK/etc/init.d/bat-monitord /etc/init.d
+    cp -a /opt/AOK/common_AOK/etc/init.d/bat-monitord /etc/init.d
     rc-update add "$s_name" default
     msg_3 "Not starting it during deploy, it will start on next boot"
     #rc-service "$s_name" restart
@@ -262,7 +262,7 @@ echo
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
@@ -317,14 +317,14 @@ hostfs_is_alpine && aok_kernel_consideration
 deploy_bat_monitord
 
 if hostfs_is_alpine; then
-    next_etc_profile="$d_aok_base/Alpine/etc/profile"
+    next_etc_profile="/opt/AOK/Alpine/etc/profile"
     #
     #  Some versions of Alpine uptime doesnt work in ish, test and
     #  replace with softlink to busybox if that is the case
     #
     verify_alpine_uptime
 elif hostfs_is_debian || hostfs_is_devuan; then
-    next_etc_profile="$d_aok_base/FamDeb/etc/profile"
+    next_etc_profile="/opt/AOK/FamDeb/etc/profile"
 else
     error_msg "Undefined Distro, cant set next_etc_profile"
 fi
@@ -337,7 +337,7 @@ set_new_etc_profile "$next_etc_profile"
 #
 #  Handling custom files
 #
-"$d_aok_base"/common_AOK/custom/custom_files.sh || {
+/opt/AOK/common_AOK/custom/custom_files.sh || {
     error_msg "common_AOK/custom/custom_files.sh failed"
 }
 
