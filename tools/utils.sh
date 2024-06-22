@@ -6,7 +6,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  Environment variables used when building the AOK-FS
 #
@@ -650,19 +650,21 @@ destfs_set_is_chrooted() {
 }
 
 destfs_clear_chrooted() {
-    # echo "=V= destfs_clear_chrooted(()"
+    dcc_f_is_chrooted="${1:-$f_dest_fs_is_chrooted}"
+    # echo "=V= destfs_clear_chrooted()"
 
-    if [ "$f_dest_fs_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
-        msg_2 "f_dest_fs_is_chrooted same as f_host_fs_is_chrooted"
-        msg_3 "$f_dest_fs_is_chrooted"
+    if [ "$dcc_f_is_chrooted" = "$f_host_fs_is_chrooted" ]; then
+        msg_2 "dcc_f_is_chrooted same as f_host_fs_is_chrooted"
+        msg_3 "$dcc_f_is_chrooted"
         error_msg "clearing dest FS as chrooted NOT possible!"
     fi
 
-    if [ -f "$f_dest_fs_is_chrooted" ]; then
-        rm "$f_dest_fs_is_chrooted"
+    if [ -f "$dcc_f_is_chrooted" ]; then
+        rm "$dcc_f_is_chrooted"
     else
         error_msg "destfs_clear_chrooted() - could not find chroot indicator"
     fi
+    unset dcc_f_is_chrooted
     # echo "^^^ destfs_clear_chrooted(() - done"
 }
 
@@ -1084,8 +1086,6 @@ deploy_state_finalizing="finalizing"     # main deploy has happened, now certain
 
 destfs_select=select
 f_destfs_select_hint="$d_build_root"/etc/opt/select_distro
-
-pidfile_do_chroot="$TMPDIR"/aok_do_chroot.pid
 
 #  file alt hostname reads to find hostname
 #  the variable has been renamed to

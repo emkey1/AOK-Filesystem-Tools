@@ -2,6 +2,10 @@
 
 I will try to keep track of changes between releases here
 
+## Next release, available in main branch
+
+- task/do_chroot.sh rewritten cleanup, no longer using a pidfile
+
 ## 0.15
 
 - Added feature PREBUILD_ADDITIONAL_TASKS to allow for custom tasks to be done during prebuild

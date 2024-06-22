@@ -3,7 +3,7 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2021-2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2021-2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -184,9 +184,6 @@ do_clear() {
 
     # msg_2 "do_clear()"
 
-    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
-    [ -f "$pidfile_do_chroot" ] && error_msg "do_chroot.sh seems to be running!"
-
     [ ! -e "$d_build_root" ] && error_msg "Buildenv not pressent: $d_build_root"
     rm -rf "$d_build_root"
     [ -e "$d_build_root" ] && error_msg "Failed to clear: $d_build_root"
@@ -225,7 +222,7 @@ display_build_target() { # Multi OK 1
         error_msg "This must be run as root or using sudo!"
     fi
 
-    if [ -d "$d_build_root" ] && [ -f "$pidfile_do_chroot" ]; then
+    if [ -d "$d_build_root" ] && [ -f "$d_build_root/$f_host_fs_is_chrooted" ]; then
         echo "ERROR: Active chroot session detected at $d_build_root!"
         echo "       If this is due to a crash or abort, you can clear it by running:"
         echo "         tools/do_chroot.sh -c"

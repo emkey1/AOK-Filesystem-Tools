@@ -5,7 +5,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  Version checks
 #
@@ -189,7 +189,7 @@ ios_matching() {
 
 #  This just checks a random variable that is defined in utils.sh
 #  shellcheck disable=SC2154
-[ -z "$pidfile_do_chroot" ] && {
+[ -z "$d_aok_etc" ] && {
     echo "ERROR: utils.sh must be sourced before vers_checks.sh"
     exit 1
 }
