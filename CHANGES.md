@@ -2,15 +2,18 @@
 
 I will try to keep track of changes between releases here
 
-## next release
+## 0.15
 
-- aok_launcher, makes network-check earlier
+- Added feature PREBUILD_ADDITIONAL_TASKS to allow for custom tasks to be done during prebuild
+- aok-versions (run on login) displays iSH AOK-FS & Alpine/Debian release
+- Debian uptime doesnt work on iSH - fixed by a replacement uptime that always displays 0.00, 0.00, 0.00
+- Setup can run on chrooted iSH
+- Improved propagating errors to terminate the build
 - moved Debian/ish_replacement_bins -> FamDeb
 - preventing mistaken error detection if CUSTOM_FILES_TEMPLATE is undefined
 - aok_launcher - added network-check
-- Corrected build time to include compress step
 - Save prebuild time & add it (if applicable) when displaying total deploy time
-- tools/upgrade-aok-fs.sh - improved aok vers handling
+- Corrected build time to include compress step
 
 ## 0.14.1
 
