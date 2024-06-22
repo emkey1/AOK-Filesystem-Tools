@@ -297,6 +297,14 @@ initiate_deploy() {
     deploy_starting
 
     # buildtype_set "$_ss_distro_name"
+
+    if [ -n "$PREBUILD_ADDITIONAL_TASKS" ]; then
+        msg_3 "At the end of the pre-build, additioal tasks will be run:"
+        echo "--------------------"
+        echo "$PREBUILD_ADDITIONAL_TASKS"
+        echo "--------------------"
+        echo
+    fi
     if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
         msg_3 "At the end of the install, additioal tasks will be run:"
         echo "--------------------"
@@ -469,7 +477,7 @@ copy_local_bins() {
     # echo "^^^ copy_local_bins() - done"
 }
 
-installed_versions_if_prebuilt() {
+display_installed_versions_if_prebuilt() {
     if deploy_state_is_it "$deploy_state_pre_build"; then
         echo
         /usr/local/bin/aok-versions
@@ -895,6 +903,49 @@ deploy_starting() {
     fi
 }
 
+replace_home_user() {
+    [ -f "$f_home_user_replaced" ] && {
+        msg_2 "HOME_DIR_USER already replaced"
+        return
+    }
+
+    [ -n "$HOME_DIR_USER" ] && {
+        if [ -f "$HOME_DIR_USER" ]; then
+            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
+            msg_2 "Replacing /home/$USER_NAME"
+            cd "/home" || error_msg "Failed cd /home"
+            rm -rf "$USER_NAME"
+            untar_file "$HOME_DIR_USER" z # NO_EXIT_ON_ERROR
+            touch "$f_home_user_replaced"
+        else
+            error_msg "HOME_DIR_USER file not found: $HOME_DIR_USER" no_exit
+        fi
+    }
+}
+
+replace_home_root() {
+    [ -f "$f_home_root_replaced" ] && {
+        msg_2 "HOME_DIR_ROOT already replaced"
+        return
+    }
+    [ -n "$HOME_DIR_ROOT" ] && {
+        if [ -f "$HOME_DIR_ROOT" ]; then
+            msg_2 "Replacing /root"
+            mv /root /root.ORIG
+            cd / || error_msg "Failed to cd into: /"
+            untar_file "$HOME_DIR_ROOT" z # NO_EXIT_ON_ERROR
+            touch "$f_home_root_replaced"
+        else
+            error_msg "HOME_DIR_ROOT file not found: $HOME_DIR_ROOT" no_exit
+        fi
+    }
+}
+
+replace_home_dirs() {
+    replace_home_user
+    replace_home_root
+}
+
 #===============================================================
 #
 #   Main
@@ -924,7 +975,7 @@ TMPDIR="${TMPDIR:-/tmp}"
 #
 #  Used for keeping track of deploy / chroot status
 #
-d_aok_etc="/etc/opt/AOK"
+d_aok_etc=/etc/opt/AOK
 
 #
 #  Figure out if this script is run as a build host
@@ -934,11 +985,11 @@ d_aok_etc="/etc/opt/AOK"
 #  a prefix to all absolute paths - d_build_root
 #  pointing to where the dest fs is located in the host fs
 #
-f_host_fs_is_chrooted="/etc/opt/AOK/this_fs_is_chrooted"
-f_host_deploy_state="${d_aok_etc}/deploy_state"
+f_host_fs_is_chrooted="$d_aok_etc"/this_fs_is_chrooted
+f_host_deploy_state="$d_aok_etc"/deploy_state
 
 if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
-    d_build_root="$TMPDIR/aok_fs"
+    d_build_root="$TMPDIR"/aok_fs
 else
     d_build_root=""
 fi
@@ -970,13 +1021,13 @@ fi
 #
 
 #  Location for src images
-d_src_img_cache="$TMPDIR/aok_cache"
+d_src_img_cache="$TMPDIR"/aok_cache
 
 #
 #  If this is built on an iSH node, and iCloud is mounted, the image is
 #  copied to this location
 #
-d_icloud_archive="/iCloud/AOK_Archive"
+d_icloud_archive=/iCloud/AOK_Archive
 
 #
 #  Names of the rootfs tarballs used for initial population of FS
@@ -1021,9 +1072,9 @@ setup_final=/opt/AOK/common_AOK/setup_final_tasks.sh
 #
 #  When reported what distro is used on Host or Dest FS uses this
 #
-distro_alpine="Alpine"
-distro_debian="Debian"
-distro_devuan="Devuan"
+distro_alpine=Alpine
+distro_debian=Debian
+distro_devuan=Devuan
 
 deploy_state_na="FS not awailable"       # FS has not yet been created
 deploy_state_initializing="initializing" # making FS ready for 1st boot
@@ -1031,26 +1082,31 @@ deploy_state_pre_build="prebuild"        # building FS on buildhost, no details 
 deploy_state_dest_build="dest build"     # building FS on dest, dest details can be gathered
 deploy_state_finalizing="finalizing"     # main deploy has happened, now certain to
 
-destfs_select="select"
+destfs_select=select
 f_destfs_select_hint="$d_build_root"/etc/opt/select_distro
 
-pidfile_do_chroot="$TMPDIR/aok_do_chroot.pid"
+pidfile_do_chroot="$TMPDIR"/aok_do_chroot.pid
 
 #  file alt hostname reads to find hostname
 #  the variable has been renamed to
-f_hostname_source_fname=/etc/opt/AOK/hostname_source_fname
+f_hostname_source_fname="$d_aok_etc"/hostname_source_fname
+
+# d_aok_etc="$d_build_root/$d_aok_etc"
+
+f_home_user_replaced="$d_aok_etc"/home_user_replaced
+f_home_root_replaced="$d_aok_etc"/home_root_replaced
 
 #
 #  For automated logins
 #
-f_login_default_user="/etc/opt/AOK/login-default-username"
-f_logins_continous="/etc/opt/AOK/login-continous"
+f_login_default_user="$d_aok_etc"/login-default-username
+f_logins_continous="$d_aok_etc"/login-continous
 
-f_hostname_aok_suffix="/etc/opt/AOK/hostname-aok-suffix"
-f_pts_0_as_console="/etc/opt/AOK/pts_0_as_console"
-f_profile_hints="/etc/opt/AOK/show_profile_hints"
+f_hostname_aok_suffix="$d_aok_etc"/hostname-aok-suffix
+f_pts_0_as_console="$d_aok_etc"/pts_0_as_console
+f_profile_hints="$d_aok_etc"/show_profile_hints
 
 cmd_pigz="$(command -v pigz)"
 if [ -z "$cmd_pigz" ] && [ -x /home/linuxbrew/.linuxbrew/bin/pigz ]; then
-    cmd_pigz="/home/linuxbrew/.linuxbrew/bin/pigz"
+    cmd_pigz=/home/linuxbrew/.linuxbrew/bin/pigz
 fi

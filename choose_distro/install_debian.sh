@@ -129,12 +129,15 @@ rm "$distro_tmp_dir" -rf || {
     error_msg "Failed to clear: $distro_tmp_dir"
 }
 
+#
+#  Cleanup for select-distro
+#
 msg_2 "Removing last traces of Alpine - busybox"
 rm /busybox
 rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
 
-initial_fs_prep_debian
+initial_fs_prep_fam_deb
 
 msg_2 "Set openrc to runlevel default"
 /usr/sbin/openrc default

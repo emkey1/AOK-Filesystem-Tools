@@ -48,7 +48,7 @@ ensure_path_items_are_available() {
     #  FIRST_BOOT_ADDITIONAL_TASKS, where precise knowledge of that
     #  device should make specific requirements self explanatory.
     #
-    msg_2 "ensure_path_items_are_available()"
+    msg_2 "Ensure path items pottentially on iCloud are available"
 
     # shellcheck disable=SC2154
     items_to_check="\
@@ -180,31 +180,6 @@ start_cron_if_active() {
     # msg_3 "start_cron_if_active() - done"
 }
 
-replace_home_dirs() {
-    [ -n "$HOME_DIR_USER" ] && {
-        if [ -f "$HOME_DIR_USER" ]; then
-            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-            msg_2 "Replacing /home/$USER_NAME"
-            cd "/home" || error_msg "Failed cd /home"
-            rm -rf "$USER_NAME"
-            untar_file "$HOME_DIR_USER" z NO_EXIT_ON_ERROR
-        else
-            error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
-        fi
-    }
-
-    [ -n "$HOME_DIR_ROOT" ] && {
-        if [ -f "$HOME_DIR_ROOT" ]; then
-            msg_2 "Replacing /root"
-            mv /root /root.ORIG
-            cd / || error_msg "Failed to cd into: /"
-            untar_file "$HOME_DIR_ROOT" z NO_EXIT_ON_ERROR
-        else
-            error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
-        fi
-    }
-}
-
 deploy_bat_monitord() {
     s_name="bat-monitord"
 
@@ -241,12 +216,12 @@ run_additional_tasks_if_found() {
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
-deploy_state_clear() {
-    msg_2 "deploy_state_clear()"
-
+clean_up_dest_env() {
+    msg_2 "clear deploy state"
     rm "$f_dest_fs_deploy_state"
 
-    # msg_3 "deploy_state_clear() - done"
+    rm -f "$f_home_user_replaced"
+    rm -f "$f_home_root_replaced"
 }
 
 #===============================================================
@@ -350,8 +325,8 @@ run_additional_tasks_if_found
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
 
-deploy_state_clear
 verify_launch_cmd
+clean_up_dest_env
 
 msg_1 "File system deploy completed"
 

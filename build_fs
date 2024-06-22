@@ -79,7 +79,7 @@ check_dependencies() {
         #  shellcheck disable=SC2086 # in this case it should expand
         apk add $_deps
         ;;
-    "$d/istro_debian" | "$distro_devuan")
+    "$distro_debian" | "$distro_devuan")
         #  shellcheck disable=SC2086 # in this case it should expand
         apt install $_deps
         ;;
@@ -332,7 +332,7 @@ setup_Debian_on_1st_boot() {
 
     # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
     . /opt/AOK/FamDeb/deb_utils.sh
-    initial_fs_prep_debian
+    initial_fs_prep_fam_deb
 
     # buildtype_set "$distro_debian"
     set_new_etc_profile "$setup_debian_scr"
@@ -345,7 +345,7 @@ setup_Devuan_on_1st_boot() {
 
     # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
     . /opt/AOK/FamDeb/deb_utils.sh
-    initial_fs_prep_debian
+    initial_fs_prep_fam_deb
 
     # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"

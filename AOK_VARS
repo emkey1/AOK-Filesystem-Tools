@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.20"
+AOK_VERSION="0.14.21"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -77,6 +77,13 @@ USER_SHELL="/bin/bash"
 #  kept in the compressed FS
 #
 # POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/aok_fs"
+
+#
+#  Additional tasks done during the prebuild stage, ie on the build
+#  platform. Make sure nothing depends on the destination env!
+#
+# PREBUILD_ADDITIONAL_TASKS="/iCloud/deploy/additional-prebuild-tasks"
+
 #
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time

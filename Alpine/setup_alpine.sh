@@ -186,6 +186,8 @@ msg_2 "Preparing initial motd"
 
 setup_cron_env
 
+replace_home_dirs
+
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
 #  on first boot or now.
@@ -197,7 +199,18 @@ else
     "$setup_final"
 fi
 
-installed_versions_if_prebuilt
+[ -n "$PREBUILD_ADDITIONAL_TASKS" ] && {
+    msg_1 "Running additional setup tasks"
+    echo "---------------"
+    echo "$PREBUILD_ADDITIONAL_TASKS"
+    echo "---------------"
+    $PREBUILD_ADDITIONAL_TASKS || {
+        error_msg "PREBUILD_ADDITIONAL_TASKS returned error"
+    }
+    msg_1 "Returned from the additional prebuild tasks"
+}
+
+display_installed_versions_if_prebuilt
 
 msg_1 "Setup complete!"
 
