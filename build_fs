@@ -14,6 +14,7 @@
 #
 
 show_help() { # Multi OK 1
+    #region help text
     echo "Usage: $prog_name [-h] [-v] [-p] [-c] [-z] [-u]
 
 This builds the iSH-AOK filesystem.
@@ -56,6 +57,7 @@ by running:  ./compress_image
 
 Then just import this into iSH!
 "
+    #endregion
     exit 0
 }
 
@@ -558,20 +560,6 @@ if $pre_build_FS; then
 fi
 
 msg_2 "The filesystem is ready!"
-
-if [ "$build_env" != "$be_other" ]; then
-    if [ "$build_target" = "$distro_alpine" ] || [ "$build_target" = "$distro_select" ]; then
-        shell_not_triggering_profile=/bin/ash
-    else
-        #  shellcheck disable=SC2034
-        shell_not_triggering_profile=/bin/sh
-    fi
-    echo
-    unset set_shell
-else
-    echo
-    echo "This platform can not chroot into the FS"
-fi
 
 consider_generating_tarball
 
