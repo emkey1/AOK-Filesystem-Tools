@@ -55,7 +55,7 @@ print_log() {
 }
 
 check_for_revovery_mode() {
-    if [ -f "$f_is_chrooted" ]; then
+    if [ -f "$f_this_is_chrooted" ]; then
         #
         #  On iSH boot there is time to press r during boot wait
         #  when chrooted there is no boot wait, so we make a short wait
@@ -158,7 +158,7 @@ bootup() {
     fi
 
     check_for_revovery_mode
-    if [ ! -f "$f_is_chrooted" ]; then
+    if [ ! -f "$f_this_is_chrooted" ]; then
         runlevel_wait
     else
         echo
@@ -347,7 +347,7 @@ f_logins_continous="$state_prefix"/login-continous
 f_login_default_user="$state_prefix"/login-default-username
 f_pts_0_as_console="$state_prefix"/pts_0_as_console
 f_recovery_mode="$state_prefix"/recovery-mode
-f_is_chrooted="$state_prefix"/this_fs_is_chrooted
+f_this_is_chrooted="$state_prefix"/this_fs_is_chrooted
 
 rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
 check_for_revovery_mode
@@ -381,7 +381,7 @@ while true; do
         print_log "ERROR: $f_login_prog exited with: $login_ex_code"
     }
 
-    if [ -f "$f_is_chrooted" ]; then
+    if [ -f "$f_this_is_chrooted" ]; then
         print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
         exit 0
     fi
