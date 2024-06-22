@@ -79,7 +79,7 @@ check_dependencies() {
         #  shellcheck disable=SC2086 # in this case it should expand
         apk add $_deps
         ;;
-    "$d/istro_debian" | "$distro_devuan")
+    "$distro_debian" | "$distro_devuan")
         #  shellcheck disable=SC2086 # in this case it should expand
         apt install $_deps
         ;;
@@ -103,7 +103,7 @@ parse_arguments() { # Multi OK 1
 
         "-d" | "--debian")
             if [ "$build_target" = "$destfs_select" ]; then
-                echo "-d and -s can not be combined!"
+                echo "Can not be combined: -d and -s"
                 exit 1
             fi
             build_target="$distro_debian"
@@ -111,7 +111,7 @@ parse_arguments() { # Multi OK 1
 
         "-D" | "--devuan")
             if [ "$build_target" = "$destfs_select" ]; then
-                echo "-D and -s can not be combined!"
+                echo "Can not be combined: -D and -s"
                 exit 1
             fi
             build_target="$distro_devuan"
@@ -120,11 +120,11 @@ parse_arguments() { # Multi OK 1
         "-s" | "--select")
             if [ "$build_target" = "$distro_debian" ] ||
                 [ "$build_target" = "$distro_devuan" ]; then
-                echo "-d/-D and -s can not be combined!"
+                echo "Can not be combined: -d/-D and -s"
                 exit 1
             fi
             if $pre_build_FS; then
-                echo "-p and -s can not be combined!"
+                echo "Can not be combined: -p and -s"
                 exit 1
             fi
             build_target="$destfs_select"
@@ -132,7 +132,7 @@ parse_arguments() { # Multi OK 1
 
         "-p" | "--prebuilt")
             if [ "$build_target" = "$destfs_select" ]; then
-                echo "-p and -s can not be combined!"
+                echo "Can not be combined: -p and -s"
                 exit 1
             fi
             pre_build_FS=true
@@ -154,7 +154,7 @@ parse_arguments() { # Multi OK 1
 
         "-j" | "--bzip2")
             if ! $aok_FS_do_compress; then
-                echo "-j and -N can not be combined!"
+                echo "Can not be combined: -j and -N"
                 exit 1
             fi
             use_bzip2=true
@@ -162,7 +162,7 @@ parse_arguments() { # Multi OK 1
 
         "-N" | "--no_compress")
             if $use_bzip2; then
-                echo "-j and -N can not be combined!"
+                echo "Can not be combined: -j and -N"
                 exit 1
             fi
             aok_FS_do_compress=false
@@ -293,10 +293,10 @@ copy_AOK_to_dest() {
     rsync -ah \
         --exclude=.vscode/ \
         --exclude=.AOK_VARS \
-        "$d_aok_base"/ "$d_build_root"/opt/AOK
+        /opt/AOK/ "$d_build_root"/opt/AOK
 
     io_dst_conf="$aok_files"/AOK_VARS
-    io_conf_overrides="$d_aok_base"/.AOK_VARS
+    io_conf_overrides=/opt/AOK/.AOK_VARS
     if [ -f "$io_conf_overrides" ]; then
         msg_3 "Appending .AOK_CONF on dest FS"
         (
@@ -330,8 +330,9 @@ setup_Alpine_on_1st_boot() {
 setup_Debian_on_1st_boot() {
     msg_2 "setup_Debian_on_1st_boot()"
 
-    . "$d_aok_base"/Debian/deb_utils.sh
-    intial_fs_prep_debian
+    # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
+    . /opt/AOK/FamDeb/deb_utils.sh
+    initial_fs_prep_fam_deb
 
     # buildtype_set "$distro_debian"
     set_new_etc_profile "$setup_debian_scr"
@@ -341,6 +342,10 @@ setup_Debian_on_1st_boot() {
 
 setup_Devuan_on_1st_boot() {
     msg_2 "setup_Devuan_on_1st_boot()"
+
+    # shellcheck source=/opt/AOK/FamDeb/deb_utils.sh
+    . /opt/AOK/FamDeb/deb_utils.sh
+    initial_fs_prep_fam_deb
 
     # buildtype_set "$distro_devuan"
     set_new_etc_profile "$setup_devuan_scr"
@@ -363,7 +368,7 @@ select_distro_on_1st_boot() {
     #
     if [ "$build_env" != "$be_other" ]; then
         [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
-        if ! "$d_aok_base"/tools/do_chroot.sh "$force_chroot" /etc/profile; then
+        if ! /opt/AOK/tools/do_chroot.sh "$force_chroot" /etc/profile; then
             error_msg "Error in chroot, aborting build!"
         fi
     else
@@ -385,15 +390,15 @@ prebuild_fs() {
     #
     # chrooting and doing setup
     #
-    cd "$d_aok_base" || {
-        error_msg "Failed to cd into: $d_aok_base"
+    cd /opt/AOK || {
+        error_msg "Failed to cd into: /opt/AOK"
     }
 
     deploy_state_set "$deploy_state_pre_build"
 
     [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
 
-    "$d_aok_base"/tools/do_chroot.sh "$force_chroot" /etc/profile || {
+    /opt/AOK/tools/do_chroot.sh "$force_chroot" /etc/profile || {
         error_msg "There was an error during prebuild"
     }
 
@@ -440,7 +445,7 @@ consider_generating_tarball() {
         #  Here the tarball is generated
         #
         #  shellcheck disable=SC2086,SC2248
-        if ! "$d_aok_base"/compress_image $cgt_extra_params; then
+        if ! /opt/AOK/compress_image $cgt_extra_params; then
             error_msg "detected in compress_image"
         fi
 
@@ -453,7 +458,7 @@ consider_generating_tarball() {
 
 display_build_time() {
     msg_2 "display_build_time()"
-    dbt_duration="$(($(date +%s) - t_start))"
+    dbt_duration="$(($(date +%s) - t_build_start))"
     if $pre_build_FS; then
         dbt_lbl="Create and setup FS"
     else
@@ -472,9 +477,9 @@ display_build_time() {
 #===============================================================
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-t_start="$(date +%s)"
+t_build_start="$(date +%s)"
 
 # shellcheck disable=SC1007
 prog_name=$(basename "$0")
@@ -486,8 +491,8 @@ deploy_state_set "$deploy_state_na" # Dest FS not yet created
 #  to keep things relative and simple
 #
 #  shellcheck disable=SC1007
-cd "$d_aok_base" || {
-    error_msg "Failed to cd into: $d_aok_base"
+cd /opt/AOK || {
+    error_msg "Failed to cd into: /opt/AOK"
 }
 
 #
@@ -499,7 +504,7 @@ use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true means generate pre-built FS
 aok_FS_do_compress=true       # compress FS at end of build_fs
 
-aok_files="${d_build_root}${d_aok_base}"
+aok_files="${d_build_root}/opt/AOK"
 
 parse_arguments "$@"
 
@@ -532,13 +537,10 @@ cache_fs_image
 create_fs "${d_src_img_cache}/$src_tarball" "$d_build_root" "$verbose"
 
 copy_AOK_to_dest
-msg_3 "Deployed $d_aok_base on new filesystem"
+msg_3 "Deployed /opt/AOK on new filesystem"
 
 #  Announce what AOK release this is
 msg_2 "Set $(echo "$f_aok_fs_release" | sed "s|$d_build_root||") to $AOK_VERSION"
-
-# /mnt/HC_Volume_36916115/aok_tmp/aok_fs/etc/aok-release
-# etc/aok-release
 
 echo "$AOK_VERSION" >"$f_aok_fs_release"
 

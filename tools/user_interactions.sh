@@ -33,7 +33,7 @@ user_interactions() {
 
     if [ -z "$AOK_TIMEZONE" ]; then
         msg_1 "Timezone selection"
-        "$d_aok_base"/common_AOK/usr_local_bin/set-timezone
+        /opt/AOK/common_AOK/usr_local_bin/set-timezone
     fi
     # msg_3 "user_interactions()  - done"
 }

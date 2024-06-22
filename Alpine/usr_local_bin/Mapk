@@ -38,14 +38,17 @@ display_time_elapsed() {
 
 t_start="$(date +%s)"
 
-echo "Mapk - apk maintenance"
+echo "===  Mapk - apk maintenance  ==="
 
 if [ "$(whoami)" != "root" ]; then
     echo "***  This must be run using sudo!  ***"
     exit 1
 fi
 
-apk fix && apk upgrade
+if ! apk fix || ! apk upgrade ;then
+    echo "ERROR detected by Mapk"
+    exit 1
+fi
 
 #
 #  Check if reboot is required

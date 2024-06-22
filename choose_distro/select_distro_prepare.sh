@@ -18,7 +18,7 @@ if [ ! -d "/opt/AOK" ]; then
 fi
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 msg_script_title "select_distro_prepare.sh  Prep for distro select"
 

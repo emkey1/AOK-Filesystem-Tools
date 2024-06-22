@@ -1,6 +1,18 @@
 # TODO
 
+## famdeb Mapt installed after apt install/purge
+
 ## kernel glitches
+
+## minim install
+
+bc gawk grep procps sed ncurses-bin wget cron whiptail
+man-db groff-base rsyslog
+
+## aok install
+
+file less sudo tar util-linux openrc vim curl rsync sqlite3
+? groff-base
 
 ### /proc/loadavg
 
@@ -16,8 +28,8 @@ Not sure what happens, seems to create at least 3
  /bin/sh /usr/local/bin/aok -e off
 processes, ending up non responsive
 in most cases new ssh sessions can be created. existing sessions
-tends to survive as long as they didnt generate any output whilst the -e off took place
-
+tends to survive as long as they didnt generate any output whilst
+the -e off took place
 
 ## Alpine app versions
 
@@ -59,17 +71,24 @@ exclusions
 
 ## Seems to be issues with latest  mdcat on 3.18
 
-investigate and if confirmed, try to find latest version that can be used, and add it to set of custom apks
+investigate and if confirmed, try to find latest version that can be used,
+and add it to set of custom apks
 in Alpine/setup_alpine.sh
 
 ## Using /dev/console within the iSH limitations
 
-This actually works much better in Debian than in Alpine, since in Alpine as of now only auto-login as root works. agetty fails to change ownership of /dev/pts/0 on Alpine
+This actually works much better in Debian than in Alpine, since in Alpine
+as of now only auto-login as root works. agetty fails to change ownership
+of /dev/pts/0 on Alpine
 
-1 Add this as Launch cmd to avoid harmless but annoying error msg everytime ish is started and offensive login BEFORE init is run, but still ensure /dev/pts/0 is bound
+1 Add this as Launch cmd to avoid harmless but annoying error msg everytime
+ish is started and offensive login BEFORE init is run, but still ensure
+/dev/pts/0 is bound
 `/bin/sleep infinity`
 
-2 Replace console with this alternate content in /usr/local/sbin/fix_dev if you use it via inittab, otherwise  run it in a shell as root, in order to ensure anything can print to
+2 Replace console with this alternate content in /usr/local/sbin/fix_dev
+if you use it via inittab, otherwise  run it in a shell as root, in order
+to ensure anything can print to
 /dev/console, without being restricted when agetty locks down /dev/pts/0
 With this normal bootup console output can be seen!
 
@@ -78,30 +97,39 @@ With this normal bootup console output can be seen!
 rm -f /dev/console && mknod -m 222 /dev/console c 136 0
 ```
 
-3a Add this towards end of /etc/inittab if you want a login prompt for console screen
+3a Add this towards end of /etc/inittab if you want a login prompt for
+console screen
 
 ``` inittab
 pts0::respawn:/sbin/agetty pts/0 linux
 ```
 
-3b Alternatively use this if you want to use -a to login as a user without prompting for password, be aware that in this case logout / exit will instantly automatically log you back in again 🙂  You will have to use shutdown to terminate the iSH app
+3b Alternatively use this if you want to use -a to login as a user without
+prompting for password, be aware that in this case logout / exit will
+instantly automatically log you back in again 🙂  You will have to use
+shutdown to terminate the iSH app
 
 pts0::respawn:/sbin/agetty -a root pts/0 linux
 
-IMPORTANT UPDATE: Please be aware that in Alpine you cant use pts0 as an inittab identifier for whatever reason, despite it being no longer than 4 chars, in such cases labeling it as tty1 works and will give you a prompt.
-On Debian pts0 works, and makes more sense since it hints what device this is using
+IMPORTANT UPDATE: Please be aware that in Alpine you cant use pts0 as an
+inittab identifier for whatever reason, despite it being no longer than
+4 chars, in such cases labeling it as tty1 works and will give you a prompt.
+On Debian pts0 works, and makes more sense since it hints what device this
+is using
 
 ## Wait for bootup to complete
 
 runlevel default should, do, can something else be done if openrc is not used?
 
-This could be used from /etc/profile for bash/ash and from /etc/zprofile for zsh
+This could be used from /etc/profile for bash/ash and from /etc/zprofile
+for zsh
 
 It needs to be cheap enough to not noticeably delay future login shells
 Here are my current ideas
 
 - Simplest, but assumes runbg is an active service...
-Check if /run/openrc/options/runbg/pidfile exists and is newer than /run/runlevel
+Check if /run/openrc/options/runbg/pidfile exists and is newer than
+/run/runlevel
 - If AOK_HOSTNAME_SUFFIX="Y" and ish-AOK this is quite cheap and quick
 `while ! hostname | grep -q '\-aok' ; do`
 - Uses ps ax, so has a crash risk, probably not ideal
@@ -141,4 +169,6 @@ the console session is logged out after a copple of minutes  - investigate
 
 ## update DEVUAN_SRC_IMAGE
 
-since it is about to become more usefull, i should update it to ensure it is in line with the debian image when it comes to what is installed out of the door
+since it is about to become more usefull, i should update it to ensure it
+is in line with the debian image when it comes to what is installed
+out of the door

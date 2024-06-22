@@ -7,7 +7,8 @@
 
 . /opt/AOK/tools/utils.sh
 
-. "$d_aok_base"/Debian/deb_utils.sh
+# shellcheck source=/dev/null
+. /opt/AOK/FamDeb/deb_utils.sh
 
 tid_start="$(date +%s)"
 
@@ -56,7 +57,7 @@ msg_3 "maintaining /etc/opt"
 cp -a /etc/opt "$distro_tmp_dir"/etc
 
 msg_2 "Moving Debian /etc/profile into place"
-cp "$d_aok_base"/Debian/etc/profile "$distro_tmp_dir"/etc/profile
+cp /opt/AOK/Debian/etc/profile "$distro_tmp_dir"/etc/profile
 
 rm -rf "$debian_download_location"
 
@@ -117,7 +118,7 @@ msg_3 "Copying Alpine lib (musl) to /usr/lib"
 #  replace /lib with soft-link to /usr/lib
 # /busybox echo "> Replacing /lib with a soft-link to /usr/lib"
 msg_3 "Replacing /lib with a soft-link to /usr/lib"
-"$d_aok_base"/choose_distro/bin/lib_fix
+/opt/AOK/choose_distro/bin/lib_fix
 
 #  From now on Debian should be fully available
 
@@ -128,12 +129,15 @@ rm "$distro_tmp_dir" -rf || {
     error_msg "Failed to clear: $distro_tmp_dir"
 }
 
+#
+#  Cleanup for select-distro
+#
 msg_2 "Removing last traces of Alpine - busybox"
 rm /busybox
 rm /usr/lib/libc.musl*
 rm /usr/lib/ld-musl*
 
-intial_fs_prep_debian
+initial_fs_prep_fam_deb
 
 msg_2 "Set openrc to runlevel default"
 /usr/sbin/openrc default

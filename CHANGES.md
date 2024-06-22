@@ -2,10 +2,18 @@
 
 I will try to keep track of changes between releases here
 
-## next release
+## 0.15
 
+- Added feature PREBUILD_ADDITIONAL_TASKS to allow for custom tasks to be done during prebuild
+- aok-versions (run on login) displays iSH AOK-FS & Alpine/Debian release
+- Debian uptime doesnt work on iSH - fixed by a replacement uptime that always displays 0.00, 0.00, 0.00
+- Setup can run on chrooted iSH
+- Improved propagating errors to terminate the build
+- moved Debian/ish_replacement_bins -> FamDeb
+- preventing mistaken error detection if CUSTOM_FILES_TEMPLATE is undefined
+- aok_launcher - added network-check
 - Save prebuild time & add it (if applicable) when displaying total deploy time
-- tools/upgrade-aok-fs.sh - improved aok vers handling
+- Corrected build time to include compress step
 
 ## 0.14.1
 
@@ -13,8 +21,8 @@ I will try to keep track of changes between releases here
 
 ## 0.14
 
-- When Debian is installed on regular iSH, uptime needs to be replaced, since /proc/sysload is not available, original uptime is kept as /usr/bin/or\
-g-uptime
+- When Debian is installed on regular iSH, uptime needs to be replaced, \
+since /proc/sysload is not available, original uptime is kept as /usr/bin/org-uptime
 - Added untar_file() to make sure pigz is always used for untaring (if available)
 - Ensures aok_imgs folder is created before generating compressed FS image
 - Added /usr/local/bin/aok-version - displaying AOK-FS, FS and iSH kernel releases
@@ -33,9 +41,11 @@ g-uptime
 
 ### 0.11.3
 
-- New Launcher cmd 'aok_launcher'. This waits for runlevel default before progressing Allowing for things like clearing /run and updating motd durin\
-g sysinit before initiating the first session. Will only wait for bootup on the 1st vterm. Before mounting a non AOK-FS, run `aok -l default` to ens\
-ure that a normal FS will boot properly.
+- New Launcher cmd 'aok_launcher'. This waits for runlevel default before \
+progressing Allowing for things like clearing /run and updating motd durin\
+g sysinit before initiating the first session. Will only wait for bootup\
+on the 1st vterm. Before mounting a non AOK-FS, run `aok -l default` to\
+ensure that a normal FS will boot properly.
 - a tool to configure most aspects of the AOK FS '/usr/local/bin/aok'
 - Removed custom logins, since all are now handled by aok_launcher, and configured via '/usr/local/bin/aok'
 - Updated skels (shell init files), added sys load and batt_lvl to bash & zsh

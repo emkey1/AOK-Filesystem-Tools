@@ -10,18 +10,19 @@
 #  Varios things used at multiple places during Debian installs
 #
 
-intial_fs_prep_debian() {
-    msg_2 "intial_fs_prep_debian()"
+initial_fs_prep_fam_deb() {
+    msg_2 "initial_fs_prep_fam_deb()"
 
     #
     #  This modified inittab is needed on firstboot, in order to be
     #  able to set runlevels, it forcefully clears /run/openrc before
     #  going to runlevel S
     #
-    msg_3 "Debian AOK inittab"
-    cp -a "$d_aok_base"/Debian/etc/inittab "$d_build_root"/etc
+    msg_3 "FamDeb AOK inittab"
+    #  shellcheck disable=SC2154
+    cp -a /opt/AOK/FamDeb/etc/inittab "$d_build_root"/etc
 
-    # msg_3 "intial_fs_prep_debian() - done"
+    # msg_3 "initial_fs_prep_fam_deb() - done"
 }
 
 #===============================================================
@@ -30,4 +31,4 @@ intial_fs_prep_debian() {
 #
 #===============================================================
 
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+# [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh

@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.14.2"
+AOK_VERSION="0.15"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -77,6 +77,13 @@ USER_SHELL="/bin/bash"
 #  kept in the compressed FS
 #
 # POPULATE_FS="rsync -ah /home/jaclu/iCloud $TMPDIR/aok_fs"
+
+#
+#  Additional tasks done during the prebuild stage, ie on the build
+#  platform. Make sure nothing depends on the destination env!
+#
+# PREBUILD_ADDITIONAL_TASKS="/iCloud/deploy/additional-prebuild-tasks"
+
 #
 #  Use this if you have your own restore procedure.
 #  If defined, this will be run after deploy has completed, at a time
@@ -126,11 +133,12 @@ USER_SHELL="/bin/bash"
 #  ALPINE_VERSION defines what Alpine release (minirootfs) will be used
 #
 # ALPINE_VERSION=3.15.11 # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.9  # End of Alpine support 2024-05-23
+# ALPINE_VERSION=3.16.9 # End of Alpine support 2024-05-23
 # ALPINE_VERSION=3.17.7 # End of Alpine support 2024-11-22
 ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
-# As of 2024-02-06 sudo insta crashes ish if using 3.19... test: sudo ls
-##ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
+# As of 2024-06-12 sudo insta crashes ish if using 3.19 or 3.20... test: sudo ls
+## ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
+## ALPINE_VERSION=3.20.0 # End of Alpine support  2026-04-01
 #
 #  For edge releases - Current development tree
 #  Format is the isodate featured in the minirootfs filename
@@ -152,20 +160,18 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 
 #
 #  Use this if you want to deploy your own /etc/hosts file etc
-#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
-#  template file.
 #  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
 #
-# ALPINE_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
+# CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/alpine_files_template.sh"
 
 #
 #  Always installed packages
 #
-pkgs_tools="busybox-extras coreutils procps util-linux sudo shadow \
-    shadow-login tzdata findutils sed tar pigz file gawk grep htop less \
-    sqlite fzf py3-pip ncdu"
+pkgs_tools="busybox-extras coreutils procps util-linux
+    sudo shadow shadow-login tzdata findutils sed tar pigz file gawk
+    grep htop less sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
-pkgs_services="openrc dcron dcron-openrc"
+pkgs_services="openrc dcron"
 pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
@@ -180,6 +186,12 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #  on first boot at dest device,
 #  not 3.17
 AOK_APKS="nload nload-doc"
+
+#
+#  Packages that should be removed, typically this would make most
+#  sense to use in an .AOK_VARS
+#
+AOK_PKGS_SKIP=""
 
 #
 #  Additional APK groups managed with /usr/local/bin/aok-groups
@@ -204,8 +216,8 @@ NODEJS_APKS='nodejs nodejs-dev'
 #  not development related man pages, those doing development are
 #  assumed to know what man pages they might need :)
 #
-DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
-    shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
+DOCS_APKS="man-db man-pages busybox-doc coreutils-doc procps-ng-doc \
+    sudo-doc shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
     tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
     sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
     dcron-doc openssh-doc rsync-doc curl-doc wget-doc elinks-doc \
@@ -213,7 +225,7 @@ DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 
 ########################################################################
 #
-#                   Debian/Devuan Specific
+#                   Debian Specific
 #
 ########################################################################
 
@@ -225,7 +237,7 @@ DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/svcru9u50zz5ga5ik0szj/Debian10-11-aok-2.tgz?rlkey=j08gxjc4i4jtahab1ce9phana"
+DEBIAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/ft3hcmxe3ly9gydkr03cf/Debian10-12-aok-3.tgz?rlkey=gk96w8eizs0411lxif4jq3hst"
 
 #
 #  Since the Debian src image comes pre installed as close as possibly
@@ -244,15 +256,6 @@ DEB_PKGS_SKIP=""
 #
 DEB_PKGS=""
 
-#
-#  Use this if you want to deploy your own /etc/hosts file etc
-#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
-#  template file.
-#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
-#  This points to a location on the destination device.
-#
-# DEBIAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
-
 ########################################################################
 #
 #                   Devuan Specific
@@ -267,7 +270,13 @@ DEB_PKGS=""
 #  Best of all if you pre-build, this package removal happens on the
 #  buil-host, so will not have to be done on the dest device!
 #
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-ish-base-v10.tgz?rlkey=h8h851hwsgds9s8s7j7n405b8"
+#  Devuan 4 has network but no DNS on iSH
+#
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/07wtt4x38lhg5kvnxw9qf/Devuan4-6-aok-3.tgz?rlkey=1rslv4yj5toyqp2fva5xh5smb"
+#
+#  Devuan 5 insta-crashes on iSH and has issues in ish-AOK
+#
+# DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
 
 #
 #  Since the Devuan src image comes pre installed as close as possibly
@@ -277,19 +286,10 @@ DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/dwso0zjovoqb5bxdqev3c/Devuan_4-
 #  DVU_PKGS_SKIP is processed before DVU_PKGS to ensure that
 #  this doesnt unintentionally deelete something for DVU_PKGS
 #
-DVU_PKGS_SKIP=""
+DEVU_PKGS_SKIP=""
 
 #
 #  Here one can add any additional packages to be installed during setup
 #  If pre-build is used, this will happen on the build host.
 #
-DVU_PKGS=""
-
-#
-#  Use this if you want to deploy your own /etc/hosts file etc
-#  If the file(-s) are relevant both for Alpine and Debian, point it to the same
-#  template file.
-#  Check /opt/AOK/Docs/custom_files_template.sh for notation of this file
-#  This points to a location on the destination device.
-#
-# DEVUAN_CUSTOM_FILES_TEMPLATE="/iCloud/ish_config/debian_files_template.sh"
+DEVU_PKGS=""

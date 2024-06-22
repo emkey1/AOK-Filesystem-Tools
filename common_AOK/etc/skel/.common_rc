@@ -147,7 +147,7 @@ get_battery_info() {
     fi
 
     case "$_shell_name" in
-    "bash" | "ash") _bat_color="\[\e[38;5;${_chrg_color}m\]" ;;
+    "bash" | "ash") _bat_color="\\[\\e[38;5;${_chrg_color}m\\]" ;;
     "zsh") _bat_color="%F{$_chrg_color}" ;;
     *) _bat_color="" ;;
     esac
@@ -182,7 +182,7 @@ get_sysload_lvl() {
 
     case "$CURRENT_SHELL" in
     zsh) printf '%s' "%F{$_load_color}$_sysload" ;;
-    bash | ash) printf '%s' "\[\e[38;5;${_load_color}m\]$_sysload" ;;
+    bash | ash) printf '%s' "\\[\\e[38;5;${_load_color}m\\]$_sysload" ;;
     *) ;;
     esac
 
@@ -199,13 +199,13 @@ use_static_bash_prompt() {
     prompt_colors
 
     #  shell specific notation for prompt colors
-    PCOL_USERNAME="\[\e[38;5;${PCOL_USERNAME}m\]"
-    PCOL_HOSTNAME="\[\e[38;5;${PCOL_HOSTNAME}m\]"
-    PCOL_CWD="\[\e[38;5;${PCOL_CWD}m\]"
-    PCOL_GREY="\[\e[38;5;${PCOL_GREY}m\]"
-    PCOL_CLR="\e[0m"
+    PCOL_USERNAME="\\[\\e[38;5;${PCOL_USERNAME}m\\]"
+    PCOL_HOSTNAME="\\[\\e[38;5;${PCOL_HOSTNAME}m\\]"
+    PCOL_CWD="\\[\\e[38;5;${PCOL_CWD}m\\]"
+    PCOL_GREY="\\[\\e[38;5;${PCOL_GREY}m\\]"
+    PCOL_CLR="\\e[0m"
 
-    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
+    PS1="${PCOL_USERNAME}\\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}${PCOL_GREY}:${PCOL_CWD}\\w${PCOL_CLR}\\$ "
     # "'$(get_battery_info $CURRENT_SHELL)'"
 }
 
@@ -215,7 +215,7 @@ use_dynamic_bash_prompt() {
 }
 
 update_dynamic_bash_prompt() {
-    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn} ${PCOL_GREY}$(get_sysload_lvl)$(get_battery_info "$CURRENT_SHELL")${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\\$ "
+    PS1="${PCOL_USERNAME}\\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn} ${PCOL_GREY}$(get_sysload_lvl)$(get_battery_info "$CURRENT_SHELL")${PCOL_GREY}:${PCOL_CWD}\\w${PCOL_CLR}\\$ "
 }
 
 #===============================================================
@@ -223,6 +223,12 @@ update_dynamic_bash_prompt() {
 #   Main
 #
 #===============================================================
+
+#
+#  Setup environment to use UTF-8 and 24h time notation
+#
+export LC_ALL=en_US.UTF-8
+export LC_TIME=en_GB.UTF-8
 
 #
 #  Some common bin locations in home dir,

@@ -16,14 +16,19 @@
 if test -f /etc/alpine-release; then
     head -n 4 </etc/motd
     echo "[0m"
-elif test -f /etc/debian_version && ! test -f /etc/devuan_version; then
-    /etc/update-motd.d/11-aok-release
-    /etc/update-motd.d/12-deb-vers
-    /etc/update-motd.d/13-ish-release
-    echo
-elif hostfs_is_devuan; then
+elif test -f /etc/devuan_version; then
     /etc/update-motd.d/11-aok-release
     /etc/update-motd.d/12-devu-vers
     /etc/update-motd.d/13-ish-release
     echo
+elif test -f /etc/debian_version; then
+    /etc/update-motd.d/11-aok-release
+    /etc/update-motd.d/12-deb-vers
+    /etc/update-motd.d/13-ish-release
+    echo
+else
+    echo
+    echo "ERROR: /usr/local/bin/aok-versions failed to detect FS!"
+    echo
+    exit 1
 fi

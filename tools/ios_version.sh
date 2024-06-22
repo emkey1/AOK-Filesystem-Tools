@@ -188,6 +188,7 @@ ios_matching() {
 #===============================================================
 
 #  This just checks a random variable that is defined in utils.sh
+#  shellcheck disable=SC2154
 [ -z "$pidfile_do_chroot" ] && {
     echo "ERROR: utils.sh must be sourced before vers_checks.sh"
     exit 1

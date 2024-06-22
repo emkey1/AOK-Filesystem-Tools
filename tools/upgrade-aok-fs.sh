@@ -29,7 +29,7 @@ Available options:
 
 restore_to_aok_state() {
     src="$1"
-    dst="$2"        
+    dst="$2"
     [ -z "$src" ] && error_msg "restore_to_aok_state() - no 1st param"
     [ -z "$dst" ] && error_msg "restore_to_aok_state() - no 2nd param"
     [ -e "$src" ] || error_msg "restore_to_aok_state() - src not found $src"
@@ -50,16 +50,17 @@ restore_configs() {
     restore_to_aok_state /opt/AOK/common_AOK/etc/profile-hints /etc
     restore_to_aok_state /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d/runbg
     restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc/login.defs
-    restore_to_aok_state "$distro_prefix"/etc/inittab /etc/inittab
-    restore_to_aok_state "$distro_prefix"/etc/profile /etc/profile
+    restore_to_aok_state "$distro_fam_prefix"/etc/inittab /etc/inittab
+    restore_to_aok_state "$distro_fam_prefix"/etc/profile /etc/profile
     restore_to_aok_state /opt/AOK/common_AOK/etc/skel /etc
     if hostfs_is_alpine; then
         restore_to_aok_state "$distro_prefix"/etc/motd_template /etc/motd_template
     elif hostfs_is_debian; then
-        restore_to_aok_state "$distro_prefix"/etc/pam.d /etc
+        restore_to_aok_state "$distro_fam_prefix"/etc/pam.d /etc
+        restore_to_aok_state "$distro_fam_prefix"/etc/update-motd.d /etc
         restore_to_aok_state "$distro_prefix"/etc/update-motd.d /etc
     elif hostfs_is_devuan; then
-        restore_to_aok_state "$distro_prefix"/etc/pam.d /etc
+        restore_to_aok_state "$distro_fam_prefix"/etc/pam.d /etc
         restore_to_aok_state "$distro_prefix"/etc/update-motd.d /etc
     fi
     echo
@@ -107,29 +108,24 @@ general_upgrade() {
         rsync_chown /opt/AOK/Alpine/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
         rsync_chown /opt/AOK/Alpine/usr_local_sbin/ /usr/local/sbin
-    elif hostfs_is_debian; then
-        msg_2 "Debian specifics"
+
+    elif hostfs_is_debian || hostfs_is_devuan; then
+        msg_2 "Debian/Devuan specifics"
         msg_3 "/usr/local/bin"
-        rsync_chown /opt/AOK/Debian/usr_local_bin/ /usr/local/bin
+        rsync_chown "$distro_fam_prefix"/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
-        rsync_chown /opt/AOK/Debian/usr_local_sbin/ /usr/local/sbin
-	this_is_aok_kernel || {
-	    _f="/usr/bin/uptime"
+        rsync_chown "$distro_fam_prefix"/usr_local_sbin/ /usr/local/sbin
+        if ! this_is_aok_kernel && ! this_fs_is_chrooted; then
+            _f="/usr/bin/uptime"
             msg_3 "$_f"
-	    file "$_f" | grep -q ELF && {
-		msg_4 "Saving ELF $_f -> /usr/bin/org-uptime"
-		mv "$_f" /usr/bin/org-uptime
-	    }
-	    rsync_chown /opt/AOK/Debian/ish_replacement_bins/uptime /usr/bin
-	}
-	msg_3 "/etc/init.d/rc"
-        rsync_chown /opt/AOK/Debian/etc/init.d/rc /etc/init.d
-    elif hostfs_is_devuan; then
-        msg_2 "Devuan specifics"
-        msg_3 "/usr/local/bin"
-        rsync_chown /opt/AOK/Devuan/usr_local_bin/ /usr/local/bin
-        msg_3 "/usr/local/sbin"
-        rsync_chown /opt/AOK/Devuan/usr_local_sbin/ /usr/local/sbin
+            file "$_f" | grep -q ELF && {
+                msg_4 "Saving ELF $_f -> /usr/bin/org-uptime"
+                mv "$_f" /usr/bin/org-uptime
+            }
+            rsync_chown /opt/AOK/FamDeb/ish_replacement_bins/uptime /usr/bin
+        fi
+        msg_3 "/etc/init.d/rc"
+        rsync_chown "$distro_fam_prefix"/etc/init.d/rc /etc/init.d
     else
         error_msg "Failed to recognize Distro, aborting."
     fi
@@ -236,29 +232,25 @@ update_aok_release() {
     read -r old_release <"$f_aok_release"
     if [ -z "$old_release" ]; then
         error_msg "Failed to read old release, leaving it as is" noexit
+        return
     fi
 
     #
     #  Special handling of my custom release names
     #
-    splitter="-JL-"
-    sub_release=$(echo "$old_release" | awk -v splitter="$splitter" -F "$splitter" '{print $2}')
-    [ -n "$sub_release" ] && sub_release="$splitter$sub_release"
-    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | head -n 1 | cut -d= -f 2 | sed 's/\"//g')$sub_release"
+    base_rel="$(cut -d'-' -f1 "$f_aok_release")"
+    sub_rel="$(cut -d'-' -f2- "$f_aok_release")"
+    new_rel="$(grep AOK_VERSION /opt/AOK/AOK_VARS | head -n 1 | cut -d= -f 2 | sed 's/\"//g' | cut -d'-' -f1)"
+    [ "$base_rel" != "$sub_rel" ] && new_rel="$new_rel-$sub_rel"
 
-    echo "$new_rel" >"$f_aok_release".new
-    # diff returns false if file differ...
-    if ! diff -q "$f_aok_release" "$f_aok_release".new >/dev/null; then
+    [ "$(cat "$f_aok_release")" != "$new_rel" ] && {
         #  Update the release file
-        cp "$f_aok_release" "$f_aok_release".old || error_msg "Failed to rename current aok_release"
-        mv "$f_aok_release".new "$f_aok_release" || error_msg "Failed to rename new aok_release"
-        msg_1 "Updated $f_aok_release to: $new_rel"
+        echo "$new_rel" >"$f_aok_release"
+        msg_1 "Changed $f_aok_release to: $new_rel"
         if hostfs_is_alpine; then
             /usr/local/sbin/update-motd
         fi
-    else
-        rm "$f_aok_release".new
-    fi
+    }
 }
 
 #===============================================================
@@ -267,7 +259,9 @@ update_aok_release() {
 #
 #===============================================================
 
+# shellcheck source=/dev/null
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+# shellcheck source=/dev/null
 . /opt/AOK/tools/utils.sh
 
 # shellcheck disable=SC1007
@@ -275,13 +269,14 @@ prog_name=$(basename "$0")
 
 while [ -n "$1" ]; do
     case "$1" in
-	-h | --help )    show_help ;;
-	-c | --configs ) update_configs=1 ;;
-	*) echo
-	   echo "ERROR: Bad param '$1'"
-	   echo
-	   show_help
-	   ;;
+    -h | --help) show_help ;;
+    -c | --configs) update_configs=1 ;;
+    *)
+        echo
+        echo "ERROR: Bad param '$1'"
+        echo
+        show_help
+        ;;
     esac
     shift
 done
@@ -290,8 +285,13 @@ ensure_ish_or_chrooted
 
 if hostfs_is_alpine; then
     distro_prefix="/opt/AOK/Alpine"
+    distro_fam_prefix="/opt/AOK/Alpine"
+elif hostfs_is_devuan; then
+    distro_prefix="/opt/AOK/Devuan"
+    distro_fam_prefix="/opt/AOK/FamDeb"
 elif hostfs_is_debian; then
     distro_prefix="/opt/AOK/Debian"
+    distro_fam_prefix="/opt/AOK/FamDeb"
 else
     error_msg "cron service not available for this FS"
 fi

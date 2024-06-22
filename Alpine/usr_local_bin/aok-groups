@@ -42,7 +42,7 @@ check_for_option() {
 }
 
 create_aok_groups() {
-    conf_file="$d_aok_base"/AOK_VARS
+    conf_file=/opt/AOK/AOK_VARS
     if [ ! -f "$conf_file" ]; then
         echo "ERROR: $conf_file not found!"
         exit 1

@@ -48,7 +48,7 @@ ensure_path_items_are_available() {
     #  FIRST_BOOT_ADDITIONAL_TASKS, where precise knowledge of that
     #  device should make specific requirements self explanatory.
     #
-    msg_2 "ensure_path_items_are_available()"
+    msg_2 "Ensure path items pottentially on iCloud are available"
 
     # shellcheck disable=SC2154
     items_to_check="\
@@ -57,8 +57,7 @@ ensure_path_items_are_available() {
         $POPULATE_FS \
         $FIRST_BOOT_ADDITIONAL_TASKS \
         $ALT_HOSTNAME_SOURCE_FILE \
-        $ALPINE_CUSTOM_FILES_TEMPLATE \
-        $DEBIAN_CUSTOM_FILES_TEMPLATE"
+        $CUSTOM_FILES_TEMPLATE"
 
     while true; do
         one_item="${items_to_check%% *}"
@@ -85,9 +84,21 @@ hostname_fix() {
         msg_3 "Using -aok suffix"
         aok -s on
     }
-    msg_3 "Linking /usr/local/bin to /bin/hostname"
-    rm /bin/hostname
-    ln -sf /usr/local/bin/hostname /bin/hostname
+
+    _f=/bin/ORIG-hostname
+    if [ ! -f "$_f" ]; then
+        msg_3 "Renaming original /bin/hostname -> $_f"
+        mv /bin/hostname "$_f"
+    else
+        rm -f /bin/hostname
+    fi
+
+    _f=/bin/hostname
+    [ -f "$_f" ] && [ ! -h "$_f" ] && {
+        msg_3 "Linking /usr/local/bin to /bin/hostname"
+        rm /bin/hostname
+        ln -sf /usr/local/bin/hostname /bin/hostname
+    }
 
     if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
         msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
@@ -169,31 +180,6 @@ start_cron_if_active() {
     # msg_3 "start_cron_if_active() - done"
 }
 
-replace_home_dirs() {
-    [ -n "$HOME_DIR_USER" ] && {
-        if [ -f "$HOME_DIR_USER" ]; then
-            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-            msg_2 "Replacing /home/$USER_NAME"
-            cd "/home" || error_msg "Failed cd /home"
-            rm -rf "$USER_NAME"
-            untar_file "$HOME_DIR_USER"
-        else
-            error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
-        fi
-    }
-
-    [ -n "$HOME_DIR_ROOT" ] && {
-        if [ -f "$HOME_DIR_ROOT" ]; then
-            msg_2 "Replacing /root"
-            mv /root /root.ORIG
-            cd / || error_msg "Failed to cd into: /"
-            untar_file "$HOME_DIR_ROOT"
-        else
-            error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
-        fi
-    }
-}
-
 deploy_bat_monitord() {
     s_name="bat-monitord"
 
@@ -205,7 +191,7 @@ deploy_bat_monitord() {
     }
 
     msg_3 "Adding $s_name service"
-    cp -a "$d_aok_base"/common_AOK/etc/init.d/bat-monitord /etc/init.d
+    cp -a /opt/AOK/common_AOK/etc/init.d/bat-monitord /etc/init.d
     rc-update add "$s_name" default
     msg_3 "Not starting it during deploy, it will start on next boot"
     #rc-service "$s_name" restart
@@ -230,12 +216,12 @@ run_additional_tasks_if_found() {
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
-deploy_state_clear() {
-    msg_2 "deploy_state_clear()"
-
+clean_up_dest_env() {
+    msg_2 "clear deploy state"
     rm "$f_dest_fs_deploy_state"
 
-    # msg_3 "deploy_state_clear() - done"
+    rm -f "$f_home_user_replaced"
+    rm -f "$f_home_root_replaced"
 }
 
 #===============================================================
@@ -244,22 +230,28 @@ deploy_state_clear() {
 #
 #===============================================================
 
+prog_name_sft=$(basename "$0")
+tsaft_start="$(date +%s)"
+echo
+echo "=_=_="
+echo "=====   $prog_name_sft started $(date)   ====="
+echo "=_=_="
+echo
+
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-tsaft_start="$(date +%s)"
-
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
 deploy_state_set "$deploy_state_finalizing"
-msg_script_title "setup_final_tasks.sh - Final part of setup"
+msg_script_title "$prog_name_sft - Final part of setup"
 
 hostfs_name="$(hostfs_detect)"
 f_fs_final_tasks=/opt/AOK/"$hostfs_name"/setup_final_tasks.sh
 [ -f "$f_fs_final_tasks" ] && {
     msg_1 "Running $hostfs_name final tasks"
-    "$f_fs_final_tasks"
+    "$f_fs_final_tasks" || error_msg "$f_fs_final_tasks failed"
     msg_2 "$hostfs_name final tasks - done"
     echo
 }
@@ -291,9 +283,7 @@ if test -f /AOK; then
 fi
 
 user_interactions
-
 ensure_path_items_are_available
-
 hostname_fix
 
 #
@@ -305,16 +295,14 @@ hostfs_is_alpine && aok_kernel_consideration
 deploy_bat_monitord
 
 if hostfs_is_alpine; then
-    next_etc_profile="$d_aok_base/Alpine/etc/profile"
+    next_etc_profile="/opt/AOK/Alpine/etc/profile"
     #
     #  Some versions of Alpine uptime doesnt work in ish, test and
     #  replace with softlink to busybox if that is the case
     #
     verify_alpine_uptime
-elif hostfs_is_debian; then
-    next_etc_profile="$d_aok_base/Debian/etc/profile"
-elif hostfs_is_devuan; then
-    next_etc_profile="$d_aok_base/Devuan/etc/profile"
+elif hostfs_is_debian || hostfs_is_devuan; then
+    next_etc_profile="/opt/AOK/FamDeb/etc/profile"
 else
     error_msg "Undefined Distro, cant set next_etc_profile"
 fi
@@ -327,20 +315,18 @@ set_new_etc_profile "$next_etc_profile"
 #
 #  Handling custom files
 #
-"$d_aok_base"/common_AOK/custom/custom_files.sh || {
+/opt/AOK/common_AOK/custom/custom_files.sh || {
     error_msg "common_AOK/custom/custom_files.sh failed"
 }
 
 replace_home_dirs
-
 run_additional_tasks_if_found
 
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
 
-deploy_state_clear
-
 verify_launch_cmd
+clean_up_dest_env
 
 msg_1 "File system deploy completed"
 
@@ -354,5 +340,4 @@ and your environment is used."
 #  This ridiculous extra step is needed if chrooted on iSH
 #
 cd / || error_msg "Failed to cd /"
-
 cd || error_msg "Failed to cd home"

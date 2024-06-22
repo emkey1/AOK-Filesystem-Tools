@@ -473,7 +473,7 @@ cmd_line="$0"
 prog_name="$(basename "$cmd_line")"
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-[ -z "$d_aok_base_etc" ] && . /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 CHROOT_TO="$d_build_root"
 
@@ -488,8 +488,8 @@ fi
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure build_env can be found
 #
-cd "$d_aok_base" || {
-    error_msg "Failed to cd into: $d_aok_base"
+cd /opt/AOK || {
+    error_msg "Failed to cd into: /opt/AOK"
 }
 
 while [ -n "$1" ]; do
@@ -619,6 +619,7 @@ msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 #
 #  TODO: try to get rid of emptying vars
 #  shellcheck disable=SC2086
+
 TMPDIR="" SHELL="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
 chroot_exit_code="$?"
 
