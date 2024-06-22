@@ -2,7 +2,6 @@
 *.code-workspace
 
 .cache.olint
-.olint.conf
 
 ### VisualStudioCode ###
 .vscode/ #* # Maybe .vscode/**/* instead - see comments
