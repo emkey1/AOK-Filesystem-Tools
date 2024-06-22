@@ -5,7 +5,7 @@
 .olint.conf
 
 ### VisualStudioCode ###
-.vscode/* # Maybe .vscode/**/* instead - see comments
+.vscode/ #* # Maybe .vscode/**/* instead - see comments
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
