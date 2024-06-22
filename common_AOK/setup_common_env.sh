@@ -120,8 +120,7 @@ setup_environment() {
     if [ "$USER_SHELL" = "/bin/ash" ] || [ "$USER_SHELL" = "/bin/bash" ]; then
         msg_3 "Setting root shell into USER_SHELL: $USER_SHELL"
         awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
-            /etc/passwd >/tmp/passwd &&
-            mv /tmp/passwd /etc/passwd
+            /etc/passwd >/tmp/passwd && mv /tmp/passwd /etc/passwd
     fi
 
     #
