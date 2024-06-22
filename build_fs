@@ -285,37 +285,8 @@ copy_AOK_to_dest() {
     msg_2 "copy_AOK_to_dest()"
 
     mkdir -p "$aok_files"
-    mkdir -p "$d_build_root"/etc/opt # is this the right place?
-
-    # --exclude=.git/ \
-    # --exclude=.gitignore \
-    # --exclude=.gitmodules \
-    rsync -ah \
-        --exclude=.vscode/ \
-        --exclude=.AOK_VARS \
-        /opt/AOK/ "$d_build_root"/opt/AOK
-
-    io_dst_conf="$aok_files"/AOK_VARS
-    io_conf_overrides=/opt/AOK/.AOK_VARS
-    if [ -f "$io_conf_overrides" ]; then
-        msg_3 "Appending .AOK_CONF on dest FS"
-        (
-            echo
-            echo
-            echo "########################################################################"
-            echo "#"
-            echo "#                   Config overrides"
-            echo "#"
-            echo "########################################################################"
-            echo
-            cat "$io_conf_overrides"
-        ) >>"$io_dst_conf"
-    fi
-    unset io_dst_conf
-    unset io_conf_overrides
-
-    chown -R root: "$aok_files"
-
+    mkdir -p "$d_build_root"/etc/opt
+    rsync_chown /opt/AOK/ "$d_build_root"/opt/AOK silent
     # msg_3 "copy_AOK_to_dest() done"
 }
 
@@ -504,7 +475,7 @@ use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true means generate pre-built FS
 aok_FS_do_compress=true       # compress FS at end of build_fs
 
-aok_files="${d_build_root}/opt/AOK"
+aok_files="${d_build_root}"/opt/AOK
 
 parse_arguments "$@"
 
@@ -590,10 +561,10 @@ msg_2 "The filesystem is ready!"
 
 if [ "$build_env" != "$be_other" ]; then
     if [ "$build_target" = "$distro_alpine" ] || [ "$build_target" = "$distro_select" ]; then
-        shell_not_triggering_profile="/bin/ash"
+        shell_not_triggering_profile=/bin/ash
     else
         #  shellcheck disable=SC2034
-        shell_not_triggering_profile="/bin/sh"
+        shell_not_triggering_profile=/bin/sh
     fi
     echo
     unset set_shell
