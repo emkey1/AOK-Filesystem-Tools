@@ -216,8 +216,8 @@ NODEJS_APKS='nodejs nodejs-dev'
 #  not development related man pages, those doing development are
 #  assumed to know what man pages they might need :)
 #
-DOCS_APKS="busybox-doc coreutils-doc procps-ng-doc sudo-doc \
-    shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
+DOCS_APKS="man-db man-pages busybox-doc coreutils-doc procps-ng-doc \
+    sudo-doc shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
     tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
     sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \
     dcron-doc openssh-doc rsync-doc curl-doc wget-doc elinks-doc \
