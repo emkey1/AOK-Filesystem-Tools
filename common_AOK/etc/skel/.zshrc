@@ -1,5 +1,11 @@
 #!/bin/zsh
-#  Fake bangpath to help editors and linters
+#   Fake bangpath to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
 #
 #  Configure interactive zsh shells
 #
@@ -12,6 +18,13 @@ case $- in
 *i*) ;;
 *) return ;; # If not running interactively, don't do anything
 esac
+
+#
+#  Common settings that can be used by most shells
+#
+if [ -f ~/.common_rc ]; then
+    . ~/.common_rc
+fi
 
 zsh_history_conf() {
     HISTSIZE=1000000
@@ -51,20 +64,49 @@ zsh_history_conf() {
     setopt INC_APPEND_HISTORY_TIME
 }
 
+#===============================================================
 #
-#  Common settings that can be used by most shells
+#   Main
 #
-if [ -f ~/.common_rc ]; then
-    . ~/.common_rc
-fi
+#===============================================================
 
 zsh_history_conf
 
+prompt_colors
+
+_user_host_name="%F{$PCOL_USERNAME}%n%F{$PCOL_GREY}@%F{$PCOL_HOSTNAME}$_hn"
+
 #
 #  Folder and success of last cmd on left
-#  user@machine time on right
+#  user@machine [sysload battery_lvl] time on right
 #
-PROMPT='%(?..%F{red}?%?)%F{12}%~%f%b%# '
+PROMPT="%(?..%F{red}?%?)%F{$PCOL_CWD}%~%f%b%# "
 
-#  Inside tmux user and time is displayed on status line
-[ -z "$TMUX_BIN" ] && RPROMPT="%F{green}%n@$_hn %F{240}%*%f"
+#
+#  set to false if you don't want a dynamic rprompt displaying
+#  sysload and (on ish-aok) battery lvl
+#
+if true; then
+    update_prompt_content() {
+        RPROMPT="$_user_host_name $(get_sysload_lvl)$(get_battery_info zsh) %F{$PCOL_GREY}%*%f"
+    }
+
+    precmd() {
+        update_prompt_content
+    }
+
+    # initial prompt update
+    update_prompt_content
+
+    #
+    #  update_prompt_content when called first time, ends up indicating
+    #  exit code 1 even if called multiple times.
+    #  This prompts displays exit code for previous command, so will therefore
+    #  Imply there was an error. For now just doing a random action that
+    #  succeeds solves the issue, so I just unset a random non-existing
+    #  variable
+    #
+    unset foo_bar
+else
+    RPROMPT="$_user_host_name %F{$PCOL_GREY}%*%f"
+fi

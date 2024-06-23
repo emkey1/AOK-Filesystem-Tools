@@ -2,7 +2,7 @@
 #
 #  Part of https://github.com/jaclu/ish-config
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -10,8 +10,12 @@
 #  https://gist.github.com/eduardoaugustojulio/fa83cf85efa39919d6a70ca679e91f28
 #
 
-log_it() {
-    echo "$1" >>"$TMPDIR/tzlog"
+do_clear() {
+    #
+    #  dialog ueses an option too clear screen after an item is displayed
+    #  this is only needed for whiptail
+    #
+    [[ "$dialog_app" = "whiptail" ]] && clear
 }
 
 check_dependencies() {
@@ -23,13 +27,10 @@ check_dependencies() {
     dlg_app="$(echo "$dialog_app" | cut -d ' ' -f 1)"
 
     if [[ -z "$(command -v "$dlg_app")" ]]; then
-        #
-        #  Since whiptail is part of newt, we need to handle that case
-        #
         dependency="$dlg_app"
 
-        if [[ $dependency = "whiptail" ]]; then
-            # whiptail is in package newt
+        if [[ $dependency = "whiptail" ]] && [[ -f /etc/alpine-release ]]; then
+            #  In Alpine, whiptail is part of newt, correct the dependency
             dependency="newt"
         fi
         apks+=("$dependency")
@@ -139,8 +140,15 @@ main() {
 #
 #===============================================================
 
-# dialog_app="dialog"
+#
+#  Dialog is the original and most feature complete implementation.
+#  Whiptail is a slightly simplified fork made by RedHat, and uses newt
+#  instead of ncurses for screen handling, so might have a more
+#  recognizable styling. For this app, either is fine.
+#
+
 dialog_app="whiptail"
+#  dialog_app="dialog" # --erase-on-exit"
 
 TMPDIR="${TMPDIR:-/tmp}"
 

@@ -47,12 +47,12 @@ Select distro:
 
     2)
         echo "Debian selected"
-        "$d_aok_base"/choose_distro/install_debian.sh
+        /opt/AOK/choose_distro/install_debian.sh
         ;;
 
     3)
         echo "Devuan selected"
-        "$d_aok_base"/choose_distro/install_devuan.sh
+        /opt/AOK/choose_distro/install_devuan.sh
         ;;
 
     *)
@@ -71,22 +71,15 @@ Select distro:
 #===============================================================
 
 #
-#  Mostly needed in case nav_keys.sh or some other config task
+#  Mostly needed in case nav-keys.sh or some other config task
 #  would be run before the first re-boot
 #
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/usr/sbin:/bin:/usr/bin
 
 tcd_start="$(date +%s)"
 
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
-
-. "$d_aok_base"/tools/utils.sh
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
 manual_runbg
 

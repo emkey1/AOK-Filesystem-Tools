@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Simple minimalistic syslog implementation.
+#  For custom log_file set LOGGER_FILE
+#
+#  This is a posix script, and not suitable for performance
+#
+f_def_log=/var/log/syslog
+f_issues=/var/log/logger-issues
+
+item="${1:-unnamed}"
+shift
+msg="$*"
+msg="${msg:-no message}"
+
+if [ -n "$LOGGER_FILE" ]; then
+    if [ ! -f "$LOGGER_FILE" ]; then
+        # try creating it
+        touch "$LOGGER_FILE"
+        if [ ! -f "$LOGGER_FILE" ]; then
+            _f="$LOGGER_FILE"
+            #
+            #  in case caller used an env variable this clears it,
+            #  if it was fed directly like below, nothing can help the caller
+            #
+            unset LOGGER_FILE
+
+            LOGGER_FILE="$f_issues" /usr/local/bin/logger \
+                logger "$item" "Failed to create: $_f"
+            exit 0
+        fi
+    fi
+fi
+log_file="${LOGGER_FILE:-$f_def_log}"
+
+#  Sample to log oddities in a separate log-file using itself
+# if [ "$item" = "runbg" ]; then
+#     LOGGER_FILE="$f_issues" /usr/local/bin/logger \
+#         logger "=== aok_launcher uses log_file=$log_file"
+# fi
+
+#
+#  Handles cases where PPID env variable is not set
+#
+ppid="${PPID:-$(ps -o ppid= -p $$)}"
+
+echo "$(date +"%Y-%m-%d %H:%M:%S") ${item}[$ppid]: $msg" | tee -a "$log_file" >/dev/console

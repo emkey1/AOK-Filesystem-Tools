@@ -9,11 +9,34 @@
 #
 #  setup_final_tasks.sh
 #
-#  Completes the setup of Alpine or Debian.
+#  Completes the setup of AOK-FS
 #  On normal installs, this runs at the end of the install.
 #  On pre-builds this will be run on first boot at destination device,
 #  so it can be assumed this is running on deploy destination
 #
+
+#
+#  If aok_launcher is used as Launch Cmd, it has already waited for
+#  system to be ready, so can be skipped here
+#
+wait_for_bootup() {
+    # msg_2 "wait_for_bootup()"
+    if [ "$(get_launch_cmd)" != "$launch_cmd_AOK" ]; then
+        if deploy_state_is_it "$deploy_state_pre_build" &&
+            ! hostfs_is_devuan &&
+            ! this_fs_is_chrooted; then
+            msg_2 "Waiting for runlevel default to be ready, normally < 10s"
+            msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
+            while ! rc-status -r | grep -q default; do
+                msg_3 "not ready"
+                sleep 2
+            done
+        fi
+    else
+        msg_2 "Boot wait already handled by AOK Launch cmd"
+    fi
+    # msg_3 "wait_for_bootup() - done"
+}
 
 ensure_path_items_are_available() {
     #
@@ -25,7 +48,7 @@ ensure_path_items_are_available() {
     #  FIRST_BOOT_ADDITIONAL_TASKS, where precise knowledge of that
     #  device should make specific requirements self explanatory.
     #
-    msg_2 "ensure_path_items_are_available()"
+    msg_2 "Ensure path items pottentially on iCloud are available"
 
     # shellcheck disable=SC2154
     items_to_check="\
@@ -34,8 +57,7 @@ ensure_path_items_are_available() {
         $POPULATE_FS \
         $FIRST_BOOT_ADDITIONAL_TASKS \
         $ALT_HOSTNAME_SOURCE_FILE \
-        $ALPINE_CUSTOM_FILES_TEMPLATE \
-        $DEBIAN_CUSTOM_FILES_TEMPLATE"
+        $CUSTOM_FILES_TEMPLATE"
 
     while true; do
         one_item="${items_to_check%% *}"
@@ -53,28 +75,44 @@ ensure_path_items_are_available() {
 }
 
 hostname_fix() {
-    #
-    #  workarounds for iOS 17 no longer supporting hostname detection
-    #
+    # echo "=V= hostname_fix()"
+    msg_2 "Using alternate hostname"
+    orig_hostname="$(/bin/hostname)"
 
-    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        msg_2 "Hostname workaround is requesed by setting ALT_HOSTNAME_SOURCE_FILE"
-    elif [ "$(ios_matching 17.0)" = "Yes" ]; then
-        msg_2 "iOS >= 17, hostname workaround will be used"
-    elif [ "$(/bin/hostname)" = "localhost" ]; then
-        #
-        #  If hostname is localhost, assume this runs on iOS >= 17
-        #  In the utterly rare case ths user has named his iOS device
-        #  localhost, this would be an incorrect assumption
-        #
-        msg_2 "Will assume this runs on iOS >= 17, hostname workaround will be used"
+    # shellcheck disable=SC2154
+    this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ] && {
+        msg_3 "Using -aok suffix"
+        aok -s on
+    }
+
+    _f=/bin/ORIG-hostname
+    if [ ! -f "$_f" ]; then
+        msg_3 "Renaming original /bin/hostname -> $_f"
+        mv /bin/hostname "$_f"
     else
-        msg_2 "Will assume this runs on iOS < 17, so hostname can be set by the app"
-        return
+        rm -f /bin/hostname
     fi
 
-    # if defined use setting from AOK_VARS, otherwise a prompt will be given
-    /usr/local/bin/aok -H enable "$ALT_HOSTNAME_SOURCE_FILE"
+    _f=/bin/hostname
+    [ -f "$_f" ] && [ ! -h "$_f" ] && {
+        msg_3 "Linking /usr/local/bin to /bin/hostname"
+        rm /bin/hostname
+        ln -sf /usr/local/bin/hostname /bin/hostname
+    }
+
+    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
+        hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
+            error_msg "Failed to soure hostname"
+        }
+    elif this_fs_is_chrooted; then
+        echo "$orig_hostname" >/etc/hostname
+        hostname -S /etc/hostname
+    fi
+    #  Ensure hostname has been picked up, iSH-AOK also updates /bin/hostname
+    hostname -U >/dev/null
+    # echo "^^^ hostname_fix() - done"
+
 }
 
 aok_kernel_consideration() {
@@ -97,20 +135,6 @@ aok_kernel_consideration() {
     # msg_3 "aok_kernel_consideration() - done"
 }
 
-set_initial_login_mode() {
-    if [ -n "$INITIAL_LOGIN_MODE" ]; then
-        #
-        #  Now that final_tasks have run as root, the desired login method
-        #  can be set.
-        #
-        msg_2 "Using defined login method. It will be used next time App is run"
-        /usr/local/bin/aok -l "$INITIAL_LOGIN_MODE"
-    else
-        msg_2 "No login mode defined, disabling console login"
-        /usr/local/bin/aok -l disable
-    fi
-}
-
 verify_alpine_uptime() {
     #
     #  Some versions of uptime doesnt work in iSH, test and
@@ -118,13 +142,10 @@ verify_alpine_uptime() {
     #
     uptime_cmd="$(command -v uptime)"
     uptime_cmd_real="$(realpath "$uptime_cmd")"
-    if [ "$uptime_cmd_real" = "/bin/busybox" ]; then
-        #
-        #  Already using busybox, nothing needs to be done
-        #
-        return
-    fi
-    "$uptime_cmd" >/dev/null || {
+
+    [ "$uptime_cmd_real" = "/bin/busybox" ] && return
+
+    "$uptime_cmd" >/dev/null 2>&1 || {
         msg_2 "WARNING: Installed uptime not useable!"
         msg_3 "changing it to busybox symbolic link"
         rm -f "$uptime_cmd"
@@ -159,65 +180,30 @@ start_cron_if_active() {
     # msg_3 "start_cron_if_active() - done"
 }
 
-set_launch_cmd() {
-    msg_2 "Setting 'Launch cmd' to run /usr/local/sbin/dynamic_login"
+deploy_bat_monitord() {
+    s_name="bat-monitord"
 
-    launch_cmd_expected='[ "/usr/local/sbin/dynamic_login" ]'
-    f_launch_cmd="/proc/ish/defaults/launch_command"
+    msg_2 "Battery monitor service $s_name"
 
-    this_is_ish || {
-        msg_3 "Can only set 'Launch cmd' on iSH nodes!"
+    this_is_aok_kernel || {
+        msg_3 "$s_name is only meaningfull on iSH-AOK, skipping"
         return
     }
 
-    msg_3 "Setting default user as root, and enabeling continous logins"
-    echo "root" >"$f_login_default_user"
-    touch "$f_logins_continous"
+    msg_3 "Adding $s_name service"
+    cp -a /opt/AOK/common_AOK/etc/init.d/bat-monitord /etc/init.d
+    rc-update add "$s_name" default
+    msg_3 "Not starting it during deploy, it will start on next boot"
+    #rc-service "$s_name" restart
 
-    msg_3 "Setting the custom AOK-FS 'Launch cmd'"
-    echo "$launch_cmd_expected" >"$f_launch_cmd"
-    launch_cmd_current="$(tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/')"
-
-    if [ "$launch_cmd_current" != "$launch_cmd_expected" ]; then
-        msg_1 "Failed to set 'Launch cmd'!"
-        echo "Current 'Launch cmd': '$launch_cmd_current'"
-        echo
-        echo "To set the default, run this:"
-        echo
-        echo "sudo echo '$launch_cmd_expected' > $f_launch_cmd"
-        echo
-    fi
-}
-
-replace_home_dirs() {
-    if [ -n "$HOME_DIR_USER" ]; then
-        if [ -f "$HOME_DIR_USER" ]; then
-            [ -z "$USER_NAME" ] && error_msg "USER_HOME_DIR defined, but not USER_NAME"
-            msg_2 "Replacing /home/$USER_NAME"
-            cd "/home" || error_msg "Failed cd /home"
-            rm -rf "$USER_NAME"
-            tar xfz "$HOME_DIR_USER" || error_msg "Failed to extract USER_HOME_DIR"
-        else
-            error_msg "USER_HOME_DIR file not found: $HOME_DIR_USER" "no_exit"
-        fi
-    fi
-
-    if [ -n "$HOME_DIR_ROOT" ]; then
-        if [ -f "$HOME_DIR_ROOT" ]; then
-            msg_2 "Replacing /root"
-            mv /root /root.ORIG
-            cd / || error_msg "Failed to cd into: /"
-            tar xfz "$HOME_DIR_ROOT" || error_msg "Failed to extract USER_HOME_DIR"
-        else
-            error_msg "ROOT_HOME_DIR file not found: $HOME_DIR_ROOT" "no_exit"
-        fi
-    fi
+    msg_2 "service $s_name installed and enabled"
+    echo
 }
 
 run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
-    if [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ]; then
+    [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ] && {
         msg_1 "Running additional setup tasks"
         echo "---------------"
         echo "$FIRST_BOOT_ADDITIONAL_TASKS"
@@ -225,16 +211,17 @@ run_additional_tasks_if_found() {
         /bin/sh -c "$FIRST_BOOT_ADDITIONAL_TASKS" || {
             error_msg "FIRST_BOOT_ADDITIONAL_TASKS returned error"
         }
-    fi
+        msg_1 "Returned from the additional setup tasks"
+    }
     # msg_3 "run_additional_tasks_if_found()  done"
 }
 
-deploy_state_clear() {
-    msg_2 "deploy_state_clear()"
-
+clean_up_dest_env() {
+    msg_2 "clear deploy state"
     rm "$f_dest_fs_deploy_state"
 
-    # msg_3 "deploy_state_clear() - done"
+    rm -f "$f_home_user_replaced"
+    rm -f "$f_home_root_replaced"
 }
 
 #===============================================================
@@ -243,36 +230,52 @@ deploy_state_clear() {
 #
 #===============================================================
 
+prog_name_sft=$(basename "$0")
+tsaft_start="$(date +%s)"
+echo
+echo "=_=_="
+echo "=====   $prog_name_sft started $(date)   ====="
+echo "=_=_="
+echo
+
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-tsaft_start="$(date +%s)"
-
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
-#
-#  Wait for bootup to complete if prebuild and not chrooted on iSH
-#
-if deploy_state_is_it "$deploy_state_pre_build" &&
-    this_is_ish &&
-    ! hostfs_is_devuan &&
-    ! this_fs_is_chrooted; then
-    msg_2 "Waiting for runlevel default to be ready, normally < 10s"
-    msg_3 "iSH sometimes fails this, so if this doesnt move on, try restarting iSH"
-    while ! rc-status -r | grep -q default; do
-        msg_3 "not ready"
-        sleep 2
-    done
-fi
-
-if [ -n "$LOG_FILE" ]; then
-    debug_sleep "Since log file is defined, will pause before starting" 2
-fi
-
 deploy_state_set "$deploy_state_finalizing"
+msg_script_title "$prog_name_sft - Final part of setup"
 
-msg_script_title "setup_final_tasks.sh - Final part of setup"
+hostfs_name="$(hostfs_detect)"
+f_fs_final_tasks=/opt/AOK/"$hostfs_name"/setup_final_tasks.sh
+[ -f "$f_fs_final_tasks" ] && {
+    msg_1 "Running $hostfs_name final tasks"
+    "$f_fs_final_tasks" || error_msg "$f_fs_final_tasks failed"
+    msg_2 "$hostfs_name final tasks - done"
+    echo
+}
+
+this_is_ish && wait_for_bootup
+
+#
+#  Setting up chroot env to use aok_launcher
+#
+if this_fs_is_chrooted; then
+    _f="/usr/local/sbin/aok_launcher"
+    msg_2 "Preparing chroot environment"
+    msg_3 "Setting default chroot app: $_f"
+    echo "$_f" >/.chroot_default_cmd
+    [ -z "$USER_NAME" ] && aok -a "root"
+else
+    msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
+    set_launch_cmd "$launch_cmd_AOK"
+fi
+
+[ -n "$USER_NAME" ] && {
+    msg_3 "Enabling Autologin for $USER_NAME"
+    aok -a "$USER_NAME"
+}
 
 if test -f /AOK; then
     msg_1 "Removing obsoleted /AOK new location is /opt/AOK"
@@ -280,9 +283,7 @@ if test -f /AOK; then
 fi
 
 user_interactions
-
 ensure_path_items_are_available
-
 hostname_fix
 
 #
@@ -291,24 +292,17 @@ hostname_fix
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-"$d_aok_base"/common_AOK/hostname_handling/set_aok_hostname.sh || {
-    error_msg "set_aok_hostname.sh failed" no_exit
-}
-
-# login feature didsabled tag
-# set_initial_login_mode
+deploy_bat_monitord
 
 if hostfs_is_alpine; then
-    next_etc_profile="$d_aok_base/Alpine/etc/profile"
+    next_etc_profile="/opt/AOK/Alpine/etc/profile"
     #
     #  Some versions of Alpine uptime doesnt work in ish, test and
     #  replace with softlink to busybox if that is the case
     #
     verify_alpine_uptime
-elif hostfs_is_debian; then
-    next_etc_profile="$d_aok_base/Debian/etc/profile"
-elif hostfs_is_devuan; then
-    next_etc_profile="$d_aok_base/Devuan/etc/profile"
+elif hostfs_is_debian || hostfs_is_devuan; then
+    next_etc_profile="/opt/AOK/FamDeb/etc/profile"
 else
     error_msg "Undefined Distro, cant set next_etc_profile"
 fi
@@ -318,34 +312,32 @@ set_new_etc_profile "$next_etc_profile"
 # to many issues - not worth it will start after reboot anyhow
 # start_cron_if_active
 
-set_launch_cmd
-
 #
 #  Handling custom files
 #
-"$d_aok_base"/common_AOK/custom/custom_files.sh || {
-    error_msg "ERROR: common_AOK/custom/custom_files.sh failed"
-}
-
-/usr/local/sbin/ensure_hostname_in_host_file.sh || {
-    error_msg "ERROR: /usr/local/sbin/ensure_hostname_in_host_file.sh failed!"
+/opt/AOK/common_AOK/custom/custom_files.sh || {
+    error_msg "common_AOK/custom/custom_files.sh failed"
 }
 
 replace_home_dirs
-
 run_additional_tasks_if_found
 
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
 
-deploy_state_clear
+verify_launch_cmd
+clean_up_dest_env
 
 msg_1 "File system deploy completed"
 
-display_installed_versions
+/usr/local/bin/aok-versions
 
-echo "Setup has completed the last deploy steps and is ready!"
-echo "You are recomended to reboot in order to ensure that your environment is used."
-echo
+echo "Setup has completed the last deploy steps and is ready!
+You are recomended to reboot in order to ensure that all services are started,
+and your environment is used."
 
+#
+#  This ridiculous extra step is needed if chrooted on iSH
+#
+cd / || error_msg "Failed to cd /"
 cd || error_msg "Failed to cd home"

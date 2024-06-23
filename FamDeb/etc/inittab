@@ -1,0 +1,53 @@
+# /etc/inittab: init(8) configuration.
+# Based on: v 1.91 2002/01/25 13:35:21 miquels Exp $
+# Modified by: Jacob.Lundqvist@gmail.com 2023
+#
+# The default runlevel.
+id:2:initdefault:
+
+fx1::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab "===  System startup  ==="
+
+# Clear /run/ since iSH doesnt mount it as tempfs
+fx2::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir
+
+#  rotates logfiles > 10k
+fx3::sysinit:/usr/local/sbin/R-check /usr/local/sbin/rotate-logs.sh
+
+#
+# If you've configured your hostname to be updated through an iOS Shortcut,
+# this ensures that the hostname reflects what the Shortcut provides.
+# If you maintain a static hostname in /etc/hosts, this may not be necessary,
+# but keeping it enables quick updates in case you decide to switch to
+# a hostname fed by the Shortcut in the future.
+# For more about this, see: /opt/AOK/Docs/hostname-shortcut.md
+#
+fx4::sysinit:/usr/local/sbin/R-check /usr/local/bin/hostname -U
+
+#
+# Initialization command
+# Normally this would be sysinit, but when this is choosen
+# on Debian running on iSH-AOK, init & openrc fails
+# to transition over to the runlevel default.
+# This is solved by using boot as initial runlevel on iSH-AOK
+#
+# si::sysinit:/sbin/openrc boot
+# What to do in single-user mode.
+~~:S:wait:/sbin/sulogin --force
+
+# /etc/init.d executes the S and K scripts upon change
+# of runlevel.
+#
+# Runlevel 0 is halt.
+# Runlevel 1 is single-user.
+# Runlevels 2-5 are multi-user.
+# Runlevel 6 is reboot.
+
+l0:0:wait:/etc/init.d/rc 0
+l1:1:wait:/etc/init.d/rc 1
+l2:2:wait:/etc/init.d/rc 2
+l3:3:wait:/etc/init.d/rc 3
+l4:4:wait:/etc/init.d/rc 4
+l5:5:wait:/etc/init.d/rc 5
+l6:6:wait:/etc/init.d/rc 6
+# Normally not reached, but fallthrough in case of emergency.
+z6:6:respawn:/sbin/sulogin --force

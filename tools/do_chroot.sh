@@ -4,7 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  Tries to ensure a successful chroot both on native iSH and on Linux (x86)
 #  by allocating and freeing OS resources needed.
@@ -32,86 +32,74 @@
 #
 _fnc_calls=0
 
+show_help() {
+    # msg_2 "show_help()"
+
+    #region help text
+    echo "
+Usage: $prog_name [-h] [-c] [-p dir] [-f] [command]
+
+Available options:
+
+-h  --help      Print this help and exit
+-c  --cleanup   Cleanup env if something crashed whilst sudoed
+-f, --force     Run this despite a warning indicating it will likely
+                not work.
+-p, --path      What dir to chroot into, defaults to: $d_build_root
+
+command         Defaults to the shell used by root within the env
+
+chroot with env setup so this works on both Linux & iSH
+
+Normally this will clear up the env even if the chroot crashes.
+If it does  fail to clean up, and a custom path was used.
+-p must be given BEFORE -c in order for this to know what mount point
+to clean up!
+
+"
+    #endregion
+    # msg_3 "show_help() - done"
+}
+
 can_chroot_run_now() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "can_chroot_run_now()"
 
-    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
+    display_cleanup_procedure=false
+
+    define_chroot_env
+
     [ ! -d "$CHROOT_TO" ] && error_msg "chroot destination does not exist: $CHROOT_TO"
 
-    if [ -f "$pidfile_do_chroot" ]; then
-        # Read the PID from the file
-        _pid=$(cat "$pidfile_do_chroot")
-
-        # Check if the process is still running
-        if ps -p "$_pid" >/dev/null 2>&1; then
-            error_msg "$prog_name with PID $_pid is running!"
-        else
-            msg_1 "There is no process with PID $_pid running."
-
-            echo "If the system crashed as a chroot was active, this situation"
-            echo "would not be unlikely."
-            echo
-            echo "If you are certain that there is no ongoing chroot task,"
-            echo "you can delete the below PID file"
-            echo "  $pidfile_do_chroot"
-            echo
-            echo "After this, request the environment to be cleaned up by running:"
-            echo "$prog_name -c"
-            exit 1
+    if [ -f "$f_is_chrooted" ]; then
+        echo "$CHROOT_TO is already chrooted!"
+        echo
+        echo "If the system crashed as a chroot was active, this situation"
+        echo "would not be unlikely."
+        display_cleanup_procedure=true
+    else
+        set_ch_procs
+        if [ -n "$ch_procs" ]; then
+            echo "There are left-over processes from a previous run of this chroot"
+            echo "processes: $ch_procs"
+            display_cleanup_procedure=true
+        # else
+        #     unmount_systen_folders
         fi
     fi
-    unset _pid
 
-    #
-    #  Last check, ensure no sys dirs are mounted already at this location
-    #  That would strongly indicate a concurrent chroot
-    #
-    # shellcheck disable=SC2143  # TODO fix and test
-    if ! hostfs_is_alpine && [ -n "$(mount | grep "$TMPDIR/aok_fs")" ]; then
-        echo "ERROR: Something has mounted sys folders inside $CHROOT_TO!"
-        echo "       Most likely another process is already chrooted to"
-        echo "       this location."
-        echo "       If this is due to a crash or abort, you can clear it by running:"
-        echo "         tools/do_chroot.sh -c"
+    $display_cleanup_procedure && {
+        echo
+        echo "This chroot and all its processes can be cleaned up by running:"
+        if [ "$CHROOT_TO" = "$d_build_root" ]; then
+            echo "$cmd_line -c"
+        else
+            echo "$cmd_line -p $CHROOT_TO -c"
+        fi
         echo
         exit 1
-    fi
+    }
 
     [ "$_fnc_calls" = 2 ] && msg_3 "can_chroot_run_now() - done"
-}
-
-#
-#  Since this is called via a parameterized trap, shellcheck doesnt
-#  recognize this code is in use..
-#
-# shellcheck disable=SC2317  # Don't warn about unreachable code
-cleanup() {
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "cleanup($1)"
-
-    _signal="$1" # this was triggered by trap
-    case "$_signal" in
-
-    INT)
-        echo "Ctrl+C (SIGINT) was caught."
-        ;;
-
-    TERM)
-        echo "Termination (SIGTERM) was caught."
-        ;;
-
-    HUP)
-        echo "Hangup (SIGHUP) was caught."
-        ;;
-
-    *)
-        echo "Unknown signal ($_signal) was caught."
-        ;;
-
-    esac
-    unset _signal
-
-    env_restore
-    [ "$_fnc_calls" = 2 ] && msg_3 "cleanup($1) - done"
 }
 
 defined_and_existing() {
@@ -152,6 +140,87 @@ ensure_dev_paths_are_defined() {
     [ "$_fnc_calls" = 2 ] && msg_3 "ensure_dev_paths_are_defined($1) - done"
 }
 
+define_chroot_env() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "define_chroot_env()"
+
+    [ -z "$CHROOT_TO" ] && error_msg "define_chroot_env() CHROOT_TO not defined!"
+    [ ! -d "$CHROOT_TO" ] && error_msg "define_chroot_env() - path does not exist: $CHROOT_TO"
+
+    f_is_chrooted="${CHROOT_TO}$f_host_fs_is_chrooted"
+
+    #
+    #  Must be called whenever CHROOT_TO is changed, like by param -p
+    #
+    d_proc="${CHROOT_TO}/proc" #; exists_and_empty "$d_proc"
+    d_dev="${CHROOT_TO}/dev"   #; exists_and_empty "$d_dev"
+
+    if [ "$build_env" = "$be_linux" ]; then
+        d_sys="${CHROOT_TO}/sys" #   ; exists_and_empty "$d_sys"
+        d_dev_pts="${CHROOT_TO}/dev/pts"
+    fi
+    ensure_dev_paths_are_defined "skip_pts"
+
+    [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
+}
+
+find_default_cmd() {
+    #
+    #  Since no command was specified, first check if this
+    #  chroot has a defined default command in /.chroot_default_cmd
+    #  If this is not found, try to login as root with root's shell.
+    #  This to ensue we dont try to use a shell that is either not
+    #  available, or not found in the expeted location
+    #
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "find_default_cmd()"
+    _f="${CHROOT_TO}/.chroot_default_cmd"
+    if [ -f "$_f" ]; then
+        cmd_w_params="$(cat "$_f")"
+        [ "$_fnc_calls" -gt 0 ] && msg_3 "Found a default cmd: $cmd_w_params"
+    else
+        [ "$_fnc_calls" -gt 0 ] && msg_2 "Trying to use root shell as default cmd"
+        _f="${CHROOT_TO}/etc/passwd"
+        [ ! -f "$_f" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
+        cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$_f")"
+        [ "$_fnc_calls" -gt 0 ] && msg_3 "use_root_shell_as_default_cmd() - done"
+    fi
+    [ "$_fnc_calls" = 2 ] && msg_3 "find_default_cmd()"
+}
+
+#use_root_shell_as_default_cmd
+env_prepare() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "env_prepare()"
+
+    ensure_dev_paths_are_defined "skip_pts"
+
+    _err="$prog_name is running! - this should have already been caught!"
+    [ -f "$f_is_chrooted" ] && error_msg "$_err"
+    unset _err
+
+    [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
+
+    msg_3 "Mounting system resources"
+
+    mount -t proc proc "$d_proc"
+
+    if [ "$build_env" = "$be_ish" ]; then
+        #
+        #  I havent figured out how to mount /dev on iSH for the
+        #  chrooted env, so for now, I simply copy the host /dev files
+        #  into the chroot env. And remove them when exiting
+        #
+        cp -a /dev/* "$d_dev"
+    elif [ "$build_env" = "$be_linux" ]; then
+        #	mount -t sysfs sys "$d_sys"
+        mount -o bind /dev "$d_dev"
+        mount -o bind /dev/pts "$d_dev_pts"
+    fi
+
+    # msg_3 "copying current /etc/resolv.conf"
+    cp /etc/resolv.conf "$CHROOT_TO/etc"
+
+    [ "$_fnc_calls" = 2 ] && msg_3 "env_prepare() - done"
+}
+
 exists_and_empty() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "exists_and_empty($1)"
 
@@ -161,6 +230,57 @@ exists_and_empty() {
     unset _eae
 
     [ "$_fnc_calls" = 2 ] && msg_3 "exists_and_empty($1) - done"
+}
+
+#  shellcheck disable=SC2120
+set_ch_procs() {
+    #
+    # Since this is used in multiple places, use a func to ensure same
+    # filtering is done
+    #
+
+    if hostfs_is_alpine; then
+        ch_procs="$(lsof 2>/dev/null | grep "$CHROOT_TO" |
+            awk '{print $1 }' | sort | uniq | tr '\n' ' ')"
+    else
+        ch_procs="$(lsof 2>/dev/null | grep "$CHROOT_TO" |
+            awk '{print $2 }' | sort | uniq | tr '\n' ' ')"
+    fi
+}
+
+kill_remaining_procs() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "kill_remaining_procs()"
+
+    # msg_3 "Ensuring chroot env didn't leave any process running..."
+
+    set_ch_procs
+    [ -z "$ch_procs" ] && return # nothing needs killing
+
+    msg_3 "remaining procs to kill: [$ch_procs]"
+    echo "$ch_procs" | tr ' ' '\n' | xargs kill -9
+    # shell check disable=SC2016,SC2086  # TODO: fix and test
+    # echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: $s" ; kill {}'
+
+    #
+    #  Ensure thee are no leftovers that kill didnt get rid off
+    #
+    msg_3 "Making sure no processes remains"
+    set_ch_procs
+    if [ -n "$ch_procs" ]; then
+        msg_1 "***  WARNING - remaining procs: [$ch_procs]  ***"
+
+        echo "Remaining mounts:"
+        echo
+
+        mount | grep "$CHROOT_TO"
+
+        echo
+        echo "Must be manually unmouunted once offending process are gone"
+        echo
+        exit 1
+    fi
+
+    [ "$_fnc_calls" = 2 ] && msg_3 "kill_remaining_procs() - done"
 }
 
 cleanout_dir() {
@@ -188,194 +308,22 @@ cleanout_dir() {
     [ "$_fnc_calls" = 2 ] && msg_3 "cleanout_dir($1) - done"
 }
 
-set_ch_procs() {
-    # Since this is done twice, use a func to ensure same filtering is done
-
-    #
-    #  needed so that we can filter chroot processes having the real
-    #  SUDO_COMMAND in their env. Without this the child ps, grep & awk
-    #  processes would inherit the env variable created by the chroot.
-    #
-    #  For some reason, despite this the process running this script
-    #  maintains the env setting SUDO_COMMAND set by chroot,
-    #  so that process has to be filtered out by grep -v " $cmd_line"
-    #  pretty much a cludge, but the best I could come up with so far
-    #
-    #  Be aware that this wont catch procs that on purpose clear
-    #  or edit their SUDO_COMMAND env variable
-    #
-    export SUDO_COMMAND=none
-
-    if hostfs_is_alpine; then
-        #
-        #  Be aware that sometimes calling lsof will cause iSH-AOK
-        #  to crash hard
-        #
-        _procs="$(lsof | grep aok_fs | awk '{print $1}' | uniq | tr '\n' ' ')"
-    else
-        # shellcheck disable=SC2009,2086  # TODO: fix and test
-        _procs="$(ps axe | grep SUDO_COMMAND=$cmd_line |
-            grep -v " $cmd_line" | grep -v SUDO_COMMAND=none |
-            awk '{print $1 }' | tr '\n' ' ')"
-    fi
-
-    # Trim trailing whitespace
-    ch_procs="${_procs%"${_procs##*[![:space:]]}"}"
-    unset _procs
-}
-
-kill_remaining_procs() {
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "kill_remaining_procs()"
-
-    msg_3 "Ensuring chroot env didn't leave any process running..."
-
-    set_ch_procs
-    [ -z "$ch_procs" ] && return # nothing needs killing
-
-    msg_3 "remaining procs to kill: [$ch_procs]"
-    # shellcheck disable=SC2016,SC2086  # TODO: fix and test
-    echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: $s" ; kill {}'
-
-    #
-    #  Ensure thee are no leftovers that kill didnt get rid off
-    #
-    msg_3 "Making sure nothing remains"
-    set_ch_procs
-    if [ -n "$ch_procs" ]; then
-        msg_3 "***  WARNING - remaining procs: [$ch_procs]  ***"
-
-        echo "Remaining mounts:"
-        echo
-
-        mount | grep "$CHROOT_TO"
-
-        echo
-        echo "Must be manually unmouunted once offending process are gone"
-        echo
-        exit 1
-    fi
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "kill_remaining_procs() - done"
-}
-
 umount_mounted() {
     [ "$_fnc_calls" -gt 0 ] && msg_2 "umount_mounted($1)"
 
     _um="$1"
-
     if mount | grep -q "$_um"; then
-        defined_and_existing "$_um"
+        $show_unmounts && msg_3 "unmounting $_um"
         umount "$_um" || error_msg "Failed to unmount $_um"
-        [ -d "$_um" ] && cleanout_dir "$_um"
-    else
-        #msg_3 "$_um - was not mounted"
-        cleanout_dir "$_um"
     fi
+
+    cleanout_dir "$_um"
     unset _um
 
     [ "$_fnc_calls" = 2 ] && msg_3 "umount_mounted($1) - done"
 }
 
-define_chroot_env() {
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "define_chroot_env()"
-
-    [ -z "$CHROOT_TO" ] && error_msg "define_chroot_env() CHROOT_TO not defined!"
-    [ ! -d "$CHROOT_TO" ] && error_msg "define_chroot_env() - path does not exist: $CHROOT_TO"
-
-    #
-    #  Must be called whenever CHROOT_TO is changed, like by param -p
-    #
-    d_proc="${CHROOT_TO}/proc" #; exists_and_empty "$d_proc"
-    d_dev="${CHROOT_TO}/dev"   #; exists_and_empty "$d_dev"
-
-    if [ "$build_env" = "$be_linux" ]; then
-        d_sys="${CHROOT_TO}/sys" #   ; exists_and_empty "$d_sys"
-        d_dev_pts="${CHROOT_TO}/dev/pts"
-    fi
-    ensure_dev_paths_are_defined "skip_pts"
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "define_chroot_env() - done"
-}
-
-use_root_shell_as_default_cmd() {
-    #
-    #  Since no command was specified, try to extract the root
-    #  shell from within the env. This to ensue we dont try
-    #  to use a shell that is either not available, nor
-    #  not found in the expeted location
-    #
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "use_root_shell_as_default_cmd()"
-
-    f_etc_pwd="${CHROOT_TO}/etc/passwd"
-    [ ! -f "$f_etc_pwd" ] && error_msg "Trying to find chrooted root shell in its /etc/passwd failed"
-    cmd_w_params="$(awk -F: '/^root:/ {print $NF" -l"}' "$f_etc_pwd")"
-    unset f_etc_pwd
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "use_root_shell_as_default_cmd() - done"
-}
-
-env_prepare() {
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "env_prepare()"
-
-    ensure_dev_paths_are_defined "skip_pts"
-
-    _err="$prog_name is running! - this should have already been caught!"
-    [ -f "$pidfile_do_chroot" ] && error_msg "$_err"
-    unset _err
-
-    # msg_3 "creating pidfile_do_chroot: $pidfile_do_chroot"
-    echo "$$" >"$pidfile_do_chroot"
-
-    [ ! -d "$CHROOT_TO" ] && error_msg "chroot location [$CHROOT_TO] is not a directory!"
-
-    #    if mount | grep -q "$CHROOT_TO"; then
-    #        error_msg "This [$CHROOT_TO] is already chrooted!"
-    #    fi
-
-    msg_3 "Mounting system resources"
-
-    mount -t proc proc "$d_proc"
-
-    if [ "$build_env" = "$be_ish" ]; then
-        #
-        #  I havent figured out how to mount /dev on iSH for the
-        #  chrooted env, so for now, I simply copy the host /dev files
-        #  into the chroot env. And remove them when exiting
-        #
-        cp -a /dev/* "$d_dev"
-    elif [ "$build_env" = "$be_linux" ]; then
-        #	mount -t sysfs sys "$d_sys"
-        mount -o bind /dev "$d_dev"
-        mount -o bind /dev/pts "$d_dev_pts"
-    fi
-
-    # msg_3 "copying current /etc/resolv.conf"
-    cp /etc/resolv.conf "$CHROOT_TO/etc"
-
-    [ "$_fnc_calls" = 2 ] && msg_3 "env_prepare() - done"
-}
-
-#  shellcheck disable=SC2120
-env_restore() {
-    #
-    #  This would normally be called as a mount session is terminating
-    #  so therefore the pidfile_do_chroot should not be checked.
-    #  Assume that if we get here we can do the cleanup.
-    #
-    if [ "$_fnc_calls" -gt 0 ]; then
-        if [ -n "$env_restore_started" ]; then
-            msg_1 "env_restore() has already been called, skipping"
-            return
-        fi
-        msg_2 "env_restore()"
-    else
-        [ -n "$env_restore_started" ] && return
-    fi
-    env_restore_started=1
-    ensure_dev_paths_are_defined skip_pts
-
-    msg_2 "Releasing system resources"
-    kill_remaining_procs
+unmount_systen_folders() {
     umount_mounted "$d_proc"
     if [ "$build_env" = "$be_ish" ]; then
         rm -rf "${d_dev:?}"/*
@@ -386,70 +334,69 @@ env_restore() {
         umount_mounted "$d_dev_pts"
         umount_mounted "$d_dev"
     fi
+}
 
+env_restore() {
     #
-    #  Complain about pottenially bad pidfile_do_chroot after completing the procedure
+    #  This would normally be called as a mount session is terminating
+    #  Assume that if we get here we can do the cleanup.
     #
-    [ -z "$pidfile_do_chroot" ] && error_msg "pidfile_do_chroot is undefined!"
+    if [ -n "$env_restore_started" ]; then
+        msg_1 "env_restore() has already been called, skipping"
+        return
+    fi
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "env_restore()"
 
-    [ -n "$pidfile_do_chroot" ] && {
-        # msg_3 "removing pidfile_do_chroot: $pidfile_do_chroot"
-        rm -f "$pidfile_do_chroot"
+    env_restore_started=1
+    ensure_dev_paths_are_defined skip_pts
+
+    msg_2 "Releasing system resources"
+    kill_remaining_procs
+
+    $show_unmounts && {
+        # in cleanup mode, once all related processes are killed
+        # the unmounts are done by the previous chroot, so give this
+        # some time to happen
+        sleep 2
     }
+
+    unmount_systen_folders
 
     [ "$_fnc_calls" = 2 ] && msg_3 "env_restore() - done"
 }
 
-show_help() {
-    # msg_2 "show_help()"
+#
+#  Since this is called via a parameterized trap, shellcheck doesnt
+#  recognize this code is in use..
+#
+# shellcheck disable=SC2317  # Don't warn about unreachable code
+cleanup() {
+    [ "$_fnc_calls" -gt 0 ] && msg_2 "cleanup($1)"
 
-    echo "
-Usage: $prog_name [-h] [-a] [-c] [-C] [-p dir] [command]
+    _signal="$1" # this was triggered by trap
+    case "$_signal" in
 
-Available options:
+    INT)
+        echo "Ctrl+C (SIGINT) was caught."
+        ;;
 
--h  --help      Print this help and exit
--a  --available Reports if this can be run now
--c  --cleanup   Cleanup env if something crashed whilst sudoed
--p, --path      What dir to chroot into, defaults to: $d_build_root
--f, --force     Run this despite a warning indicating it will likely
-                not work.
+    TERM)
+        echo "Termination (SIGTERM) was caught."
+        ;;
 
-command         Defaults to the shell used by root within the env
+    HUP)
+        echo "Hangup (SIGHUP) was caught."
+        ;;
 
-chroot with env setup so this works on both Linux & iSH
+    *)
+        echo "Unknown signal ($_signal) was caught."
+        ;;
 
-Normally this will clear up the env even if the chroot crashes.
-If it does  fail to clean up, and you attempt to run with -c
-used -p to chroot to a custom path, you must take care to give
--p BEFORE -c in order for this to know what reminant mount points to
-clean up!
+    esac
+    unset _signal
 
-"
-    # msg_3 "show_help() - done"
-}
-
-chroot_statuses() {
-    #
-    #  This is mostly a debug helper, so only informative
-    #  does not contribute to the actual process
-    #
-    [ "$_fnc_calls" -gt 0 ] && msg_2 "chroot_statuses($1)"
-
-    [ -n "$1" ] && msg_1 "chroot_statuses - $1"
-
-    msg_2 "Displaying chroot statuses"
-    if this_fs_is_chrooted; then
-        msg_1 "Host IS"
-    else
-        msg_3 "Host not"
-    fi
-    if dest_fs_is_chrooted; then
-        msg_3 "Dest is (not yet, but flagged as such)"
-    else
-        msg_3 "Dest not"
-    fi
-    [ "$_fnc_calls" = 2 ] && msg_3 "chroot_statuses($1) - done"
+    env_restore
+    [ "$_fnc_calls" = 2 ] && msg_3 "cleanup($1) - done"
 }
 
 #===============================================================
@@ -466,9 +413,10 @@ cmd_line="$0"
 prog_name="$(basename "$cmd_line")"
 
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-CHROOT_TO="$d_build_root"
+CHROOT_TO="$d_build_root" # default opt -p overrides
+show_unmounts=false
 
 if [ "$build_env" = "$be_other" ]; then
     echo
@@ -481,8 +429,8 @@ fi
 #  Ensure this is run in the intended location in case this was launched from
 #  somewhere else, this to ensure build_env can be found
 #
-cd "$d_aok_base" || {
-    error_msg "Failed to cd into: $d_aok_base"
+cd /opt/AOK || {
+    error_msg "Failed to cd into: /opt/AOK"
 }
 
 while [ -n "$1" ]; do
@@ -500,38 +448,23 @@ while [ -n "$1" ]; do
         exit 0
         ;;
 
-    "-a" | "--available")
-        can_chroot_run_now
-        msg_1 "$prog_name not running, can be started!"
-        #
-        #  This check should already have exited, exit busy, now in case
-        #  something went wrong
-        #
-        exit 1
-        ;;
-
-    "-p" | "--path")
-        if [ -d "$2" ]; then
-            CHROOT_TO="$2"
-            shift # get rid of the dir
-        else
-            error_msg "-p assumes a param pointing to where to chroot!"
-        fi
-        ;;
-
     "-c" | "--cleanup")
+        show_unmounts=true
         cleanup_sleep=2
-        can_chroot_run_now
-        echo
-        echo "Will cleanup the mount point: $CHROOT_TO"
-        echo
-        echo "Please be aware that if you attempt to clean up after a chroot"
-        echo "to a non-standard path (ie you used -p), you must use this notation"
-        echo "in order to attempt to clean up the right things."
-        echo
-        echo "$prog_name -p /custom/path -c"
-        echo
-        echo "This will continue in $cleanup_sleep secnods, hit Ctrl-C if you want to abort"
+        #region cleanup explaination
+        echo "
+
+Will cleanup the mount point: $CHROOT_TO
+
+Please be aware that if an attempt is made to clean up after a chroot to a
+non-standard path with -p, this notation must be used in order to attempt
+to clean up the right things.
+
+$cmd_line -p /custom/path -c
+
+This will continue in $cleanup_sleep secnods,hit Ctrl-C if you want to abort
+"
+        #endregion
         sleep "$cleanup_sleep"
 
         define_chroot_env
@@ -542,6 +475,15 @@ while [ -n "$1" ]; do
     "-f" | "--force")
         msg_1 "Using force!"
         force_this=1
+        ;;
+
+    "-p" | "--path")
+        if [ -d "$2" ]; then
+            CHROOT_TO="$2"
+            shift # get rid of the dir
+        else
+            error_msg "-p assumes a param pointing to where to chroot!"
+        fi
         ;;
 
     *)
@@ -569,12 +511,13 @@ can_chroot_run_now
 trap 'cleanup INT' INT
 trap 'cleanup TERM' TERM
 
-env_prepare
-
 [ -z "$d_build_root" ] && error_msg "d_build_root empty!" 1
 
 if [ "$1" = "" ]; then
-    use_root_shell_as_default_cmd
+    find_default_cmd
+    if [ -z "$cmd_w_params" ]; then
+        error_msg "Could not find any default command, you must supply one"
+    fi
 else
     cmd_w_params="$*"
     _cmd="$1"
@@ -591,23 +534,30 @@ else
     fi
 fi
 
+env_prepare
+
 msg_1 "chrooting: $CHROOT_TO ($cmd_w_params)"
 
-destfs_set_is_chrooted
+mkdir -p "$(dirname "$f_is_chrooted")"
+touch "$f_is_chrooted"
 
 #
 #  Here we must disable all env variables that should not be passed into
 #  the chroot env, like TMPDIR
 #
 #  In this case we want the $cmd_w_params variable to expand into its components
-#
-#  TODO: try to get rid of emptying vars
 #  shellcheck disable=SC2086
 TMPDIR="" SHELL="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
 chroot_exit_code="$?"
 
+rm -f "$f_is_chrooted"
+
+# else
+#     msg_2 "Clearing alt chroot flag: [$f_is_chrooted]"
+#     rm "$f_is_chrooted"
+# fi
+
 env_restore
-destfs_clear_chrooted
 
 # If there was an error in the chroot process, propagate it
 exit "$chroot_exit_code"

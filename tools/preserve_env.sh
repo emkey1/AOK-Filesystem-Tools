@@ -26,7 +26,6 @@
 #  for example.
 #
 
-# echo ">>> preserve_env.sh starting"
 [ -z "$AOK_DIR" ] && {
     echo "ERROR: tools/preserve_env.sh needs AOK_DIR set to base dir of repo"
     exit 1

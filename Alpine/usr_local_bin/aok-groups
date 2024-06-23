@@ -1,0 +1,202 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2022,2023: Jacob.Lundqvist@gmail.com
+#
+check_for_option() {
+    case "$1" in
+
+    "" | "-h" | "--help")
+        echo "usage: $prog_name [-h] | [-g] | [-l] | | group1 group2 -group3 ..."
+        echo
+        echo "This is a tool to install/uninstall groups of packages"
+        echo "prefixing a group name with - means uninstall that group"
+        echo
+        echo "options:"
+        echo "  -h, --help   show this help message and exit"
+        echo "  -g           list available groups and exit"
+        echo "  -l           list groups and items and exit"
+        echo
+        exit 0
+        ;;
+
+    "-g")
+        task="groups"
+        process_items
+        echo
+        exit 0
+        ;;
+
+    "-l")
+        task="list"
+        process_items
+        exit 0
+        ;;
+
+    *) ;;
+
+    esac
+}
+
+create_aok_groups() {
+    conf_file=/opt/AOK/AOK_VARS
+    if [ ! -f "$conf_file" ]; then
+        echo "ERROR: $conf_file not found!"
+        exit 1
+    fi
+
+    #
+    #  Convert $var_file to my notation, so that it can be used without
+    #  changing the rest of the code.
+    #
+    # shellcheck source=/opt/AOK/AOK_VARS
+    . "$conf_file"
+    package_groups="$(
+        set |
+            grep _APKS |
+            sed -e s/_APKS// -e s/BLOAT// -e "s/'//g" -e s/=/\|/ |
+            awk '{ print ":" $0 }'
+    )"
+}
+
+pkg_handling() {
+    action="$1"
+    case "$action" in
+
+    "add" | "del") ;;
+
+    *)
+        echo "ERROR: pkg_handling() - incorrect param: $action"
+        exit 1
+        ;;
+    esac
+
+    #
+    #  Some packages change depending on Alpine release
+    #
+    if ! min_release 3.18; then
+        packages="$(echo "$packages" | sed 's/procps-ng/procps/')"
+        if ! min_release 3.16; then
+            packages="$(echo "$packages" | sed 's/shadow-login-doc//')"
+        fi
+    fi
+
+    #  shellcheck disable=SC2086 # in this case it should expand
+    sudo apk $action $packages
+    task_done=1
+}
+
+#
+#  Loops through all groups, and takes action according to $task
+#  for install / uninstall $item is assumed to be the group to be
+#  processed
+#
+process_items() {
+    task_done=0
+    lst=$package_groups # since we might come back, don't change the original :)
+    while true; do
+        # POSIX way to handle array types of data
+        section="${lst%%:*}" # up to first colon excluding it
+        lst="${lst#*:}"      # after fist colon
+
+        name="$(echo "$section" | cut -d'|' -f 1 | awk '{$1=$1};1' | tr '[:upper:]' '[:lower:]')"
+        packages="$(echo "$section" | cut -d'|' -f 2 | awk '{$1=$1};1')"
+
+        [ -z "$packages" ] && continue # skip empty groups
+
+        case "$task" in
+
+        "groups") printf "%s" "$name " ;;
+
+        "list")
+            #
+            #  For pretty printing, first get all the group names
+            #  and figure out the longest. To keep the code simple
+            #  this is done on the first run of list,
+            #
+            if [ -z "$max_len" ]; then
+                # first get a list of names, in order to find longest
+                task="groups"
+                group_lst="$(process_items)"
+                task="list" # back to expected processing
+
+                max_len=0
+                while true; do
+                    g="${group_lst%% *}"
+                    group_lst="${group_lst#* }"
+
+                    g_len="${#g}"
+                    [ "$g_len" -gt "$max_len" ] && max_len="$g_len"
+
+                    [ "$group_lst" = "$g" ] && break # list done
+                done
+            fi
+            printf "[%${max_len}s]  %s\\n" "$name" "$packages"
+            ;;
+
+        "install")
+            if [ "$name" = "$item" ]; then
+                pkg_handling add
+                return
+            fi
+            ;;
+
+        "uninstall")
+            if [ "$item" = "core" ]; then
+                echo "ERROR: group core can not be deleted!"
+                exit 1
+            fi
+            if [ "$name" = "$item" ]; then
+                pkg_handling del
+                return
+            fi
+            ;;
+
+        *)
+            echo "ERROR: Unknown task: $task"
+            exit 1
+            ;;
+
+        esac
+        [ "$lst" = "$section" ] && break # we have processed last group
+    done
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+prog_name=$(basename "$0")
+
+. /opt/AOK/tools/utils.sh
+
+create_aok_groups
+
+echo "$prog_name"
+
+check_for_option "$1"
+
+while [ -n "$1" ]; do
+    item="$1"
+
+    if [ "$(echo "$item" | cut -b1)" = "-" ]; then
+        item="${item#?}"
+        task="uninstall"
+        echo "-----   Removing group:    $item"
+        process_items
+    else
+        task="install"
+        echo "-----   Installing group:  $item"
+        process_items
+    fi
+    if [ "$task_done" -eq 0 ]; then
+        echo "ERROR: $item is not a valid group!"
+        exit 1
+    fi
+    shift
+done

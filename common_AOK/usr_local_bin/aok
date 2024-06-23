@@ -10,367 +10,381 @@
 #
 
 show_help() {
-    echo "Usage: $prog_name [-h] [-v] [-l login procedure]
+    txt="Usage: $prog_name [-h] [-v] [-l login procedure]
 
 An AOK-only script that manages iSH/AOK specific things.
 
 Available options:
 
--h, --help      Print this help and exit
--v, --verbose   Be verbose
--c, --console   Console method [launch|inittab] Now: $(display_console_method)
-                How the console is initiated.
-                launch  - launched directly from iSH via 'Launch Cmd'
-                inittab - launched via getty in inittab
--l, --login     Decides login procedure [disable|enable|once] Now: $(display_login_method)
-                disable - session starts directly logged in as root
-                enable  - session starts wirh a login prompt
-                once    - one login session, then iSH terminates
--H, --hostname  Reads hostname from sync file [disable|enable] Now: $(display_hostname_method)
-                disable - Use the normal hostname program,
-                          always displays localhost for iOS >= 17
-                enable  - Use alternate hostname program, this can either
-                          use /etc/hostname for a static name, or via a
-                          Shortcut read the iOS device name as iSH starts
+-h --help          Print this help and exit
+-a --autologin     Auto-login as user [disable|username]
+                   disable  - Will give login prompt
+                   username - Will auto-login as username
+-c --continous     New login prompt after vterm logout [on|off]
+-l --launch-cmd    Choose Launch cmd: $launch_cmd_options
+                   Launch cmd has very strict syntax requirements.
+                   1. wrap it in '[ ]'
+                   2. Each statement/param must be wrapped in \"\"
+                   3. If more than one statement, separate with commma space
+                   The default: '$launch_cmd_default'
+-H --profile-hints Show env hints in /etc/profile [on|off]
+-s --aoksuffix     Ensure -aok is added as suffix to hostname
+                   on iSH-AOK kernels [on|off]
+                   Ignored on regular iSH
+-C --console       Use first vterm (/dev/pts/0) as console,
+                   disabling logins on this vterm
 "
+    this_is_aok_kernel && {
+        txt="${txt}
+iSH-AOK options:
+
+-e --extra_locking  Use kernel extralocking [on|off]
+                    Switching it on may improve stability but impacts
+                    performance  WARNING: turning this off sometimes causes
+                    session to hang, but change did happen!
+-m --multicore      Switch multicore processing [on|off]
+                    Switching it off improves stability but impacts performance
+"
+    }
+    txt="$txt
+Current settings:
+$(
+        autologin_display
+        continous_sessions_display
+        launch_cmd_display
+        profile_hints_display
+        aok_suffix_display
+        console_mode_display
+    )
+"
+    this_is_aok_kernel && {
+        txt="${txt}$(
+            extralocking_display
+            multicore_display
+        )
+
+"
+    }
+    echo "$txt"
     exit 0
 }
+# -c, --console   Console method [launch|inittab] Now: $(console_mode_display)
+#                 if autologin is desired, give extra param user_name
+#                 launch  - launched directly from iSH via 'Launch Cmd'
+#                 inittab - launched via getty in inittab once bootup
+#                           has completed.
 
 #  shellcheck disable=SC2317
 destfs_is_alpine() {
     test -f /etc/alpine-release
 }
 
-#===============================================================
-#
-#
-#       Handling console origin
-#
-#
-#===============================================================
-
-launch_cmd_get() {
-    tr -d '\n' </proc/ish/defaults/launch_command | sed 's/  \+/ /g' | sed 's/"]/" ]/'
-}
-
-launch_cmd_set() {
-    new_cmd="$1"
-    [ -z "$new_cmd" ] && error_msg "launch_cmd_set() - no param"
-    echo "$1" >/proc/ish/defaults/launch_command
-}
-
-display_console_method() {
-    #
-    # Alpine
-    # tty1::respawn:/sbin/agetty
-    #
-    # Debian
-    # pts0::respawn:/sbin/agetty
-    #
-
-    if [ "$(launch_cmd_get)" = '[ "/bin/sleep", "infinity" ]' ]; then
-        echo "inittab"
+show_on_off_by_file() {
+    f_name="$1"
+    [ -z "$f_name" ] && {
+        error_msg "show_on_off_by_file() - no param given"
+    }
+    if [ -f "$f_name" ]; then
+        echo "on"
     else
-        echo "launch"
+        echo "off"
     fi
-
-    # # [ "/bin/login", "-f", "root"]%
-    # lc_current="$(launch_cmd_get)"
-    # echo "current launch cmd: $lc_current"
-
-    # launch_cmd_set '[ "/bin/sleep", "infinity" ]'
-    # lc_current="$(launch_cmd_get)"
-    # echo "current launch cmd: $lc_current"
-
-    # launch_cmd_set '[ "/bin/login", "-f", "root" ]'
-    # lc_current="$(launch_cmd_get)"
-    # echo "current launch cmd: $lc_current"
-}
-
-change_console_procedure() {
-    cons_mode="$1"
-
-    case "$cons_mode" in
-
-    "launch")
-        error_msg "method 'launch' not implemented"
-        ;;
-
-    "inittab")
-        error_msg "method 'inittab' not implemented"
-        ;;
-
-    "")
-        echo
-        echo "ERROR: Missing param indicating new login procedure"
-        exit 1
-        ;;
-
-    *)
-        echo
-        echo "ERROR: Bad param to change login procedure: $1"
-        exit 1
-        ;;
-
-    esac
-
-    error_msg "Not done: change_console_procedure()"
 }
 
 #===============================================================
 #
-#
-#       login method
-#
+#       auto-login
 #
 #===============================================================
-change_login_procedure() {
-    requested_method="$1"
 
-    if [ ! "$requested_method" = "disable" ] && [ "$(find /home -mindepth 1 -maxdepth 1 | wc -l)" -lt 1 ]; then
-        echo
-        echo "WARNING: an active login method was selected,"
-        echo "however no user accounts were found, thus switching to disable."
-        echo "Otherwise you would most likely get stuck on the login prompt next boot."
-        echo
-        requested_method="disable"
-    fi
+autologin_change() {
+    uname_autologin="$1"
+    [ -z "$uname_autologin" ] && {
+        error_msg "autologin_change() - no param given"
+    }
 
-    case "$requested_method" in
-
-    "once")
-        echo "Enabling login prompt, but only for initial login."
-        echo "  This App will exit when you logout"
-        rm -f /bin/login
-        ln -sf /bin/login.once /bin/login
-        echo "once" >"$login_method_stored"
-        exit 0
-        ;;
-
-    "enable")
-        echo "Enabling login prompt."
-        echo "  You will be prompted for your login name and password"
-        echo "  if one has been set when launching this App"
-        rm -f /bin/login
-        ln -sf /bin/login.loop /bin/login
-        echo "enabled" >"$login_method_stored"
-        exit 0
-        ;;
-
-    "disable")
-        echo "Disabling login prompt on startup. You will start at root prompt"
-        echo "  when launching this App"
-        rm -f /bin/login
-
-        if [ -f "$login_original" ]; then
-            #
-            #  This will also be the case for Alpine when shadow-login
-            #  is installed
-            #
-            ln -sf "$login_original" /bin/login
-        elif destfs_is_alpine; then
-            ln -sf "/bin/busybox" /bin/login
+    if [ "$uname_autologin" = "disable" ]; then
+        echo "disabling auto-login"
+        rm -f "$f_login_default_user"
+    else
+        eval "_h=~$uname_autologin"
+        # shellcheck disable=SC2154
+        [ -d "$_h" ] || {
+            error_msg "$uname_autologin does not seem to be a valid user on this system"
+        }
+        echo "$uname_autologin" >"$f_login_default_user"
+        if [ -f "$f_logins_continous" ]; then
+            _s="continous "
         else
-            echo "ERROR: not Alpine and no $login_original"
-            exit 1
+            _s=""
         fi
-
-        echo "disabled" >"$login_method_stored"
-        exit 0
-        ;;
-
-    "")
-        echo
-        echo "ERROR: Missing param indicating new login procedure"
-        exit 1
-        ;;
-
-    *)
-        echo
-        echo "ERROR: Bad param to change login procedure: $1"
-        exit 1
-        ;;
-
-    esac
+        echo "Enabled ${_s}auto-login for user: $uname_autologin"
+    fi
 }
 
-check_login_method() {
-    if [ "$(readlink -f /bin/login)" = "/bin/login.loop" ]; then
-        echo "enabled"
-    elif [ "$(readlink -f /bin/login)" = "/bin/login.once" ]; then
-        echo "once"
+autologin_settting() {
+    if [ -f "$f_login_default_user" ]; then
+        cat "$f_login_default_user"
     else
         echo "disabled"
     fi
 }
 
-display_login_method() {
-    mthd_active="$(check_login_method)"
-    mthd_intended="$(cat "$login_method_stored" 2>/dev/null)"
-
-    if [ "$mthd_active" = "$mthd_intended" ]; then
-        echo "$mthd_active"
-        if [ ! -f /bin/login ]; then
-            if [ -f /bin/login.original ]; then
-                ln -sf /bin/login.original /bin/login
-            else
-                echo "ERROR: /bin/login missing"
-            fi
-        fi
-        exit 0
-    fi
-
-    echo "Inconsistency detected"
-    echo
-    echo "WARNING: active login method not the intended one"
-    echo "         attempting to fix"
-    echo
-    echo "current:   $mthd_active"
-    echo "intended: $mthd_intended"
-    echo
-
-    #
-    #  If stored setting not available repeat usage of active, in order
-    #  to set the selected to match
-    #
-    [ -z "$mthd_intended" ] && mthd_intended="$mthd_active"
-
-    case "$mthd_intended" in
-    "disabled") mthd="disable" ;;
-    "once") mthd="once" ;;
-    "enabled") mthd="enable" ;;
-    *) mthd="$mthd_active" ;; # not sure how this works, my attempt for a deault
-    esac
-
-    change_login_procedure "$mthd"
+autologin_display() {
+    echo "autologin:     $(autologin_settting)"
 }
+
+autologin_disabled="disabled"
 
 #===============================================================
 #
-#
-#       hostname method
-#
+#       Continous login sessions
 #
 #===============================================================
-install_hostname_alt() {
-    echo "Enabling alternate hostname $hostname_alt"
-    cp /opt/AOK/common_AOK/hostname_handling/hostname_alt "$hostname_alt"
-    chmod 755 "$hostname_alt"
-}
 
-remove_hostname_alt() {
-    rm -f "$hostname_alt"
-}
-
-hostname_do_source() {
-    f_src="$1"
-    [ -z "$f_src" ] && error_msg "hostname_do_source() - called without parameter"
-    echo "Hostname set to: $("$hostname_alt" -S "$f_src")"
-}
-
-change_hostname_method() {
-    # msg_2 "change_hostname_method()"
-    requested_method="$1"
-    source_file="$2"
-
-    case "$requested_method" in
-
-    "enable")
-        if [ -z "$source_file" ]; then
-            f_current="$(cat "$hostname_source_fname" 2>/dev/null)"
-            if [ "$f_current" = "$f_etc_hostname" ]; then
-                s_old_value="$(cat "$f_etc_hostname" 2>/dev/null)"
-            else
-                s_old_value="$f_current"
-            fi
-            echo "For detailed instructions about creating an iOS hostname Shortcut"
-            echo "see /opt/APK/Docs/hostname-shortcut.md"
-            echo "Enter a static hostname, or if Shortcut sourcefile should be used"
-            echo "start with / and give full path, hit enter to keep the previous setting"
-
-            [ -n "$s_old_value" ] && echo "  $s_old_value"
-            read -r s_new_value
-            [ -z "$s_old_value" ] && echo
-
-            if [ -z "$s_new_value" ]; then
-                if [ -z "$s_old_value" ]; then
-                    echo "ERROR: Nothing given and no old value was found"
-                    echo "       will not activate $hostname_alt"
-                    echo "       this can be activated later by doing: aok -H enable"
-                    echo
-                    remove_hostname_alt
-                    exit 1
-                fi
-                s_new_value="$s_old_value"
-            fi
-        else
-            s_new_value="$source_file"
+continous_sessions_change() {
+    continous_mode="$1"
+    [ -z "$continous_mode" ] && {
+        error_msg "continous_sessions_change() - no param given, options are on/off"
+    }
+    [ -z "$f_logins_continous" ] && {
+        error_msg "continous_sessions_change() - f_logins_continous undefined"
+    }
+    case "$continous_mode" in
+    "on")
+        if this_fs_is_chrooted; then
+            continous_sessions_change "off"
+            error_msg "Can't set continous sessions on chrooted system"
         fi
-
-        if [ "${s_new_value%"${s_new_value#?}"}" = "/" ]; then
-            #
-            #  Use it as a path
-            #
-            if [ -f "$s_new_value" ]; then
-                install_hostname_alt
-                echo "hostname will be sourced from: $s_new_value"
-                hostname_do_source "$s_new_value"
-            else
-                echo "ERROR: Aborting install of alternate hostname - File not found: $s_new_value"
-                echo "       this can be activated later by doing: aok -H enable"
-                echo
-                remove_hostname_alt
-                exit 1
-            fi
-        else
-            #
-            #  Use it as old style hostname
-            #
-            install_hostname_alt
-            echo "$s_new_value" >"$f_etc_hostname"
-            echo "/etc/hostname will be used, so no syncing will be done."
-            hostname_do_source "$f_etc_hostname"
-        fi
-
-        if [ -z "$source_file" ]; then
-            #
-            #  source_file would typically only be set during initial deploy
-            #  and in that case this disclaimer wont be needed
-            #
-            echo
-            echo "Your shell prompt might have cached the hostname when the session started."
-            echo "It will then be updated next time you login."
-        fi
-        exit 0
+        touch "$f_logins_continous"
         ;;
 
-    "disable")
-        if [ -f "$hostname_alt" ]; then
-            echo "Removing $hostname_alt"
-            remove_hostname_alt
-        fi
-        exit 0
-        ;;
+    "off") rm -f "$f_logins_continous" ;;
 
     *)
-        echo
-        echo "ERROR: Bad param to change_hostname_method: $1"
-        exit 1
+        error_msg "continous_sessions_change() - options are on/off"
         ;;
-
     esac
-    # msg_3 "change_hostname_method() - done"
 }
 
-display_hostname_method() {
-    # msg_2 "display_hostname_method()"
-    if [ -f "$hostname_alt" ]; then
-        echo "Enabled"
+continous_sessions_setting() {
+    _s="$(show_on_off_by_file "$f_logins_continous")"
+    if [ "$_s" = "off" ]; then
+        echo "vterm will terminate after logout"
     else
-        echo "Disabled"
+        _s="$(autologin_settting)"
+        if [ "$_s" = "$autologin_disabled" ]; then
+            echo "vterm will sttart a new session after logout"
+        else
+            echo "vterm will autlogin as username: $_s"
+        fi
     fi
-    # msg_3 "display_hostname_method() - done"
 }
+
+continous_sessions_display() {
+    echo "continnous:    $(continous_sessions_setting)"
+}
+
+#===============================================================
+#
+#       Launch Cmd
+#
+#===============================================================
+
+launch_cmd_change() {
+    lnch_cmd="$1"
+    [ -z "$lnch_cmd" ] && {
+        error_msg "launch_cmd_change() - no param given, options are on/off"
+    }
+    case "$lnch_cmd" in
+    "default") set_launch_cmd "$launch_cmd_default" ;;
+    "aok") set_launch_cmd "$launch_cmd_AOK" ;;
+    *) launch_cmd_custom "$lnch_cmd" ;;
+    esac
+}
+
+launch_cmd_custom() {
+    custom_cmd="$1"
+    [ -z "$custom_cmd" ] && {
+        error_msg "launch_cmd_custom() - no param given"
+    }
+    set_launch_cmd "$custom_cmd" || error_msg "aok failed to set custom Launch cmd"
+}
+
+launch_cmd_display() {
+    echo "Launch cmd:    '$(get_launch_cmd)'"
+}
+
+launch_cmd_options="aok|default|'[ \"custom_cmd\" ]'"
+
+#===============================================================
+#
+#       Profile hints
+#
+#  Display suggestons about sshd and sudo in profile
+#
+#===============================================================
+
+profile_hints_change() {
+    hints_mode="$1"
+    [ -z "$hints_mode" ] && {
+        error_msg "profile_hints_change() - no param given, options are on/off"
+    }
+    case "$hints_mode" in
+    "on") touch "$f_profile_hints" ;;
+    "off") rm -f "$f_profile_hints" ;;
+    *)
+        error_msg "profile_hints_change() - options are on/off"
+        ;;
+    esac
+}
+
+profile_hints_setting() {
+    show_on_off_by_file "$f_profile_hints"
+}
+
+profile_hints_display() {
+    echo "profile-hints: $(profile_hints_setting)"
+}
+
+#===============================================================
+#
+#       aok suffix
+#
+#===============================================================
+
+aok_suffix_change() {
+    use_suffix="$1"
+    [ -z "$use_suffix" ] && {
+        error_msg "aok_suffix_change() - no param given, options are on/off"
+    }
+    case "$use_suffix" in
+    "on") touch "$f_hostname_aok_suffix" ;;
+    "off") rm -f "$f_hostname_aok_suffix" ;;
+    *)
+        error_msg "aok_suffix_change() - options are on/off"
+        ;;
+    esac
+}
+
+aok_suffix_setting() {
+    show_on_off_by_file "$f_hostname_aok_suffix"
+}
+
+aok_suffix_display() {
+    echo "aoksuffix:     $(aok_suffix_setting)"
+}
+
+#===============================================================
+#
+#       console mode
+#
+#===============================================================
+
+console_mode_change() {
+    use_console="$1"
+    [ -z "$use_console" ] && {
+        error_msg "console_mode_change() - no param given, options are on/off"
+    }
+    case "$use_console" in
+    "on") touch "$f_pts_0_as_console" ;;
+    "off") rm -f "$f_pts_0_as_console" ;;
+    *)
+        error_msg "console_mode_change() - options are on/off"
+        ;;
+    esac
+    echo "This will take effect next time App is run."
+}
+
+console_mode_setting() {
+    show_on_off_by_file "$f_pts_0_as_console"
+}
+
+console_mode_display() {
+    echo "console:       $(console_mode_setting)"
+}
+
+#===============================================================
+#
+#       kernel extralocking
+#
+#===============================================================
+
+extralocking_change() {
+    this_is_aok_kernel || {
+        error_msg "extralocking_change() only usable on iSH-AOK kernels"
+    }
+    do_elock="$1"
+    [ -z "$do_elock" ] && {
+        error_msg "extralocking_change() - no param given, options are on/off"
+    }
+    case "$do_elock" in
+    "on") echo "true" >"$f_elock" ;;
+    "off") echo "false" >"$f_elock" ;;
+    *)
+        error_msg "extralocking_change() - options are on/off"
+        ;;
+    esac
+}
+
+extralocking_setting() {
+    this_is_aok_kernel || {
+        error_msg "extralocking_setting() only usable on iSH-AOK kernels"
+    }
+    [ -f "$f_elock" ] || error_msg "Not found: $f_elock"
+    case "$(cat "$f_elock")" in
+    "true") echo "on" ;;
+    "false") echo "off" ;;
+    *) error_msg "Unknown state in $f_elock" ;;
+    esac
+}
+
+extralocking_display() {
+    echo "extralocking:  $(extralocking_setting)"
+}
+
+f_elock=/proc/ish/defaults/enable_extralocking
+
+#===============================================================
+#
+#       multicore processing
+#
+#===============================================================
+
+multicore_change() {
+    this_is_aok_kernel || {
+        error_msg "multicore_change() only usable on iSH-AOK kernels"
+    }
+    do_multicore="$1"
+    [ -z "$do_multicore" ] && {
+        error_msg "multicore_change() - no param given, options are on/off"
+    }
+    case "$do_multicore" in
+    "on") echo "true" >"$f_multicore" ;;
+    "off") echo "false" >"$f_multicore" ;;
+    *)
+        error_msg "multicore_change() - options are on/off"
+        ;;
+    esac
+}
+
+multicore_setting() {
+    this_is_aok_kernel || {
+        error_msg "multicore_setting() only usable on iSH-AOK kernels"
+    }
+    [ -f "$f_multicore" ] || error_msg "Not found: $f_multicore"
+    case "$(cat "$f_multicore")" in
+    "true") echo "on" ;;
+    "false") echo "off" ;;
+    *) error_msg "Unknown state in $f_multicore" ;;
+    esac
+}
+
+multicore_display() {
+    echo "multicore:     $(multicore_setting)"
+}
+
+f_multicore=/proc/ish/defaults/enable_multicore
 
 #===============================================================
 #
@@ -381,84 +395,89 @@ display_hostname_method() {
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
-f_etc_hostname=/etc/hostname
-
-#
-#  Store login method, so that if /bin/login was updated
-#  it can be restored to intended state.
-#
-login_method_stored="/etc/opt/AOK-login_method"
-
-login_original="/bin/login.original"
-
-if destfs_is_alpine && [ ! -L /bin/login ] && [ -f /bin/login ]; then
-    #
-    #  If /bin/login has been updated, ie is a file, this would indicate
-    #  shadow-login or similar has been updated. Update $login_original
-    #
-    mv /bin/login "$login_original"
-
-    # will restore it to its previous state, if need be
-    display_login_method
-fi
-
-verbose=0
 prog_name=$(basename "$0")
 
-while true; do
+[ -z "$1" ] && show_help
+
+while [ -n "$1" ]; do
     case "$1" in
 
-    "" | "-h" | "--help")
+    "-h" | "--help")
         show_help
         ;;
 
-    "-v" | "--verbose")
-        if [ "$verbose" -eq 0 ]; then
-            echo "===  Enabeling verbose mode  ==="
-            verbose=1
-            set -x
+    "-a" | "--autologin")
+        #  skip if $2 starts with - another option
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            # this_fs_is_chrooted && error_msg "Can't change autologin on chrooted system"
+            autologin_change "$2"
+            shift # get rid of extra option
         else
-            echo
-            echo "WARNING: Multiple verbose options are ignored"
+            autologin_display
         fi
         ;;
 
-    "-c" | "--console")
-        hostfs_is_devuan && error_msg "console toggle is not supported on Devuan yet"
-        if [ -n "$2" ]; then
-            this_fs_is_chrooted && error_msg "Can\t change console mode on chrooted system"
-            change_console_method "$2"
-        else
-            display_console_method
+    "-c" | "--continous")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            continous_sessions_change "$2"
+            shift # get rid of extra option
         fi
+        continous_sessions_display
         ;;
 
-    "-l" | "--login")
-        if [ -n "$2" ]; then
-            change_login_procedure "$2"
-        else
-            printf "Current login method: "
-            display_login_method
+    "-l" | "--launch-cmd")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            launch_cmd_change "$2"
+            shift # get rid of extra option
         fi
+        launch_cmd_display
         ;;
 
-    "-H" | "--hostname")
-        if [ -n "$2" ]; then
-            change_hostname_method "$2" "$3"
-        else
-            printf "Current login method: "
-            display_hostname_method
+    "-H" | "--profile-hints")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            profile_hints_change "$2"
+            shift # get rid of extra option
         fi
+        profile_hints_display
+        ;;
+
+    "-s" | "--aoksuffix")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            aok_suffix_change "$2"
+            shift # get rid of extra option
+        fi
+        aok_suffix_display
+        ;;
+
+    "-C" | "--console")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            console_mode_change "$2"
+            shift # get rid of extra option
+        fi
+        console_mode_display
+        ;;
+
+    "-e" | "--extra_locking")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            extralocking_change "$2"
+            shift # get rid of extra option
+        fi
+        extralocking_display
+        ;;
+
+    "-m" | "--multicore")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            multicore_change "$2"
+            shift # get rid of extra option
+        fi
+        multicore_display
         ;;
 
     *)
-        echo
-        echo "ERROR: Bad option: $1"
-        echo
+        msg_2 "ERROR: Bad option: $1"
         show_help
         ;;
 
     esac
     shift
-    [ -z "$1" ] && break # no more options
 done

@@ -20,19 +20,46 @@ find_fastest_mirror() {
     setup-apkrepos -f
 }
 
-install_apks() {
+handle_apks() {
+
+    msg_1 "apk upgrade"
+    apk upgrade || {
+        error_msg "apk upgrade failed"
+    }
+    echo
+
+    if ! min_release "3.16"; then
+        if [ -z "${CORE_APKS##*shadow-login*}" ]; then
+            # This package was introduced starting with Alpine 3.16
+            msg_3 "Excluding not yet available apk 'shadow-login"
+            CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
+        fi
+    fi
+
     if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
+        echo "$CORE_APKS"
+        echo
 
         # In this case we want the variable to expand into its components
         # shellcheck disable=SC2086
         apk add $CORE_APKS || {
             error_msg "apk add CORE_APKS failed"
         }
+        echo
     else
         msg_1 "No CORE_APKS defined"
     fi
 
+    if [ -n "$AOK_PKGS_SKIP" ]; then
+        msg_1 "Removing packages"
+        echo "$AOK_PKGS_SKIP"
+        echo
+
+        #  shellcheck disable=SC2086
+        apk del $AOK_PKGS_SKIP || error_msg "Failed to delete AOK_PKGS_SKIP"
+        echo
+    fi
     #
     #  Install some custom apks, where the current repo version cant
     #  be used, so we use the last known to work on Debian version
@@ -47,16 +74,19 @@ install_apks() {
             error_msg "apk add mtr failed"
         }
     fi
+
+    echo
+    Mapk || error_msg "Mapk reported error"
 }
 
 prepare_env_etc() {
     msg_2 "prepare_env_etc() - Replacing a few /etc files"
 
     msg_3 "AOK inittab"
-    cp "$d_aok_base"/Alpine/etc/inittab /etc
+    cp /opt/AOK/Alpine/etc/inittab /etc
 
     msg_3 "iOS interfaces file"
-    cp "$d_aok_base"/Alpine/etc/interfaces /etc/network
+    cp /opt/AOK/Alpine/etc/interfaces /etc/network
 
     if [ -f /etc/init.d/devfs ]; then
         msg_3 "Linking /etc/init.d/devfs <- /etc/init.d/dev"
@@ -71,7 +101,7 @@ prepare_env_etc() {
     testing_repo="https://dl-cdn.alpinelinux.org/alpine/edge/testing"
     if [ "$alpine_release" = "edge" ]; then
         msg_2 "Adding apk repository - testing"
-        #    cp "$d_aok_base"/Alpine/etc/repositories-edge /etc/apk/repositories
+        #    cp /opt/AOK/Alpine/etc/repositories-edge /etc/apk/repositories
         echo "$testing_repo" >>/etc/apk/repositories
     elif min_release 3.17; then
         #
@@ -93,7 +123,7 @@ setup_cron_env() {
 
     msg_3 "Adding root crontab running periodic content"
     mkdir -p /etc/crontabs
-    cp -a "$d_aok_base"/common_AOK/cron/crontab-root /etc/crontabs/root
+    cp -a /opt/AOK/common_AOK/cron/crontab-root /etc/crontabs/root
 
     #  shellcheck disable=SC2154
     if [ "$USE_CRON_SERVICE" = "Y" ]; then
@@ -116,51 +146,20 @@ setup_cron_env() {
 
 tsa_start="$(date +%s)"
 
-#
-#  Ensure important devices are present.
-#  this is not yet in inittab, so run it from here on 1st boot
-#
-echo "-->  Running fix_dev  <--"
-/opt/AOK/common_AOK/usr_local_sbin/fix_dev ignore_init_check
-echo
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-. /opt/AOK/tools/utils.sh
-
-if [ -n "$LOG_FILE" ]; then
-    debug_sleep "Since log file is defined, will pause before starting" 2
-fi
-
-deploy_starting
-
-#
-#  Switches over into edge, so skip for now
-#
-#find_fastest_mirror
-
-msg_script_title "setup_alpine.sh - Setup Alpine"
-
-initiate_deploy Alpine "$ALPINE_VERSION"
+ensure_ish_or_chrooted
 
 if [ -z "$ALPINE_VERSION" ]; then
     error_msg "ALPINE_VERSION param not supplied"
 fi
 
-if ! min_release "3.16"; then
-    if [ -z "${CORE_APKS##*shadow-login*}" ]; then
-        # This package was introduced starting with Alpine 3.16
-        msg_3 "Excluding not yet available apk 'shadow-login"
-        CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
-    fi
-fi
+# deploy_starting
+msg_script_title "setup_alpine.sh - Setup Alpine"
+initiate_deploy Alpine "$ALPINE_VERSION"
 
 prepare_env_etc
-
-msg_1 "apk upgrade"
-apk upgrade || {
-    error_msg "apk upgrade failed"
-}
-
-install_apks
+handle_apks
 
 msg_2 "adding group sudo"
 groupadd sudo
@@ -170,10 +169,10 @@ if ! "$setup_common_aok"; then
 fi
 
 msg_2 "Copy /etc/motd_template"
-cp -a "$d_aok_base"/Alpine/etc/motd_template /etc
+cp -a /opt/AOK/Alpine/etc/motd_template /etc
 
 msg_2 "Copy iSH compatible pam base-session"
-cp -a "$d_aok_base"/Alpine/etc/pam.d/base-session /etc/pam.d
+cp -a /opt/AOK/Alpine/etc/pam.d/base-session /etc/pam.d
 
 #
 #  Extra sanity check, only continue if there is a runable /bin/login
@@ -183,9 +182,11 @@ if [ ! -x "$(readlink -f /bin/login)" ]; then
 fi
 
 msg_2 "Preparing initial motd"
-/usr/local/sbin/update_motd
+/usr/local/sbin/update-motd
 
 setup_cron_env
+
+replace_home_dirs
 
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
@@ -198,7 +199,18 @@ else
     "$setup_final"
 fi
 
-installed_versions_if_prebuilt
+[ -n "$PREBUILD_ADDITIONAL_TASKS" ] && {
+    msg_1 "Running additional setup tasks"
+    echo "---------------"
+    echo "$PREBUILD_ADDITIONAL_TASKS"
+    echo "---------------"
+    $PREBUILD_ADDITIONAL_TASKS || {
+        error_msg "PREBUILD_ADDITIONAL_TASKS returned error"
+    }
+    msg_1 "Returned from the additional prebuild tasks"
+}
+
+display_installed_versions_if_prebuilt
 
 msg_1 "Setup complete!"
 

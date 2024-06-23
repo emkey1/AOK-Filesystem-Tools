@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Starting with iOS 17 Apple no longer supports the API that iSH uses
+Starting with iOS 17 Apple no longer supports the API that iSH used
 to retrieve hostname from iOS. Until that is resolved this is a
 workaround to handle this.
 
@@ -27,7 +27,7 @@ Then make it runable like this:
 chmod 755 /path/to/alternate/hostname
 ```
 
-You can replace the regular /bin/hostname with this, the drawback is that
+You can softlink the regular /bin/hostname with this, the drawback is that
 next time /bin/hostname is upgraded, your alternate will be replaced.
 The advantage is that there is no risk any script not having /usr/local/bin
 in PATH will end up using "localhost" instead of the intended hostname.

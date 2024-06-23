@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#
 
 # shellcheck source=/dev/null
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
 # shellcheck source=/dev/null
-. /opt/AOK/tools/utils.sh
+[[ -z "$d_aok_etc" ]] && . /opt/AOK/tools/utils.sh
+
+ensure_ish_or_chrooted
 
 # destfs_is_alpine && echo "is alpine" || echo "NOT alpine"
 # destfs_is_select && echo "is select" || echo "NOT select"

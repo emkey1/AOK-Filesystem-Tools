@@ -4,9 +4,9 @@
 #
 #  License: MIT
 #
-#  setup_devuan.sh
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  setup_devuan.sh
 #
 #  This modifies a Devuan Linux FS with the AOK changes
 #
@@ -14,7 +14,7 @@
 install_sshd() {
     #
     #  Install sshd, then remove the service, in order to not leave it running
-    #  unless requested to: with enable_sshd / disable_sshd
+    #  unless requested to: with enable-sshd / disable_sshd
     #
     msg_1 "Installing openssh-server"
 
@@ -26,30 +26,20 @@ install_sshd() {
     msg_3 "Install sshd and sftp-server (scp server part)"
     apt install -y openssh-server openssh-sftp-server
 
-    msg_3 "Disable sshd for now, enable it with: enable_sshd"
+    msg_3 "Disable sshd for now, enable it with: enable-sshd"
     rc-update del ssh default
 }
 
-prepare_env_etc() {
-    msg_2 "prepare_env_etc()"
-
-    msg_3 "hosts file helping apt tools"
-    cp -a "${d_aok_base}/Devuan/etc/hosts" /etc
-
+devuan_services() {
     #
-    #  Most of the Debian services, mounting fs, setting up networking etc
-    #  serve no purpose in iSH, since all this is either handled by iOS
-    #  or done by the app before bootup
+    #  Setting up suitable services, and removing those not meaningfull
+    #  on iSH
     #
-    # # skipping openrc
-    # msg_2 "Disabling previous openrc runlevel tasks"
-    # rm /etc/runlevels/*/* -f
+    msg_2 "devuan_services()"
+    msg_3 "Remove previous ssh host keys if present"
+    rm -f /etc/ssh/ssh_host*key*
 
-    msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
-    mkdir -p /etc/update-motd.d
-    cp -a "${d_aok_base}/Devuan/etc/update-motd.d/*" /etc/update-motd.d
-
-    msg_3 "prepare_env_etc() done"
+    # setup_cron_env
 }
 
 #===============================================================
@@ -58,75 +48,26 @@ prepare_env_etc() {
 #
 #===============================================================
 
-tsdev_start="$(date +%s)"
+tsd_start="$(date +%s)"
 
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-deploy_starting
+ensure_ish_or_chrooted
 
-if [ "$build_env" = "$be_other" ]; then
-    echo
-    echo "##  WARNING! this setup only works reliably on iOS/iPadOS and Linux(x86)"
-    echo "##           You have been warned"
-    echo
-fi
-
-msg_script_title "setup_devuan.sh  Devuan specific AOK env"
+$setup_famdeb_scr || error_msg "in $setup_famdeb_scr"
 
 initiate_deploy Devuan "$(cat /etc/devuan_version)"
-prepare_env_etc
 
-#
-#  This must run before any task doing apt actions
-#
-msg_2 "Installing sources.list"
-cp "$d_aok_base"/Devuan/etc/apt_sources.list /etc/apt/sources.list
+msg_script_title "setup_devuan.sh  Devuan specific AOK env"
+initiate_deploy Devuan "$(cat /etc/devuan_version)"
 
-msg_1 "apt update"
-apt update -y
+rsync_chown /opt/AOK/Devuan/etc/update-motd.d /etc
 
-msg_1 "apt upgrade"
-apt upgrade -y
-
-#
-#  To ensure that
-#  a) Deleting stuff, doesnt unintentionally delete what was supposed to
-#     be added in DEPB_PKGS
-#  b) If this is not prebuilt, and man-db is removed, saves the delay
-#     if DEB_PKGS adds something with a man page, just to then delete
-#     the man DB
-#
-#  It makes sense do first delete, then add
-#
-if [ -n "$DEB_PKGS_SKIP" ]; then
-    msg_1 "Removing Devuan packages"
-    echo "$DEB_PKGS_SKIP"
-    echo
-    #
-    #  To prevent leftovers having to potentially be purged later
-    #  we do purge instead of remove, purge implies a remove
-    #
-    #  shellcheck disable=SC2086
-    apt purge -y $DEB_PKGS_SKIP || {
-        error_msg "apt remove failed"
-    }
-
-fi
-
-if [ -n "$DEB_PKGS" ]; then
-    msg_1 "Add Devuan packages"
-    echo "$DEB_PKGS"
-    bash -c "DEBIAN_FRONTEND=noninteractive apt install -y $DEB_PKGS"
-fi
-
-#
-#  Common deploy, used both for Alpine & Debian
-#
-if ! "$setup_common_aok"; then
-    error_msg "$setup_common_aok reported error"
-fi
-
+install_sshd
 # setup_login
+devuan_services
+
+replace_home_dirs
 
 #
 #  Depending on if prebuilt or not, either setup final tasks to run
@@ -139,10 +80,28 @@ else
     "$setup_final"
 fi
 
+[ -n "$PREBUILD_ADDITIONAL_TASKS" ] && {
+    msg_1 "Running additional setup tasks"
+    echo "---------------"
+    echo "$PREBUILD_ADDITIONAL_TASKS"
+    echo "---------------"
+    $PREBUILD_ADDITIONAL_TASKS || {
+        error_msg "PREBUILD_ADDITIONAL_TASKS returned error"
+    }
+    msg_1 "Returned from the additional prebuild tasks"
+}
+
+display_installed_versions_if_prebuilt
+
 msg_1 "Setup complete!"
 
-duration="$(($(date +%s) - tsdev_start))"
+duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Devuan"
+echo
+echo "=_=_="
+echo "=====   setup_devuan completed $(date)   ====="
+echo "=_=_="
+echo
 
 if [ -n "$is_prebuilt" ]; then
     msg_1 "Prebuild completed, exiting"

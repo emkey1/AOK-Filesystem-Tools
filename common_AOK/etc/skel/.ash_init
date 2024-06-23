@@ -1,5 +1,11 @@
 #!/bin/sh
-#  Fake bangpath to help editors and linters
+#   Fake bangpath to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023,2024: Jacob.Lundqvist@gmail.com
 #
 #   Sets up ash to be somewhat similar to bash
 #
@@ -24,30 +30,16 @@ if [ -f ~/.common_rc ]; then
 fi
 
 #
-#   Indicate root/user in prompt
+#  Ash can use the bash prompt, but doesnt support dynamic propmpt
 #
-if [ "$(id -u)" -eq 0 ]; then
-    _user_mark="#"
-else
-    _user_mark="$"
-fi
+use_static_bash_prompt
 
 #
-#   Sets up prompt for ash in a similar manner to bash
+#  To make it possible to see what shell is used atm, ash tries
+#  to replace the : separating hostname and cwd into |
 #
-if [ -x /usr/bin/tput ] && tput setaf 1 >/dev/null 2>&1; then
-    #
-    #  We have color support; assume it's compliant with Ecma-48
-    #  (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-    #  a case would tend to support setf rather than setaf.)
-    #
-    #  If you want to more easily tell the difference between bash and ash
-    #  shells, one option is to change the hostname path separator to
-    #  something different than what bash is using (:), I tend to use:  |
-    #                                           --v
-    PS1="\[\033[01;32m\]\u@${_hn}\[\033[00m\]|\[\033[01;34m\]\w\[\033[00m\]$_user_mark "
+if  _s="$(echo "$PS1" | sed 's#]:\\#]|\\#' 2>/dev/null)" ; then
+    PS1="$_s"
 else
-    #  no color support
-    #                --v
-    PS1="\u@$_hn|\w$_user_mark "
+    echo "Failed to do ash adoption of prompt, keeping it same as bash"
 fi

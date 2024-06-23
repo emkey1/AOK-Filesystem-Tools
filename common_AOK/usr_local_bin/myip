@@ -22,7 +22,7 @@
 
 # if [[ -z "$pubip4" ]] && [[ -z "$pubip4" ]]; then
 #     #  Fallback, trying http instead
-printf "Public IP:  "
+printf 'Public IP:  '
 if curl -s https://ifconfig.me; then
     printf '\n'
 else
@@ -75,29 +75,29 @@ else
 fi
 
 echo
-printf "Local IPv4:"
+printf 'Local IPv4:'
 if [[ ${#ipv4s[@]} -gt 0 ]]; then
     echo #  Force new line
     for ipv4 in "${ipv4s[@]}"; do
-        printf "  %s\n" "$ipv4"
+        printf '  %s\n' "$ipv4"
     done
 elif [[ ${#ipv6s[@]} -gt 0 ]]; then
     #  If the other type is defined, this is probably a positive absense
-    printf " None defined\n"
+    printf ' None defined\n'
 else
-    printf " Unknown\n"
+    printf ' Unknown\n'
 fi
 
-printf "Local IPv6:"
+printf 'Local IPv6:'
 if [[ ${#ipv6s[@]} -gt 0 ]]; then
     echo #  Force new line
     for ipv6 in "${ipv6s[@]}"; do
-        printf "  %s\n" "$ipv6"
+        printf '  %s\n' "$ipv6"
     done
 elif [[ ${#ipv4s[@]} -gt 0 ]]; then
     #  If the other type is defined, this is probably a positive absense
-    printf " None defined\n"
+    printf ' None defined\n'
 else
     #  Neither found, hard to tell if this is no network or error
-    printf " Unknown\n"
+    printf ' Unknown\n'
 fi

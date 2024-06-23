@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
@@ -11,14 +11,16 @@
 # shellcheck disable=SC2154
 
 copy_skel_files() {
+    # echo "=V= copy_skel_files($1)"
     csf_dest="$1"
-    if [[ -z "$csf_dest" ]]; then
+    if [ -z "$csf_dest" ]; then
         error_msg "copy_skel_files() needs a destination param"
-    elif [[ ! -d "$csf_dest" ]]; then
+    elif [ ! -d "$csf_dest" ]; then
         error_msg "copy_skel_files($csf_dest) - not indicating a directory"
     fi
 
-    cp -r /etc/skel/. "$csf_dest"
+    # cp -rv /etc/skel/. "$csf_dest"
+    rsync -ah /etc/skel/. "$csf_dest"
 
     #
     #  Ensure all files are owned by owner of this after skel copy
@@ -29,17 +31,18 @@ copy_skel_files() {
     # ln -sf .bash_profile .bashrc  # TODO: for old skel files, can probably go
     unset csf_dest
     unset csf_owner
+    # echo "^^^ copy_skel_files($1) - done"
 }
 
 setup_cron_env() {
-    msg_2 "Setup geeral cron env"
+    msg_2 "Setup general cron env"
     #
     #  These files will always be setup and ready
     #  The cron/dcron service will only be acrive
     #  if USE_CRON_SERVICE="Y
     #
     msg_3 "Setting cron periodic files"
-    rsync_chown "$d_aok_base"/common_AOK/cron/periodic /etc
+    rsync_chown /opt/AOK/common_AOK/cron/periodic /etc silent
     #msg_3 "setup_cron_env() - done"
 }
 
@@ -57,24 +60,52 @@ setup_environment() {
 
     msg_3 "Disabling login timeout"
     _f="/etc/login.defs"
-    if [[ -f "$_f" ]]; then
+    if [ -f "$_f" ]; then
         echo "LOGIN_TIMEOUT 0" >"$_f"
     else
         error_msg "Config file not found: >$_f<"
     fi
 
+    msg_3 "Installing /etc/environment"
+    cp /opt/AOK/common_AOK/etc/environment /etc
+
+    msg_3 "Installing profile-hints file"
+    cp /opt/AOK/common_AOK/etc/profile-hints /etc
+
+    #
+    #  openrc is extreamly forgiving when it comes to dependencies, any
+    #  dependency that is not pressent is simply ignored.
+    #
+    #  When doing start/stop no more weird openrc warnings from kernel
+    #  related services that will always fail on iSH
+    #
+    #  Bootup time is vastly reduced, since openrc doesn't have to plow
+    #  through essentially every init script due to complex and in our
+    #  case pointless dependencies
+    #
+    msg_3 "Moving all unused services to /etc/init.d/NOT"
+    mv /etc/init.d /etc/NOT
+    mkdir /etc/init.d
+    mv /etc/NOT /etc/init.d
+    #  Keep the files we actually need
+    if destfs_is_alpine; then
+        cp -a /etc/init.d/NOT/sshd /etc/init.d
+    else
+        cp -a /etc/init.d/NOT/ssh /etc/init.d
+        msg_4 "Preserving /etc/init.d/rc"
+        cp -a /etc/init.d/NOT/rc /etc/init.d
+    fi
+    msg_4 "Unused files cleared from init.d"
+
     msg_3 "Populate /etc/skel"
-    rsync_chown "$d_aok_base"/common_AOK/etc/skel /etc
+    rsync_chown /opt/AOK/common_AOK/etc/skel /etc silent
 
     msg_3 "Activating group sudo for no passwd sudo"
-    cp "$d_aok_base"/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
+    cp /opt/AOK/common_AOK/etc/sudoers.d/sudo_no_passwd /etc/sudoers.d
     chmod 440 /etc/sudoers.d/sudo_no_passwd
 
     echo "This is an iSH node, running $(destfs_detect)" >/etc/issue
 
-    if [[ -n "$USER_NAME" ]]; then
-        echo "Default user is: $USER_NAME" >>/etc/issue
-    fi
     echo >>/etc/issue
 
     #
@@ -86,11 +117,10 @@ setup_environment() {
     #  ensure /etc/profile will be launched and deployt can complete
     #
 
-    if [[ "$USER_SHELL" = "/bin/ash" ]] || [[ "$USER_SHELL" = "/bin/bash" ]]; then
+    if [ "$USER_SHELL" = "/bin/ash" ] || [ "$USER_SHELL" = "/bin/bash" ]; then
         msg_3 "Setting root shell into USER_SHELL: $USER_SHELL"
         awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
-            /etc/passwd >/tmp/passwd &&
-            mv /tmp/passwd /etc/passwd
+            /etc/passwd >/tmp/passwd && mv /tmp/passwd /etc/passwd
     fi
 
     #
@@ -98,7 +128,7 @@ setup_environment() {
     #  needed for it are in. If it is not set, there will be a dialog
     #  at the end of the deploy where TZ can be selected
     #
-    if [[ -n "$AOK_TIMEZONE" ]]; then
+    if [ -n "$AOK_TIMEZONE" ]; then
         #
         #  Need full path to handle that this path is not correctly cached at
         #  this point if Debian is being installed, probably due to switching
@@ -122,7 +152,7 @@ setup_environment() {
 
     if command -v openrc >/dev/null; then
         msg_2 "Adding runbg service"
-        cp -a "$d_aok_base"/common_AOK/etc/init.d/runbg /etc/init.d
+        rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d silent
         # openrc_might_trigger_errors
         rc-update add runbg default
     else
@@ -133,7 +163,7 @@ setup_environment() {
     #  Removing default hostname service
     #
     hostn_service=/etc/init.d/hostname
-    if [[ -f "$hostn_service" ]]; then
+    if [ -f "$hostn_service" ]; then
         msg_2 "Disabling hostname service not working on iSH"
         mv -f "$hostn_service" /etc/init.d/NOT-hostname
     fi
@@ -145,7 +175,7 @@ setup_environment() {
         rm -f /etc/systemd/system/hostname.service
     fi
 
-    if [[ -f /etc/ssh/sshd_config ]]; then
+    if [ -f /etc/ssh/sshd_config ]; then
         # Move sshd to port 1022 to avoid issues
         sshd_port=1022
         msg_2 "sshd will use port: $sshd_port"
@@ -155,6 +185,15 @@ setup_environment() {
     else
         msg_2 "sshd not installed - port not changed"
     fi
+
+    msg_2 "Set default aok preferences"
+    #
+    # If AOK_HOSTNAME_SUFFIX is defined and this runs on an aok kernel
+    # on first boot aok -s on  will be set
+    #
+    aok -c off -H on -s off -C off
+    # only set if not chrootedgeeral
+    this_fs_is_chrooted || aok -l aok
 
     setup_cron_env
 
@@ -177,8 +216,8 @@ setup_root_env() {
     #  Extra sanity check, if this is undefined, the rest of this would
     #  ruin the build host root env...
     #
-    [[ ! -f "$f_host_deploy_state" ]] && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
-    [[ -z "$d_build_root" ]]
+    [ ! -f "$f_host_deploy_state" ] && error_msg "setup_root_env() - This doesnt look like a FS during deploy!"
+    [ -z "$d_build_root" ]
 
     #
     #  root user env
@@ -194,7 +233,7 @@ setup_root_env() {
 
 create_user() {
     msg_2 "Creating default user and group: $USER_NAME"
-    if [[ -z "$USER_NAME" ]]; then
+    if [ -z "$USER_NAME" ]; then
         msg_3 "No user requested"
         return
     fi
@@ -205,8 +244,8 @@ create_user() {
     #
     #  Determine what shell to use for custom user
     #
-    if [[ -n "$USER_SHELL" ]]; then
-        if [[ ! -x "${d_build_root}$USER_SHELL" ]]; then
+    if [ -n "$USER_SHELL" ]; then
+        if [ ! -x "${d_build_root}$USER_SHELL" ]; then
             error_msg "User shell not found: ${d_build_root} $USER_SHELL"
         fi
         use_shell="$USER_SHELL"
@@ -228,7 +267,7 @@ create_user() {
     copy_skel_files "$cu_home_dir"
 
     msg_3 "Adding documentation to userdir"
-    cp -a "$d_aok_base"/Docs "$cu_home_dir"
+    cp -a /opt/AOK/Docs "$cu_home_dir"
 
     # set ownership
     chown -R "$USER_NAME": "$cu_home_dir"
@@ -244,7 +283,9 @@ create_user() {
 #===============================================================
 
 # shellcheck source=/dev/null
-. /opt/AOK/tools/utils.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
+
+ensure_ish_or_chrooted
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
@@ -263,12 +304,12 @@ if ! command -v bash >/dev/null; then
     error_msg "bash not installed, common_AOK/setup_environment() can not complete"
 fi
 
-if [[ -n "$USER_SHELL" ]]; then
-    if ! destfs_is_alpine && [[ "$USER_SHELL" = "/bin/ash" ]]; then
+if [ -n "$USER_SHELL" ]; then
+    if ! destfs_is_alpine && [ "$USER_SHELL" = "/bin/ash" ]; then
         msg_1 "Only Alpine has /bin/ash - USER_SHELL set to /bin/bash"
         USER_SHELL="/bin/bash"
     fi
-    [[ ! -x "$USER_SHELL" ]] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
+    [ ! -x "$USER_SHELL" ] && error_msg "USER_SHELL ($USER_SHELL) can't be found!"
 else
     if destfs_is_alpine; then
         USER_SHELL="/bin/ash"
@@ -282,6 +323,6 @@ setup_environment
 setup_root_env
 create_user
 
-msg_1 "^^^  setup_common_env.sh done  ^^^"
+msg_1 "setup_common_env.sh done"
 
 exit 0 # indicate no error

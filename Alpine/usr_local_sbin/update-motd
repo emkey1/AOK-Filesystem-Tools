@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+#  shellcheck disable=SC2034
+# SC 2154
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Unfortunately the console session starts before the boot process has
+#  completed. This means that the console will see the "old" version of
+#  /etc/motd, might be mildly confusing if you have just upgraded to a
+#  new Alpine release. Something like 1-2 seconds after this is displayed
+#  on the console, the file is updated, so for ssh sessions, they will
+#  always see the current content. If you are curious you can alwats do
+#  a: cat /etc/motd
+#  Otherwise just boot again, then it should have catched up.
+#
+
+#
+#  Sample setup that displays release info
+#
+
+f_motd="/etc/motd"
+f_motd_template="/etc/motd_template"
+f_aok_fs_release="/etc/aok-fs-release"
+alp_rel="$(grep VERSION_ID /etc/os-release | cut -d'=' -f2)"
+
+if [ -d /proc/ish ]; then
+    ish_rel="$(cat /proc/ish/version)"
+else
+    ish_rel="Can't be detected whilst chrooted"
+fi
+
+f_obsolete="/etc/aok-release"
+[ -f "$f_obsolete" ] && {
+    echo "renaming obsolete $f_obsolete > $f_aok_fs_release"
+    mv "$f_obsolete" "$f_aok_fs_release"
+}
+
+rm -f "$f_motd"
+
+#  create initial LF
+echo >>"$f_motd"
+
+if [ -e "$f_aok_fs_release" ]; then
+    echo "[35mAOK-FS release:  $(cat "$f_aok_fs_release")[0m" >>"$f_motd"
+fi
+
+(
+    echo "[35mAlpine release:  $alp_rel[0m"
+    echo "[35miSH release:     $ish_rel[0m"
+    echo
+) >>"$f_motd"
+
+if [ -f "$f_motd_template" ]; then
+    cat "$f_motd_template" >>"$f_motd"
+fi
+
+/usr/local/bin/logger update-motd updated /etc/motd

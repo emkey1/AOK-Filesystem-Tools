@@ -5,7 +5,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  Version checks
 #
@@ -23,6 +23,8 @@
 #---------------------------------------------------------------
 
 create_fake_dev_details() {
+    msg_2 "Creating fake /proc/ish/UIDevice"
+
     #  shellcheck disable=SC2154
     d_base="$d_build_root"/proc/ish/.defaults
     if [ -f "$d_base/CarCapabilities" ]; then
@@ -37,7 +39,7 @@ create_fake_dev_details() {
         _ios_version="16.0"
     fi
 
-    echo "><> updating [$f_UIDevice]"
+    msg_3 "updating [$f_UIDevice]"
     echo "Model: $_dev_type" >"$f_UIDevice"
     echo "OS Version: $_ios_version" >>"$f_UIDevice"
 
@@ -186,7 +188,8 @@ ios_matching() {
 #===============================================================
 
 #  This just checks a random variable that is defined in utils.sh
-[ -z "$pidfile_do_chroot" ] && {
+#  shellcheck disable=SC2154
+[ -z "$d_aok_etc" ] && {
     echo "ERROR: utils.sh must be sourced before vers_checks.sh"
     exit 1
 }
