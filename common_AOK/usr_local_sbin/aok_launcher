@@ -126,7 +126,6 @@ display_header() {
 
     echo "aok_launcher - AOK: $aok_vers - Filesystem: $fs_name"
     echo "Press 'r' during bootup for recovery mode"
-    echo
 
     unset f_aok_release
     unset f_rel_alpine
@@ -136,19 +135,30 @@ display_header() {
     unset fs_name
 }
 
+kill_console_tail() {
+    pgrep -f 'tail -n 0 -f /var/log/' | xargs -r kill
+}
+
 bootup() {
     check_for_revovery_mode
     # at bootup also log it
-    print_log "$(/usr/local/bin/network-check.sh)"
+    /usr/local/bin/network-check.sh
     if [ -f "$f_pts_0_as_console" ]; then
         echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
-        echo
         [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
             echo "Setting up /dev/pts/0 as console"
             rm -f /dev/console && mknod -m 222 /dev/console c 136 0
         }
+
         check_for_revovery_mode
-        /bin/sleep infinity
+
+        trap 'kill_console_tail' INT # allow restart of tail cmd
+        # while loop restarts tail after Ctrl-C
+        while true; do
+            echo
+            echo "Tailing /var/log/*log - Press Ctrl-C to re-read logfiles"
+            tail -n 0 -f /var/log/*log 2>/dev/null
+        done
         exit 0 # shouldnt get here, but just in case
     else
         [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {

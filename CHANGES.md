@@ -2,6 +2,11 @@
 
 I will try to keep track of changes between releases here
 
+## Upcomming release, available in main branch
+
+- aok_launcher - console mode tails all log files, hit Ctrl-C to re-read
+in case something is added/removed
+
 ## 0.16
 
 task/do_chroot.sh mostly rewritten
