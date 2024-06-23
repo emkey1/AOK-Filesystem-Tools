@@ -2,9 +2,13 @@
 
 I will try to keep track of changes between releases here
 
-## Next release, available in main branch
+## 0.16
 
-- task/do_chroot.sh rewritten cleanup, no longer using a pidfile
+task/do_chroot.sh mostly rewritten
+
+- Now able to run multiple chroots if given different mountpoints
+- Fully able to kill even still running chroots cleanly on both iSH and Linux
+- No longer uses a global pidfile
 
 ## 0.15
 
