@@ -53,7 +53,7 @@ tsd_start="$(date +%s)"
 
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-ensure_ish_or_chrooted
+ensure_ish_or_chrooted ""
 
 msg_script_title "setup_debian.sh  Debian specific AOK env"
 initiate_deploy Debian "$(cat /etc/debian_version)"
@@ -67,41 +67,13 @@ debian_services
 
 replace_home_dirs
 
-#
-#  Depending on if prebuilt or not, either setup final tasks to run
-#  on first boot or now.
-#
-if deploy_state_is_it "$deploy_state_pre_build"; then
-    set_new_etc_profile "$setup_final"
-    is_prebuilt=1 # shorthand to avoid doing the above check again
-else
-    "$setup_final"
-fi
-
-[ -n "$PREBUILD_ADDITIONAL_TASKS" ] && {
-    msg_1 "Running additional setup tasks"
-    echo "---------------"
-    echo "$PREBUILD_ADDITIONAL_TASKS"
-    echo "---------------"
-    $PREBUILD_ADDITIONAL_TASKS || {
-        error_msg "PREBUILD_ADDITIONAL_TASKS returned error"
-    }
-    msg_1 "Returned from the additional prebuild tasks"
-}
+additional_prebuild_tasks
 
 display_installed_versions_if_prebuilt
 
-msg_1 "Setup complete!"
+msg_1 "Debian specific setup complete!"
 
 duration="$(($(date +%s) - tsd_start))"
 display_time_elapsed "$duration" "Setup Debian"
 
-if [ -n "$is_prebuilt" ]; then
-    msg_1 "Prebuild completed, exiting"
-    exit 123
-else
-    msg_1 "Please reboot/restart this app now!"
-    echo "/etc/inittab was changed during the install."
-    echo "In order for this new version to be used, a restart is needed."
-    echo
-fi
+complete_initial_setup

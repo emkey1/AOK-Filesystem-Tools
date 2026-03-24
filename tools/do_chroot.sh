@@ -81,6 +81,7 @@ can_chroot_run_now() {
         if [ -n "$ch_procs" ]; then
             echo "There are left-over processes from a previous run of this chroot"
             echo "processes: $ch_procs"
+            echo "$ch_procs" | xargs -n 1 ps -p | grep -v "PID TTY"
             display_cleanup_procedure=true
         # else
         #     unmount_systen_folders
@@ -258,8 +259,6 @@ kill_remaining_procs() {
 
     msg_3 "remaining procs to kill: [$ch_procs]"
     echo "$ch_procs" | tr ' ' '\n' | xargs kill -9
-    # shell check disable=SC2016,SC2086  # TODO: fix and test
-    # echo $ch_procs | tr ' ' '\n' | xargs -I {} sh -c 's="$(ps ax|grep {} |grep -v grep)" ;echo  "attempting to kill: $s" ; kill {}'
 
     #
     #  Ensure thee are no leftovers that kill didnt get rid off
@@ -469,6 +468,7 @@ This will continue in $cleanup_sleep secnods,hit Ctrl-C if you want to abort
 
         define_chroot_env
         env_restore
+        rm -f "$f_is_chrooted" # ensure its gone if left
         exit 0
         ;;
 
@@ -546,7 +546,7 @@ touch "$f_is_chrooted"
 #  the chroot env, like TMPDIR
 #
 #  In this case we want the $cmd_w_params variable to expand into its components
-#  shellcheck disable=SC2086
+#  shellcheck disable=SC2086 # in this case variable should expand
 TMPDIR="" SHELL="" LANG="" chroot "$CHROOT_TO" $cmd_w_params
 chroot_exit_code="$?"
 

@@ -2,9 +2,112 @@
 
 I will try to keep track of changes between releases here
 
-## Next release, available in main branch
+## Upcomming release, available in devel branch
 
-- task/do_chroot.sh rewritten cleanup, no longer using a pidfile
+- renamed network-check.sh -> network-check to allign with iSH-IP-stats repo
+- fixed network-check.sh when run chrooted
+- env aok_this_is_dest_fs="Y"
+- ensure_ish_or_chrooted prefix
+- fixed ownership of rsync output
+- fixed root password will expire in 0 days warning
+- added exit codes in common_AOK/usr_local_bin/network-check.sh
+- removed obsoleted common_AOK/usr_local_bin/battery-charge
+- aok - improved option handling when chrooted
+- iSH-AOK check for 3.20 only when FS is Alpine
+- v0.19.16
+- utils.sh - improved handling of set/get kernel defaults
+- aok - isolate available options
+- preventing iSH-AOK from using Alpine 3.20
+- Alpine & Debin update cmds
+- debian_apt_update & alpine_apk_update
+- do_chorot - show details for colliding pids
+- reactivated -s Select Distro, options are Alpine/Debian
+- v0.19.15
+- changed network-check to use amazon.com since ping google.com often fails for
+ipv6 dns on Debian
+- v0.19.14
+- aok - Added handling of Boot cmd
+- v0.19.13
+- tools needed to support aok_launcher when not prebuilding
+- aok_launcher - handling of extra vterms during deploy
+- v0.19.12
+- tweaked get_lsb_release() & untar_file()
+- v0.19.11
+- Disabled build options for select and Devuan, since they dont
+work ATM
+- v0.19.10
+- mount /iCloud before set hostname
+- v0.19.9
+- tweaked aok settings and hostname detection
+- v0.19.8
+- handle AOK_HOSTNAME_SUFFIX in prebuild
+- v0.19.7
+- restore org uptime for ish-aok
+- v0.19.6
+- improved and disabled locale assignment
+- v0.19.5
+- fixed incorrect order of tasks when not prebuilding
+- v0.19.4
+- /usr/local/bin/uptime - better option handling
+- v0.19.3
+- manually naming tar if lsb_release is not available
+- removed bzip2 support - not compatible with pigz
+- v0.19.2
+- install 3.18 sqlite on Alpine >= 3.19
+- v0.19.1
+- renamed saved_fs -> aok_completed
+
+## 0.19
+
+- simplified dest selection for wall
+- better check if pigz is installed
+- reshuffle of motd tasks
+- added tools: aok_fs-save & aok_fs-replace
+- updated skel files
+- improved package selection for old releases
+- added uptime -l to just show sysload
+
+## 0.18
+
+- Default Alpine is now 3.20.1
+- Alpine 3.14 sudo (1.9.12_p2-r0) will be used for Alpine > 3.18
+This solves the insta-crash if the default sudo is used.
+- more version checks on what CORE_APKS to install
+- improved handling of incompatible packages
+- /usr/local/bin/check-env-compatible self corrects procps uptime
+- reworked uptime to show iOS uptime with option -i
+- simplified detection of non-interactive shells
+- simplified shell detection
+- updated Alpine releases
+- better handling of recovery-mode
+
+
+## 0.17
+
+- aok_launcher - console mode tails all log files, hit Ctrl-C to re-read
+in case something is added/removed, enable by doing `apk -C on`
+- added warning when mixing default launcher and console mode
+- inittab will halt for upto 10s to wait for aok_launcher to prepare
+console and logfile tracking.
+- replacing of some bins with aok replacementalso usable in updates
+- runbg notifies all sessions incl /dev/console of state change
+- better handling of chroot hostname
+- shutdown, halt & poweroff AOK replacements
+- halt will continue until it shuts system down, starting nicely, eventually
+doing it brutally.
+- improved wall handling of /dev/console
+- made error_msg state file with issue
+- aok_launcher: chk char-devs and stdio are fixed if need-be
+- split up some huge functions into parts
+- added uptime to Boot notation
+
+## 0.16
+
+task/do_chroot.sh mostly rewritten
+
+- Now able to run multiple chroots if given different mountpoints
+- Fully able to kill even still running chroots cleanly on both iSH and Linux
+- No longer uses a global pidfile
 
 ## 0.15
 

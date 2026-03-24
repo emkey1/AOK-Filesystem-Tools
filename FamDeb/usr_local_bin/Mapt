@@ -44,7 +44,7 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-apt autoremove -y && apt autoclean && apt -y upgrade
+apt update && apt  autoremove -y && apt autoclean && apt -y upgrade
 
 #
 #  Check if reboot is required

@@ -19,19 +19,94 @@ copy_skel_files() {
         error_msg "copy_skel_files($csf_dest) - not indicating a directory"
     fi
 
-    # cp -rv /etc/skel/. "$csf_dest"
-    rsync -ah /etc/skel/. "$csf_dest"
-
     #
-    #  Ensure all files are owned by owner of this after skel copy
+    #  Ensure all files are owned by owner of the containing folder after
+    #  skel copy
     #
-    csf_owner=$(stat -c "%U" "$csf_dest")
-    chown -R "$csf_owner": "$csf_dest"
+    csf_owner="$(find "$csf_dest" -maxdepth 0 -printf "%u:%g")"
+    rsync -a --chown="$csf_owner" /etc/skel/ "$csf_dest"
 
-    # ln -sf .bash_profile .bashrc  # TODO: for old skel files, can probably go
     unset csf_dest
     unset csf_owner
     # echo "^^^ copy_skel_files($1) - done"
+}
+
+user_shell() {
+    #
+    #  If USER_SHELL has been defined, the assumption would be to use
+    #  the same for user root, since if logins are not enabled,
+    #  you wold start up as user root.
+    #
+    #  Only allow root to get bash or ash during deploy, in order to
+    #  ensure /etc/profile will be launched and deployt can complete
+    #
+
+    if [ "$USER_SHELL" = "/bin/ash" ] || [ "$USER_SHELL" = "/bin/bash" ]; then
+        msg_3 "Setting root shell into USER_SHELL: $USER_SHELL"
+        awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
+            /etc/passwd >/tmp/passwd && mv /tmp/passwd /etc/passwd
+    fi
+}
+
+handle_hardcoded_tz() {
+    #
+    #  If AOK_TIMEZONE is defined, TZ can be set as early as the tools
+    #  needed for it are in. If it is not set, there will be a dialog
+    #  at the end of the deploy where TZ can be selected
+    #
+    if [ -n "$AOK_TIMEZONE" ]; then
+        #
+        #  Need full path to handle that this path is not correctly cached at
+        #  this point if Debian is being installed, probably due to switching
+        #  from Alpine to Debian without having rebooted yet.
+        #
+        msg_2 "Setitng time zone"
+        msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
+        ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
+    fi
+}
+
+adding_runbg_service() {
+    if command -v openrc >/dev/null; then
+        msg_2 "Adding runbg service"
+        rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d silent
+        # openrc_might_trigger_errors
+        rc-update add runbg default
+    else
+        msg_2 "openrc not available - runbg not activated"
+        error_msg "><> openrc not available - runbg not activated"
+    fi
+}
+
+removing_original_hostname_service() {
+    #
+    #  Removing default hostname service
+    #
+    hostn_service=/etc/init.d/hostname
+    if [ -f "$hostn_service" ]; then
+        msg_2 "Disabling hostname service not working on iSH"
+        mv -f "$hostn_service" /etc/init.d/NOT-hostname
+    fi
+    if destfs_is_debian || destfs_is_devuan; then
+        msg_3 "Removing hostname service files not meaningfull on iSH"
+        rm -f /etc/init.d/hostname
+        rm -f /etc/init.d/hostname.sh
+        rm -f /etc/rcS.d/S01hostname.sh
+        rm -f /etc/systemd/system/hostname.service
+    fi
+}
+
+changing_sshd_port() {
+    if [ -f /etc/ssh/sshd_config ]; then
+        # Move sshd to port 1022 to avoid issues
+        sshd_port=1022
+        msg_2 "sshd will use port: $sshd_port"
+        sed -i "/Port /c Port $sshd_port" /etc/ssh/sshd_config
+        #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
+        unset sshd_port
+    else
+        msg_2 "sshd not installed - port not changed"
+    fi
 }
 
 setup_cron_env() {
@@ -39,11 +114,38 @@ setup_cron_env() {
     #
     #  These files will always be setup and ready
     #  The cron/dcron service will only be acrive
-    #  if USE_CRON_SERVICE="Y
+    #  if USE_CRON_SERVICE="Y >$f_hostname_org"
     #
     msg_3 "Setting cron periodic files"
     rsync_chown /opt/AOK/common_AOK/cron/periodic /etc silent
     #msg_3 "setup_cron_env() - done"
+}
+
+disabling_default_services() {
+    #
+    #  openrc is extreamly forgiving when it comes to dependencies, any
+    #  dependency that is not pressent is simply ignored.
+    #
+    #  When doing start/stop no more weird openrc warnings from kernel
+    #  related services that will always fail on iSH
+    #
+    #  Bootup time is vastly reduced, since openrc doesn't have to plow
+    #  through essentially every init script due to complex and in our
+    #  case pointless dependencies
+    #
+    msg_3 "Moving all unused services to /etc/init.d/NOT"
+    mv /etc/init.d /etc/NOT
+    mkdir /etc/init.d
+    mv /etc/NOT /etc/init.d
+    #  Keep the files we actually need
+    if destfs_is_alpine; then
+        cp -a /etc/init.d/NOT/sshd /etc/init.d
+    else
+        cp -a /etc/init.d/NOT/ssh /etc/init.d
+        msg_4 "Preserving /etc/init.d/rc"
+        cp -a /etc/init.d/NOT/rc /etc/init.d
+    fi
+    msg_4 "Unused files cleared from init.d"
 }
 
 setup_environment() {
@@ -72,30 +174,7 @@ setup_environment() {
     msg_3 "Installing profile-hints file"
     cp /opt/AOK/common_AOK/etc/profile-hints /etc
 
-    #
-    #  openrc is extreamly forgiving when it comes to dependencies, any
-    #  dependency that is not pressent is simply ignored.
-    #
-    #  When doing start/stop no more weird openrc warnings from kernel
-    #  related services that will always fail on iSH
-    #
-    #  Bootup time is vastly reduced, since openrc doesn't have to plow
-    #  through essentially every init script due to complex and in our
-    #  case pointless dependencies
-    #
-    msg_3 "Moving all unused services to /etc/init.d/NOT"
-    mv /etc/init.d /etc/NOT
-    mkdir /etc/init.d
-    mv /etc/NOT /etc/init.d
-    #  Keep the files we actually need
-    if destfs_is_alpine; then
-        cp -a /etc/init.d/NOT/sshd /etc/init.d
-    else
-        cp -a /etc/init.d/NOT/ssh /etc/init.d
-        msg_4 "Preserving /etc/init.d/rc"
-        cp -a /etc/init.d/NOT/rc /etc/init.d
-    fi
-    msg_4 "Unused files cleared from init.d"
+    disabling_default_services
 
     msg_3 "Populate /etc/skel"
     rsync_chown /opt/AOK/common_AOK/etc/skel /etc silent
@@ -108,92 +187,21 @@ setup_environment() {
 
     echo >>/etc/issue
 
-    #
-    #  If USER_SHELL has been defined, the assumption would be to use
-    #  the same for user root, since if logins are not enabled,
-    #  you wold start up as user root.
-    #
-    #  Only allow root to get bash or ash during deploy, in order to
-    #  ensure /etc/profile will be launched and deployt can complete
-    #
-
-    if [ "$USER_SHELL" = "/bin/ash" ] || [ "$USER_SHELL" = "/bin/bash" ]; then
-        msg_3 "Setting root shell into USER_SHELL: $USER_SHELL"
-        awk -v shell="$USER_SHELL" -F: '$1=="root" {$NF=shell}1' OFS=":" \
-            /etc/passwd >/tmp/passwd && mv /tmp/passwd /etc/passwd
-    fi
-
-    #
-    #  If AOK_TIMEZONE is defined, TZ can be set as early as the tools
-    #  needed for it are in. If it is not set, there will be a dialog
-    #  at the end of the deploy where TZ can be selected
-    #
-    if [ -n "$AOK_TIMEZONE" ]; then
-        #
-        #  Need full path to handle that this path is not correctly cached at
-        #  this point if Debian is being installed, probably due to switching
-        #  from Alpine to Debian without having rebooted yet.
-        #
-        msg_2 "Setitng time zone"
-        msg_3 "Using hardcoded TZ: $AOK_TIMEZONE"
-        ln -sf "/usr/share/zoneinfo/$AOK_TIMEZONE" /etc/localtime
-    fi
-
-    # #
-    # #  Too much of a hack, need ot preserve sshd and so on...
-    # #
-    # msg_1 "Moving all initial init.d scripts to a NOT subfolder"
-    # mkdir -p /etc/NOT &&
-    #     mv /etc/init.d/* /etc/NOT &&
-    #     mv /etc/NOT /etc/init.d &&
-    #     cd /etc/init.d &&
-    #     mv NOT/functions.sh . &&
-    #     mv NOT/sshd . || error_msg "init.d cleanup failed"
-
-    if command -v openrc >/dev/null; then
-        msg_2 "Adding runbg service"
-        rsync_chown /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d silent
-        # openrc_might_trigger_errors
-        rc-update add runbg default
-    else
-        msg_2 "openrc not available - runbg not activated"
-    fi
-
-    #
-    #  Removing default hostname service
-    #
-    hostn_service=/etc/init.d/hostname
-    if [ -f "$hostn_service" ]; then
-        msg_2 "Disabling hostname service not working on iSH"
-        mv -f "$hostn_service" /etc/init.d/NOT-hostname
-    fi
-    if hostfs_is_debian || hostfs_is_devuan; then
-        msg_3 "Removing hostname service files not meaningfull on iSH"
-        rm -f /etc/init.d/hostname
-        rm -f /etc/init.d/hostname.sh
-        rm -f /etc/rcS.d/S01hostname.sh
-        rm -f /etc/systemd/system/hostname.service
-    fi
-
-    if [ -f /etc/ssh/sshd_config ]; then
-        # Move sshd to port 1022 to avoid issues
-        sshd_port=1022
-        msg_2 "sshd will use port: $sshd_port"
-        sed -i "/Port /c\\Port $sshd_port" /etc/ssh/sshd_config
-        #sed -i "s/.*Port .*/Port $sshd_port/" /etc/ssh/sshd_config
-        unset sshd_port
-    else
-        msg_2 "sshd not installed - port not changed"
-    fi
+    user_shell
+    handle_hardcoded_tz
+    adding_runbg_service
+    removing_original_hostname_service
+    replacing_std_bins_with_aok_versions ""
+    changing_sshd_port
 
     msg_2 "Set default aok preferences"
-    #
-    # If AOK_HOSTNAME_SUFFIX is defined and this runs on an aok kernel
-    # on first boot aok -s on  will be set
-    #
-    aok -c off -H on -s off -C off
-    # only set if not chrootedgeeral
-    this_fs_is_chrooted || aok -l aok
+    if [ "$AOK_HOSTNAME_SUFFIX" = "Y" ]; then
+        use_aok_suffix="on"
+    else
+        use_aok_suffix="off"
+    fi
+    aok -c off -H on -s "$use_aok_suffix"
+    unset use_aok_suffix
 
     setup_cron_env
 
@@ -261,7 +269,7 @@ create_user() {
     useradd -m -s "$use_shell" -u 501 -g 501 -G sudo,root,adm "$USER_NAME" --key UID_MIN=501
 
     # shadow with blank ish password
-    sed -i "s/${USER_NAME}:\\!:/${USER_NAME}::/" /etc/shadow
+    sed -i "s/${USER_NAME}:\!:/${USER_NAME}::/" /etc/shadow
 
     # Add dot files for ish
     copy_skel_files "$cu_home_dir"
@@ -269,7 +277,7 @@ create_user() {
     msg_3 "Adding documentation to userdir"
     cp -a /opt/AOK/Docs "$cu_home_dir"
 
-    # set ownership
+    #  ensure that all files have right ownership
     chown -R "$USER_NAME": "$cu_home_dir"
 
     unset cu_home_dir
@@ -285,7 +293,9 @@ create_user() {
 # shellcheck source=/dev/null
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-ensure_ish_or_chrooted
+. /opt/AOK/tools/multi_use.sh
+
+ensure_ish_or_chrooted ""
 
 msg_script_title "setup_common_env.sh  Common AOK setup steps"
 
@@ -320,6 +330,7 @@ else
 fi
 
 setup_environment
+set_hostname
 setup_root_env
 create_user
 

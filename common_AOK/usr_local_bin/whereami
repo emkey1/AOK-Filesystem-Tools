@@ -22,7 +22,7 @@ if ! command -v jq >/dev/null; then
     else
         inst_pkg="apk add"
     fi
-    #  shellcheck disable=SC2086 # in this case it should expand
+    #  shellcheck disable=SC2086 # in this case variable should expand
     sudo $inst_pkg jq || {
         echo "ERROR: Failed to install jq"
         exit 1

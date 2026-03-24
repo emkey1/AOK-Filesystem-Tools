@@ -8,7 +8,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #
 #  Environment variables defining how this AOK-FS should be setup
 #
@@ -25,7 +25,7 @@
 #  Label for AOK builds, is also displayed by motd to indicate what
 #  AOK FS release is being used
 #
-AOK_VERSION="0.15.2"
+AOK_VERSION="0.19.16i"
 
 #
 #  If defined this will be created as a no-password sudo capable user
@@ -110,7 +110,7 @@ USER_SHELL="/bin/bash"
 #  If this is not defined, no hostname syncing will happen, and
 #  /etc/hostname will be used as a static hostname.
 #  During the final deploy step a hostname will be requested.
-#  It can be changed later by running: aok -H enable
+#  It can be changed later by following the instructions listed by: hostname -h
 #
 # ALT_HOSTNAME_SOURCE_FILE="/iCloud/temp/hostname_by_shortcut.txt"
 
@@ -121,7 +121,7 @@ USER_SHELL="/bin/bash"
 #  `hostname` on iSH-AOK and JacPad if you check on regular iSH
 #  This feature also works for iOS >= 17
 #
-# AOK_HOSTNAME_SUFFIX="Y"
+AOK_HOSTNAME_SUFFIX="Y"
 
 ########################################################################
 #
@@ -131,31 +131,26 @@ USER_SHELL="/bin/bash"
 
 #
 #  ALPINE_VERSION defines what Alpine release (minirootfs) will be used
+#  current releases can be found at: https://alpinelinux.org/releases/
 #
-# ALPINE_VERSION=3.15.11 # End of Alpine support 2023-11-01
-# ALPINE_VERSION=3.16.9 # End of Alpine support 2024-05-23
-# ALPINE_VERSION=3.17.7 # End of Alpine support 2024-11-22
-ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
-# As of 2024-06-12 sudo insta crashes ish if using 3.19 or 3.20... test: sudo ls
-## ALPINE_VERSION=3.19.1 # End of Alpine support  2025-11-01
-## ALPINE_VERSION=3.20.0 # End of Alpine support  2026-04-01
+#  sudo insta-crashes iSH if using Alpine >= 3.19... last checked 2024-07-02
+#  test: sudo ls
+#  AOK installs an older sudo (Alpine 3.18) on such releases, this
+#  solves the issue
+#
+# ALPINE_VERSION=3.14.10 # End of Alpine support 2023-05-01 # AppStore iSH
+# ALPINE_VERSION=3.17.9  # End of Alpine support 2024-11-22
+# ALPINE_VERSION=3.18.8  # End of Alpine support 2025-05-09
+# ALPINE_VERSION=3.19.3  # End of Alpine support 2025-11-01 # TestFlight iSH
+ALPINE_VERSION=3.20.2  # End of Alpine support 2026-04-01
+
 #
 #  For edge releases - Current development tree
 #  Format is the isodate featured in the minirootfs filename
-#  Meaning that: alpine-minirootfs-20230901-x86.tar.gz
-#  Would be requested as: ALPINE_VERSION="20230901"
+#  Meaning that: alpine-minirootfs-20240606-x86.tar.gz
+#  Would be requested as: ALPINE_VERSION="20240606"
 #
-# ALPINE_VERSION="20230901"  # 3.19_alpha20230901
-# ALPINE_VERSION="20230329"  # 3.18_alpha20230329
-# ALPINE_VERSION="20221110"  # 3.17_alpha20221110
-#
-#  If you need to detect if the build is an edge release in your
-#  .AOK_VARS, when making config desicions,
-#  you can check it thus:
-#
-#  if echo "$ALPINE_VERSION" | grep -Eq '^[0-9]{8}$'; then
-#      echo "this is edge"
-#  fi
+#  ALPINE_VERSION="20240606"  # 3.21.0_alpha20240606
 #
 
 #
@@ -167,12 +162,12 @@ ALPINE_VERSION=3.18.6 # End of Alpine support 2025-05-09
 #
 #  Always installed packages
 #
-pkgs_tools="busybox-extras coreutils procps util-linux
+pkgs_tools="busybox-extras coreutils util-linux musl-locales
     sudo shadow shadow-login tzdata findutils sed tar pigz file gawk
     grep htop less sqlite fzf py3-pip ncdu"
 pkgs_shells="bash zsh"
 pkgs_services="openrc dcron"
-pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh"
+pkgs_net_tools="ssl_client openssh git rsync curl wget elinks mosh mtr"
 pkgs_editing="vim nano mg"
 pkgs_text_ui="ncurses newt tmux"
 pkgs_other="fortune"
@@ -185,7 +180,7 @@ CORE_APKS="$pkgs_tools $pkgs_shells $pkgs_services $pkgs_net_tools \
 #  Will only be installed if the kernel is identified as iSH-AOK
 #  on first boot at dest device,
 #  not 3.17
-AOK_APKS="nload nload-doc"
+AOK_APKS="nload"
 
 #
 #  Packages that should be removed, typically this would make most
@@ -216,7 +211,7 @@ NODEJS_APKS='nodejs nodejs-dev'
 #  not development related man pages, those doing development are
 #  assumed to know what man pages they might need :)
 #
-DOCS_APKS="man-db man-pages busybox-doc coreutils-doc procps-ng-doc \
+DOCS_APKS="man-db man-pages busybox-doc coreutils-doc \
     sudo-doc shadow-doc shadow-login-doc tzdata-doc findutils-doc sed-doc \
     tar-doc file-doc gawk-doc grep-doc htop-doc less-doc git-doc \
     sqlite-doc fzf-doc py3-pip-doc ncdu-doc bash-doc zsh-doc openrc-doc \

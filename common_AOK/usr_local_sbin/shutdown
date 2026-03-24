@@ -1,0 +1,175 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
+#
+#  Shuts dowwn openrc based systems
+#
+#  Using restart / stop - start
+#  to ensure the process is taking place
+#  Just doing start is not 100% to take effect
+#  depending on service states
+#
+#  if first parameter is now, this will happen without delay
+#  if there is an additional parameter, it will be used
+#  in the system shutdown notice
+#
+
+is_int() {
+    case $1 in
+    '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
+    *) return 0 ;;             # Contains only digits
+    esac
+}
+
+# Define a function to handle Ctrl+C
+interrupt_handler() {
+    echo "Ctrl+C (SIGINT) received. Cancelling shutdown..."
+    shutdown_cancelled
+    exit 1
+}
+
+shutdown_cancelled() {
+    /usr/local/bin/wall -n "shutdown was canceled, the shutdown notice can be ignored"
+}
+
+show_help() {
+    #region help text
+    echo "shutdown [OPTIONS...] [WALL...]
+
+Shut down the system.
+
+Options:
+  int            Delays shutdown this ammount of seconds
+     --help      Show this help
+  -H --halt      Compatiblity - ignored
+  -P --poweroff  Compatiblity - ignored
+  -r --reboot    Compatiblity - ignored
+  -h             Compatiblity - ignored
+  -k             Don't halt/power-off/reboot, just send warnings
+     --no-wall   Don't send wall message before halt/power-off/reboot
+  -c             Cancel a pending shutdown
+     --show      Compatiblity - ignored
+
+     *** SYSTEM SHUTDOWN NOTICE ***
+Will allways be displayed (unless --no-wall is given)
+If text is provided after the options this message will be displayed below
+the header.
+
+"
+    #endregion
+    exit 0
+}
+
+display_msg() {
+    dm_msg="$1"
+
+    echo "$dm_msg"
+    echo "$dm_msg" >/dev/console
+    /usr/local/bin/logger shutdown "$dm_msg"
+    unset dm_msg
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+f_abort_shutdown=/tmp/abort_shutdown
+
+rm -f "$f_abort_shutdown" # remove leftover if any
+
+# execute again as root
+if [ "$(whoami)" != "root" ]; then
+    echo "Executing as root via sudo"
+    # using $0 instead of full path makes location not hardcoded
+    sudo "$0" "$@" || {
+        echo "ERROR: sudo failed"
+        exit 1
+    }
+    exit 0
+fi
+
+#
+#  Set the interrupt_handler function to be called when Ctrl+C is pressed
+#  Since this will wall announcing shutdown is cancelled, it is better
+#  to activate after the initial wall is made
+#
+trap interrupt_handler INT
+
+if ! mount | grep -qw "/"; then
+    echo "WARNING: No / mounted, this seems to be chrooted, aborting"
+    exit 2
+fi
+
+do_shutdown=true
+do_wall=true
+hold_time=0
+notification_extra=""
+
+while [ -n "$1" ]; do
+    is_int "$1" && {
+        hold_time="$1"
+        shift
+        continue
+    }
+    case "$1" in
+    # most default options are ignored
+    now) ;;
+    --help)
+        show_help
+        ;;
+    -H | --halt) ;;
+    -P | --poweroff) ;;
+    -r | --reboot) ;;
+    -h) ;;
+    -k) do_shutdown=false ;;
+    --no-wall) do_wall=false ;;
+    -c)
+        # kill all but me
+        pgrep -f shutdown | grep -v $$ | xargs kill -9
+        shutdown_cancelled
+        exit 0
+        ;;
+    --show) ;;
+    *)
+        # use rest of options as additional shutdown notice
+        notification_extra="$*"
+        break
+        ;;
+    esac
+    shift
+done
+
+notification="
+    *** SYSTEM SHUTDOWN NOTICE ***
+$notification_extra
+"
+
+[ "$hold_time" != "0" ] && {
+    notification="${notification}
+$(hostname) will be shutdown in $hold_time seconds!!
+"
+}
+
+$do_wall && /usr/local/bin/wall "$notification"
+if [ "$hold_time" != "0" ]; then
+    echo
+    echo "Abort shut down by hitting Ctrl-C within $hold_time secoonds"
+    echo
+    sleep "$hold_time"
+fi
+
+#[ -f "$f_abort_shutdown" ] && {
+#    echo
+#    display_msg "Aborting shutdown"
+#    rm -f "$f_abort_shutdown"
+#    exit 1
+#}
+
+# exec disconnects from the tty so should be safe if run via ssh
+$do_shutdown && exec /usr/local/sbin/do-shutdown

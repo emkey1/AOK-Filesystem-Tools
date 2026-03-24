@@ -77,11 +77,8 @@ pkg_handling() {
     #
     #  Some packages change depending on Alpine release
     #
-    if ! min_release 3.18; then
-        packages="$(echo "$packages" | sed 's/procps-ng/procps/')"
-        if ! min_release 3.16; then
-            packages="$(echo "$packages" | sed 's/shadow-login-doc//')"
-        fi
+    if ! min_release 3.16; then
+        packages="$(echo "$packages" | sed 's/shadow-login-doc//')"
     fi
 
     #  shellcheck disable=SC2086 # in this case it should expand
@@ -134,7 +131,7 @@ process_items() {
                     [ "$group_lst" = "$g" ] && break # list done
                 done
             fi
-            printf "[%${max_len}s]  %s\\n" "$name" "$packages"
+            printf "[%${max_len}s]  %s\n" "$name" "$packages"
             ;;
 
         "install")

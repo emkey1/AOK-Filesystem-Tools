@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  Save current aok_fs into saved_fs, tar file name will be
+#  auto generated based on current FS
+#
+
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
+
+. /opt/AOK/tools/aok_fs-common || {
+    error_msg "Failed to source common-aok-fs-tar"
+}
+
+f_alpine_release="$d_aok_fs"/etc/alpine-release
+f_debian_version="$d_aok_fs"/etc/debian_version
+
+if [ -f "$f_alpine_release" ]; then
+    # seems to be Aline
+    tar_name="Alpine-$(cat "$f_alpine_release")"
+elif [ -f "$f_debian_version" ]; then
+    tar_name="Debian-$(cat "$f_debian_version")"
+else
+    error_msg "failed to detect Alpine/Debian"
+fi
+
+aok_vers="$(cat "$d_aok_fs"/etc/aok-fs-release)" || {
+    error_msg "failed to detect aok-fs release"
+}
+tar_name="$d_aok_completed/$tar_name-AOK-$aok_vers-done.tgz"
+
+cd "$d_aok_fs" || {
+    error_msg "Failed to cd into $d_aok_fs"
+}
+
+[ "$(pwd)" != "$d_aok_fs" ] && {
+    error_msg "pwd is not $d_aok_fs"
+}
+
+msg_1 "Will crate: $(basename "$tar_name")"
+
+f_tar_tmp="$d_aok_completed"/tmp.tgz
+msg_2 "Creating $f_tar_tmp"
+
+cmd_pigz="$(command -v pigz)"
+if [ -n "$cmd_pigz" ]; then
+    msg_3 "Using $cmd_pigz"
+    # time tar -cf - . | pigz -p 2 > foo.tgz
+    tar -cf - . | $cmd_pigz >"$f_tar_tmp"|| {
+	echo
+	error_msg "failed to tar"
+    }
+else
+    msg_3 "No pigz"
+    tar cfz "$f_tar_tmp" . || {
+	echo
+	error_msg "failed to tar"
+    }
+fi
+
+msg_3 "Renaming into: $(basename "$tar_name")"
+mv "$f_tar_tmp" "$tar_name" || {
+    error_msg "Failed to rename: $f_tar_tmp"
+}
+
+echo
+echo "Saved as:"
+echo "$tar_name"
+echo

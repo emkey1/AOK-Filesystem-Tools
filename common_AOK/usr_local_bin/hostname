@@ -2,7 +2,7 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -40,11 +40,8 @@ This automates hostname allocation if you run iSH on multiple devices,
 or run both iSH and iSH-AOK on the same device.
 
 If $f_hostname_aok_suffix is present,
-instances running the kernel iSH-AOK will be given the suffix -aok to
-their hostname, unless alrady present.
-
-To see an example of how to create the shortcut needed that feeds this
-check https://github.com/jaclu/AOK-Filesystem-Tools/Docs/hostname-shortcut.md
+instances running the kernel iSH-AOK will have the suffix -aok to appended
+to their hostname, unless alrady present.
 
 Available options:
 
@@ -75,13 +72,12 @@ All other options are ignored, for compatibility with the default hostnme"
 
 error_msg() {
     echo
-    echo "ERROR: $1"
+    echo "ERROR[$0]: $1"
     echo
 
     exit 1
 }
 
-#read_source_file_name() {
 get_sync_file_fn() {
     if [ -z "$f_hostname_source_fname" ] || [ ! -f "$f_hostname_source_fname" ]; then
         # f_src_file=""
@@ -112,6 +108,7 @@ read_syncfile() {
     #
     #  Copies last line of sync file to /etc/hosts
     #
+    sudo_check
 
     #
     #  First find sync file
@@ -143,6 +140,8 @@ read_syncfile() {
     fi
 
     fn_handle_aok_suffix
+
+    sudo /usr/local/bin/logger hostname "set to: $(cat /etc/hostname)"
 
     sudo /usr/local/sbin/ensure-hostname-in-host-file
 }
@@ -180,17 +179,13 @@ while [ -n "$1" ]; do
             error_msg "-S / --sourcefile file not found: $sync_file"
         fi
 
-        [ "$sync_file" != "/etc/hostname" ] && [ "${sync_file#"/etc"}" != "$sync_file" ] && {
-            error_msg "syncfile can't start with /etc, unless /etc/hostname"
-        }
+	mkdir -p "$(dirname "$f_hostname_source_fname")"
         echo "$sync_file" | sudo tee "$f_hostname_source_fname" >/dev/null
         read_syncfile
         ;;
 
     "-U" | "--update")
-        sudo_check
         read_syncfile
-        exit 0
         ;;
 
     *) ;;

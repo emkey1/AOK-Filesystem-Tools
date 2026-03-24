@@ -1,35 +1,55 @@
 #!/bin/sh
-# Wrapper of OpenRC called from inittab
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#
+#  Wrapper of OpenRC called from inittab
+#
 
-#
-#  AOK-FS change:  handles rlvl 0 - shutdown
-#
+display_msg() {
+	#
+	#  Try real hard to display message
+	#
+	msg="$1"
+
+	# echo "$msg" >/dev/console
+	/usr/local/bin/logger rc "$msg"
+	echo
+	echo "$msg"
+	echo
+}
+
 set -e
 
 [ -f "/etc/opt/AOK/recovery-mode" ] && {
-	echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped /etc/init.d/rc $1" >>/var/log/recovery-mode.log
+	echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped /etc/init.d/rc $1" \
+		>>/var/log/recovery-mode.log
 	exit 0
 }
 
 # map numbered to named runlevel
 case $1 in
-0)
-	# /sbin/openrc off && /sbin/openrc shutdown && \
-	# 	/etc/init.d/halt stop
-	/usr/local/bin/shutdown now
+0) # shutdown
+	display_msg "Will do: openrc shutdown"
+	/sbin/openrc shutdown
+	# I havent figured this out, some
+	display_msg "Will do: poweroff"
+	/sbin/poweroff
 	;;
-1)
+1) # recovery
+	display_msg "Will do: openrc recovery"
 	exec /sbin/openrc recovery
 	;;
-6)
-	# /sbin/openrc off && /sbin/openrc reboot &&
-	# 	/etc/init.d/reboot stop
-	echo
-	echo "iSH doesn't support reboot, will do shutdown instead!"
-	echo
-	/usr/local/bin/shutdown now
+6) # reboot
+	display_msg "iSH doesn't support reboot, will do shutdown instead!"
+	sleep 3
+	$0 0
 	;;
 *)
+	display_msg "Will do: openrc default"
 	exec /sbin/openrc default
 	;;
 esac

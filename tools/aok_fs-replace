@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  Replace the current aok_fs
+#
+
+hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
+
+
+. /opt/AOK/tools/aok_fs-common || {
+    error_msg "Failed to source aok_fs-common"
+}
+
+if [ "$(basename "$1")" = "$1" ]; then
+    replacement_fs="$d_aok_completed/$1"
+else
+    replacement_fs="$(realpath "$1")"
+fi
+
+[ ! -f "$replacement_fs" ] && {
+    error_msg "Couldt find $replacement_fs"
+}
+
+msg_1 "Will use: $(basename "$replacement_fs")"
+msg_2 "Clearing current FS: $d_aok_fs"
+rm -rf "$d_aok_fs" || {
+    error_msg "Failed to clear $d_aok_fs"
+}
+
+mkdir "$d_aok_fs"
+
+cd "$d_aok_fs" || {
+    error_msg "Failed to cd into $d_aok_fs"
+}
+
+[ "$(pwd)" != "$d_aok_fs" ] && {
+    error_msg "pwd is not $d_aok_fs"
+}
+
+untar_file "$replacement_fs"
+
+msg_3 "Done!"

@@ -22,142 +22,284 @@
 #  directly to set up the user session
 #
 
-log_it() {
-    # In recovery mode, skip logging to minimize risk of issues
-    [ -f "$f_recovery_mode" ] && return
+#---------------------------------------------------------------
+#
+#   Device checks
+#
+#---------------------------------------------------------------
 
-    # if no supported loggers are found, fall back to a non-dependency solution
-    f_logger=/usr/local/bin/logger
-    if [ -x "$f_logger" ]; then
-        "$f_logger" "$prog_name" "$*"
+fix_stdio_device() {
+    fsd_src="$1"
+    fsd_name="/dev/$2"
+
+    [ -z "$1" ] && error_msg "fix_stdio_device() - no param 1"
+    [ -z "$2" ] && error_msg "fix_stdio_device($fsd_src,) - no param 2"
+
+    [ -f "$f_this_is_chrooted" ] && {
+        error_msg "fix_stdio_device($1, $2) can not be used when chrooted"
+    }
+    [ -c "$fsd_name" ] || {
+        print_log "Fixing $fsd_name"
+        rm -f "$fsd_name"
+        ln -sf "$fsd_src" "$fsd_name"
+    }
+    unset fsd_src fsd_name
+    return 0
+}
+
+check_for_bad_null() {
+    bad_null="$1"
+    [ -z "$bad_null" ] && {
+        error_msg "call to check_for_bad_null() with no param"
+    }
+    [ -f "$bad_null" ] && {
+        echo
+        echo
+        print_log "WARNING: $bad_null found - typo in /dev/null redirect?"
+        echo
+    }
+    unset bad_null
+    return 0
+}
+
+verify_device() {
+    vd_dev_name="$1"
+    vd_maj="$2"
+    vd_min="$3"
+    [ -z "$vd_dev_name" ] && error_msg "verify_device() - no param 1"
+    [ -z "$vd_maj" ] && error_msg "verify_device($vd_dev_name,,) - no param 2"
+    [ -z "$vd_min" ] && error_msg "verify_device($vd_dev_name,$vd_maj,) - no param 3"
+
+    [ -f "$f_this_is_chrooted" ] && {
+        error_msg "verify_device($1, $2, $3) can not be used when chrooted"
+    }
+
+    maj_min=$(stat -c "%t:%T" "$vd_dev_name")
+    maj_act=$(printf "%d\n" "0x${maj_min%:*}")
+    min_act=$(printf "%d\n" "0x${maj_min#*:}")
+    if [ "$vd_maj" != "$maj_act" ] || [ "$vd_min" != "$min_act" ]; then
+        error_msg "$vd_dev_name - misconfigured, was: $maj_act:$min_act"
+        rm "$vd_dev_name"
+    fi
+    [ -c "$vd_dev_name" ] || {
+        rm -f "$vd_dev_name" && mknod -m 666 "$vd_dev_name" c "$vd_maj" "$vd_min"
+        print_log "Fixed $vd_dev_name"
+    }
+    unset vd_dev_name vd_maj vd_min
+    unset maj_min maj_act min_act
+
+    return 0
+}
+
+verify_devs() {
+    #
+    #  Make sure all /dev entries are reasonable
+    #
+
+    # Can only run on non-chrooted iSH
+    [ -f "$f_this_is_chrooted" ] && [ ! -d /proc/ish ] && return
+
+    fix_stdio_device /proc/self/fd/0 stdin
+    fix_stdio_device /proc/self/fd/1 stdout
+    fix_stdio_device /proc/self/fd/2 stderr
+
+    check_for_bad_null /dev/nul
+    check_for_bad_null /dev/nulll
+
+    #
+    #  These seem to be recreated by iSH if missing, but they dont
+    #  fix them if broken as in wrongly configured
+    #
+    verify_device /dev/clipboard 240 0
+    if [ -f "$f_pts_0_as_console" ]; then
+        # On iSH redirecting console to pts/0 is used to semi-fake
+        # having first vterm being console
+        verify_device /dev/console 136 0
     else
-        echo "$(date +"%Y-%m-%d %H:%M:%S") ${prog_name}: $*" >>/var/log/messages
+        verify_device /dev/console 5 1
     fi
-    unset f_logger
+    verify_device /dev/full 1 7
+    verify_device /dev/location 240 1
+    verify_device /dev/null 1 3
+    verify_device /dev/ptmx 5 2
+    verify_device /dev/random 1 8
+    verify_device /dev/tty 5 0
+    verify_device /dev/tty1 4 1
+    verify_device /dev/tty2 4 2
+    verify_device /dev/urandom 1 9
+    verify_device /dev/zero 1 5
 }
 
-print_log() {
-    #
-    #  In case of bootup issues, this output is both displayed
-    #  and logged to a file, so that it can be reviewed
-    #  This is not used for all output, only "essentials" indicating
-    #  statuses during startup
-    #  For log only items, give noecho as 2nd param
-    #
-    msg="$1"
+#---------------------------------------------------------------
+#
+#   Recovery mode
+#
+#---------------------------------------------------------------
 
-    [ "$2" != "noecho" ] && echo "$msg"
-    #
-    #  Since other tools launched by this might have changed it, set it
-    #  here for now, later check if it is needed
-    #
-    log_it "$msg"
+recovery_mode_enable() {
+    # Save current stty settings
+    org_stty=$(stty -g)
+
+    # Configure terminal to read a single character without waiting for Enter
+    stty -icanon -echo min 0 time 0
+
+    recovery_mode_active=true
+    # echo "sleeping 1"
+    # sleep 1
+    recovery_mode_probe initial # initial check
 }
 
-check_for_revovery_mode() {
-    if [ -f "$f_this_is_chrooted" ]; then
-        #
-        #  On iSH boot there is time to press r during boot wait
-        #  when chrooted there is no boot wait, so we make a short wait
-        #  instead, to make recovery available
-        #
-        sleep 0.7
+recovery_mode_disable() {
+    $recovery_mode_active || return
+    recovery_mode_probe final # one last check
+    recovery_mode_active=false
+    if [ -n "$org_stty" ]; then
+        stty "$org_stty"
+        unset org_stty
+        [ "$1" != "silent" ] && {
+            echo "recovery-mode no longer possible"
+            echo
+        }
+    else
+        echo "NOTICE: Variable org_stty already cleared!"
     fi
+}
 
-    # Disable terminal line buffering and enable read without Enter
-    stty -icanon min 0 time 0
-
-    # Read a single character
-    keypress=$(dd bs=1 count=1 2>/dev/null)
-
-    # Revert terminal settings
-    stty icanon
-
-    # Check if a key was pressed
-    case "$keypress" in
-    "r" | "R")
-        touch "$f_recovery_mode"
-        trap '' INT # abort capturing Ctrl-C
-        echo
-        echo "===  recovery node selected  ==="
-        if [ -x /bin/ash ]; then
-            cmd="/bin/ash"
-        else
-            cmd="/bin/bash"
-        fi
-        echo "---  Starting $cmd, on exit App will terminate"
-        echo "---  /etc/inittab processing was canceled"
-        echo "---  Be aware, this is a bare shell!"
-        echo "In order to maximize chances of recovery, in case shell init-scripts are faulty,"
-        echo "shell is not a login session. Most likely PATH is minimal!"
-        echo
-        $cmd
-        echo "Clearing recovery mode"
-        rm -f "$f_recovery_mode"
-        sleep 2
-        exit 1
+recovery_mode_probe() {
+    $recovery_mode_active || return
+    key=$(dd bs=1 count=1 2>/dev/null)
+    case "$key" in
+    r | R)
+        recovery_mode_trigger "$1"
         ;;
     *) ;;
     esac
 }
 
-display_header() {
-    f_aok_release=/etc/aok-fs-release
-    f_rel_alpine=/etc/alpine-release
-    f_rel_devuan=/etc/devuan_version
-    f_rel_debian=/etc/debian_version
+recovery_mode_trigger() {
+    # First do urgent tasks that are somewhat time sensitive
+    touch "$f_recovery_mode"
 
+    $recovery_mode_active || {
+        error_msg "recovery_mode_trigger($1) - called when recovery is not active"
+        return
+    }
+    echo "><> recovery_mode_trigger($1)"
+    f_recovery_mode_log=/var/log/recovery-mode.log
+    recovery_mode_disable silent
+    trap '' INT # abort capturing Ctrl-C
+
+    # in case recovey was triggered before this was called
+    verify_devs
+
+    #region recovery explaination
+    cat <<EOF
+
+===  recovery-mode selected  ===
+---  Starting rescue shell - On exit, App will terminate.
+---  Be aware, this is  /bin/sh  in order to maximize chances of recovery
+---  in case shell init-scripts are faulty. Most likely PATH is minimal!
+EOF
+    #endregion
+    [ ! -f "$f_pts_0_as_console" ] && [ ! -f "$f_this_is_chrooted" ] && {
+        echo "---  inittab acions cancelled by recovery-mode are logged in:"
+        echo "---    $f_recovery_mode_log"
+        echo "---  This file will be removed when exiting recovery-mode!"
+    }
+
+    # Entering recovery mode
+    /bin/sh -i
+
+    # post recovery mode cleanup
+    echo "Clearing recovery-mode"
+    rm -f "$f_inittab_can_start"
+    rm -f "$f_recovery_mode"
+    rm -f "$f_recovery_mode_log"
+    sleep 1
+    exit 1 # exit App on iPad, reboot on iPhone
+}
+
+#---------------------------------------------------------------
+#
+#   bootup
+#
+#---------------------------------------------------------------
+
+display_header() {
     if [ -f "$f_aok_release" ]; then
-        aok_vers="$(cat "$f_aok_release" 2>/dev/null)" || aok_vers="*** Failed to read $f_aok_release ***"
+        aok_vers="$(cat "$f_aok_release" 2>/dev/null)" ||
+            aok_vers="*** Failed to read $f_aok_release ***"
     else
         aok_vers=Unknown
     fi
 
-    if test -f "$f_rel_alpine"; then
-        fs_name="Alpine $(cat "$f_rel_alpine" 2>/dev/null)" || fs_name="Alpine Unknown"
-    elif test -f "$f_rel_devuan"; then
-        #  Devuan must come before Debian, since it also has thr f_rel_debian file
-        fs_name="Devuan $(cat "$f_rel_devuan" 2>/dev/null)" || fs_name="Devuan Unknown"
-    elif test -f "$f_rel_debian"; then
-        fs_name="Debian $(cat "$f_rel_debian" 2>/dev/nul)" || fs_name="Debian Unknown"
+    if hostfs_is_alpine; then
+        fs_name="Alpine $(cat "$f_rel_alpine" 2>/dev/null)" ||
+            fs_name="Alpine Unknown"
+    elif hostfs_is_debian; then
+        fs_name="Debian $(cat "$f_rel_debian" 2>/dev/null)" ||
+            fs_name="Debian Unknown"
+    elif hostfs_is_devuan; then
+        #
+        #  Devuan must come before Debian, since it also has the
+        #  f_rel_debian file
+        #
+        fs_name="Devuan $(cat "$f_rel_devuan" 2>/dev/null)" ||
+            fs_name="Devuan Unknown"
     else
         fs_name=Unknown
     fi
 
-    echo "aok_launcher - AOK: $aok_vers - Filesystem: $fs_name"
-    echo "Press 'r' during bootup for recovery mode"
     echo
+    echo "aok_launcher - AOK: $aok_vers - Filesystem: $fs_name"
+    header_msg=""
+    [ -f "$f_pts_0_as_console" ] && {
+        header_msg="/dev/pts/0 is used as /dev/console"
+        if $this_is_pts0; then
+            header_msg="$header_msg - no session will be started on this vterm"
+        else
+            header_msg="$header_msg - this is: $(tty)"
+        fi
+        echo "$header_msg"
+    }
+    if $this_is_pts0 || [ -f "$f_this_is_chrooted" ]; then
+        echo "Press 'r' during bootup for recovery-mode"
+        echo
+    fi
 
-    unset f_aok_release
-    unset f_rel_alpine
-    unset f_rel_devuan
-    unset f_rel_debian
-    unset aok_vers
-    unset fs_name
+    unset aok_vers fs_name header_msg
 }
 
 bootup() {
-    check_for_revovery_mode
     # at bootup also log it
-    print_log "$(/usr/local/bin/network-check.sh)"
+
+    /usr/local/bin/network-check
+
     if [ -f "$f_pts_0_as_console" ]; then
-        echo "/dev/pts/0 is used as /dev/console - no session will be started in this vterm"
-        echo
+        # also done in profile for interactive vterms
+        /usr/local/bin/check-env-compatible
+
+        recovery_mode_probe bootup
         [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
             echo "Setting up /dev/pts/0 as console"
             rm -f /dev/console && mknod -m 222 /dev/console c 136 0
         }
-        check_for_revovery_mode
-        /bin/sleep infinity
-        exit 0 # shouldnt get here, but just in case
+
+        recovery_mode_disable "console mode"
+
+        if [ -x "$cmd_custom_console_monitor" ]; then
+            handle_custom_console_monitor
+        else
+            monitor_log_files
+        fi
     else
         [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
             echo "Reverting console to normal mode"
             rm -f /dev/console && mknod -m 666 /dev/console c 5 1
         }
     fi
+    # recovery_mode_disable "bootup completed"
 
-    check_for_revovery_mode
     if [ ! -f "$f_this_is_chrooted" ]; then
         runlevel_wait
     else
@@ -165,28 +307,64 @@ bootup() {
         echo "This is chrooted, so runlevel_wait & network check are skipped"
         echo
     fi
-    check_for_revovery_mode
 }
 
-set_deploy_aok_abort() {
+runlevel_wait() {
+    trap 'set_abort_runlevel_wait' INT
+
+    while true; do
+        recovery_mode_probe runlevel-wait
+        current_runlevel="$(rc-status -r)"
+        if [ "$current_runlevel" = "$expected_runlevel" ]; then
+            #echo "runlevel is now: '$expected_runlevel'"
+
+            # clear before exiting loop
+            unset current_runlevel
+
+            break
+        fi
+        _s="current runlevel is $current_runlevel - waiting for"
+        _s="$_s $expected_runlevel - press Ctrl-C to abort wait"
+
+        # clear before potential exit
+        unset current_runlevel _s
+
+        sleep 2
+        [ -f "$f_recovery_mode" ] && return
+        [ "$abort_runlevel_wait" = "1" ] && break
+    done
+    trap '' INT # abort capturing Ctrl-C
+    print_log "runlevel_wait completed, runlevel is now: $(rc-status -r)"
+}
+
+set_abort_runlevel_wait() {
     trap '' INT # abort capturing Ctrl-C
     echo
-    print_log "***  Aborting deploy, dropping to shell ***"
+    _s="***  Ctrl-C captured - aborting wait for runlevel"
+    _s="$_s $expected_runlevel  ***"
+    print_log "$_s"
+    unset _s
     echo
-    /bin/bash
-    exit 1
+    abort_runlevel_wait=1
 }
+
+#---------------------------------------------------------------
+#
+#   Handling final steps of AOK deploy
+#
+#---------------------------------------------------------------
 
 deploy_aok() {
     #
     #  During deploy triggered by aok, you can hit Ctrl-C to get a shell
     #  if you need to inspect something
     #
-    trap 'set_deploy_aok_abort INT' INT
+    trap 'set_deploy_aok_abort' INT
     #
     #  This is a new AOK-FS that has not yet completed its setup
     #  continue the deploy
     #
+    recovery_mode_disable
     echo
     echo "******************************************************"
     echo "*                                                    *"
@@ -196,7 +374,7 @@ deploy_aok() {
     echo "*                                                    *"
     echo "******************************************************"
     echo
-    /usr/local/bin/network-check.sh
+    /usr/local/bin/network-check
 
     da_depl_step="$(cat "$f_deploy_state")"
     /usr/local/bin/logger aok_launcher Triggering deploy step: "$da_depl_step"
@@ -204,9 +382,7 @@ deploy_aok() {
     if /etc/profile; then
         /usr/local/bin/logger aok_launcher Deploy completed - "$da_depl_step"
     else
-        echo
-        echo "ERROR returned from the deploy procedure!"
-        echo
+        error_msg "returned from the deploy procedure!"
         echo "Since the File System probably is not fully deployed,"
         echo "it is impposisble to say if it is meaningfull to continue"
         echo "You have been warned..."
@@ -214,6 +390,7 @@ deploy_aok() {
         sleep 3
         set_deploy_aok_abort
     fi
+    unset da_depl_step
     trap '' INT # abort capturing Ctrl-C
 
     if [ -f "$f_deploy_state" ]; then
@@ -231,71 +408,229 @@ deploy_aok() {
     echo "*                                                    *"
     echo "*   Returned from deploy, resuming this Launch cmd   *"
     echo "*                                                    *"
-    echo "*   A reboot is recomended,                          *"
-    echo "*   to ensure all services are running.              *"
+    echo "*   A reboot is recomended, to ensure all services   *"
+    echo "*   are running.                                     *"
     echo "*                                                    *"
     echo "******************************************************"
     echo
+    #  Ensure nothing that shouldnt be there was installed
+    /usr/local/bin/check-env-compatible
     sleep 3
 }
 
-set_abort_runlevel_wait() {
-    echo
-    print_log "***  Ctrl-C captured - aborting wait for runlevel $expected_runlevel  ***"
-    echo
-    abort_runlevel_wait=1
-}
-
-runlevel_wait() {
-    #
-    #  This will be done several times, in order to notify inittab tasks
-    #  as early as possible
-    #
-    check_for_revovery_mode
-
-    trap 'set_abort_runlevel_wait INT' INT
-
-    while true; do
-        check_for_revovery_mode
-        current_runlevel="$(rc-status -r)"
-        if [ "$current_runlevel" = "$expected_runlevel" ]; then
-            echo "runlevel is now '$expected_runlevel'"
-            break
-        fi
-        echo "current runlevel is $current_runlevel - waiting for $expected_runlevel - press Ctrl-C to abort wait"
-        sleep 2
-        [ -f "$f_recovery_mode" ] && return
-        [ "$abort_runlevel_wait" = "1" ] && break
-    done
+set_deploy_aok_abort() {
     trap '' INT # abort capturing Ctrl-C
-    print_log "runlevel_wait completed, runlevel is now $(rc-status -r)" noecho
+    echo
+    print_log "***  Aborting deploy, dropping to shell ***"
+    echo
+    /bin/bash
+    exit 1
 }
 
-handle_etc_issue() {
+#---------------------------------------------------------------
+#
+#   Console mode - using /dev/pts/0 as console only
+#
+#---------------------------------------------------------------
+
+update_deb_log_kill_cmd() {
     #
-    #  I havent managed to get /etc/issue to display on console sessions.
-    #  so manual handling
+    #  Since the cmd_tail might change, always
+    #  update the kill cmd to its current definition
     #
-    if [ -f "$f_issue_file" ]; then
+    cmd_kill_tail_logging=/usr/local/sbin/kill_tail_logging
+    #region kill_tail_logging cmd
+    echo "#!/bin/sh
+#  Called from /usr/local/bin/console-restart
+#  Replaced by /usr/local/sbin/aok_launcher during each reboot
+
+(
+    echo
+    echo 'Console tailing of /var/log/* will be restarted'
+    echo 'Non text-files will be ignored'
+) >/dev/console
+
+pgrep -f \"$cmd_tail\" | xargs -r kill
+" >"$cmd_kill_tail_logging"
+    #endregion
+    chown root: "$cmd_kill_tail_logging"
+    chmod 744 "$cmd_kill_tail_logging"
+
+    unset cmd_kill_tail_logging
+}
+
+kill_console_tail() {
+    #
+    #  Only usable by Alpine, Debian uses console-restart, since the tail
+    #  cmd isnt properly tied to /dev/pts/0 and thus cant recieve Ctrl-C
+    #
+    echo
+    echo "Console tailing of /var/log/* will be restarted"
+    echo "Non text-files will be ignored"
+    pgrep -f "$cmd_tail" | xargs -r kill
+}
+
+select_log_files_to_monitor() {
+    #
+    #  Add all text files in logdir
+    #
+    log_files=""
+    d_logs=/var/log
+
+    # shellcheck disable=SC2045
+    for log_file in $(ls -t "$d_logs"); do
+        #log_basename="$(basename "$logfile")"
+        f_log_file="$d_logs/$log_file"
+        [ ! -f "$f_log_file" ] && continue               # not a file
+        file -b "$f_log_file" | grep -q text || continue # not a text file
+        log_files="$log_files $f_log_file"
+    done
+}
+
+handle_custom_console_monitor() {
+    #
+    #  If a custom console monitor is used, remember to touch
+    #  $f_inittab_can_start once it is setup, so that inittab
+    #  can commence its run
+    #
+    echo "><> running $cmd_custom_console_monitor"
+    $cmd_custom_console_monitor
+    #
+    #  Should not get here...
+    #
+    error_msg "exited: $cmd_custom_console_monitor"
+    echo "Will shut down in 30s"
+    sleep 30
+    exit 1
+}
+
+monitor_log_files() {
+    initial_console_run=true
+
+    echo "Console tailing of /var/log/* - non text-files will be ignored"
+    trap 'kill_console_tail' INT
+    while true; do
+        select_log_files_to_monitor
+        if hostfs_is_alpine; then
+            # allow restart of tail cmd
+            restart_mthd="Press Ctrl-C to re-read logfiles"
+        else
+            # Ctrl-C not usable for this on Debian...
+            # this tail is not tied to a pts
+            restart_mthd="Run console-restart to re-read logfiles"
+        fi
+        echo "Entries without timestamp are typically console printouts"
+        echo "$restart_mthd"
         echo
-        cat "$f_issue_file"
-    fi
+        $initial_console_run && {
+            initial_console_run=false
+            (
+                #
+                # run in bg with a sleep so that tail can start
+                # before inittab commences
+                #
+                sleep 1
+                touch "$f_inittab_can_start"
+            ) &
+        }
+        # shellcheck disable=SC2086 # log_files should be expanded
+        $cmd_tail $log_files 2>/dev/null
+        sleep 1
+    done
+
+    error_msg "Exited console monitoring loop - shouldnt happen"
+    echo "Will shut down in 30s"
+    sleep 30
+    exit 1 # shouldnt get here, but just in case
+}
+
+#---------------------------------------------------------------
+#
+#   vterm logins
+#
+#---------------------------------------------------------------
+
+handle_logins() {
+    while true; do
+        #
+        #  Ensure params are tried for each login attempt, in case they
+        #  have been changed during the current session, and continous
+        #  logins is set
+        #
+        ignore_login_params=0
+        login_with_param_check
+        [ "$login_ex_code" != "0" ] && {
+            error_msg "$f_login_prog exited with#3: $login_ex_code"
+        }
+
+        #
+        #  post login session, decide to exit or contimue
+        #
+
+        if [ -f "$f_this_is_chrooted" ]; then
+            _s="This is chrooted, always terminating on logout,"
+            _s="$_s this should also exit the chroot"
+            print_log "$_s"
+            exit 0
+        fi
+
+        if [ -f "$f_logins_continous" ]; then
+            echo
+            _s="Will spawn a new login session. If this is not requested,"
+            _s="$_s run aok"
+            print_log "$_s"
+            unset _s
+            echo
+            sleep 1
+        else
+            # echo
+            # echo "To enable continous vterm sessions, run aok"
+            if $this_is_pts0; then
+                # echo
+                # echo "Shutting down system..."
+                # echo
+                /usr/local/sbin/shutdown now
+                sleep 30 # give shutdown plenty of time to complete
+                exit     # this will insta-kill iSH
+            else
+                print_log "Terminating vterm $(tty)"
+                sleep 2
+                exit
+            fi
+        fi
+    done
+
+    _s="===  Fell out of infinite aok_launcher login loop -"
+    _s="$_s Should really not happen!"
+    print_log "$_s"
+    unset _s
+    echo "will sleep forever, please shutdown iSH"
+    /bin/sleep infinity
 }
 
 login_with_param_check() {
     #
     #  Do this for each login, in case changes have been made
     #
-    if [ "$ignore_login_params" != "1" ] && [ -f "$f_login_default_user" ]; then
+    # echo "><> login_with_param_check()"
+    login_ex_code=0
+    if [ "$ignore_login_params" != "1" ] &&
+        [ -f "$f_login_default_user" ]; then
+
         def_user="$(cat "$f_login_default_user")"
         [ -n "$def_user" ] && {
             cut -d: -f 1 /etc/passwd | grep -qw "$def_user" || {
                 echo
-                print_log "ERROR: default user for autologin: $def_user is not valid"
+                _s="ERROR: default user for autologin: $def_user"
+                _s="$_s is not valid"
+                print_log "$_s"
                 print_log "reverting to basic no params login"
                 echo
                 ignore_login_params=1
-                #  it should be safe to recuser once, sice param checks are disabled
+                #
+                #  it should be safe to recuser once, sice param checks
+                #  are disabled
+                #
                 login_with_param_check
                 return
             }
@@ -303,16 +638,27 @@ login_with_param_check() {
         print_log "auto-login as: $def_user - can be changed by running: aok"
         handle_etc_issue
         login_params="-f $def_user"
+        unset def_user
+
+        recovery_mode_disable login_param_checks
         print_log "Starting login with params: [$login_params]" noecho
-        # shellcheck disable=SC2086
-        "$f_login_prog" $login_params || {
-            _excode="$?"
+        #print_log "><> $(date) login with params: $f_login_prog $login_params"
+        # shellcheck disable=SC2086  # in this case variable should expand
+        $f_login_prog $login_params || {
+            login_ex_code="$?"
             echo
-            print_log "ERROR: $f_login_prog exited with: $_excode, trying to use params: $login_params"
+            # print_log "><> $(date) login failed"
+            _s="ERROR: $f_login_prog exited with#1: $login_ex_code,"
+            _s="$_s trying to use params: $login_params"
+            print_log "$_s"
             print_log "reverting to basic no params login"
             echo
+            unset login_params _s
             ignore_login_params=1
-            #  it should be safe to recuser once, sice param checks are disabled
+            #
+            #  it should be safe to recuser once, sice param checks
+            #  are disabled
+            #
             login_with_param_check
             return
         }
@@ -320,13 +666,96 @@ login_with_param_check() {
         # print_log "Using bare bones login with no parameters"
         handle_etc_issue
         print_log "Starting login with no params" noecho
+        #print_log "><> $(date) login no params: $f_login_prog"
         "$f_login_prog" || {
-            _excode="$?"
-            echo
-            print_log "ERROR: login exited with: $_excode"
-            echo
+            login_ex_code="$?"
+            # print_log "><> $(date) login failed"
+            error_msg "login exited with#2: $login_ex_code"
         }
+        # print_log "><> $(date) post login no params"
     fi
+    # print_log "><> $(date) logged out from login with params"
+}
+
+handle_etc_issue() {
+    #
+    #  I havent managed to get /etc/issue to display on console sessions.
+    #  so manual handling
+    #
+    if [ -f "$f_issue_file" ] && [ -f "$f_profile_hints" ]; then
+        echo
+        cat "$f_issue_file"
+    fi
+}
+
+#---------------------------------------------------------------
+#
+#   Various
+#
+#---------------------------------------------------------------
+
+error_msg() {
+    _em_msg="$1"
+    _em_exit_code="${2:-1}"
+    echo
+    echo "ERROR[$0]: $_em_msg"
+    echo
+    log_it "$1"
+    [ "$_em_exit_code" -gt -1 ] && {
+        echo "Due to error dropping to /bin/sh - after exit system will reboot"
+        /bin/sh
+        exit "$_em_exit_code"
+    }
+}
+
+log_it() {
+    # In recovery-mode, skip logging to minimize risk of issues
+    [ -f "$f_recovery_mode" ] && return
+
+    # if no supported loggers are found, fall back to a non-dependency solution
+    if [ -x "$cmd_logger" ]; then
+        "$cmd_logger" "$prog_name" "$*"
+    else
+        echo "$(date +"%Y-%m-%d %H:%M:%S") ${prog_name}: $*" >>/var/log/syslog
+    fi
+}
+
+print_log() {
+    #
+    #  In case of bootup issues, this output is both displayed
+    #  and logged to a file, so that it can be reviewed
+    #  This is not used for all output, only "essentials" indicating
+    #  statuses during startup
+    #  For log only items, give noecho as 2nd param
+    #
+    [ "$2" != "noecho" ] && echo "$1"
+    #
+    #  Since other tools launched by this might have changed it, set it
+    #  here for now, later check if it is needed
+    #
+    log_it "$1"
+}
+
+hostfs_is_alpine() {
+    test -f "$f_rel_alpine"
+}
+
+hostfs_is_devuan() {
+    test -f "$f_rel_devuan"
+}
+
+hostfs_is_debian() {
+    test -f "$f_rel_debian" && ! hostfs_is_devuan
+}
+
+this_is_aok_kernel() {
+    [ -d /proc/ish ] || return 1
+    grep -qi aok /proc/ish/version 2>/dev/null
+}
+
+is_alpine_3_20() {
+    hostfs_is_alpine || return 1
+
 }
 
 #===============================================================
@@ -335,71 +764,106 @@ login_with_param_check() {
 #
 #===============================================================
 
-prog_name=$(basename "$0")
-expected_runlevel="default"
-# f_status_log="/var/log/aok_launcher.log"
-f_issue_file="/etc/issue"
-f_login_prog="/bin/login"
+#
+#  Just set the bare min variables needed for recovery mode, in order
+#  to hopefully capture inittab before it takes any action
+#
+# state_prefix=/etc/opt/AOK
+# f_recovery_mode="$state_prefix"/recovery-mode
+# f_pts_0_as_console="$state_prefix"/pts_0_as_console
+# cmd_logger=/usr/local/bin/logger
+# rm -f "$f_recovery_mode"
+# recovery_mode_enable
 
+#  Continue with variable definitions
 state_prefix=/etc/opt/AOK
+f_inittab_can_start="$state_prefix"/inittab_can_start
 f_deploy_state="$state_prefix"/deploy_state
 f_logins_continous="$state_prefix"/login-continous
 f_login_default_user="$state_prefix"/login-default-username
+f_profile_hints="$state_prefix"/show_profile_hints
 f_pts_0_as_console="$state_prefix"/pts_0_as_console
 f_recovery_mode="$state_prefix"/recovery-mode
 f_this_is_chrooted="$state_prefix"/this_fs_is_chrooted
 
-rm -f "$f_recovery_mode" #  Ensure this isn't left from a previous boot
-check_for_revovery_mode
+f_aok_release=/etc/aok-fs-release
+f_rel_alpine=/etc/alpine-release
+f_rel_devuan=/etc/devuan_version
+f_rel_debian=/etc/debian_version
 
+f_issue_file="/etc/issue"
+f_login_prog="/bin/login"
+
+# f_status_log="/var/log/aok_launcher.log"
+
+expected_runlevel="default"
+recovery_mode_active=false
+
+cmd_custom_console_monitor=/usr/local/sbin/custom_console_monitor
+cmd_tail="tail -n 0 -f "
+cmd_logger=/usr/local/bin/logger
+
+if [ "$(tty)" = "/dev/pts/0" ]; then
+    this_is_pts0=true
+else
+    this_is_pts0=false
+fi
+
+#  Ensure no left-overs from a previous boot
+rm -f "$f_inittab_can_start"
+rm -f "$f_recovery_mode"
+rm -f "$f_recovery_mode_log"
+
+prog_name=$(basename "$0")
+
+recovery_mode_enable
+
+[ -f "$f_this_is_chrooted" ] && {
+    # When chrooted, initttab wont exexute so do such tasks here
+    /usr/local/bin/logger "$prog_name" "===  System startup  ==="
+    /usr/local/sbin/reset-run-dir
+    /usr/local/sbin/rotate-logs.sh
+    hostfs_is_alpine && /usr/local/sbin/update-motd
+}
+
+hostfs_is_debian && update_deb_log_kill_cmd
 display_header
+recovery_mode_probe main1
+
+this_is_aok_kernel && hostfs_is_alpine && grep -q 3.20 "$f_rel_alpine" && {
+    echo
+    echo "On iSH-AOK rsync and other core bins will fail in Alpine 3.20"
+    error_msg "For now using Alpine 3.19 or older is recomended" -1
+}
+
+verify_devs
+recovery_mode_probe main2
 
 #  If deploy has not completed - handle it
-if [ -f "$f_deploy_state" ]; then
-    deploy_aok
-fi
-
-#
-#  This is only run on first vterm
-#
-if [ "$(tty)" = "/dev/pts/0" ]; then
-    bootup
-else
-    /usr/local/bin/network-check.sh
-fi
-
-while true; do
-    #
-    #  Ensure params are tried for each login attempt, in case they have
-    #  been changed during the current session, and continous logins is set
-    #
-    ignore_login_params=0
-    login_with_param_check
-    login_ex_code="$?"
-    [ "$login_ex_code" != "0" ] && {
-        echo
-        print_log "ERROR: $f_login_prog exited with: $login_ex_code"
-    }
-
-    if [ -f "$f_this_is_chrooted" ]; then
-        print_log "This is chrooted, always terminating on logout, this should also exit the chroot"
-        exit 0
-    fi
-
-    if [ -f "$f_logins_continous" ]; then
-        echo
-        print_log "Will spawn a new login session. If this is not requested, run aok"
-        echo
-        sleep 1
+[ -f "$f_deploy_state" ] && {
+    if $this_is_pts0; then
+        deploy_aok
     else
-        echo
-        echo "To enable continous vterm sessions, run aok"
-        print_log "Terminating vterm $(tty)"
-        sleep 1
-        exit 0
+        echo "New vterm started during deploy - $(tty)"
+        if [ -f /bin/ash ]; then
+            echo "Using /bin/ash"
+            /bin/ash
+        elif [ -f /bin/bash ]; then
+            echo "Using /bin/bash"
+            /bin/bash
+        else
+            echo "Neither bash nor ash available - starting /bin/sh"
+            /bin/sh
+        fi
+        exit
     fi
-done
+}
 
-print_log "===  Fell out of infinite aok_launcher loop - Should really not happen!"
-echo "will sleep forever, please shutdown iSH"
-/bin/sleep infinity
+if $this_is_pts0; then
+    bootup # if /dev/console is used, pts/0 will not exit this
+else
+    /usr/local/bin/network-check
+fi
+
+# recovery_mode_disable "End of main"
+handle_logins

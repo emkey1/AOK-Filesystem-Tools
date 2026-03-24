@@ -4,7 +4,7 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #
 #  Upgrades an already installed iSH to be current with /optAOK content
 #  This is not equivallent to a fresh install, since dynamically generated
@@ -27,12 +27,31 @@ Available options:
     exit 0
 }
 
+verify_launch_cmd() {
+    this_is_ish || return
+
+    msg_2 "Verifying expected 'Launch cmd'"
+
+    launch_cmd_current="$(get_kernel_default launch_command)"
+    if [ "$launch_cmd_current" != "$launch_cmd_AOK" ]; then
+        msg_1 "'Launch cmd' is not the default for AOK"
+        echo "Current 'Launch cmd': '$launch_cmd_current'"
+        echo
+        echo "To set the default, run this, it will display the updated content:"
+        echo
+        echo "aok --launch-cmd aok"
+        echo
+    fi
+}
+
 restore_to_aok_state() {
     src="$1"
     dst="$2"
     [ -z "$src" ] && error_msg "restore_to_aok_state() - no 1st param"
-    [ -z "$dst" ] && error_msg "restore_to_aok_state() - no 2nd param"
-    [ -e "$src" ] || error_msg "restore_to_aok_state() - src not found $src"
+    [ -z "$dst" ] && error_msg "restore_to_aok_state($src,) - no 2nd param"
+    [ -e "$src" ] || {
+        error_msg "restore_to_aok_state($src, $dst) - src not found $src"
+    }
     #[ -e "$dst" ] || error_msg "restore_to_aok_state() - dst not found $dst"
 
     msg_2 "Will restore $src -> $dst"
@@ -45,10 +64,21 @@ restore_configs() {
     #
     #  This covers config style files, that might overwrite user configs
     #
-    echo "===  Upgrade of configs is requested, will update /etc/inittab and similar configs"
+    _s="===  Upgrade of configs is requested, will update"
+    _s="$_s /etc/inittab and similar configs"
+    echo "$_s"
     restore_to_aok_state /opt/AOK/common_AOK/etc/environment /etc
     restore_to_aok_state /opt/AOK/common_AOK/etc/profile-hints /etc
+
     restore_to_aok_state /opt/AOK/common_AOK/etc/init.d/runbg /etc/init.d/runbg
+    _f=/etc/runlevels/default/runbg
+    [ ! -f "$_f" ] && {
+        msg_3 "Soft-linking $_f"
+        ln -sf /etc/init.d/runbg "$_f" || {
+            error_msg "soft-linking failed!"
+        }
+    }
+
     restore_to_aok_state /opt/AOK/common_AOK/etc/login.defs /etc/login.defs
     restore_to_aok_state "$distro_fam_prefix"/etc/inittab /etc/inittab
     restore_to_aok_state "$distro_fam_prefix"/etc/profile /etc/profile
@@ -71,10 +101,29 @@ is_obsolete_file_present() {
     [ -z "$f_name" ] && error_msg "is_obsolete_file_present() - no first param"
 
     if [ -f "$f_name" ]; then
-        msg_3 "Obsolete file found: $f_name"
+        echo "WARNING: Obsolete file found: $f_name"
     elif [ -e "$f_name" ]; then
-        msg_3 "Obsolete filename found, but was not file: $f_name"
+        echo "WARNING: Obsolete filename found, but was not file: $f_name"
     fi
+}
+
+should_be_softlink() {
+    f_name="$1"
+    f_linked_to="$2"
+    f_org_name="$3"
+    [ -z "$f_name" ] && error_msg "should_be_softlink() - no first param"
+    [ -z "$f_linked_to" ] && error_msg "should_be_softlink() - no 2nd param"
+
+    [ ! -f "$f_linked_to" ] && {
+        error_msg "source for sof link missing: $f_linked_to"
+    }
+    [ -L "$f_name" ] || error_msg "Should be softlink: $f_name"
+    [ "$(realpath "$f_name")" != "$f_linked_to" ] && {
+        error_msg "$f_name should be soft-linked to $f_linked_to"
+    }
+    [ -n "$f_org_name" ] && [ ! -f "$f_org_name" ] && {
+        error_msg "Org-name file missing: $f_org_name"
+    }
 }
 
 general_upgrade() {
@@ -114,16 +163,9 @@ general_upgrade() {
         msg_3 "/usr/local/bin"
         rsync_chown "$distro_fam_prefix"/usr_local_bin/ /usr/local/bin
         msg_3 "/usr/local/sbin"
-        rsync_chown "$distro_fam_prefix"/usr_local_sbin/ /usr/local/sbin
-        if ! this_is_aok_kernel && ! this_fs_is_chrooted; then
-            _f="/usr/bin/uptime"
-            msg_3 "$_f"
-            file "$_f" | grep -q ELF && {
-                msg_4 "Saving ELF $_f -> /usr/bin/org-uptime"
-                mv "$_f" /usr/bin/org-uptime
-            }
-            rsync_chown /opt/AOK/FamDeb/ish_replacement_bins/uptime /usr/bin
-        fi
+        # kill_tail_logging is updated on each boot by aok_launcher
+        _s="--exclude=kill_tail_logging $distro_fam_prefix/usr_local_sbin/"
+        rsync_chown "$_s" /usr/local/sbin
         msg_3 "/etc/init.d/rc"
         rsync_chown "$distro_fam_prefix"/etc/init.d/rc /etc/init.d
     else
@@ -193,11 +235,25 @@ update_etc_opt_references() {
 obsolete_files() {
     msg_2 "Ensuring no obsolete files are present"
 
+    # undated
     is_obsolete_file_present /etc/aok-release
     is_obsolete_file_present /etc/init.d/bat_charge_log
     is_obsolete_file_present /etc/opt/AOK-login_method
     is_obsolete_file_present /etc/opt/hostname_cached
 
+    # undated
+    is_obsolete_file_present /etc/update-motd.d/11-aok-release
+    is_obsolete_file_present /etc/update-motd.d/12-deb-vers
+    is_obsolete_file_present /etc/update-motd.d/13-ish-release
+    is_obsolete_file_present /etc/update-motd.d/25-aok-release
+    is_obsolete_file_present /etc/update-motd.d/26-deb-vers
+    is_obsolete_file_present /etc/update-motd.d/27-ish-release
+
+    # 240819
+    is_obsolete_file_present /usr/local/bin/network-check.sh
+    # 240807
+    is_obsolete_file_present /usr/local/bin/battery-charge
+    # undated
     is_obsolete_file_present /usr/local/bin/aok_groups
     is_obsolete_file_present /usr/local/bin/apk_find_pkg
     is_obsolete_file_present /usr/local/bin/battery_charge
@@ -211,19 +267,32 @@ obsolete_files() {
     is_obsolete_file_present /usr/local/bin/iphone_tmux
     is_obsolete_file_present /usr/local/bin/nav_keys.sh
     is_obsolete_file_present /usr/local/bin/network_check.sh
+    is_obsolete_file_present /usr/local/bin/shutdown
     is_obsolete_file_present /usr/local/bin/toggle_multicore
     is_obsolete_file_present /usr/local/bin/vnc_start
     is_obsolete_file_present /usr/local/bin/vnc_stop
     is_obsolete_file_present /usr/local/bin/what_owns
+
+    # undated
     is_obsolete_file_present /usr/local/sbin/aok-launcher
     is_obsolete_file_present /usr/local/sbin/bat_charge_leveld
     is_obsolete_file_present /usr/local/sbin/bat_monitord
+    is_obsolete_file_present /usr/local/sbin/custom_console_log.sh
     is_obsolete_file_present /usr/local/sbin/do_shutdown
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file.sh
     is_obsolete_file_present /usr/local/sbin/ensure_hostname_in_host_file
+    is_obsolete_file_present /usr/local/sbin/poweroff
     is_obsolete_file_present /usr/local/sbin/hostname_sync.sh
     is_obsolete_file_present /usr/local/sbin/reset-run-dir.sh
     is_obsolete_file_present /usr/local/sbin/update_motd
+    is_obsolete_file_present /usr/local/sbin/wait_for_console
+
+}
+
+check_softlinks() {
+    msg_2 "Checking that softlinked bins are setup"
+
+    replacing_std_bins_with_aok_versions upgrade
 }
 
 update_aok_release() {
@@ -259,10 +328,12 @@ update_aok_release() {
 #
 #===============================================================
 
-# shellcheck source=/dev/null
+# shell check source=/dev/null
 hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
-# shellcheck source=/dev/null
-. /opt/AOK/tools/utils.sh
+
+[ -z "$d_aok_etc" ] && aok_this_is_dest_fs="Y" . /opt/AOK/tools/utils.sh
+
+. /opt/AOK/tools/multi_use.sh
 
 # shellcheck disable=SC1007
 prog_name=$(basename "$0")
@@ -281,7 +352,7 @@ while [ -n "$1" ]; do
     shift
 done
 
-ensure_ish_or_chrooted
+ensure_ish_or_chrooted ""
 
 if hostfs_is_alpine; then
     distro_prefix="/opt/AOK/Alpine"
@@ -298,7 +369,7 @@ fi
 
 d_new_etc_opt_prefix="/etc/opt/AOK"
 
-if [ "$update_configs" -eq 1 ]; then
+if [ "$update_configs" = "1" ]; then
     echo
     restore_configs
 fi
@@ -308,3 +379,18 @@ update_etc_opt_references
 update_aok_release
 verify_launch_cmd
 obsolete_files
+check_softlinks
+
+# Double check that no new incompatiblities have been listed
+msg_2 "Ensuring no incompatabilies are detected"
+/usr/local/bin/check-env-compatible
+
+cmd_post_update=/etc/opt/AOK/post-update.sh
+
+[ -x "$cmd_post_update" ] && {
+    msg_2 "Running $cmd_post_update"
+    $cmd_post_update
+}
+
+echo
+aok-versions

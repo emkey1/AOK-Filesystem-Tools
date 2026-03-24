@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  Displays iSH version
+#
+
+ish_version="$(cat /proc/ish/version 2>/dev/null)"
+[ -z "$ish_version" ] && ish_version="Cant be detected whilst chrooted"
+echo "iSH release:     $ish_version"

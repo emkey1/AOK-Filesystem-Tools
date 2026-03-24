@@ -9,8 +9,5 @@
 #  Displays AOK release info
 #
 
-deb_version="/etc/debian_version"
-
-if [ -e "$deb_version" ]; then
-    echo "[35mDebian release:  $(cat "$deb_version")[0m"
-fi
+echo
+#printf "\e[35m"

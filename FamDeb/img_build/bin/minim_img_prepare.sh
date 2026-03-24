@@ -17,8 +17,7 @@ d_here="$(dirname "$0")"
 # shellcheck source=/dev/null
 . "$d_here"/img_build_utils.sh
 
-msg_1 "Doing apt update"
-apt update
+debian_apt_update
 
 msg_1 "Removing stuff that should not be here"
 rm -f /etc/aok_release # obsolete file that might be around in some minim files
@@ -27,7 +26,7 @@ pkgs_purge="groff-base file pigz less curl rsync sqlite3 tinysshd vim
     vim-runtime x11-common sysv-rc fontconfig-config fontconfig
     fonts-dejavu-core at-spi2-core libfontconfig1 libmagic1:i386"
 echo "   $pkgs_purge"
-#  shellcheck disable=SC2086
+#  shellcheck disable=SC2086 # in this case variable should expand
 apt purge -y $pkgs_purge
 
 health_check

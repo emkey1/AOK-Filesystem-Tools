@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  Called from /usr/local/bin/console-restart
+#  Replaced by /usr/local/sbin/aok_launcher during each reboot
+#
+
+(
+    echo
+    echo 'Console tailing of /var/log/* will be restarted'
+    echo 'Non text-files will be ignored'
+) >/dev/console
+
+pgrep -f "tail -n 0 -f /var/log/" | xargs

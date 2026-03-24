@@ -15,32 +15,40 @@
 
 show_help() { # Multi OK 1
     #region help text
-    echo "Usage: $prog_name [-h] [-v] [-p] [-c] [-z] [-u]
+    echo "Usage: $prog_name [-h] [-d] [-p] [-N]
 
 This builds the iSH-AOK filesystem.
+
+By default this will build an Alpine FS, unless Debian is requested.
 
 Default is to setup a minimal FS to be completed when deployed, this creates
 far smaller image files, at the cost of taking a couple of minutes to complete
 on the device upon first boot.
 
+If prebuild is requested, most setup tasks will be done on the buildhost,
+except for tasks that must be done on the deploy host.
+Using this on a Linux x86 will be 5-10 times faster, compared to the same
+tasks being done on the iOS device.
+
 Available options:
 
 -h  --help         Print this help and exit
 -v  --verbose      Displays extra info, like untaring/taring progress
--s  --select       Offer selection between Alpine, Debian & Devuan on first boot.
--d  --debian       Build a Debian FS.
--D  --devuan       Build a Devuan FS.
 -p  --prebuilt     Build the entire FS on the running platform, making
                    for quicker imports on target device, but up to 10
                    times larger image file.
-                   This can only be done on iSH or Linux (x86)!
+                   This can only be done on iSH itself or Linux (x86)!
+-N  --no_compress  Terminates when FS is prepared, without generating
+                   a FS tarball.
+-d  --debian       Build a Debian FS.
+-s  --select       Offer selection between Alpine, Debian & Devuan on first boot.
 -f  --force        Force do_chroot.sh to run, despite any warnings
                    it displays.
 -c  --clear        Empty the build env ($d_build_root)
 -C  --full_clear   Do a clear, and in addition clear the download cache
--j  --bzip2        Use bzip2 compression for distribution
--N  --no_compress  Terminates when FS is prepared, without generating
-                   a FS tarball.
+
+<*  temporarilly disabled options  *>
+-D  --devuan       Build a Devuan FS.
 
 A newly created FS is located at: $d_build_root
 
@@ -111,13 +119,13 @@ parse_arguments() { # Multi OK 1
             build_target="$distro_debian"
             ;;
 
-        "-D" | "--devuan")
-            if [ "$build_target" = "$destfs_select" ]; then
-                echo "Can not be combined: -D and -s"
-                exit 1
-            fi
-            build_target="$distro_devuan"
-            ;;
+        #"-D" | "--devuan")
+        #    if [ "$build_target" = "$destfs_select" ]; then
+        #        echo "Can not be combined: -D and -s"
+        #        exit 1
+        #    fi
+        #    build_target="$distro_devuan"
+        #    ;;
 
         "-s" | "--select")
             if [ "$build_target" = "$distro_debian" ] ||
@@ -154,19 +162,7 @@ parse_arguments() { # Multi OK 1
             exit 0
             ;;
 
-        "-j" | "--bzip2")
-            if ! $aok_FS_do_compress; then
-                echo "Can not be combined: -j and -N"
-                exit 1
-            fi
-            use_bzip2=true
-            ;;
-
         "-N" | "--no_compress")
-            if $use_bzip2; then
-                echo "Can not be combined: -j and -N"
-                exit 1
-            fi
             aok_FS_do_compress=false
             ;;
 
@@ -336,18 +332,6 @@ select_distro_on_1st_boot() {
     #  will be run on 1st boot, a slight delay, but end result is
     #  the same.
     #
-    if [ "$build_env" != "$be_other" ]; then
-        [ -n "$force_chroot" ] && msg_3 "Forcing chroot to run"
-        if ! /opt/AOK/tools/do_chroot.sh "$force_chroot" /etc/profile; then
-            error_msg "Error in chroot, aborting build!"
-        fi
-    else
-        echo
-        msg_2 "***  Could not chroot, did not run: $setup_select_distro_prepare  ***"
-        msg_2 "This means that this image will have to run the preparatory"
-        msg_2 "step, before displaying the Distro selection dialog"
-        echo
-    fi
     # msg_3 "select_distro_on_1st_boot()  done"
 }
 
@@ -389,7 +373,6 @@ prebuild_fs() {
 }
 
 consider_generating_tarball() {
-    msg_2 "consider_generating_tarball()"
     #
     #  Consider to generate a tarball
     #
@@ -398,10 +381,6 @@ consider_generating_tarball() {
         if $verbose; then
             cgt_extra_params="-v"
         fi
-        if $use_bzip2; then
-            cgt_extra_params="$cgt_extra_params -j"
-        fi
-
         if [ -n "$d_build_root" ] && ls -A "$d_build_root"/iCloud/* >/dev/null 2>&1; then
             #
             #  iCloud might have been used whilst chrooted, this ensures
@@ -414,8 +393,8 @@ consider_generating_tarball() {
         #
         #  Here the tarball is generated
         #
-        #  shellcheck disable=SC2086,SC2248
-        if ! /opt/AOK/compress_image $cgt_extra_params; then
+        #  shellcheck disable=SC2086 # in this case variable should expand
+        if ! /opt/AOK/compress_image "$cgt_extra_params"; then
             error_msg "detected in compress_image"
         fi
 
@@ -470,7 +449,6 @@ cd /opt/AOK || {
 #
 build_target="$distro_alpine" # default target
 verbose=false                 # true displays tar/untar progress
-use_bzip2=false               # Use tgz when compressing image
 pre_build_FS=false            # true means generate pre-built FS
 aok_FS_do_compress=true       # compress FS at end of build_fs
 
@@ -554,6 +532,14 @@ fi
 
 if $pre_build_FS; then
     prebuild_fs
+else
+    msg_3 "Install stuff needed for bootup if aok_launcher is used"
+    rsync_chown /opt/AOK/common_AOK/usr_local_bin/logger \
+        "$d_build_root"/usr/local/bin/
+    rsync_chown /opt/AOK/common_AOK/usr_local_bin/network-check \
+        "$d_build_root"/usr/local/bin/
+    rsync_chown /opt/AOK/common_AOK/usr_local_sbin/aok_launcher \
+        "$d_build_root"/usr/local/sbin/
 fi
 
 msg_2 "The filesystem is ready!"

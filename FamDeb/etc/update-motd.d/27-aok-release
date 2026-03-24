@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  Displays AOK release info
+#
+
+aok_release="$(cat /etc/aok-fs-release 2>/dev/null)"
+[ -z "$aok_release" ] && aok_release="Not found: /etc/aok-fs-release"
+echo "AOK-FS release:  $aok_release"

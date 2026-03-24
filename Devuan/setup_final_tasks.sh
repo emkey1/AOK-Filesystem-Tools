@@ -20,10 +20,7 @@
 
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-if this_is_ish && ! this_is_aok_kernel; then
-    msg_2 "Replacing uptime on regular iSH kernel"
-    mv /usr/bin/uptime /usr/bin/org-uptime
-    rsync_chown /opt/AOK/FamDeb/ish_replacement_bins/uptime /usr/bin
-else
-    msg_2 "Devuan uptime works on this env"
+if this_is_aok_kernel; then
+    # ish-aok does not need the replacement uptime
+    rm -f /usr/local/bin/uptime
 fi

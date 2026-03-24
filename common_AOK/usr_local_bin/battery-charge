@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# shellcheck source=/dev/null
-. ~/.common_rc
-
-get_battery_info
-echo

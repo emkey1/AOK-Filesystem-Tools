@@ -21,7 +21,7 @@
 #
 wait_for_bootup() {
     # msg_2 "wait_for_bootup()"
-    if [ "$(get_launch_cmd)" != "$launch_cmd_AOK" ]; then
+    if [ "$(get_kernel_default launch_command)" != "$launch_cmd_AOK" ]; then
         if deploy_state_is_it "$deploy_state_pre_build" &&
             ! hostfs_is_devuan &&
             ! this_fs_is_chrooted; then
@@ -74,83 +74,29 @@ ensure_path_items_are_available() {
     # msg_3 "ensure_path_items_are_available() - done"
 }
 
-hostname_fix() {
-    # echo "=V= hostname_fix()"
-    msg_2 "Using alternate hostname"
-    orig_hostname="$(/bin/hostname)"
-
-    # shellcheck disable=SC2154
-    this_is_aok_kernel && [ "$AOK_HOSTNAME_SUFFIX" = "Y" ] && {
-        msg_3 "Using -aok suffix"
-        aok -s on
-    }
-
-    _f=/bin/ORIG-hostname
-    if [ ! -f "$_f" ]; then
-        msg_3 "Renaming original /bin/hostname -> $_f"
-        mv /bin/hostname "$_f"
-    else
-        rm -f /bin/hostname
-    fi
-
-    _f=/bin/hostname
-    [ -f "$_f" ] && [ ! -h "$_f" ] && {
-        msg_3 "Linking /usr/local/bin to /bin/hostname"
-        rm /bin/hostname
-        ln -sf /usr/local/bin/hostname /bin/hostname
-    }
-
-    if [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
-        msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
-        hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
-            error_msg "Failed to soure hostname"
-        }
-    elif this_fs_is_chrooted; then
-        echo "$orig_hostname" >/etc/hostname
-        hostname -S /etc/hostname
-    fi
-    #  Ensure hostname has been picked up, iSH-AOK also updates /bin/hostname
-    hostname -U >/dev/null
-    # echo "^^^ hostname_fix() - done"
-
-}
-
 aok_kernel_consideration() {
     msg_2 "aok_kernel_consideration()"
-    if ! this_is_aok_kernel; then
-        if ! min_release 3.18; then
-            msg_3 "procps wont work on regular iSH for Alpine < 3.18"
-            apk del procps || {
-                error_msg "apk del procps failed"
-            }
-        fi
-    elif [ -n "$AOK_APKS" ]; then
-        msg_3 "Install packages only for AOK kernel"
+    if ! this_is_aok_kernel || this_fs_is_chrooted; then
+        msg_3 "Not direct aok kernel!"
+        #min_release 3.18 || {
+        #    msg_3 "procps wont work on regular iSH for Alpine < 3.18"
+        #    apk del procps || {
+        #        error_msg "apk del procps failed"
+        #    }
+        #}
+        return
+    fi
+
+    [ -n "$AOK_APKS" ] && {
+        msg_3 "Install packages only for AOK kernel: $AOK_APKS"
         # In this case we want the variable to expand into its components
-        # shellcheck disable=SC2086
+        # shellcheck disable=SC2086 # in this case variable should expand
         apk add $AOK_APKS || {
             error_msg "apk add AOK_APKS failed"
         }
-    fi
-    # msg_3 "aok_kernel_consideration() - done"
-}
-
-verify_alpine_uptime() {
-    #
-    #  Some versions of uptime doesnt work in iSH, test and
-    #  replace with softlink to busybox if that is the case
-    #
-    uptime_cmd="$(command -v uptime)"
-    uptime_cmd_real="$(realpath "$uptime_cmd")"
-
-    [ "$uptime_cmd_real" = "/bin/busybox" ] && return
-
-    "$uptime_cmd" >/dev/null 2>&1 || {
-        msg_2 "WARNING: Installed uptime not useable!"
-        msg_3 "changing it to busybox symbolic link"
-        rm -f "$uptime_cmd"
-        ln -sf /bin/busybox "$uptime_cmd"
     }
+
+    deploy_bat_monitord
 }
 
 start_cron_if_active() {
@@ -158,9 +104,7 @@ start_cron_if_active() {
     #  shellcheck disable=SC2154
     [ "$USE_CRON_SERVICE" != "Y" ] && return
 
-    if this_fs_is_chrooted || ! this_is_ish; then
-        error_msg "Cant attempt to start cron on a chrooted/non-iSH device"
-    fi
+    ensure_ish_or_chrooted "Cant attempt to start cron on a chrooted/non-iSH device"
 
     cron_service="/etc/init.d"
     if hostfs_is_alpine; then
@@ -204,7 +148,7 @@ run_additional_tasks_if_found() {
     msg_2 "run_additional_tasks_if_found()"
 
     [ -n "$FIRST_BOOT_ADDITIONAL_TASKS" ] && {
-        msg_1 "Running additional setup tasks"
+        msg_1 "Running additional final setup tasks"
         echo "---------------"
         echo "$FIRST_BOOT_ADDITIONAL_TASKS"
         echo "---------------"
@@ -222,6 +166,14 @@ clean_up_dest_env() {
 
     rm -f "$f_home_user_replaced"
     rm -f "$f_home_root_replaced"
+    rm -f "$f_hostname_initial"
+
+    # dont remove if final dest is chrooted!
+    if this_fs_is_chrooted; then
+        msg_3 "dest is chrooted - Leaving: $f_chroot_hostname"
+    else
+        rm -f "$f_chroot_hostname"
+    fi
 }
 
 #===============================================================
@@ -240,12 +192,34 @@ echo
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# shellcheck source=/opt/AOK/tools/utils.sh
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 . /opt/AOK/tools/ios_version.sh
 . /opt/AOK/tools/user_interactions.sh
 
+this_is_aok_kernel && hostfs_is_alpine && min_release "3.20" && {
+    echo
+    echo "On iSH-AOK rsync and other core bins will fail in Alpine 3.20"
+    error_msg "For now using Alpine 3.19 or older is recomended"
+}
+
 deploy_state_set "$deploy_state_finalizing"
 msg_script_title "$prog_name_sft - Final part of setup"
+
+msg_2 "Dest platform aok tweaks"
+if this_fs_is_chrooted; then
+    aok -s off # should happen before set_hostname
+else
+    this_is_aok_kernel || {
+        msg_3 "Not ish-aok kernel, disabling suffix"
+        aok -s off
+    }
+    aok -C off -l aok
+fi
+
+user_interactions # mount iCloud & set TZ
+ensure_path_items_are_available
+set_hostname # it might have changed since pre-build...
 
 hostfs_name="$(hostfs_detect)"
 f_fs_final_tasks=/opt/AOK/"$hostfs_name"/setup_final_tasks.sh
@@ -267,9 +241,6 @@ if this_fs_is_chrooted; then
     msg_3 "Setting default chroot app: $_f"
     echo "$_f" >/.chroot_default_cmd
     [ -z "$USER_NAME" ] && aok -a "root"
-else
-    msg_2 "Setting Launch Cmd to: $launch_cmd_AOK"
-    set_launch_cmd "$launch_cmd_AOK"
 fi
 
 [ -n "$USER_NAME" ] && {
@@ -282,25 +253,14 @@ if test -f /AOK; then
     rm -rf /AOK
 fi
 
-user_interactions
-ensure_path_items_are_available
-hostname_fix
-
 #
 #  Currently Debian doesnt seem to have to take the iSH app into
 #  consideration
 #
 hostfs_is_alpine && aok_kernel_consideration
 
-deploy_bat_monitord
-
 if hostfs_is_alpine; then
     next_etc_profile="/opt/AOK/Alpine/etc/profile"
-    #
-    #  Some versions of Alpine uptime doesnt work in ish, test and
-    #  replace with softlink to busybox if that is the case
-    #
-    verify_alpine_uptime
 elif hostfs_is_debian || hostfs_is_devuan; then
     next_etc_profile="/opt/AOK/FamDeb/etc/profile"
 else
@@ -325,19 +285,15 @@ run_additional_tasks_if_found
 duration="$(($(date +%s) - tsaft_start))"
 display_time_elapsed "$duration" "Setup Final tasks"
 
-verify_launch_cmd
 clean_up_dest_env
+
+/usr/local/bin/check-env-compatible
 
 msg_1 "File system deploy completed"
 
 /usr/local/bin/aok-versions
 
+echo
 echo "Setup has completed the last deploy steps and is ready!
 You are recomended to reboot in order to ensure that all services are started,
 and your environment is used."
-
-#
-#  This ridiculous extra step is needed if chrooted on iSH
-#
-cd / || error_msg "Failed to cd /"
-cd || error_msg "Failed to cd home"

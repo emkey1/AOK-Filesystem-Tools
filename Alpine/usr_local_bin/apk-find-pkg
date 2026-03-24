@@ -2,7 +2,7 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -13,7 +13,7 @@
 error_msg() {
     msg="$1"
     [ -z "$msg" ] && error_msg "error_msg() called with no param"
-    echo "ERROR: $msg"
+    echo "ERROR[$0]: $msg"
     exit 1
 }
 
@@ -59,7 +59,7 @@ cmd="$cmd | xargs -I {} tar -zxf {} -O"
 #  name, records seems to normally be 14 lines, so grab a bit more to
 #  be somewhat future proof
 #
-cmd="$cmd | grep -a -B 16 cmd\\:${prog}="
+cmd="$cmd | grep -a -B 16 cmd\:${prog}="
 
 #
 #  reverse this output, and search for the line starting with P:

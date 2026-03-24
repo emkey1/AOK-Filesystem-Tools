@@ -1,0 +1,39 @@
+#!/bin/sh
+# This is sourced. Fake bang-path to help editors and linters
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
+#
+#  Common environment for aok_fs-save & aok_fs-replace
+#
+
+d_aok_fs="$TMPDIR"/aok_fs
+
+d_aok_completed="$TMPDIR"/aok_completed
+
+mkdir -p "$d_aok_completed" || {
+    error_msg "Failed to create: $d_aok_completed"
+}
+
+[ ! -d "$d_aok_fs" ] && {
+    error_msg "d_aok_fs is not a dir: $d_aok_fs"
+}
+
+[ ! -d "$d_aok_completed" ] && {
+    error_msg "d_aok_completed is not a dir: $d_aok_completed"
+}
+
+if hostfs_is_alpine; then
+    chs_procs="$(lsof 2>/dev/null | grep "$d_aok_fs" |
+        awk '{print $1 }' | sort | uniq | tr '\n' ' ')"
+else
+    chs_procs="$(lsof 2>/dev/null | grep "$d_aok_fs" |
+        awk '{print $2 }' | sort | uniq | tr '\n' ' ')"
+fi
+[ -n "$chs_procs" ] && {
+    error_msg "it seems a chroot is active pids: $chs_procs"
+}
+unset chs_procs

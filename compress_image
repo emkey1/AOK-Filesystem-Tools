@@ -19,7 +19,6 @@ Available options:
 
 -h  --help         Print this help and exit.
 -l  --label        Provide a name for tarball (without path or extension)
--j  --bzip2        Use bzip2 compression
 -v  --verbose      Display progrss as FS is being compressed."
     exit 0
 }
@@ -46,7 +45,6 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 . /opt/AOK/tools/utils.sh
 
 prog_name=$(basename "$0")
-use_bzip2=false
 verbose=false
 
 while [ -n "$1" ]; do
@@ -54,8 +52,6 @@ while [ -n "$1" ]; do
     case "$1" in
 
     "-h" | "--help") show_help ;;
-
-    "-j" | "--bzip2") use_bzip2=true ;;
 
     "-l" | "--label")
         shift
@@ -95,13 +91,21 @@ else
         ;;
     "$distro_alpine")
         msg_3 "Getting release details for Alpine"
-        get_lsb_release chroot || error_msg "get_lsb_release error"
-        tarball_fn="${lsb_DistributorID}-${lsb_Release}-AOK-${AOK_VERSION}"
+        if get_lsb_release; then
+            tarball_fn="${lsb_DistributorID}-${lsb_Release}-AOK-${AOK_VERSION}"
+        else
+            msg_4 "lsb_release unavailable, manually naming tar"
+            tarball_fn="Alpine-$(cat "$d_build_root"/etc/alpine-release)-AOK-${AOK_VERSION}"
+        fi
         ;;
     "$distro_debian" | "$distro_devuan")
         msg_3 "Getting release details for Debian/Devuan"
-        get_lsb_release chroot || error_msg "get_lsb_release error"
-        tarball_fn="${lsb_DistributorID}${lsb_Release}-AOK-${AOK_VERSION}"
+        if get_lsb_release; then
+            tarball_fn="${lsb_DistributorID}-${lsb_Release}-AOK-${AOK_VERSION}"
+        else
+            msg_4 "lsb_release unavailable, manually naming tar"
+            tarball_fn="Debian-$(cat "$d_build_root"/etc/debian_version)-AOK-${AOK_VERSION}"
+        fi
         ;;
 
     *) error_msg "Could not detext FS type" ;;
@@ -123,15 +127,9 @@ cd "$d_build_root" || {
     error_msg "Failed to cd into: $d_build_root"
 }
 
-if $use_bzip2; then
-    opts="cfj"
-    tarball="${tarball}.tar.bz2"
-    tarball_fn="${tarball_fn}.tar.bz2"
-else
-    opts="cfz"
-    tarball="${tarball}.tgz"
-    tarball_fn="${tarball_fn}.tgz"
-fi
+opts="cfz"
+tarball="${tarball}.tgz"
+tarball_fn="${tarball_fn}.tgz"
 
 if $verbose; then
     opts="v$opts"
@@ -140,11 +138,12 @@ fi
 clear_build_triggered_logfiles
 
 msg_2 "Writing image file"
-msg_3 " $tarball"
+msg_3 "$tarball"
+cmd_pigz="$(command -v pigz)"
 if [ -n "$cmd_pigz" ]; then
+    opts="$(echo "$opts" | tr -d 'z')"
     msg_4 "Using $cmd_pigz"
-    # time tar -cf - . | pigz -p 2 > foo.tgz
-    tar -cf - . | $cmd_pigz >"$tarball"
+    tar -"$opts" - . | $cmd_pigz >"$tarball"
 else
     msg_4 "No pigz"
     tar "$opts" "$tarball" .

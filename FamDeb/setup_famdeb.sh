@@ -22,6 +22,15 @@ prepare_env_etc() {
     msg_3 "Disabling previous openrc runlevel tasks"
     rm /etc/runlevels/*/* -f
 
+    #  Ensure the one basic service AOK provides is present
+    _f=/etc/init.d/runbg
+    [ -f "$_f" ] && {
+        msg_4 "Enabling runbg service"
+        ln -sf "$_f" /etc/runlevels/default || {
+            error_msg "Failed to soft-link $_f"
+        }
+    }
+
     msg_3 "Adding env versions & AOK Logo to /etc/update-motd.d"
     mkdir -p /etc/update-motd.d
     rsync_chown /opt/AOK/FamDeb/etc/update-motd.d /etc
@@ -43,9 +52,7 @@ handle_apts() {
     #  Not normally needed, unless /var/cache/apt had been cleared,
     #  so in this case, better safe than sorry
     #
-    msg_1 "apt update"
-    apt update -y
-
+    debian_apt_update
     msg_1 "apt upgrade"
     apt upgrade -y || {
         error_msg "apt upgrade failed"
@@ -65,7 +72,7 @@ handle_apts() {
         msg_1 "Add $distro_name packages"
         echo "$apts_to_add"
         echo
-        #  shellcheck disable=SC2086
+        #  shellcheck disable=SC2086 # in this case variable should expand
         apt install -y $apts_to_add || {
             error_msg "apt install failed"
         }
@@ -81,7 +88,7 @@ handle_apts() {
         #  To prevent leftovers having to potentially be purged later
         #  we do purge instead of remove, purge implies a remove
         #
-        #  shellcheck disable=SC2086
+        #  shellcheck disable=SC2086 # in this case variable should expand
         apt purge -y $apts_to_remove || {
             error_msg "apt purge failed"
         }
@@ -98,7 +105,7 @@ handle_apts() {
 
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-ensure_ish_or_chrooted
+ensure_ish_or_chrooted ""
 
 #
 #  Common deploy, used both for all distros

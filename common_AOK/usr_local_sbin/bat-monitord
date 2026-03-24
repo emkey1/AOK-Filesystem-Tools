@@ -2,7 +2,7 @@
 #
 #  Part of https://github.com/jaclu/AOK-Filesystem-Tools
 #
-#  Copyright (c) 2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -24,8 +24,9 @@ syslog_it() {
 }
 
 error_msg() {
-    echo "$1"
-    syslog_it "$1"
+    em_msg="ERROR[$0]: $1"
+    echo "$em_msg"
+    syslog_it "$em_msg"
     exit 1
 }
 
@@ -34,12 +35,12 @@ gather_hostname() {
     if [ "$hname" = " localhost" ]; then
         read -r hname </etc/hostname
         if [ "$hname" = " localhost" ]; then
-            error_msg "ERROR: hostname still localhost, after reading /etc/hostname, aborting!"
+            error_msg "hostname still localhost, after reading /etc/hostname, aborting!"
         fi
     fi
 
     if [ "$hname" = "" ]; then
-        error_msg "ERROR: hostname is empty, after reading /etc/hostname, aborting!"
+        error_msg "hostname is empty, after reading /etc/hostname, aborting!"
     fi
 }
 

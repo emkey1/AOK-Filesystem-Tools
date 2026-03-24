@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
+#
+#  Displays Devuan version
+#
+
+echo "Devuan version:  $(cat /etc/devuan_version)"

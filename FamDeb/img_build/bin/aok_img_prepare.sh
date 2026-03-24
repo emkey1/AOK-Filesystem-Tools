@@ -24,8 +24,8 @@ d_here="$(dirname "$0")"
 #  Since the minim FS comes with caches cleared, an apt update
 #  is needed to repopulate the cache for the packet manager
 #
-msg_1 "Do update in case caches are gone"
-apt update || error_msg "apt update issue"
+debian_apt_update
+
 health_check
 
 duration="$(($(date +%s) - aiprep_time_start))"

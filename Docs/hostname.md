@@ -6,7 +6,7 @@ Since it used to be provided via iOS, nobody has implemented any functinolly to 
 
 Here are some workarrounds to handle this. It can't solve all instances of `localhost` showing up, but it can make it much better.
 
-Before starting to take action I would suggest to first browse through this document so that you have realistic expectations about if this will be worthwhile for you.
+Before starting to take action I would suggest to first browse through this document so that you have realistic expectations about if this will be worthwhile.
 
 ## Set hostname
 
@@ -18,21 +18,11 @@ echo MyOwnIsh > /etc/hostname
 
 ## Alternate hostname cmd
 
-On most normal Linuxes /usr/local/bin tends to be one of the first PATH items, for locally installed stuff to override the defaults. Alpine does things a bit differently, it puts it as the last item. This means that files put there won't override the defaults.
-
-Therefore, replacing /bin/hostname directly would be the simplest solution. Then PATH becomes a non-issue.
-
 ``` shell
 # Create alternate hostname command, and make it runable
 echo "#!/bin/sh" >/usr/local/bin/hostname
 echo "cat /etc/hostname" >/usr/local/bin/hostname
 chmod 755 /usr/local/bin/hostname
-
-#
-# Replace original /bin/hostname with softlink to your alternate hostname
-#
-mv /bin/hostname /bin/hostname.org
-ln -sf /usr/local/bin/hostname /bin/hostname|
 ```
 
 At this point, if you type hostname at the prompt you should get the expected result.
@@ -46,7 +36,7 @@ In such cases, you can sometimes override the default behaviour if a specific to
 
 By default, all the shells I am aware of use the kernel to get the hostname, so the built-in shortcuts to display the hostname can't be used.
 
-Currently, The only way to get shell prompts to display the intended hostname is to replace the shell-specific shortcut for the hostname either with a fixed string or by running your alternate hostname cmd.
+The only way to get shell prompts to display the intended hostname is to replace the shell-specific shortcut for the hostname either with a fixed string or by running your alternate hostname cmd.
 
 shell | hostname shortcut to replacce
 -|-

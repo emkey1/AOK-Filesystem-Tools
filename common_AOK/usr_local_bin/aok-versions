@@ -13,22 +13,26 @@
 #
 #  Display versions of deployed environment
 #
+
+# printf "\e[35m" # set color - magenta
+
 if test -f /etc/alpine-release; then
-    head -n 4 </etc/motd
-    echo "[0m"
+    echo "Alpine release:  $(cat /etc/alpine-release)"
 elif test -f /etc/devuan_version; then
-    /etc/update-motd.d/11-aok-release
-    /etc/update-motd.d/12-devu-vers
-    /etc/update-motd.d/13-ish-release
-    echo
+    echo "Devuan version:  $(cat /etc/devuan_version)"
 elif test -f /etc/debian_version; then
-    /etc/update-motd.d/11-aok-release
-    /etc/update-motd.d/12-deb-vers
-    /etc/update-motd.d/13-ish-release
-    echo
+    echo "Debian version:  $(cat /etc/debian_version)"
 else
-    echo
-    echo "ERROR: /usr/local/bin/aok-versions failed to detect FS!"
-    echo
-    exit 1
+    echo "***  Failed to detect FS  ***"
 fi
+
+ish_version="$(cat /proc/ish/version 2>/dev/null)"
+[ -z "$ish_version" ] && ish_version="Cant be detected whilst chrooted"
+echo "iSH release:     $ish_version"
+
+aok_release="$(cat /etc/aok-fs-release 2>/dev/null)"
+[ -z "$aok_release" ] && aok_release="Not found: /etc/aok-fs-release"
+echo "AOK-FS release:  $aok_release"
+
+
+# printf "\e[0m" # clear color

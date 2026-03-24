@@ -10,7 +10,7 @@
 # shellcheck source=/dev/null
 . /opt/AOK/FamDeb/deb_utils.sh
 
-tid_start="$(date +%s)"
+t_choose_distro_debian_start="$(date +%s)"
 
 msg_script_title "install_debian.sh  Downloading & Installing Debian"
 
@@ -57,8 +57,7 @@ msg_3 "maintaining /etc/opt"
 cp -a /etc/opt "$distro_tmp_dir"/etc
 
 msg_2 "Moving Debian /etc/profile into place"
-cp /opt/AOK/Debian/etc/profile "$distro_tmp_dir"/etc/profile
-
+cp /opt/AOK/FamDeb/etc/profile "$distro_tmp_dir"/etc/profile
 rm -rf "$debian_download_location"
 
 #
@@ -139,10 +138,10 @@ rm /usr/lib/ld-musl*
 
 initial_fs_prep_fam_deb
 
-msg_2 "Set openrc to runlevel default"
-/usr/sbin/openrc default
+# msg_2 "Set openrc to runlevel default"
+# /usr/sbin/openrc default
 
 "$setup_debian_scr"
 
-duration="$(($(date +%s) - tid_start))"
-display_time_elapsed "$duration" "Debian install"
+duration="$(($(date +%s) - t_choose_distro_debian_start))"
+display_time_elapsed "$duration" "Choose Distro - Debian install"

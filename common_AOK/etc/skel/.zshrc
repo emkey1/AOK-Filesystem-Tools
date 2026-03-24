@@ -14,10 +14,7 @@
 #  Non-interactive shells wont read this by themselves. This ensures
 #  that if they get here via idirect sourcing, they abort.
 #
-case $- in
-*i*) ;;
-*) return ;; # If not running interactively, don't do anything
-esac
+echo "$-" | grep -qv 'i' && return # non-interactive
 
 #
 #  Common settings that can be used by most shells
@@ -77,7 +74,7 @@ prompt_colors
 _user_host_name="%F{$PCOL_USERNAME}%n%F{$PCOL_GREY}@%F{$PCOL_HOSTNAME}$_hn"
 
 #
-#  Folder and success of last cmd on left
+#  CWD and success of last cmd on left
 #  user@machine [sysload battery_lvl] time on right
 #
 PROMPT="%(?..%F{red}?%?)%F{$PCOL_CWD}%~%f%b%# "
@@ -88,7 +85,20 @@ PROMPT="%(?..%F{red}?%?)%F{$PCOL_CWD}%~%f%b%# "
 #
 if true; then
     update_prompt_content() {
-        RPROMPT="$_user_host_name $(get_sysload_lvl)$(get_battery_info zsh) %F{$PCOL_GREY}%*%f"
+        if grep -qi aok /proc/ish/version 2>/dev/null; then
+            _s="$_user_host_name $(get_sysload_lvl)$(get_battery_info zsh)"
+            _s="$_s %F{$PCOL_GREY}%*%f"
+            RPROMPT="$_s"
+            unset _s
+        else
+            if [ -f /etc/alpine-release ]; then
+		RPROMPT="$_user_host_name $(get_sysload_lvl) %F{$PCOL_GREY}%*%f"
+            else
+                # iSH Debian doesn't provide sysload
+		RPROMPT="$_user_host_name %F{$PCOL_GREY}%*%f"
+            fi
+        fi
+	return 0
     }
 
     precmd() {
@@ -97,16 +107,6 @@ if true; then
 
     # initial prompt update
     update_prompt_content
-
-    #
-    #  update_prompt_content when called first time, ends up indicating
-    #  exit code 1 even if called multiple times.
-    #  This prompts displays exit code for previous command, so will therefore
-    #  Imply there was an error. For now just doing a random action that
-    #  succeeds solves the issue, so I just unset a random non-existing
-    #  variable
-    #
-    unset foo_bar
 else
     RPROMPT="$_user_host_name %F{$PCOL_GREY}%*%f"
 fi

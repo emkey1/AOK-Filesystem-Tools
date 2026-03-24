@@ -1,4 +1,19 @@
 # inittab
+# Modified by: Jacob.Lundqvist@gmail.com 2022-2024
+
+#
+# R-check checks if recovery mode has been selected, if so that action
+# is not done, and it is logged as skipped in /var/log/recovery-mode.log
+#
+# recovery-mode is a feature of aok_launcher, allowing safe recovery if
+# something is messed up in the environment
+#
+
+#
+# Allow for console to be setup and ready to log bootup.
+# Returns immeditally if console mode is not used
+#
+::sysinit:/usr/local/sbin/inittab_waiting_for_console
 
 # Indicate bootup in the syslog
 ::sysinit:/usr/local/sbin/R-check /usr/local/bin/logger inittab "===  System startup  ==="
@@ -10,7 +25,7 @@
 #
 ::sysinit:/usr/local/sbin/R-check /usr/local/sbin/reset-run-dir
 
-#  rotates logfiles > 10k
+#  rotates logfiles > 20k
 ::sysinit:/usr/local/sbin/R-check /usr/local/sbin/rotate-logs.sh
 
 #

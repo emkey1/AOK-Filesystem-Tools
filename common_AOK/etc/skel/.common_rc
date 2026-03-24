@@ -35,21 +35,18 @@ set_current_shell_name() {
     #  The SHELL variable only displays initial login shell
     #  if you change shell, even using ` -l` to indicate
     #  doing a login shell, it doesnt change.
-    #  Instead I add CURRENT_SHELL to indicate what this shell is
+    #  Instead I add CURRENT_SHELL to indicate what this shell is.
+    #  On Alpine ash is usually softlinked to busybox
     #
     if [ -n "$FISH_VERSION" ]; then
-        #
-        #  fish doesnt support the below case cmd
-        #  so needs separate detection
-        #
         CURRENT_SHELL="fish"
     else
-        case "$(ps -p $$ -o comm=)" in
-        "ash" | "busybox") CURRENT_SHELL="ash" ;;
-        "bash") CURRENT_SHELL="bash" ;;
-        "zsh") CURRENT_SHELL="zsh" ;;
-        *) CURRENT_SHELL="" ;; #  unknown
-        esac
+        if [ -f /proc/$$/exe ]; then
+            # readlink can handle pointers outside a chroot, unlike realpath
+            CURRENT_SHELL="$(basename "$(readlink /proc/$$/exe)")" || {
+                CURRENT_SHELL="" # unknown
+            }
+        fi
     fi
 }
 
@@ -114,9 +111,6 @@ prompt_colors() {
 
 #  Function to get battery info and status, if running on iSH-AOK
 get_battery_info() {
-    # Only supported on iSH-AOK
-    grep -qi aok /proc/ish/version 2>/dev/null || return
-
     # If the shel used is given as a param, color for that shell will be used
     _shell_name="$1"
 
@@ -147,7 +141,7 @@ get_battery_info() {
     fi
 
     case "$_shell_name" in
-    "bash" | "ash") _bat_color="\\[\\e[38;5;${_chrg_color}m\\]" ;;
+    "bash" | "ash") _bat_color="\[\e[38;5;${_chrg_color}m\]" ;;
     "zsh") _bat_color="%F{$_chrg_color}" ;;
     *) _bat_color="" ;;
     esac
@@ -170,7 +164,18 @@ get_battery_info() {
 }
 
 get_sysload_lvl() {
+    # Debian 10 cant display sysload on iSH...
+    sysload_not_available="$HOME/.no-sysload-available"
+    [ -f "$sysload_not_available" ] && {
+        echo
+        return
+    }
     _sysload="$(uptime | awk -F'average:' '{print $2}' | awk -F, '{print $1}' | tr -d ' ')"
+    [ "$_sysload" = "0.00" ] && {
+        touch "$sysload_not_available"
+        echo
+        return
+    }
     _load_lvl="$(echo "$_sysload" | cut -d. -f 1)"
     if [ "$_load_lvl" -ge 20 ]; then
         _load_color=196 # red
@@ -182,7 +187,7 @@ get_sysload_lvl() {
 
     case "$CURRENT_SHELL" in
     zsh) printf '%s' "%F{$_load_color}$_sysload" ;;
-    bash | ash) printf '%s' "\\[\\e[38;5;${_load_color}m\\]$_sysload" ;;
+    bash | ash) printf '%s' "\[\e[38;5;${_load_color}m\]$_sysload" ;;
     *) ;;
     esac
 
@@ -199,23 +204,31 @@ use_static_bash_prompt() {
     prompt_colors
 
     #  shell specific notation for prompt colors
-    PCOL_USERNAME="\\[\\e[38;5;${PCOL_USERNAME}m\\]"
-    PCOL_HOSTNAME="\\[\\e[38;5;${PCOL_HOSTNAME}m\\]"
-    PCOL_CWD="\\[\\e[38;5;${PCOL_CWD}m\\]"
-    PCOL_GREY="\\[\\e[38;5;${PCOL_GREY}m\\]"
-    PCOL_CLR="\\e[0m"
+    PCOL_USERNAME="\[\e[38;5;${PCOL_USERNAME}m\]"
+    PCOL_HOSTNAME="\[\e[38;5;${PCOL_HOSTNAME}m\]"
+    PCOL_CWD="\[\e[38;5;${PCOL_CWD}m\]"
+    PCOL_GREY="\[\e[38;5;${PCOL_GREY}m\]"
+    PCOL_CLR="\e[0m"
 
-    PS1="${PCOL_USERNAME}\\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}${PCOL_GREY}:${PCOL_CWD}\\w${PCOL_CLR}\\$ "
-    # "'$(get_battery_info $CURRENT_SHELL)'"
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn}${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\$ "
 }
 
 use_dynamic_bash_prompt() {
     use_static_bash_prompt # call to get the colors defined
-    PROMPT_COMMAND='update_dynamic_bash_prompt;'"$PROMPT_COMMAND"
+    if grep -qi aok /proc/ish/version 2>/dev/null; then
+        PROMPT_COMMAND='update_dynamic_aok_bash_prompt;'"$PROMPT_COMMAND"
+    else
+        PROMPT_COMMAND='update_dynamic_bash_prompt;'"$PROMPT_COMMAND"
+    fi
+}
+
+update_dynamic_aok_bash_prompt() {
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn} ${PCOL_GREY}$(get_sysload_lvl)$(get_battery_info bash)${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\$ "
 }
 
 update_dynamic_bash_prompt() {
-    PS1="${PCOL_USERNAME}\\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn} ${PCOL_GREY}$(get_sysload_lvl)$(get_battery_info "$CURRENT_SHELL")${PCOL_GREY}:${PCOL_CWD}\\w${PCOL_CLR}\\$ "
+    # non ish-aok kernels doesnt support battery info, so no need to fail the check on every prompt
+    PS1="${PCOL_USERNAME}\u${PCOL_GREY}@${PCOL_HOSTNAME}${_hn} ${PCOL_GREY}$(get_sysload_lvl)${PCOL_GREY}:${PCOL_CWD}\w${PCOL_CLR}\$ "
 }
 
 #===============================================================
@@ -227,8 +240,11 @@ update_dynamic_bash_prompt() {
 #
 #  Setup environment to use UTF-8 and 24h time notation
 #
-export LC_ALL=en_US.UTF-8
-export LC_TIME=en_GB.UTF-8
+# export LANG=en_US.UTF-8
+# export LANGUAGE=en_US.UTF-8
+# export LC_TIME=en_GB.UTF-8 # selects 24h notation instead of am/pm
+
+set_current_shell_name
 
 #
 #  Some common bin locations in home dir,
@@ -240,8 +256,6 @@ unset -f prepend_path
 
 basic_aliases
 unset -f basic_aliases
-
-set_current_shell_name
 
 #
 #  This is a helper for setting hostname in prompts, since the typical \h

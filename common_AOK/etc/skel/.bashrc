@@ -14,10 +14,7 @@
 #  Non-interactive shells wont read this by themselves. This ensures
 #  that if they get here via idirect sourcing, they abort.
 #
-case $- in
-*i*) ;;
-*) return ;; # If not running interactively, exit now!
-esac
+echo "$-" | grep -qv 'i' && return # non-interactive
 
 #
 #  Common settings that can be used by most shells, should be done early
@@ -62,8 +59,13 @@ if ! shopt -oq posix; then
     fi
 fi
 
-#
-#  Use either one, dynamic will display sysload 5 and on ish-AOK batt-lvl
-#
-use_dynamic_bash_prompt
-# use_static_bash_prompt
+if [[ -f $HOME/.no-sysload-available ]]; then
+    # Debian 10 cant display sysload on iSH...
+    use_static_bash_prompt
+else
+    #
+    #  Use either one, dynamic will display sysload and on ish-AOK batt-lvl
+    #
+    use_dynamic_bash_prompt
+    # use_static_bash_prompt
+fi

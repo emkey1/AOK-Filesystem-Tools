@@ -13,8 +13,9 @@
 f_recovery_mode=/etc/opt/AOK/recovery-mode
 f_recovery_log_file=/var/log/recovery-mode.log
 [ -f "$f_recovery_mode" ] && {
-    echo "$(date +"%Y-%m-%d %H:%M:%S") init skipped ${*}" >>"$f_recovery_log_file"
+    echo "$(date +"%Y-%m-%d %H:%M:%S") Skipped ${*}" >>"$f_recovery_log_file"
     exit 0
 }
 
+# run the intended task
 "${@}"

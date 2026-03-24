@@ -12,13 +12,10 @@
 
 #
 #  In the ash case,  Non-interactive shells will read this, as long as
-#  ENV points to this file, so this is an essential component!
+#  ENV points to .ash_init, so this is an essential component!
 #  Only do things needed for non-interactive script before this point.
 #
-case $- in
-*i*) ;;
-*) return ;; # If not running interactively, exit now!
-esac
+echo "$-" | grep -qv 'i' && return # non-interactive
 
 #
 #  Common settings that can be used by most shells, should be done early
@@ -38,7 +35,7 @@ use_static_bash_prompt
 #  To make it possible to see what shell is used atm, ash tries
 #  to replace the : separating hostname and cwd into |
 #
-if  _s="$(echo "$PS1" | sed 's#]:\\#]|\\#' 2>/dev/null)" ; then
+if _s="$(echo "$PS1" | sed 's#]:\\#]|\\#' 2>/dev/null)"; then
     PS1="$_s"
 else
     echo "Failed to do ash adoption of prompt, keeping it same as bash"

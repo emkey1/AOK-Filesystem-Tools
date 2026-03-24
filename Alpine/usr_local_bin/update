@@ -1,6 +1,8 @@
 #!/bin/sh
 #
-#  Part of https://github.com/emkey1/AOK-Filesystem-Tools
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2021-2024: Jacob.Lundqvist@gmail.com
 #
 #  License: MIT
 #
@@ -13,9 +15,9 @@ if [ "$(whoami)" != "root" ]; then
     exit 0
 fi
 
+[ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-echo "Making sure we have the latest Alpine repository updates"
-apk update
-echo
-echo "Installing all pending updates"
-apk upgrade
+msg_1 "Making sure System is fully updated"
+
+alpine_apk_update
+Mapk

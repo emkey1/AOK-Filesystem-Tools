@@ -28,11 +28,10 @@ else
     # In this case do manual check
     #
 
-    current_pid=$$
-    parent_pid=$(ps -o ppid= -p "$current_pid")
-    parent_shell=$(ps -o comm= -p "$parent_pid")
-
-    case "$parent_shell" in
+    parent_pid=$(ps -o ppid= -p "$$")
+    _s=$(ps -o comm= -p "$parent_pid")
+    unset parent_pid
+    case "$_s" in
     *sh)
         return
         ;;
@@ -44,5 +43,7 @@ fi
 if [ -f "/etc/opt/AOK/show_profile_hints" ]; then
     . /etc/profile-hints
 fi
+
+/usr/local/bin/check-env-compatible
 
 echo

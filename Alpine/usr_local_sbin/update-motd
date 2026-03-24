@@ -38,23 +38,23 @@ f_obsolete="/etc/aok-release"
     mv "$f_obsolete" "$f_aok_fs_release"
 }
 
-rm -f "$f_motd"
-
 #  create initial LF
-echo >>"$f_motd"
-
-if [ -e "$f_aok_fs_release" ]; then
-    echo "[35mAOK-FS release:  $(cat "$f_aok_fs_release")[0m" >>"$f_motd"
-fi
-
-(
-    echo "[35mAlpine release:  $alp_rel[0m"
-    echo "[35miSH release:     $ish_rel[0m"
-    echo
-) >>"$f_motd"
+echo >"$f_motd"
 
 if [ -f "$f_motd_template" ]; then
     cat "$f_motd_template" >>"$f_motd"
 fi
+
+/usr/local/bin/aok-versions >>"$f_motd"
+
+#if [ -e "$f_aok_fs_release" ]; then
+#    echo "[35mAOK-FS release:  $(cat "$f_aok_fs_release")[0m" >>"$f_motd"
+#fi
+
+#(
+#    echo "[35mAlpine release:  $alp_rel[0m"
+#    echo "[35miSH release:     $ish_rel[0m"
+#    echo
+#) >>"$f_motd"
 
 /usr/local/bin/logger update-motd updated /etc/motd

@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2023-2024: Jacob.Lundqvist@gmail.com
+#
+#  Displays Debian version
+#
+
+echo "Debian version:  $(cat /etc/debian_version)"

@@ -24,22 +24,14 @@ error_msg() {
         echo
         echo "error_msg() no param"
         exit 9
-    elif [ "$_em_exit_code" = "0" ]; then
-        echo
-        echo "error_msg() second parameter was 0"
-        echo "            if continuation is desired use no_exit"
-        exit 9
     fi
 
-    _em_msg="ERROR: $_em_msg"
+    _em_msg="ERROR[$0]: $_em_msg"
     echo
     echo "$_em_msg"
     echo
 
-    if [ "$_em_exit_code" = "no_exit" ]; then
-        echo "no_exit given, will continue"
-        echo
-    else
+    if [ "$_em_exit_code" -gt -1 ]; then
         exit "$_em_exit_code"
     fi
     unset _em_msg
@@ -95,6 +87,12 @@ msg_4() {
     do_msg "  -  $1"
 }
 
+syslog() {
+    [ -z "$1" ] && error_msg "syslog() - called without param"
+
+    /usr/local/bin/logger "$(basename "$0")" "$1"
+}
+
 msg_script_title() {
     [ -z "$1" ] && error_msg "msg_script_title() no param"
     echo
@@ -126,16 +124,18 @@ display_time_elapsed() {
     dte_mins="$((dte_t_in / 60))"
     dte_seconds="$((dte_t_in - dte_mins * 60))"
 
-    [ -z "$d_build_root" ] && deploy_state_is_it "$deploy_state_pre_build" && {
+    if [ -z "$d_build_root" ] && deploy_state_is_it "$deploy_state_pre_build"; then
         echo "$dte_t_in" >>"$f_dte_pb"
-    }
+    else
+        rm -f "$f_dte_pb"
+    fi
 
     #  Add zero prefix when < 10
     [ "$dte_mins" -gt 0 ] && [ "$dte_mins" -lt 10 ] && dte_mins="0$dte_mins"
     [ "$dte_seconds" -lt 10 ] && dte_seconds="0$dte_seconds"
 
     echo
-    echo "display_time_elapsed - Time elapsed: $dte_mins:$dte_seconds - $dte_label"
+    echo "display_time_elapsed - $dte_mins:$dte_seconds - $dte_label"
     echo
 
     unset dte_t_in
@@ -147,37 +147,46 @@ display_time_elapsed() {
 }
 
 untar_file() {
+    #
+    #  Using pigz for untaring a file, gives fairly small benefits, since the
+    #  actual untaring is just done in one thread. But will create three
+    #  other threads for reading, writing, and check calculation, still giving
+    #  a speedup of 10-20%
+    #
     _tarball="$1"
-    _tar_params="${2:-z}"
-    _no_exit="$3" # set to NO_EXIT_ON_ERROR if untar failures should not cause abort
-
     [ -z "$_tarball" ] && error_msg "untar_file() - no param"
-
-    if [ "${#_tarball}" -lt 15 ]; then
-        msg_3 "Unpacking $_tarball into: $(pwd)"
+    if [ "$2" = "NO_EXIT_ON_ERROR" ]; then
+        _tar_fail_ex_code=-1
     else
-        msg_3 "Unpacking: $_tarball"
-        msg_3 "     into: $(pwd)"
+        _tar_fail_ex_code=1
     fi
+    cmd_pigz="$(command -v pigz)"
+
+    msg_3 "Unpacking: $_tarball"
+    msg_3 "     into: $(pwd)"
+    this_is_ish && echo "$_tarball" | grep -q "Debian" && {
+        msg_3 "This will take up 5-10 minutes depending on device..."
+    }
+
+    # On linux, in scripts the homebrew bin path tends to not be missed
+    [ -z "$cmd_pigz" ] && [ -x /home/linuxbrew/.linuxbrew/bin/pigz ] && {
+        cmd_pigz=/home/linuxbrew/.linuxbrew/bin/pigz
+    }
 
     if [ -n "$cmd_pigz" ]; then
-        # pigz -dc your_archive.tgz | tar -xf -
         msg_4 "Using $cmd_pigz"
-        # pigz doesnt need z or j params
-        _tar_params="$(echo "$_tar_params" | sed 's/z//' | sed 's/j//')"
-        $cmd_pigz -dc "$_tarball" | tar -xf"$_tar_params" - || {
-            [ "$_no_exit" != "NO_EXIT_ON_ERROR" ] && error_msg "Failed to untar $_tarball"
+        $cmd_pigz -dc "$_tarball" | tar -xf - || {
+            error_msg "Failed to untar $_tarball" "$_tar_fail_ex_code"
         }
     else
         msg_4 "No pigz"
-        tar "xf${_tar_params}" "$_tarball" || {
-            [ "$_no_exit" != "NO_EXIT_ON_ERROR" ] && error_msg "Failed to untar $_tarball"
+        tar "xf" "$_tarball" || {
+            error_msg "Failed to untar $_tarball" "$_tar_fail_ex_code"
         }
     fi
 
     unset _tarball
-    unset _tar_params
-    unset _no_exit
+    unset _tar_fail_ex_code
     msg_4 "Unpacking - done"
 }
 
@@ -202,37 +211,23 @@ create_fs() {
         error_msg "Failed to cd into: $_cf_fs_location"
     }
 
-    msg_3 "Extracting tarball, unpack time will be displayed"
-    case "$src_tarball" in
-    *alpine*) _cf_time_estimate="A minirootfs should not take that long" ;;
-    *)
-        _cf_time_estimate="will take a while (iPad 5th:8, iPad 7th:4 minutes)"
-        ;;
-    esac
-    msg_3 "  $_cf_time_estimate"
-    unset _cf_time_estimate
-
-    if test "${_cf_tarball#*tgz}" != "$_cf_tarball" || test "${_cf_tarball#*tar.gz}" != "$_cf_tarball"; then
-        _cf_filter="z"
-    else
-        msg_3 "detected bzip2 format"
-        _cf_filter="j"
-    fi
+    msg_3 "Extracting FS tarball"
 
     t_img_extract_start="$(date +%s)"
-    untar_file "$_cf_tarball" "${_cf_verbose}${_cf_filter}"
-
+    untar_file "$_cf_tarball"
     t_img_extract_duration="$(($(date +%s) - t_img_extract_start))"
-    display_time_elapsed "$t_img_extract_duration" "Extract image"
+    [ "$t_img_extract_duration" -gt 2 ] && {
+        display_time_elapsed "$t_img_extract_duration" "Extract image"
+    }
     unset t_img_extract_start
     unset t_img_extract_duration
-
-    deploy_state_set "$deploy_state_initializing"
-
     unset _cf_tarball
     unset _cf_fs_location
     unset _cf_verbose
     unset _cf_filter
+
+    deploy_state_set "$deploy_state_initializing"
+
     # echo "^^^ create_fs() - done"
 }
 
@@ -278,7 +273,7 @@ manual_runbg() {
     #  shellcheck disable=SC2009
     if ! this_fs_is_chrooted && ! ps ax | grep -v grep | grep -qw cat; then
         cat /dev/location >/dev/null &
-        msg_1 "iSH now able to run in the background"
+        msg_1 "*****  iSH can now run in the background!  *****"
     fi
 }
 
@@ -353,11 +348,12 @@ set_new_etc_profile() {
             echo "#  to exit out of the chroot"
             echo "#"
             echo "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            echo "cd"
             echo "$sp_new_profile"
             echo 'ex_code="$?"'
-            #  shellcheck disable=SC2016
-            echo '[ "$ex_code" = "123" ] && exit  # 123=prebuild done, exit without error' # use single quotes so $? isnt expanded here
-            #  shellcheck disable=SC2016
+            #  shellcheck disable=SC2016 # single quotes are intentional here
+            echo '[ "$ex_code" = "123" ] && exit  # 123=prebuild done, exit without error'
+            #  shellcheck disable=SC2016 # single quotes are intentional here
             echo 'if [ "$ex_code" -ne 0 ]; then'
 
             #
@@ -366,15 +362,9 @@ set_new_etc_profile() {
             #  not expanding them
             #
             printf "    echo \"ERROR: %s exited with code: " "$sp_new_profile"
-            #  shellcheck disable=SC2016
+            #  shellcheck disable=SC2016 # single quotes are intentional here
             echo '$ex_code"'
             echo "fi"
-            echo ""
-            echo "#"
-            echo "#  Since the deploy script was run in a subshell, its path"
-            echo "#  cant be shared when exiting deploy and dropping into an"
-            echo "#  interactive env, so here comes a generic path"
-            echo "#"
         ) >"$d_build_root"/etc/profile
     fi
 
@@ -385,6 +375,24 @@ set_new_etc_profile() {
     chmod 744 "$d_build_root"/etc/profile
     unset sp_new_profile
     # echo "^^^ set_new_etc_profile() - done"
+}
+
+alpine_apk_update() {
+    #
+    # Do an update if last update was more than 60 mins ago
+    # First check is weather apk update has been run ever
+    #
+    [ "$(find /var/cache/apk | wc -l)" -gt 1 ] &&
+        [ -n "$(find /var/cache/apk -mmin -60)" ] && return 1
+    msg_1 "Doing apk update"
+    apk update || error_msg "apk update issue"
+}
+
+debian_apt_update() {
+    # Do an update if last update was more than 60 mins ago
+    [ -n "$(find /var/cache/apt -mmin -60)" ] && return 1
+    msg_1 "Doing apt update"
+    apt update || error_msg "apt update issue"
 }
 
 rsync_chown() {
@@ -407,19 +415,19 @@ rsync_chown() {
     if [ -z "$(command -v rsync)" ]; then
         msg_3 "Installing rsync"
         if destfs_is_alpine; then
+            alpine_apk_update
             apk add rsync >/dev/null 2>&1 || error_msg "Failed to install rsync"
         else
-            # Debian imgs normally have it already installed, this is just in case
-            msg_3 "Ensuring rsync is available"
+            debian_apt_update
             apt install rsync >/dev/null 2>&1 || {
                 error_msg "Failed to install rsync"
             }
         fi
     fi
 
-    _r_params="-ah --exclude="'*~'" --chown=root:root $src $d_dest"
+    _r_params="-ah --exclude="'*~'" --chown=root: $src $d_dest"
     if [ -n "$_silent_mode" ]; then
-        #  shellcheck disable=SC2086
+        #  shellcheck disable=SC2086 # in this case variable should expand
         rsync $_r_params >/dev/null || {
             error_msg "rsync_chown($src, $d_dest, silent) failed"
         }
@@ -433,11 +441,15 @@ rsync_chown() {
         #
         # rsync -P $_r_params | grep -v -e '\^./$' -e '^sending incremental' -e '^\[[:space:]]' || {
         rsync_output=/tmp/aok-rsync-chown-output
-        #  shellcheck disable=SC2086
+        rm -f "$rsync_output"
+        #  shellcheck disable=SC2086 # in this case variable should expand
         rsync -P $_r_params >"$rsync_output" || {
             error_msg "rsync_chown($src, $d_dest) failed"
         }
         grep -v -e '^./$' -e '^sending incremental' -e '^[[:space:]]' "$rsync_output"
+        rm -f "$rsync_output"
+        unset rsync_output
+
         case "$?" in
         0 | 1) ;; # 0=something found 1=nothing found
         *)        # actual error
@@ -459,21 +471,23 @@ copy_local_bins() {
     fi
 
     # msg_1 "Copying /usr/local stuff from $_clb_base_dir"
-    _clb_src_dir="/opt/AOK/${_clb_base_dir}/usr_local_bin"
-    if [ -z "$(find "$_clb_src_dir" -type d -empty)" ]; then
-        msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/bin"
-        mkdir -p /usr/local/bin
-        rsync_chown "$_clb_src_dir/*" /usr/local/bin silent
+    _clb_src_dir=/opt/AOK/"$_clb_base_dir"
+
+    _clb_rel_src=usr_local_bin
+    _clb_dest=/usr/local/bin
+    if find "$_clb_src_dir" | grep -q "$_clb_rel_src"; then
+        mkdir -p "$_clb_dest"
+        rsync_chown "$_clb_src_dir/$_clb_rel_src/*" "$_clb_dest" silent
     fi
 
-    _clb_src_dir="/opt/AOK/${_clb_base_dir}/usr_local_sbin"
-    if [ -d "$_clb_src_dir" ]; then
-        msg_3 "Add $_clb_base_dir AOK-FS stuff to /usr/local/sbin"
-        mkdir -p /usr/local/sbin
-        rsync_chown "$_clb_src_dir/*" /usr/local/sbin silent
+    _clb_rel_src=usr_local_sbin
+    _clb_dest=/usr/local/sbin
+    if find "$_clb_src_dir" | grep -q "$_clb_rel_src"; then
+        mkdir -p "$_clb_dest"
+        rsync_chown "$_clb_src_dir/$_clb_rel_src/*" "$_clb_dest" silent
     fi
-    unset _clb_base_dir
-    unset _clb_src_dir
+
+    unset _clb_base_dir _clb_src_dir _clb_rel_src _clb_dest
     # echo "^^^ copy_local_bins() - done"
 }
 
@@ -488,9 +502,10 @@ ensure_ish_or_chrooted() {
     #
     #  Simple test to make sure this is not run on a non iSH host
     #
+    _s="${1:-"Can only run on iSH or when chrooted"}"
     this_is_ish && return
     this_fs_is_chrooted && return
-    error_msg "Can only run on iSH or when chrooted"
+    error_msg "$s"
 }
 
 strip_str() {
@@ -528,7 +543,66 @@ this_is_ish() {
 }
 
 this_is_aok_kernel() {
+    this_is_ish || return 1
     grep -qi aok /proc/ish/version 2>/dev/null
+}
+
+#---------------------------------------------------------------
+#
+#   Kernel Defaults
+#
+#---------------------------------------------------------------
+
+get_kernel_default() {
+    #
+    #  It is reported as a multiline, here it is wrapped into a one-line
+    #  notation, to make it easier to compare vs the launch_md_XXX
+    #  templates
+    #
+    [ -z "$1" ] && error_msg "get_kernel_default() - missing 1st param"
+    _f=/proc/ish/defaults/"$1"
+    [ -f "$_f" ] || error_msg "get_kernel_default() - Not found: $_f"
+    this_fs_is_chrooted && {
+        error_msg "get_kernel_default() not available when chrooted" -1
+    }
+    this_is_ish || error_msg "get_kernel_default($1) - this is not iSH" -1
+
+    tr -d '\n' <"$_f" | sed 's/  \+/ /g' | sed 's/"]/" ]/'
+
+    unset _f
+}
+
+set_kernel_default() {
+    _fname="$1"
+    _param="$2"
+    _lbl="$3"
+    _silent="$4"
+
+    [ -z "$_fname" ] && error_msg "set_kernel_default() - missing param 1 _fname"
+    [ -z "$_param" ] && error_msg "set_kernel_default() - missing param 2 _param"
+    _f="/proc/ish/defaults/$_fname"
+    [ -f "$_f" ] || error_msg "set_kernel_default() - No such file: $_f"
+    this_fs_is_chrooted && {
+        error_msg "set_kernel_default() not available when chrooted"
+    }
+
+    [ -n "$_lbl" ] && msg_3 "$_lbl"
+    echo "$_param" >"$_f" || error_msg "Failed to set $_f as $_param"
+    [ -n "$_silent" ] && [ "$_silent" != "silent" ] && {
+        error_msg "set_kernel_default() - param 4 ($_silent) must be unset or silent"
+    }
+
+    _setting="$(tr -d '\n' <"$_f" | sed 's/  \+/ /g' | sed 's/"]/" ]/')"
+    if [ "$_setting" = "$_param" ]; then
+        [ "$_silent" != "silent" ] && msg_4 "$_fname set to: $_setting"
+    else
+        error_msg "value is <$_setting> - expected <$_param>"
+    fi
+
+    unset _fname
+    unset _param
+    unset _lbl
+    unset _f
 }
 
 #---------------------------------------------------------------
@@ -537,90 +611,8 @@ this_is_aok_kernel() {
 #
 #---------------------------------------------------------------
 
-verify_launch_cmd() {
-    this_is_ish || return
-
-    msg_2 "Verifying expected 'Launch cmd'"
-
-    launch_cmd_current="$(get_launch_cmd)"
-    if [ "$launch_cmd_current" != "$launch_cmd_AOK" ]; then
-        msg_1 "'Launch cmd' is not the default for AOK"
-        echo "Current 'Launch cmd': '$launch_cmd_current'"
-        echo
-        echo "To set the default, run this, it will display the updated content:"
-        echo
-        echo "aok --launch-cmd aok"
-        # echo "sudo echo '$launch_cmd_AOK' > $f_launch_cmd"
-        echo
-    fi
-}
-
-restore_launch_cmd() {
-    #
-    #  In case something goes wrong use this to (hopefully) ensure
-    #  it's restored
-    #
-
-    #  Does not use set_launch_cmd in order to prevent risk for infinite loops
-    echo "$launch_cmd_default" >"$f_launch_cmd"
-
-    # is safe to call even here in a "exception handler"
-    _slc_current="$(get_launch_cmd)"
-    if [ "$_slc_current" != "$launch_cmd_default" ]; then
-        echo
-        echo "ERROR: Failed to restore launch cmd!"
-        echo
-        echo "Current launch cmd: $_slc_current"
-        echo "Intended default:   $launch_cmd_default"
-        echo
-        echo "Make sure to set it manually, otherwise iSH will probably"
-        echo "fail to start!"
-        exit 1
-    fi
-    unset _slc_current
-}
-
-get_launch_cmd() {
-    #
-    #  It is reported as a multiline, here it is wrapped into a one-line
-    #  notation, to make it easier to compare vs the launch_md_XXX
-    #  templates
-    #
-    if this_fs_is_chrooted; then
-        echo "Launch cmd not available when chrooted"
-        exit
-    fi
-    tr -d '\n' <"$f_launch_cmd" | sed 's/  \+/ /g' | sed 's/"]/" ]/'
-}
-
-set_launch_cmd() {
-    _slc_cmd="$1"
-    [ -z "$_slc_cmd" ] && error_msg "set_launch_cmd() - no param"
-    if this_fs_is_chrooted; then
-        echo "Launch cmd not available when chrooted"
-        exit
-    fi
-    echo "$_slc_cmd" >"$f_launch_cmd"
-    _slc_current="$(get_launch_cmd)"
-    [ "$_slc_current" = "$_slc_cmd" ] || {
-        echo
-        echo "ERROR: Failed to set Launch cmd"
-        echo
-        echo "Sample syntax: '$launch_cmd_default'"
-        echo "intended: '$_slc_cmd'"
-        echo "current:  '$_slc_current'"
-        restore_launch_cmd "Failed to set a launch command"
-        exit 1
-    }
-    unset _slc_cmd
-    unset _slc_current
-}
-
-# each param MUST be wrapped in ""...
-
-f_launch_cmd="/proc/ish/defaults/launch_command"
+#  Used by multiple tools
 launch_cmd_AOK='[ "/usr/local/sbin/aok_launcher" ]'
-launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 
 #---------------------------------------------------------------
 #
@@ -720,11 +712,11 @@ destfs_is_alpine() {
 }
 
 destfs_is_debian() {
-    test -f "$d_build_root"/etc/debian_version && ! destfs_is_devuan
+    test -f "$f_debian_version" && ! destfs_is_devuan
 }
 
 destfs_is_devuan() {
-    test -f "$d_build_root"/etc/devuan_version
+    test -f "$f_devuan_version"
 }
 
 destfs_is_select() {
@@ -750,11 +742,26 @@ destfs_detect() {
     fi
 }
 
+additional_prebuild_tasks() {
+    #
+    #  Additional tasks that could be run during pre-build, ie
+    #  doesnt have to happen on destination platform
+    #
+    [ -n "$PREBUILD_ADDITIONAL_TASKS" ] && {
+        msg_1 "Running additional setup tasks"
+        echo "---------------"
+        echo "$PREBUILD_ADDITIONAL_TASKS"
+        echo "---------------"
+        $PREBUILD_ADDITIONAL_TASKS || {
+            error_msg "PREBUILD_ADDITIONAL_TASKS returned error"
+        }
+        msg_1 "Returned from the additional prebuild tasks"
+    }
+}
+
 #---------------------------------------------------------------
 #
-#   lsb-release
-#
-#   get_lsb_release will install lsb-release tools if not present
+#   simulate: lsb_release -a
 #   and set the two variables:
 #      lsb_DistributorID
 #      lsb_Release
@@ -763,70 +770,13 @@ destfs_detect() {
 
 #  shellcheck disable=SC2120
 get_lsb_release() {
-    #
-    #  If param 1 is chroot, then this will display lsb info for the
-    #  dest fs, such as when compressing an FS
-    #
-    _do_chroot="$1"
-
     if destfs_is_alpine; then
-        ! min_release "3.17" && {
-            # lsb_release not available on older Alpines
-            lsb_DistributorID="Alpine"
-            lsb_Release="$ALPINE_VERSION"
-            return
-        }
-    fi
-
-    f_lsb_bin=/usr/bin/lsb_release
-    _f=/tmp/aok-lsb_info.tmp
-
-    if [ "$_do_chroot" = "chroot" ]; then
-        #  Install lsb_release if not available
-        if ! /opt/AOK/tools/do_chroot.sh "which lsb_release" >/dev/null 2>&1; then
-            msg_4 "lsb-release-minimal will be installed!"
-            if destfs_is_alpine; then
-                /opt/AOK/tools/do_chroot.sh "apk add lsb-release-minimal" >/dev/null 2>&1 ||
-                    error_msg "Failed to install lsb-release-minimal"
-            elif destfs_is_devuan || destfs_is_debian; then
-                /opt/AOK/tools/do_chroot.sh "apt install -y lsb-release" >/dev/null 2>&1 ||
-                    error_msg "Failed to install lsb-release"
-            else
-                error_msg "Don't know how to install lsb-release on this platform"
-            fi
-        fi
-        /opt/AOK/tools/do_chroot.sh "$f_lsb_bin -a" >"$_f" 2>/dev/null
+        lsb_DistributorID="Alpine"
+        lsb_Release="$ALPINE_VERSION"
     else
-        if ! command -v lsb_release >/dev/null 2>&1; then
-            msg_4 "lsb-release-minimal will be installed!"
-            if destfs_is_alpine; then
-                apk add lsb-release-minimal || error_msg "Failed to install lsb-release-minimal"
-            elif destfs_is_devuan || destfs_is_debian; then
-                apt install -y lsb-release || error_msg "Failed to install lsb-release"
-            else
-                error_msg "Don't know how to install lsb-release on this platform"
-            fi
-        fi
-        lsb_release -a 2>/dev/null >"$_f"
+        lsb_DistributorID="Debian"
+        lsb_Release="$(cat "$d_build_root"/etc/debian_version)"
     fi
-
-    while IFS=':' read -r key value; do
-        key=$(printf '%s' "$key" | tr -d '[:space:]')
-        case "$key" in
-        DistributorID) lsb_DistributorID="$(strip_str "$value")" ;;
-        Release) lsb_Release="$(strip_str "$value")" ;;
-        *) ;;
-        esac
-    done <"$_f"
-    [ -z "$lsb_DistributorID" ] && error_msg "no DistributorID lsb record found"
-    [ -z "$lsb_Release" ] && error_msg "no Release lsb record found"
-
-    rm -f "$_f" || error_msg "Failed to remove tmp file: $_f"
-
-    unset _do_chroot
-    unset _f
-    unset key
-    unset value
 }
 
 #---------------------------------------------------------------
@@ -890,6 +840,12 @@ deploy_state_check_param() {
     unset bspc_bs
 }
 
+#---------------------------------------------------------------
+#
+#   Other
+#
+#---------------------------------------------------------------
+
 deploy_starting() {
     if [ "$build_env" = "$be_other" ]; then
         echo
@@ -917,7 +873,7 @@ replace_home_user() {
             msg_2 "Replacing /home/$USER_NAME"
             cd "/home" || error_msg "Failed cd /home"
             rm -rf "$USER_NAME"
-            untar_file "$HOME_DIR_USER" z # NO_EXIT_ON_ERROR
+            untar_file "$HOME_DIR_USER" # NO_EXIT_ON_ERROR
             touch "$f_home_user_replaced"
         else
             error_msg "HOME_DIR_USER file not found: $HOME_DIR_USER" no_exit
@@ -933,9 +889,9 @@ replace_home_root() {
     [ -n "$HOME_DIR_ROOT" ] && {
         if [ -f "$HOME_DIR_ROOT" ]; then
             msg_2 "Replacing /root"
-            mv /root /root.ORIG
+            mv /root /ORG.root
             cd / || error_msg "Failed to cd into: /"
-            untar_file "$HOME_DIR_ROOT" z # NO_EXIT_ON_ERROR
+            untar_file "$HOME_DIR_ROOT" # NO_EXIT_ON_ERROR
             touch "$f_home_root_replaced"
         else
             error_msg "HOME_DIR_ROOT file not found: $HOME_DIR_ROOT" no_exit
@@ -948,11 +904,106 @@ replace_home_dirs() {
     replace_home_root
 }
 
+set_hostname() {
+    msg_2 "Set hostname"
+    if this_fs_is_chrooted; then
+        prefix="ish-"
+
+        # defined in setup_common_env.sh:replacing_std_bins_with_aok_versions()
+        if [ -f "$f_hostname_initial" ]; then
+            hname="$(cat "$f_hostname_initial")"
+        else
+            hname="$(hostname)"
+            _s="Could not find: $f_hostname_initial - reading hostname as fallback: [$hname]"
+            error_msg "$_s" -1
+        fi
+
+        if hostname -h | grep -q "$f_chroot_hostname"; then
+            msg_3 "chrooted - already using $f_chroot_hostname"
+            hostname -U
+        else
+            msg_3 "chrooted - will use $f_chroot_hostname"
+            # add prefix with if not already done
+            echo "$hname" | grep -q "^$prefix" || {
+                hname="${prefix}${hname}"
+                msg_4 "prefixing with $prefix -> $hname"
+                echo "$hname" >"$f_chroot_hostname"
+            }
+            hostname -S "$f_chroot_hostname" || {
+                error_msg "Failed to source hostname from $f_chroot_hostname"
+            }
+        fi
+    elif [ -n "$ALT_HOSTNAME_SOURCE_FILE" ]; then
+        msg_3 "Sourcing hostname from: $ALT_HOSTNAME_SOURCE_FILE"
+        hostname -S "$ALT_HOSTNAME_SOURCE_FILE" || {
+            error_msg "Failed to soure alt file"
+        }
+    elif ! this_fs_is_chrooted && [ -f "$f_chroot_hostname" ]; then
+        msg_3 "was pre-built chrooted, but now runs native"
+        rm -f "$f_chroot_hostname"
+        if hostfs_is_alpine; then
+            hname="$(busybox hostname)"
+        elif command -v ORG.hostname >/dev/null; then
+            hname="$(ORG.hostname)"
+        else
+            hname="unknown"
+        fi
+        [ -n "$hname" ] && {
+            _f=/etc/opt/AOK/detected-hostname
+            msg_3 "Saved detected hostname [$hname] in: $_f"
+            echo "$hname" >"$_f"
+            hostname -S "$_f"
+        }
+    fi
+    # msg_3 "hostname is: $(hostname)"
+    unset hname prefix new_hname
+}
+
+complete_initial_setup() {
+    #
+    #  Depending on if prebuilt or not, either setup final tasks to run
+    #  on first boot or now.
+    #
+    if deploy_state_is_it "$deploy_state_pre_build"; then
+        set_new_etc_profile "$setup_final"
+        msg_1 "Prebuild completed, exiting"
+        exit 123
+    else
+        $setup_final
+        msg_1 "Please reboot/restart this app now!"
+        echo "/etc/inittab was changed during the install."
+        echo "In order for this new version to be used, a restart is needed."
+        echo
+    fi
+}
+
 #===============================================================
 #
 #   Main
 #
+#  Env variables
+#  aok_this_is_dest_fs="Y"  -  Indicates this is running in dest FS
+#
 #===============================================================
+
+#
+#  Detecting build environments
+#  0 = other, not able to chroot to complete image
+#  1 = iSH
+#  2 = Linux (x86)
+#
+#  >0   != "$be_other"  - no chroot
+
+be_ish="Build env iSH"
+be_linux="Build env x86 Linux"
+be_other="Build env other"
+if this_is_ish; then
+    build_env="$be_ish" # 1
+elif uname -a | grep -qi linux && uname -a | grep -q -e x86 -e i686; then
+    build_env="$be_linux" # 2
+else
+    build_env="$be_other" # chroot not possible 0
+fi
 
 #
 #  Import default settings
@@ -990,33 +1041,20 @@ d_aok_etc=/etc/opt/AOK
 f_host_fs_is_chrooted="$d_aok_etc"/this_fs_is_chrooted
 f_host_deploy_state="$d_aok_etc"/deploy_state
 
-if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
-    d_build_root="$TMPDIR"/aok_fs
-else
+# if ! this_fs_is_chrooted && [ ! -f "$f_host_deploy_state" ]; then
+#     d_build_root="$TMPDIR"/aok_fs
+# else
+#     d_build_root=""
+# fi
+
+if [ "$aok_this_is_dest_fs" = "Y" ] || (this_fs_is_chrooted && [ -f "$f_host_deploy_state" ]); then
     d_build_root=""
+else
+    d_build_root="$TMPDIR"/aok_fs
 fi
 
 f_dest_fs_is_chrooted="${d_build_root}${f_host_fs_is_chrooted}"
 f_dest_fs_deploy_state="${d_build_root}${f_host_deploy_state}"
-
-#
-#  Detecting build environments
-#  0 = other, not able to chroot to complete image
-#  1 = iSH
-#  2 = Linux (x86)
-#
-#  >0   != "$be_other"  - no chroot
-
-be_ish="Build env iSH"
-be_linux="Build env x86 Linux"
-be_other="Build env other"
-if this_is_ish; then
-    build_env="$be_ish" # 1
-elif uname -a | grep -qi linux && uname -a | grep -q -e x86 -e i686; then
-    build_env="$be_linux" # 2
-else
-    build_env="$be_other" # chroot not possible 0
-fi
 
 #
 #  Locations for "other" stuff
@@ -1054,6 +1092,7 @@ fi
 #  Where to find native FS version
 f_alpine_release="$d_build_root"/etc/alpine-release
 f_debian_version="$d_build_root"/etc/debian_version
+f_devuan_version="$d_build_root"/etc/devuan_version
 
 #  Placeholder, to store what version of AOK that was used to build FS
 f_aok_fs_release="$d_build_root"/etc/aok-fs-release
@@ -1096,6 +1135,9 @@ f_hostname_source_fname="$d_aok_etc"/hostname_source_fname
 f_home_user_replaced="$d_aok_etc"/home_user_replaced
 f_home_root_replaced="$d_aok_etc"/home_root_replaced
 
+f_hostname_initial=/tmp/hostname-initial
+f_chroot_hostname=/.chroot_hostname
+
 #
 #  For automated logins
 #
@@ -1105,8 +1147,3 @@ f_logins_continous="$d_aok_etc"/login-continous
 f_hostname_aok_suffix="$d_aok_etc"/hostname-aok-suffix
 f_pts_0_as_console="$d_aok_etc"/pts_0_as_console
 f_profile_hints="$d_aok_etc"/show_profile_hints
-
-cmd_pigz="$(command -v pigz)"
-if [ -z "$cmd_pigz" ] && [ -x /home/linuxbrew/.linuxbrew/bin/pigz ]; then
-    cmd_pigz=/home/linuxbrew/.linuxbrew/bin/pigz
-fi

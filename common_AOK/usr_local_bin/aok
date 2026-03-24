@@ -4,15 +4,15 @@
 #
 #  License: MIT
 #
-#  Copyright (c) 2022,2023: Jacob.Lundqvist@gmail.com
+#  Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #
 #  Script to do various things related to the configuration of ish
 #
 
 show_help() {
-    txt="Usage: $prog_name [-h] [-v] [-l login procedure]
+    txt="Management of AOK FS specific setting.
 
-An AOK-only script that manages iSH/AOK specific things.
+Without options, current settings are displayed.
 
 Available options:
 
@@ -21,19 +21,31 @@ Available options:
                    disable  - Will give login prompt
                    username - Will auto-login as username
 -c --continous     New login prompt after vterm logout [on|off]
--l --launch-cmd    Choose Launch cmd: $launch_cmd_options
-                   Launch cmd has very strict syntax requirements.
-                   1. wrap it in '[ ]'
-                   2. Each statement/param must be wrapped in \"\"
-                   3. If more than one statement, separate with commma space
-                   The default: '$launch_cmd_default'
 -H --profile-hints Show env hints in /etc/profile [on|off]
 -s --aoksuffix     Ensure -aok is added as suffix to hostname
                    on iSH-AOK kernels [on|off]
                    Ignored on regular iSH
+"
+    this_fs_is_chrooted || {
+        txt="${txt}-d --defaults      Set defaults where applicable
 -C --console       Use first vterm (/dev/pts/0) as console,
                    disabling logins on this vterm
 "
+    }
+    this_is_ish && {
+        txt="${txt}
+Boot Cmd & Launch Cmd have very strict syntax requirements for custom_cmd.
+  1. wrap it in '[ ]'
+  2. Each statement/param must be wrapped in \"\"
+  3. If more than one statement, separate with commma space
+
+-b --boot-cmd      Choose Init cmd: $boot_cmd_options
+                   default: '$boot_cmd_default'
+-l --launch-cmd    Choose Launch cmd: $launch_cmd_options
+                   aok:     '$launch_cmd_AOK'
+                   default: '$launch_cmd_default'
+"
+    }
     this_is_aok_kernel && {
         txt="${txt}
 iSH-AOK options:
@@ -46,17 +58,6 @@ iSH-AOK options:
                     Switching it off improves stability but impacts performance
 "
     }
-    txt="$txt
-Current settings:
-$(
-        autologin_display
-        continous_sessions_display
-        launch_cmd_display
-        profile_hints_display
-        aok_suffix_display
-        console_mode_display
-    )
-"
     this_is_aok_kernel && {
         txt="${txt}$(
             extralocking_display
@@ -66,13 +67,7 @@ $(
 "
     }
     echo "$txt"
-    exit 0
 }
-# -c, --console   Console method [launch|inittab] Now: $(console_mode_display)
-#                 if autologin is desired, give extra param user_name
-#                 launch  - launched directly from iSH via 'Launch Cmd'
-#                 inittab - launched via getty in inittab once bootup
-#                           has completed.
 
 #  shellcheck disable=SC2317
 destfs_is_alpine() {
@@ -80,31 +75,54 @@ destfs_is_alpine() {
 }
 
 show_on_off_by_file() {
-    f_name="$1"
-    [ -z "$f_name" ] && {
+    [ -z "$1" ] && {
         error_msg "show_on_off_by_file() - no param given"
     }
-    if [ -f "$f_name" ]; then
+    if [ -f "$1" ]; then
         echo "on"
     else
         echo "off"
     fi
 }
 
-#===============================================================
+current_settings() {
+    echo "---  Current settings  ---"
+    autologin_display
+    continous_sessions_display
+    profile_hints_display
+    aok_suffix_display
+    this_fs_is_chrooted || console_mode_display
+    this_is_ish && {
+        boot_cmd_display
+        launch_cmd_display
+    }
+}
+
+set_defaults() {
+    opts=""
+    this_fs_is_chrooted || opts="$opts -C off"
+    this_is_ish && opts="$opts -b default -l default"
+    if [ -n "$opts" ]; then
+	eval aok "$opts"
+    else
+	echo "No options can be defaulted when chrooted"
+    fi
+}
+
+#---------------------------------------------------------------
 #
 #       auto-login
 #
-#===============================================================
+#---------------------------------------------------------------
 
 autologin_change() {
-    uname_autologin="$1"
-    [ -z "$uname_autologin" ] && {
+    [ -z "$1" ] && {
         error_msg "autologin_change() - no param given"
     }
+    uname_autologin="$1"
 
     if [ "$uname_autologin" = "disable" ]; then
-        echo "disabling auto-login"
+        # echo "disabling auto-login"
         rm -f "$f_login_default_user"
     else
         eval "_h=~$uname_autologin"
@@ -113,13 +131,17 @@ autologin_change() {
             error_msg "$uname_autologin does not seem to be a valid user on this system"
         }
         echo "$uname_autologin" >"$f_login_default_user"
-        if [ -f "$f_logins_continous" ]; then
-            _s="continous "
-        else
-            _s=""
-        fi
-        echo "Enabled ${_s}auto-login for user: $uname_autologin"
+        # if [ -f "$f_logins_continous" ]; then
+        #     continous_setting="continous "
+        # else
+        #     continous_setting=""
+        # fi
+        # echo "Enabled ${continous_setting}auto-login for user: $uname_autologin"
+        # unset continous_setting
     fi
+    autologin_display syslog
+
+    unset uname_autologin
 }
 
 autologin_settting() {
@@ -131,16 +153,22 @@ autologin_settting() {
 }
 
 autologin_display() {
-    echo "autologin:     $(autologin_settting)"
+    _m="autologin:     $(autologin_settting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
 autologin_disabled="disabled"
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #       Continous login sessions
 #
-#===============================================================
+#---------------------------------------------------------------
 
 continous_sessions_change() {
     continous_mode="$1"
@@ -154,7 +182,6 @@ continous_sessions_change() {
     "on")
         if this_fs_is_chrooted; then
             continous_sessions_change "off"
-            error_msg "Can't set continous sessions on chrooted system"
         fi
         touch "$f_logins_continous"
         ;;
@@ -165,65 +192,121 @@ continous_sessions_change() {
         error_msg "continous_sessions_change() - options are on/off"
         ;;
     esac
+    continous_sessions_display syslog
+
+    unset continous_mode
 }
 
 continous_sessions_setting() {
-    _s="$(show_on_off_by_file "$f_logins_continous")"
-    if [ "$_s" = "off" ]; then
+    cont_ses_setting="$(show_on_off_by_file "$f_logins_continous")"
+    if [ "$cont_ses_setting" = "off" ]; then
         echo "vterm will terminate after logout"
     else
-        _s="$(autologin_settting)"
-        if [ "$_s" = "$autologin_disabled" ]; then
+        cont_ses_setting="$(autologin_settting)"
+        if [ "$cont_ses_setting" = "$autologin_disabled" ]; then
             echo "vterm will sttart a new session after logout"
         else
-            echo "vterm will autlogin as username: $_s"
+            echo "vterm will autlogin as username: $cont_ses_setting"
         fi
     fi
+    unset cont_ses_setting
 }
 
 continous_sessions_display() {
-    echo "continnous:    $(continous_sessions_setting)"
+    _m="continnous:    $(continous_sessions_setting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
-#===============================================================
+#---------------------------------------------------------------
+#
+#       Boot Cmd
+#
+#---------------------------------------------------------------
+
+boot_cmd_change() {
+    boot_cmd="$1"
+
+    [ -z "$boot_cmd" ] && {
+        error_msg "boot_cmd_change() - no param given"
+    }
+    this_fs_is_chrooted && error_msg "Can't change boot_command on chrooted system"
+
+    case "$boot_cmd" in
+    "default") set_kernel_default boot_command "$boot_cmd_default" "" silent ;;
+    *) set_kernel_default boot_command "$boot_cmd" ;;
+    esac
+    boot_cmd_display syslog
+}
+
+boot_cmd_display() {
+    _m="Boot Cmd:      '$(get_kernel_default boot_command)'"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
+}
+
+boot_cmd_options="default|'[ \"custom_cmd\" ]'"
+boot_cmd_default='[ "/sbin/init" ]'
+
+#---------------------------------------------------------------
 #
 #       Launch Cmd
 #
-#===============================================================
+#---------------------------------------------------------------
 
 launch_cmd_change() {
     lnch_cmd="$1"
-    [ -z "$lnch_cmd" ] && {
-        error_msg "launch_cmd_change() - no param given, options are on/off"
-    }
-    case "$lnch_cmd" in
-    "default") set_launch_cmd "$launch_cmd_default" ;;
-    "aok") set_launch_cmd "$launch_cmd_AOK" ;;
-    *) launch_cmd_custom "$lnch_cmd" ;;
-    esac
-}
 
-launch_cmd_custom() {
-    custom_cmd="$1"
-    [ -z "$custom_cmd" ] && {
-        error_msg "launch_cmd_custom() - no param given"
+    [ -z "$lnch_cmd" ] && {
+        error_msg "launch_cmd_change() - no param given"
     }
-    set_launch_cmd "$custom_cmd" || error_msg "aok failed to set custom Launch cmd"
+    this_fs_is_chrooted && error_msg "Can't change launch_command on chrooted system"
+
+    case "$lnch_cmd" in
+    "default")
+        set_kernel_default launch_command "$launch_cmd_default" "" silent
+        [ -f "$f_pts_0_as_console" ] && {
+            echo
+            echo "WARNING: With the default launcher, using console"
+            echo "         will not work great!"
+            echo
+        }
+        ;;
+    "aok") set_kernel_default launch_command "$launch_cmd_AOK" ;;
+
+    *) set_kernel_default launch_command "$lnch_cmd" ;;
+    esac
+    launch_cmd_display syslog
 }
 
 launch_cmd_display() {
-    echo "Launch cmd:    '$(get_launch_cmd)'"
+    _m="Launch Cmd:    '$(get_kernel_default launch_command)'"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
 launch_cmd_options="aok|default|'[ \"custom_cmd\" ]'"
+launch_cmd_default='[ "/bin/login", "-f", "root" ]'
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #       Profile hints
 #
 #  Display suggestons about sshd and sudo in profile
 #
-#===============================================================
+#---------------------------------------------------------------
 
 profile_hints_change() {
     hints_mode="$1"
@@ -237,6 +320,7 @@ profile_hints_change() {
         error_msg "profile_hints_change() - options are on/off"
         ;;
     esac
+    profile_hints_display syslog
 }
 
 profile_hints_setting() {
@@ -244,14 +328,20 @@ profile_hints_setting() {
 }
 
 profile_hints_display() {
-    echo "profile-hints: $(profile_hints_setting)"
+    _m="profile-hints: $(profile_hints_setting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #       aok suffix
 #
-#===============================================================
+#---------------------------------------------------------------
 
 aok_suffix_change() {
     use_suffix="$1"
@@ -265,6 +355,7 @@ aok_suffix_change() {
         error_msg "aok_suffix_change() - options are on/off"
         ;;
     esac
+    aok_suffix_display syslog
 }
 
 aok_suffix_setting() {
@@ -272,28 +363,105 @@ aok_suffix_setting() {
 }
 
 aok_suffix_display() {
-    echo "aoksuffix:     $(aok_suffix_setting)"
+    _m="aoksuffix:     $(aok_suffix_setting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
 #       console mode
 #
-#===============================================================
+#---------------------------------------------------------------
 
 console_mode_change() {
     use_console="$1"
+    f_rc_conf=/etc/rc.conf
+
     [ -z "$use_console" ] && {
         error_msg "console_mode_change() - no param given, options are on/off"
     }
+    this_fs_is_chrooted && error_msg "Can't change console on chrooted system"
+
     case "$use_console" in
-    "on") touch "$f_pts_0_as_console" ;;
-    "off") rm -f "$f_pts_0_as_console" ;;
+    "on")
+        touch "$f_pts_0_as_console"
+        [ "$(stat -c "%t %T" /dev/console)" != "88 0" ] && {
+            echo "Setting up /dev/pts/0 as console"
+            rm -f /dev/console
+            mknod -m 666 /dev/console c 136 0
+        }
+
+        if [ -f /etc/alpine-release ]; then
+            #
+            #  Activating logging in /etc/rc.conf leads to openrc getting
+            #  stuck on debian
+            #  Disabled for now
+            #  TODO: Investigate
+            #
+            [ -f "$f_rc_conf" ] && {
+                if grep -q "rc_logger=" "$f_rc_conf"; then
+                    sed -i '/^[[:space:]]*#*[[:space:]]*rc_logger=/c\rc_logger="YES"' \
+                        "$f_rc_conf" || {
+
+                        error_msg "Failed to enable rc_logger in $f_rc_conf"
+                    }
+                else
+                    # If it wasnt pressent, add it
+                    echo 'rc_logger="YES"' >>"$f_rc_conf"
+                fi
+                if grep -q "rc_log_path=" "$f_rc_conf"; then
+                    sed -i '/^[[:space:]]*#*[[:space:]]*rc_log_path=/c\rc_log_path="/var/log/rc.log"' \
+                        "$f_rc_conf" || {
+
+                        error_msg "Failed to enable rc_log_path in $f_rc_conf"
+                    }
+                else
+                    # If it wasnt pressent, add it
+                    echo 'rc_log_path="/var/log/rc.log"' >>"$f_rc_conf"
+                fi
+            }
+        fi
+
+        [ "$(get_kernel_default launch_command)" = "$launch_cmd_default" ] && {
+            echo
+            echo "WARNING: With the default launcher, using console"
+            echo "         will not work great!"
+            echo
+        }
+
+        ;;
+    "off")
+        rm -f "$f_pts_0_as_console"
+        [ "$(stat -c "%t %T" /dev/console)" != "5 1" ] && {
+            echo "Reverting console to normal mode"
+            rm -f /dev/console
+            mknod -m 666 /dev/console c 5 1
+        }
+
+        # if /dev/console is not used and rc_logger=YES openrc gets stuck
+        [ -f "$f_rc_conf" ] && {
+            sed -i '/^[[:space:]]*#*[[:space:]]*rc_logger=/c\#rc_logger="NO"' \
+                "$f_rc_conf" || {
+
+                error_msg "Failed to disable rc_logger in $f_rc_conf"
+            }
+            sed -i '/^[[:space:]]*#*[[:space:]]*rc_log_path=/c\#rc_log_path="/var/log/rc.log"' \
+                "$f_rc_conf" || {
+
+                error_msg "Failed to disable rc_log_path in $f_rc_conf"
+            }
+        }
+        ;;
     *)
         error_msg "console_mode_change() - options are on/off"
         ;;
     esac
-    echo "This will take effect next time App is run."
+    console_mode_display syslog
 }
 
 console_mode_setting() {
@@ -301,23 +469,32 @@ console_mode_setting() {
 }
 
 console_mode_display() {
-    echo "console:       $(console_mode_setting)"
+    _m="console:       $(console_mode_setting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
-#===============================================================
+#---------------------------------------------------------------
 #
-#       kernel extralocking
+#       kernel extralocking - iSH-AOK only setting
 #
-#===============================================================
+#---------------------------------------------------------------
 
 extralocking_change() {
-    this_is_aok_kernel || {
-        error_msg "extralocking_change() only usable on iSH-AOK kernels"
-    }
     do_elock="$1"
+
     [ -z "$do_elock" ] && {
         error_msg "extralocking_change() - no param given, options are on/off"
     }
+    this_fs_is_chrooted && error_msg "Can't change extra_locking on chrooted system"
+    this_is_aok_kernel || {
+        error_msg "extralocking_change() only usable on iSH-AOK kernels"
+    }
+
     case "$do_elock" in
     "on") echo "true" >"$f_elock" ;;
     "off") echo "false" >"$f_elock" ;;
@@ -325,6 +502,7 @@ extralocking_change() {
         error_msg "extralocking_change() - options are on/off"
         ;;
     esac
+    extralocking_display syslog
 }
 
 extralocking_setting() {
@@ -340,25 +518,34 @@ extralocking_setting() {
 }
 
 extralocking_display() {
-    echo "extralocking:  $(extralocking_setting)"
+    _m="extralocking:  $(extralocking_setting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
 f_elock=/proc/ish/defaults/enable_extralocking
 
-#===============================================================
+#---------------------------------------------------------------
 #
-#       multicore processing
+#       multicore processing - iSH-AOK only setting
 #
-#===============================================================
+#---------------------------------------------------------------
 
 multicore_change() {
-    this_is_aok_kernel || {
-        error_msg "multicore_change() only usable on iSH-AOK kernels"
-    }
     do_multicore="$1"
+
     [ -z "$do_multicore" ] && {
         error_msg "multicore_change() - no param given, options are on/off"
     }
+    this_fs_is_chrooted && error_msg "Can't change multicore on chrooted system"
+    this_is_aok_kernel || {
+        error_msg "multicore_change() only usable on iSH-AOK kernels"
+    }
+
     case "$do_multicore" in
     "on") echo "true" >"$f_multicore" ;;
     "off") echo "false" >"$f_multicore" ;;
@@ -366,6 +553,7 @@ multicore_change() {
         error_msg "multicore_change() - options are on/off"
         ;;
     esac
+    multicore_display syslog
 }
 
 multicore_setting() {
@@ -381,7 +569,13 @@ multicore_setting() {
 }
 
 multicore_display() {
-    echo "multicore:     $(multicore_setting)"
+    _m="multicore:     $(multicore_setting)"
+    if [ "$1" = "syslog" ]; then
+        syslog "$_m"
+    else
+        echo "$_m"
+    fi
+    unset _m
 }
 
 f_multicore=/proc/ish/defaults/enable_multicore
@@ -397,24 +591,41 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
 prog_name=$(basename "$0")
 
-[ -z "$1" ] && show_help
+[ -z "$1" ] && {
+    echo "For help use: $prog_name -h"
+    echo
+    current_settings
+    exit
+}
 
 while [ -n "$1" ]; do
     case "$1" in
 
     "-h" | "--help")
         show_help
+        exit 1
         ;;
 
     "-a" | "--autologin")
         #  skip if $2 starts with - another option
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            # this_fs_is_chrooted && error_msg "Can't change autologin on chrooted system"
             autologin_change "$2"
             shift # get rid of extra option
-        else
-            autologin_display
         fi
+        autologin_display
+        ;;
+
+    "-b" | "--boot-cmd")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            if this_is_ish; then
+                boot_cmd_change "$2"
+
+            else
+                msg_4 "Can only set Launch Cmd on iSH systems"
+            fi
+            shift # get rid of extra option
+        fi
+        this_is_ish && boot_cmd_display
         ;;
 
     "-c" | "--continous")
@@ -425,20 +636,43 @@ while [ -n "$1" ]; do
         continous_sessions_display
         ;;
 
-    "-l" | "--launch-cmd")
+    "-C" | "--console")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            launch_cmd_change "$2"
+            if this_fs_is_chrooted; then
+                msg_4 "Can't set console mode on chrooted systems"
+
+            else
+                console_mode_change "$2"
+            fi
             shift # get rid of extra option
         fi
-        launch_cmd_display
+        this_fs_is_chrooted || console_mode_display
         ;;
 
-    "-H" | "--profile-hints")
+    "-d" | "--defaults") set_defaults ;;
+
+    "-l" | "--launch-cmd")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            profile_hints_change "$2"
+            if this_is_ish; then
+                launch_cmd_change "$2"
+            else
+                msg_4 "Can only set Launch Cmd on iSH systems"
+            fi
             shift # get rid of extra option
         fi
-        profile_hints_display
+        this_is_ish && launch_cmd_display
+        ;;
+
+    "-m" | "--multicore")
+        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
+            if this_is_aok_kernel; then
+                multicore_change "$2"
+            else
+                msg_4 "Can only set multicore on iSH-AOK systems"
+            fi
+            shift # get rid of extra option
+        fi
+        this_is_aok_kernel && multicore_display
         ;;
 
     "-s" | "--aoksuffix")
@@ -449,34 +683,15 @@ while [ -n "$1" ]; do
         aok_suffix_display
         ;;
 
-    "-C" | "--console")
+    "-H" | "--profile-hints")
         if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            console_mode_change "$2"
+            profile_hints_change "$2"
             shift # get rid of extra option
         fi
-        console_mode_display
+        profile_hints_display
         ;;
 
-    "-e" | "--extra_locking")
-        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            extralocking_change "$2"
-            shift # get rid of extra option
-        fi
-        extralocking_display
-        ;;
-
-    "-m" | "--multicore")
-        if [ -n "$2" ] && [ "${2%"${2#?}"}" != "-" ]; then
-            multicore_change "$2"
-            shift # get rid of extra option
-        fi
-        multicore_display
-        ;;
-
-    *)
-        msg_2 "ERROR: Bad option: $1"
-        show_help
-        ;;
+    *) msg_2 "ERROR: Bad option: $1" ;;
 
     esac
     shift

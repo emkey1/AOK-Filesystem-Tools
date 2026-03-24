@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  To allow monitoring of logs etc during bootup inittab holds until
+#  given the go-ahead. If aok_launcher is not in console mode, or not
+#  used, this will return right away.
+#
+
+state_prefix=/etc/opt/AOK
+f_inittab_can_start="$state_prefix"/inittab_can_start
+f_pts_0_as_console="$state_prefix"/pts_0_as_console
+f_recovery_mode="$state_prefix"/recovery-mode
+
+cmd_logger=/usr/local/bin/logger
+this_app="$(basename "$0")"
+
+#  If Launcher is not aok_launcher, exit right away
+pgrep -f aok_launcher >/dev/null || return
+
+#  If not using console mode, exit (almost) right away
+[ ! -f "$f_pts_0_as_console" ] && {
+    #
+    #  Give a slight help for recovery-mode to capture early inittab items
+    #  since if not console mode, inittab would start right away.
+    #
+    sleep 0.5
+    return
+}
+
+(
+    echo
+    echo "inittab - Waiting for console to be ready"
+    echo
+) >/dev/console
+
+t_start="$(date +%s)"
+while true; do
+    [ -f "$f_recovery_mode" ] && {
+        _s="recovery-mode detected - inittab will sleep for infinity"
+        (
+            echo
+            echo "$_s"
+            echo
+        ) >/dev/console
+        sleep infinity
+    }
+    [ -f "$f_inittab_can_start" ] && {
+        echo "Got start hint - inittab will commence" >/dev/console
+        break
+    }
+
+    #
+    #  Security measure to ensure inittab does not get stuck in case
+    #  nothing sets this hint.
+    #  after 10s this issue is logged and inittab can continue
+    #
+    [ "$(echo "$(date +%s) - $t_start" | bc)" -ge 10 ] && {
+        $cmd_logger "$this_app" "Timeout waiting for $f_inittab_can_start"
+        break
+    }
+    sleep 0.5 # A short sleep to keep sysload down
+done
+
+# remove the hint right away, so it doesnt get left in place
+rm -f "$f_inittab_can_start"

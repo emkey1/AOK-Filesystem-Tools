@@ -1,0 +1,33 @@
+#!/bin/sh
+#  shellcheck disable=SC2154
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+#  License: MIT
+#
+#  Restarts console tailing all files matching /var/log/*
+#  On Debian, since the console tail can't be terminated by Ctrl-C
+#  due to tail not beeing tied to pts/0
+#
+
+if [ "$(whoami)" != "root" ]; then
+    sudo "$0" || {
+        echo "Can't sudo!"
+        exit 1
+    }
+    exit
+fi
+
+#
+# Updated by /usr/local/sbin/aok_launcher
+# during bootup on Debian FS
+#
+_f=/usr/local/sbin/kill_tail_logging
+if [ -x "$_f" ]; then
+    $_f
+else
+    echo "ERROR: script missing or not runable: $_f"
+    echo "       should have been updated by aok_launcher during bootup"
+fi

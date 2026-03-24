@@ -1,0 +1,139 @@
+#!/bin/sh
+#
+#  Part of https://github.com/jaclu/AOK-Filesystem-Tools
+#
+#  License: MIT
+#
+#  Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#
+
+show_timestamp() {
+    msg="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $msg"
+}
+
+NOT_compare_timestamps() {
+    awk -v start="$boot_time" '
+  {
+    log_time = substr($0, 1, 19); # Extract the timestamp from the log line
+    if (log_time >= start) {
+      print FILENAME ": " $0;
+    }
+  }'
+}
+
+initial_log_entries() {
+    LOGDIR="/var/log"
+
+    # Function to compare timestamps
+    # Initial display of log entries after the specified timestamp
+    # for logfile in "$LOGDIR"/*; do
+    # shellcheck disable=SC2045  # TODO: fix this
+    for log_basename in $(ls -t "$LOGDIR"); do
+        #log_basename="$(basename "$logfile")"
+        logfile="$LOGDIR/$log_basename"
+        [ ! -f "$logfile" ] && continue # not a file
+        file -b "$logfile" | grep -q text || {
+            continue # not a text file
+        }
+        case "$log_basename" in
+        rc.log) continue ;; # no time stamps
+        *) ;;
+        esac
+        a="$(awk -v start="$boot_time" '
+    {
+      log_time = substr($0, 1, 19); # Extract the timestamp from the log line
+      if (log_time >= start) {
+        print $0;
+      }
+    }' "$logfile")"
+
+        echo "==> $logfile <=="
+        echo
+        [ -n "$a" ] && {
+            echo "$a"
+        }
+
+        #
+        #  Intermittent tail to not miss entries added
+        #  during bootup before normal logging is enabled
+        #
+        # shellcheck disable=SC2086 # in this case variable should expand
+        $cmd_tail$log_basename 2>/dev/null &
+    done
+}
+
+kill_console_tail() {
+    pgrep -f "$cmd_tail" | xargs -r kill
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+f_rel_alpine=/etc/alpine-release
+f_rel_debian=/etc/debian_version
+
+boot_time="$1"
+
+[ -n "$boot_time" ] || {
+    echo "ERROR: $0 - no boot-time param"
+    #
+    # This might reboot shortly after exit so hold a bit
+    # to display errror
+    #
+    sleep 10
+}
+
+cmd_tail="tail -n 0 -f /var/log/"
+# cmd_tail="tail -f /var/log/"
+
+[ -f "$f_rel_debian" ] && {
+    #
+    #  Since the cmd_tail might change, always
+    #  update the kill cmd to its current definition
+    #
+    _f=/usr/local/sbin/kill_tail_logging
+    (
+        echo "#!/bin/sh"
+        # using ' in order for *log not to expand at deinition
+        echo "pgrep -f \"$cmd_tail\" | xargs -r kill"
+    ) >"$_f"
+    chown root: "$_f"
+    chmod 744 "$_f"
+}
+
+trap 'kill_console_tail' INT # allow restart of tail cmd
+
+first_run_logging=true
+while true; do
+    echo
+    show_timestamp "tailing logfiles"
+
+    if [ -f "$f_rel_alpine" ]; then
+        echo "Tailing /var/log/*log - Press Ctrl-C to re-read logfiles"
+    else
+        # Ctrl-C not usable for this on Debian...
+        # this tail is not tied to a pts
+        echo "Tailing /var/log/*log - run console-restart to re-read"
+    fi
+    echo
+
+    if $first_run_logging; then
+        #
+        #  Log entries since bootup
+        #
+        first_run_logging=false
+
+        initial_log_entries
+        # dummy item, since the real logs are run in bg
+        # this will also be autokilled when log is reset
+        # shellcheck disable=SC2086
+        ${cmd_tail}/../../bin/true 2>/dev/null
+    else
+        # shellcheck disable=SC2086,SC2211
+        ${cmd_tail}*.log /var/log/syslog 2>/dev/null
+    fi
+done

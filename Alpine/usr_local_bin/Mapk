@@ -45,7 +45,7 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
-if ! apk fix || ! apk upgrade ;then
+if ! apk fix || ! apk update || ! apk upgrade ;then
     echo "ERROR detected by Mapk"
     exit 1
 fi

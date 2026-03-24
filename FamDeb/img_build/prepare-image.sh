@@ -118,5 +118,7 @@ _f="$d_ish_FS"//etc/skel/.bash_logout
     msg_3 "Removing $_f"
     rm "$_f"
 }
-msg_2 "chrooting into the image"
-/opt/AOK/tools/do_chroot.sh -p "$d_ish_FS"
+
+msg_2 "chrooting into the image [$$]"
+# using exec gets rid of the fd to "$d_ish_FS" this process is holding
+exec /opt/AOK/tools/do_chroot.sh -p "$d_ish_FS"

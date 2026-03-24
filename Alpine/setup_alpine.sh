@@ -20,8 +20,35 @@ find_fastest_mirror() {
     setup-apkrepos -f
 }
 
+removing_unwanted_package() {
+    rup_pkg="$1"
+    _s="removing_unwanted_package() - called without param"
+    [ -z "$rup_pkg" ] && error_msg "$_s"
+
+    msg_3 "removing $rup_pkg from CORE_APKS"
+    CORE_APKS="$(echo "$CORE_APKS" | sed "s/$rup_pkg//")"
+}
+
+use_older_apk() {
+    url="$1"
+    pkg_name="$(echo "$url" | sed 's#/# #g' | awk '{print $NF}')"
+    pkg_base_name="$(echo "$pkg_name" | sed 's/-[0-9].*//')"
+    msg_2 "For Alpine > 3.18, an older $pkg_base_name must be used"
+    removing_unwanted_package "$pkg_base_name"
+
+    msg_3 "Installing fixed vers - $pkg_name"
+    wget "$url" 2>/dev/null || error_msg "Failed to download: $url"
+    apk del "$pkg_base_name" >/dev/null
+    apk add "$pkg_name" >/dev/null || error_msg "Failed to install $pkg_name"
+    msg_3 "$pkg_name installed and version locked"
+    rm "$pkg_name" || {
+        error_msg "Failed to remove downloaded $pkg_name after installing it"
+    }
+}
+
 handle_apks() {
 
+    alpine_apk_update
     msg_1 "apk upgrade"
     apk upgrade || {
         error_msg "apk upgrade failed"
@@ -30,11 +57,32 @@ handle_apks() {
 
     if ! min_release "3.16"; then
         if [ -z "${CORE_APKS##*shadow-login*}" ]; then
-            # This package was introduced starting with Alpine 3.16
-            msg_3 "Excluding not yet available apk 'shadow-login"
-            CORE_APKS="$(echo "$CORE_APKS" | sed 's/shadow-login//')"
+            msg_2 "Excluding packages not yet availabe before 3.16"
+            removing_unwanted_package "shadow-login"
+            removing_unwanted_package "py3-pendulum"
+            removing_unwanted_package "zsh-completions"
+            removing_unwanted_package "zsh-history-substring-search"
         fi
     fi
+    #if ! min_release 3.15; then
+    #    msg_2 "Pre 3.15 procps was called procps-ng"
+    #    CORE_APKS="$(echo "$CORE_APKS" | sed 's/procps/procps-ng/')"
+    # elif min_release "3.19"; then
+    #     msg_3 "Alpine >= 3.19 - procps cant be used"
+    #     removing_unwanted_package procps
+    #fi
+    if min_release "3.20"; then
+        msg_2 "Alpine >= 3.20 - coreutils cant be used"
+        removing_unwanted_package coreutils
+    fi
+
+    min_release "3.19" && {
+        # 3.19 and higher will insta-die if a modern sudo is used....
+        use_older_apk https://dl-cdn.alpinelinux.org/alpine/v3.18/community/x86/sudo-1.9.13_p3-r2.apk
+        # 3.19 and higher has stability issues with modern sqlite
+        use_older_apk https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86/sqlite-libs-3.41.2-r3.apk
+        use_older_apk https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86/sqlite-3.41.2-r3.apk
+    }
 
     if [ -n "$CORE_APKS" ]; then
         msg_1 "Install core packages"
@@ -42,7 +90,7 @@ handle_apks() {
         echo
 
         # In this case we want the variable to expand into its components
-        # shellcheck disable=SC2086
+        # shellcheck disable=SC2086 # in this case variable should expand
         apk add $CORE_APKS || {
             error_msg "apk add CORE_APKS failed"
         }
@@ -56,23 +104,10 @@ handle_apks() {
         echo "$AOK_PKGS_SKIP"
         echo
 
-        #  shellcheck disable=SC2086
+        # In this case we want the variable to expand into its components
+        # shellcheck disable=SC2086 # in this case variable should expand
         apk del $AOK_PKGS_SKIP || error_msg "Failed to delete AOK_PKGS_SKIP"
         echo
-    fi
-    #
-    #  Install some custom apks, where the current repo version cant
-    #  be used, so we use the last known to work on Debian version
-    #  Since they are installed as a file, they are pinned, and wont
-    #  be replaced by an apk upgrade
-    #
-    msg_2 "Custom apks"
-    if wget https://dl-cdn.alpinelinux.org/alpine/v3.10/main/x86/mtr-0.92-r0.apk >/dev/null 2>&1; then
-        msg_3 "mtr - a full screen traceroute"
-        #  shellcheck disable=SC2015
-        apk add ./mtr-0.92-r0.apk && rm mtr-0.92-r0.apk || {
-            error_msg "apk add mtr failed"
-        }
     fi
 
     echo
@@ -93,6 +128,18 @@ prepare_env_etc() {
         ln /etc/init.d/devfs /etc/init.d/dev
     fi
 
+    min_release 3.20 && {
+	#
+	#  Starting with this release, an empty Last Password Change
+	#  for root in /etc/shadow will trigger the harmless warning
+	#    Warning: your password will expire in 0 days.
+	#  to be displayed when doing: sudo su
+	# Setting it to anything but the default 0 will solve this.
+	#
+	msg_2 "Fixing warning about password expire when doing sudo su"
+	sed -i '/^root/c\root:*:1:0:::::' /etc/shadow
+    }
+
     #
     #  If edge/testing isnt added to the repositoris, testing apks can
     #  still be installed. Using mdcat as an example:
@@ -103,7 +150,7 @@ prepare_env_etc() {
         msg_2 "Adding apk repository - testing"
         #    cp /opt/AOK/Alpine/etc/repositories-edge /etc/apk/repositories
         echo "$testing_repo" >>/etc/apk/repositories
-    elif min_release 3.17; then
+    elif min_release 3.19; then
         #
         #  Only works for fairly recent releases, otherwise dependencies won't
         #  work.
@@ -148,7 +195,7 @@ tsa_start="$(date +%s)"
 
 [ -z "$d_aok_etc" ] && . /opt/AOK/tools/utils.sh
 
-ensure_ish_or_chrooted
+ensure_ish_or_chrooted ""
 
 if [ -z "$ALPINE_VERSION" ]; then
     error_msg "ALPINE_VERSION param not supplied"
@@ -157,6 +204,12 @@ fi
 # deploy_starting
 msg_script_title "setup_alpine.sh - Setup Alpine"
 initiate_deploy Alpine "$ALPINE_VERSION"
+
+this_is_aok_kernel && min_release "3.20" && {
+    echo
+    echo "On iSH-AOK rsync and other core bins will fail in Alpine 3.20"
+    error_msg "For now using Alpine 3.19 or older is recomended"
+}
 
 prepare_env_etc
 handle_apks
@@ -188,27 +241,9 @@ setup_cron_env
 
 replace_home_dirs
 
-#
-#  Depending on if prebuilt or not, either setup final tasks to run
-#  on first boot or now.
-#
-if deploy_state_is_it "$deploy_state_pre_build"; then
-    set_new_etc_profile "$setup_final"
-    is_prebuilt=1 # shorthand to avoid doing the above check again
-else
-    "$setup_final"
-fi
+additional_prebuild_tasks
 
-[ -n "$PREBUILD_ADDITIONAL_TASKS" ] && {
-    msg_1 "Running additional setup tasks"
-    echo "---------------"
-    echo "$PREBUILD_ADDITIONAL_TASKS"
-    echo "---------------"
-    $PREBUILD_ADDITIONAL_TASKS || {
-        error_msg "PREBUILD_ADDITIONAL_TASKS returned error"
-    }
-    msg_1 "Returned from the additional prebuild tasks"
-}
+/usr/local/bin/check-env-compatible
 
 display_installed_versions_if_prebuilt
 
@@ -217,12 +252,4 @@ msg_1 "Setup complete!"
 duration="$(($(date +%s) - tsa_start))"
 display_time_elapsed "$duration" "Setup Alpine"
 
-if [ -n "$is_prebuilt" ]; then
-    msg_1 "Prebuild completed, exiting"
-    exit 123
-else
-    msg_1 "Please reboot/restart this app now!"
-    echo "/etc/inittab was changed during the install."
-    echo "In order for this new version to be used, a restart is needed."
-    echo
-fi
+complete_initial_setup

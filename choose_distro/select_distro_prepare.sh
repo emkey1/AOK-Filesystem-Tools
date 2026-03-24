@@ -25,8 +25,9 @@ msg_script_title "select_distro_prepare.sh  Prep for distro select"
 #
 #  Needed in order to find dialog/newt in case they have been updated
 #
-msg_2 "apk update & upgrade"
-apk update && apk upgrade
+alpine_apk_update
+msg_2 "apk upgrade"
+apk upgrade
 
 msg_3 "Installing wget (needed for Debian download) & pigz (multicore untar)"
 apk add wget pigz
