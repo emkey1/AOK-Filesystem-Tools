@@ -142,7 +142,8 @@ AOK_HOSTNAME_SUFFIX="Y"
 # ALPINE_VERSION=3.17.9  # End of Alpine support 2024-11-22
 # ALPINE_VERSION=3.18.8  # End of Alpine support 2025-05-09
 # ALPINE_VERSION=3.19.3  # End of Alpine support 2025-11-01 # TestFlight iSH
-ALPINE_VERSION=3.20.2  # End of Alpine support 2026-04-01
+# ALPINE_VERSION=3.20.2  # previous default
+ALPINE_VERSION=3.22.3
 
 #
 #  For edge releases - Current development tree
@@ -258,20 +259,19 @@ DEB_PKGS=""
 ########################################################################
 
 #
-#  If this type of install is selected, this tarball will be used as
-#  base image. Since apt install tends to be really slow on iSH-AOK,
-#  these images comes with all the default AOK_FS stuff pre-installed
-#  If you want to get rid of some default packages, use DVU_PKGS_SKIP
-#  Best of all if you pre-build, this package removal happens on the
-#  buil-host, so will not have to be done on the dest device!
+#  These are used by the dynamic select-distro bootstrap path.
 #
-#  Devuan 4 has network but no DNS on iSH
+DEVUAN_SUITE="daedalus"
+DEVUAN_ARCH="i386"
+DEVUAN_MIRROR="http://deb.devuan.org/merged"
 #
-DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/07wtt4x38lhg5kvnxw9qf/Devuan4-6-aok-3.tgz?rlkey=1rslv4yj5toyqp2fva5xh5smb"
+#  Used only for direct/prebuilt Devuan image workflows.
+#  Since apt install tends to be really slow on iSH-AOK, these images
+#  come with the default AOK_FS content pre-installed.
 #
-#  Devuan 5 insta-crashes on iSH and has issues in ish-AOK
-#
-# DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
+DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/eitdo5shjdwwtau8osnj6/Devuan5-3-aok-1.tgz?rlkey=h9c97l9bc02sl45j3ald5ti0i"
+# Previous Devuan 4 image:
+# DEVUAN_SRC_IMAGE="https://www.dropbox.com/scl/fi/07wtt4x38lhg5kvnxw9qf/Devuan4-6-aok-3.tgz?rlkey=1rslv4yj5toyqp2fva5xh5smb"
 
 #
 #  Since the Devuan src image comes pre installed as close as possibly

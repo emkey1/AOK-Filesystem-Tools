@@ -205,12 +205,6 @@ fi
 msg_script_title "setup_alpine.sh - Setup Alpine"
 initiate_deploy Alpine "$ALPINE_VERSION"
 
-this_is_aok_kernel && min_release "3.20" && {
-    echo
-    echo "On iSH-AOK rsync and other core bins will fail in Alpine 3.20"
-    error_msg "For now using Alpine 3.19 or older is recomended"
-}
-
 prepare_env_etc
 handle_apks
 

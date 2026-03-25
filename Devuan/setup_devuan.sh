@@ -82,7 +82,7 @@ $setup_famdeb_scr || error_msg "in $setup_famdeb_scr"
 rsync_chown /opt/AOK/Devuan/etc/update-motd.d /etc
 
 # setup_login
-debian_services
+devuan_services
 
 replace_home_dirs
 

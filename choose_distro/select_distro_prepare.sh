@@ -22,15 +22,8 @@ hide_run_as_root=1 . /opt/AOK/tools/run_as_root.sh
 
 msg_script_title "select_distro_prepare.sh  Prep for distro select"
 
-#
-#  Needed in order to find dialog/newt in case they have been updated
-#
-alpine_apk_update
-msg_2 "apk upgrade"
-apk upgrade
-
 msg_3 "Installing wget (needed for Debian download) & pigz (multicore untar)"
-apk add wget pigz
+apk add wget pigz || error_msg "Failed to install select-distro dependencies"
 
 set_new_etc_profile "$setup_select_distro"
 

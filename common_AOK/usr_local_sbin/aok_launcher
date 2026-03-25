@@ -830,12 +830,6 @@ hostfs_is_debian && update_deb_log_kill_cmd
 display_header
 recovery_mode_probe main1
 
-this_is_aok_kernel && hostfs_is_alpine && grep -q 3.20 "$f_rel_alpine" && {
-    echo
-    echo "On iSH-AOK rsync and other core bins will fail in Alpine 3.20"
-    error_msg "For now using Alpine 3.19 or older is recomended" -1
-}
-
 verify_devs
 recovery_mode_probe main2
 

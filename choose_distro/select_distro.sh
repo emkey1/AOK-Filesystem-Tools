@@ -21,9 +21,13 @@ Debian is version 10 (Buster). It was end of lifed 2022-07-18 and is
 thus now unmaintained except for security updates.
 It should be fine for testing Debian with the AOK FS extensions under iSH-AOK.
 
+Devuan is bootstrapped dynamically as Devuan 5 (Daedalus) when selected.
+This is slower than using Alpine and less exercised.
+
 Select distro:
  1 - Alpine $ALPINE_VERSION
  2 - Debian 10
+ 3 - Devuan 5
 "
     echo "$text"
     read -r selection
@@ -43,10 +47,10 @@ Select distro:
         /opt/AOK/choose_distro/install_debian.sh
         ;;
 
-    # 3)
-    #     echo "Devuan selected"
-    #     /opt/AOK/choose_distro/install_devuan.sh
-    #     ;;
+    3)
+        echo "Devuan selected"
+        /opt/AOK/choose_distro/install_devuan.sh
+        ;;
 
     *)
         echo "*****   Invalid selection   *****"

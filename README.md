@@ -19,7 +19,9 @@ universe, speed is a relative concept.
 
 ## What works?
 
-I havent fiddled with the Devuan build for almot two years, so is highly unlikely to do something meaningfull at this point in time. Same with `./build_fs -s` (select), also something I havent used for ages, so higly unlikely to be working. At some point I should do a cleanup and fix what doesnt work
+The Devuan and `./build_fs -s` paths are less exercised than the main Alpine
+and Debian flows, so they should be treated as needing validation after
+changes.
 
 ## Disclaimer
 
@@ -110,10 +112,10 @@ apt remove man-db
 
 ### Devuan File System
 
-DNS resolving doesn't work, so while you can use Devuan, it's not very
-useful beyond testing at the moment. You can use `/etc/hosts`, to add
-hosts, and the hostnames needed for apt handling are included, but this
-is a limited solution to the DNS issue.
+Targeted at Devuan 5. It still needs validation in practice, especially
+around networking and package management on iSH.
+When chosen via `build_fs -s`, Devuan is bootstrapped on first boot from
+the configured mirror instead of unpacking a prebuilt Devuan image.
 
 ## Build Process
 
